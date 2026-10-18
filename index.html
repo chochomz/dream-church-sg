@@ -4,20 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>우리들의 목장 이야기 - 세종꿈의교회 23목장</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- FontAwesome 아이콘 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
         
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background-color: #F8F9FA;
-            color: #333333;
+            background-color: #121212;
+            color: #E0E0E0;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
             overscroll-behavior: none;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
         }
 
         #secret-gate-screen {
@@ -34,15 +37,15 @@
         .church-primary { background-color: #3B5D50; }
         .church-primary-text { color: #3B5D50; }
         .church-accent { background-color: #E8F0EC; }
-        .church-border { border-color: #D4DCD7; }
+        .church-border { border-color: #2A2A2A; }
 
         @keyframes divine-glow {
             0%, 100% {
-                box-shadow: 0 0 10px rgba(255, 255, 255, 0.3), inset 0 0 10px rgba(255, 255, 255, 0.2);
+                box-shadow: 0 0 15px rgba(59, 93, 80, 0.4), inset 0 0 15px rgba(255, 255, 255, 0.2);
                 transform: scale(1);
             }
             50% {
-                box-shadow: 0 0 40px 20px rgba(255, 255, 255, 0.95), inset 0 0 25px rgba(255, 255, 255, 0.7);
+                box-shadow: 0 0 45px 20px rgba(59, 93, 80, 0.8), inset 0 0 25px rgba(255, 255, 255, 0.6);
                 transform: scale(1.04);
             }
         }
@@ -51,21 +54,39 @@
             animation: divine-glow 4s ease-in-out infinite;
         }
 
-        #lightbox-modal, #auth-modal, #write-modal, #confirm-modal {
+        /* Shorts Reel Container Styling */
+        #shorts-feed-container {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: calc(100vh - 60px);
+            height: calc(100dvh - 60px);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .shorts-card {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            height: calc(100vh - 60px);
+            height: calc(100dvh - 60px);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        #lightbox-modal, #auth-modal, #write-modal, #confirm-modal, #comment-drawer {
             touch-action: none;
             overscroll-behavior: contain;
         }
+        
         #lightbox-img {
             transition: transform 0.1s ease-out;
             transform-origin: center center;
         }
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body class="flex flex-col h-screen overflow-hidden">
 
-    <!-- ========================================== -->
-    <!-- 1. 시크릿 입장 화면 ("세종꿈의교회" 글자가 "23목장"보다 더 크게 수정) -->
-    <!-- ========================================== -->
     <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-6 text-white text-center">
         <div class="cursor-pointer select-none group relative inline-block" id="secret-login-area">
             <div class="w-36 h-36 bg-white rounded-full flex items-center justify-center p-3 mx-auto mb-6 shadow-2xl group-active:scale-95 transition-transform border-4 border-white/40 overflow-hidden glowing-logo relative z-10">
@@ -80,35 +101,31 @@
             <div class="absolute inset-0 w-full h-full rounded-full z-20 cursor-pointer" id="secret-tap-overlay"></div>
         </div>
 
-        <!-- 문구 배치: 세종꿈의교회(더 큼) / 23목장 / 두 줄 띄고 / 우리들의 목장 이야기 -->
         <div class="select-none space-y-1">
-            <h1 class="text-3xl font-bold tracking-wider text-white whitespace-nowrap">세종꿈의교회</h1>
-            <h2 class="text-xl font-semibold text-emerald-100 tracking-wide whitespace-nowrap mt-1">23목장</h2>
+            <h1 class="text-4xl font-extrabold tracking-wider text-white whitespace-nowrap">세종꿈의교회</h1>
+            <h2 class="text-2xl font-semibold text-emerald-100 tracking-wide whitespace-nowrap mt-2">23목장</h2>
             <div class="h-6"></div>
-            <p class="text-sm text-emerald-100/90 font-light whitespace-nowrap">우리들의 목장 이야기</p>
+            <p class="text-sm text-emerald-100/90 font-light whitespace-nowrap">쇼츠로 즐기는 우리들의 목장 이야기</p>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 2. 사용자 인증 모달 (새로운 목장 입력 확인 기능 포함) -->
-    <!-- ========================================== -->
-    <div id="auth-modal" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl border church-border">
+    <div id="auth-modal" class="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-[#1E1E1E] text-gray-100 rounded-2xl w-full max-w-sm p-6 shadow-2xl border border-gray-800">
             <div class="text-center mb-5">
-                <div class="w-12 h-12 church-accent church-primary-text rounded-full flex items-center justify-center mx-auto mb-3">
-                    <i class="fa-solid fa-user-shield text-lg"></i>
+                <div class="w-12 h-12 bg-[#3B5D50]/20 text-[#3B5D50] rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-user-shield text-lg text-emerald-400"></i>
                 </div>
-                <h3 class="text-lg font-bold text-gray-800 whitespace-nowrap">목장 멤버 인증</h3>
-                <p class="text-xs text-gray-500 mt-1">지정된 성함과 목장 이름을 입력해 주세요.</p>
+                <h3 class="text-lg font-bold text-white whitespace-nowrap">목장 멤버 인증</h3>
+                <p class="text-xs text-gray-400 mt-1 whitespace-nowrap">성함과 목장 이름을 입력해 주세요.</p>
             </div>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1 whitespace-nowrap">성함 / 직분</label>
-                    <input type="text" id="auth-username-input" placeholder="예: 김목자, 홍길동" class="w-full px-4 py-3 rounded-xl border church-border text-sm focus:outline-none focus:ring-2 focus:ring-[#3B5D50]">
+                    <label class="block text-xs font-medium text-gray-300 mb-1 whitespace-nowrap">성함 / 직분</label>
+                    <input type="text" id="auth-username-input" placeholder="예: 김목자, 홍길동" class="w-full px-4 py-3 rounded-xl bg-[#2A2A2A] border border-gray-700 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#3B5D50]">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1 whitespace-nowrap">목장 이름</label>
-                    <input type="text" id="auth-mokjang-input" value="세종꿈의교회 23목장" class="w-full px-4 py-3 rounded-xl border church-border text-sm focus:outline-none focus:ring-2 focus:ring-[#3B5D50]">
+                    <label class="block text-xs font-medium text-gray-300 mb-1 whitespace-nowrap">목장 이름</label>
+                    <input type="text" id="auth-mokjang-input" value="세종꿈의교회 23목장" class="w-full px-4 py-3 rounded-xl bg-[#2A2A2A] border border-gray-700 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#3B5D50]">
                 </div>
                 <button onclick="handleUserLogin()" class="w-full py-3 church-primary text-white rounded-xl font-medium text-sm shadow-md whitespace-nowrap">
                     입장하기
@@ -117,13 +134,10 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 3. 메인 피드 화면 -->
-    <!-- ========================================== -->
-    <div id="main-feed-screen" class="flex flex-col flex-1 hidden">
-        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b church-border shadow-xs px-4 py-2.5 flex items-center justify-between">
+    <div id="main-feed-screen" class="flex flex-col flex-1 h-full hidden bg-black">
+        <header class="absolute top-0 left-0 right-0 z-30 bg-gradient-to-b from-black/80 to-transparent px-4 py-3 flex items-center justify-between pointer-events-auto">
             <div class="flex items-center space-x-2.5 overflow-hidden">
-                <div class="w-9 h-9 church-primary rounded-full flex items-center justify-center p-0.5 shadow-sm border border-emerald-100 overflow-hidden bg-white shrink-0">
+                <div class="w-8 h-8 church-primary rounded-full flex items-center justify-center p-0.5 shadow-sm border border-emerald-900 overflow-hidden bg-white shrink-0">
                     <svg viewBox="0 0 200 200" class="w-full h-full object-contain scale-110">
                         <polygon points="35,118 100,118 100,58" fill="#5B9BD5" />
                         <path d="M 100,118 L 165,88 C 140,130 110,155 90,173 C 92,158 94,143 96,128 C 98,128 100,128 100,118 Z" fill="#203E78" />
@@ -132,70 +146,91 @@
                     </svg>
                 </div>
                 <div class="overflow-hidden">
-                    <h1 class="text-xs font-bold text-gray-800 truncate" id="header-mokjang-title">세종꿈의교회 23목장</h1>
-                    <p class="text-[10px] text-gray-500 truncate" id="header-user-display">로그인 정보 없음</p>
+                    <h1 class="text-xs font-bold text-white truncate whitespace-nowrap" id="header-mokjang-title">세종꿈의교회 23목장</h1>
+                    <p class="text-[10px] text-gray-300 truncate whitespace-nowrap" id="header-user-display">로그인 정보 없음</p>
                 </div>
             </div>
-            <div class="shrink-0">
-                <button onclick="openWriteModal()" class="px-3 py-1.5 church-accent church-primary-text rounded-lg text-xs font-medium flex items-center space-x-1 shadow-xs whitespace-nowrap">
-                    <i class="fa-solid fa-camera text-xs"></i>
+            <div class="shrink-0 flex items-center space-x-2">
+                <button onclick="openWriteModal()" class="px-3 py-1.5 bg-emerald-700/80 hover:bg-emerald-600 text-white rounded-lg text-xs font-medium flex items-center space-x-1 shadow-md backdrop-blur-md whitespace-nowrap">
+                    <i class="fa-solid fa-plus text-xs"></i>
                     <span>글쓰기</span>
                 </button>
             </div>
         </header>
 
-        <main class="flex-1 max-w-lg w-full mx-auto p-3 space-y-4 pb-24" id="feed-container">
-            <!-- 동적 피드 카드가 이곳에 렌더링 됩니다 -->
+        <!-- Shorts Vertical Scrolling Feed -->
+        <main class="flex-1 w-full max-w-md mx-auto relative overflow-hidden" id="shorts-feed-container">
+            <!-- Dynamic shorts feed cards rendered here -->
         </main>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 4. 게시글 작성/수정 모달 -->
-    <!-- ========================================== -->
-    <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl border church-border max-h-[90vh] overflow-y-auto">
+    <div id="comment-drawer" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex flex-col justify-end hidden">
+        <div class="bg-[#1E1E1E] text-gray-100 rounded-t-3xl w-full max-w-md mx-auto p-4 shadow-2xl border-t border-gray-800 flex flex-col max-h-[70vh]">
+            <div class="flex items-center justify-between pb-3 border-b border-gray-800">
+                <h3 class="text-sm font-bold text-white whitespace-nowrap">댓글 <span id="comment-count-title">0</span>개</h3>
+                <button onclick="closeCommentDrawer()" class="text-gray-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <div id="comment-list-container" class="flex-1 overflow-y-auto py-3 space-y-2.5">
+                <!-- Dynamic comments list -->
+            </div>
+            <div class="pt-2 border-t border-gray-800 flex space-x-2">
+                <input type="hidden" id="active-comment-post-id" value="">
+                <input type="text" id="drawer-comment-input" placeholder="따뜻한 댓글을 남겨주세요..." class="flex-1 px-3 py-2.5 rounded-xl bg-[#2A2A2A] border border-gray-700 text-xs text-white focus:outline-none focus:ring-2 focus:ring-[#3B5D50]">
+                <button onclick="submitDrawerComment()" class="px-4 py-2.5 church-primary text-white rounded-xl text-xs font-medium whitespace-nowrap">등록</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="write-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-[#1E1E1E] text-gray-100 rounded-2xl w-full max-w-lg p-5 shadow-2xl border border-gray-800 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-bold text-gray-800 whitespace-nowrap" id="modal-title-text"><i class="fa-solid fa-camera church-primary-text mr-1.5"></i>목장 이야기 올리기</h3>
-                <button onclick="closeWriteModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+                <h3 class="text-sm font-bold text-white whitespace-nowrap" id="modal-title-text"><i class="fa-solid fa-camera text-emerald-400 mr-1.5"></i>목장 이야기 올리기</h3>
+                <button onclick="closeWriteModal()" class="text-gray-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             <div class="space-y-3">
                 <input type="hidden" id="editing-post-id" value="">
                 <div>
-                    <label class="block text-[11px] font-medium text-gray-600 mb-1 whitespace-nowrap">목장 이름</label>
-                    <input type="text" id="post-mokjang-name" value="세종꿈의교회 23목장" class="w-full px-3 py-2 rounded-xl border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none" readonly>
+                    <label class="block text-[11px] font-medium text-gray-300 mb-1 whitespace-nowrap">목장 이름</label>
+                    <input type="text" id="post-mokjang-name" value="세종꿈의교회 23목장" class="w-full px-3 py-2 rounded-xl bg-[#2A2A2A] border border-gray-700 text-xs text-white focus:outline-none" readonly>
                 </div>
                 
                 <div class="space-y-2">
-                    <label class="block text-[11px] font-medium text-gray-600 whitespace-nowrap">사진 추가 방식</label>
+                    <div class="flex justify-between items-center">
+                        <label class="block text-[11px] font-medium text-gray-300 whitespace-nowrap">사진 추가 (최대 5장)</label>
+                        <span id="image-count-indicator" class="text-[10px] text-gray-400">0 / 5장</span>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-2">
-                        <label class="border church-border rounded-xl p-2.5 text-center cursor-pointer hover:bg-emerald-50 text-xs flex items-center justify-center space-x-1.5 transition-colors">
-                            <i class="fa-solid fa-file-arrow-up church-primary-text"></i>
-                            <span class="font-medium text-gray-700">파일/카메라 선택</span>
-                            <input type="file" id="post-file-input" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                        <label class="border border-gray-700 bg-[#2A2A2A] rounded-xl py-2 px-1 text-center cursor-pointer hover:bg-gray-800 text-xs flex items-center justify-center space-x-1 transition-colors overflow-hidden">
+                            <i class="fa-solid fa-file-arrow-up text-emerald-400 shrink-0"></i>
+                            <span class="font-medium text-gray-200 whitespace-nowrap truncate text-[11px]">사진/파일 선택</span>
+                            <input type="file" id="post-multi-file-input" accept="image/*" multiple class="hidden" onchange="handleFilesSelect(event)">
                         </label>
-                        <button type="button" onclick="toggleUrlInput()" class="border church-border rounded-xl p-2.5 text-center hover:bg-emerald-50 text-xs flex items-center justify-center space-x-1.5 transition-colors">
-                            <i class="fa-solid fa-link church-primary-text"></i>
-                            <span class="font-medium text-gray-700">웹 주소(URL) 입력</span>
+                        <button type="button" onclick="toggleUrlInput()" class="border border-gray-700 bg-[#2A2A2A] rounded-xl py-2 px-1 text-center hover:bg-gray-800 text-xs flex items-center justify-center space-x-1 transition-colors overflow-hidden">
+                            <i class="fa-solid fa-link text-emerald-400 shrink-0"></i>
+                            <span class="font-medium text-gray-200 whitespace-nowrap truncate text-[11px]">웹주소(URL) 입력</span>
                         </button>
                     </div>
 
-                    <div id="file-preview-container" class="hidden relative mt-2 bg-gray-50 rounded-xl p-2 border church-border text-center">
-                        <img id="file-preview-img" src="" alt="미리보기" class="max-h-40 mx-auto rounded-lg object-contain">
-                        <button type="button" onclick="clearFileSelection()" class="absolute top-3 right-3 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center shadow"><i class="fa-solid fa-xmark"></i></button>
+                    <div id="selected-images-grid" class="grid grid-cols-3 gap-2 mt-2">
+                        <!-- Dynamic thumbnails -->
                     </div>
 
-                    <div id="url-input-container" class="hidden mt-2">
-                        <input type="text" id="post-image-url" placeholder="이미지 주소(https://...)를 입력하세요" class="w-full px-3 py-2 rounded-xl border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none">
+                    <div id="url-input-container" class="hidden mt-2 space-y-2">
+                        <div class="flex space-x-1.5">
+                            <input type="text" id="post-image-url" placeholder="https://..." class="flex-1 px-3 py-2 rounded-xl bg-[#2A2A2A] border border-gray-700 text-xs text-white focus:outline-none">
+                            <button type="button" onclick="addUrlImage()" class="px-3 py-2 bg-emerald-800 text-white rounded-xl text-xs font-medium whitespace-nowrap">추가</button>
+                        </div>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-medium text-gray-600 mb-1 whitespace-nowrap">이야기 나누기</label>
-                    <textarea id="post-content" rows="3" placeholder="즐거웠던 목장 모임이나 사역 소식을 남겨주세요..." class="w-full px-3 py-2 rounded-xl border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none resize-none"></textarea>
+                    <label class="block text-[11px] font-medium text-gray-300 mb-1 whitespace-nowrap">이야기 나누기</label>
+                    <textarea id="post-content" rows="3" placeholder="즐거웠던 목장 모임이나 사역 소식을 남겨주세요..." class="w-full px-3 py-2 rounded-xl bg-[#2A2A2A] border border-gray-700 text-xs text-white focus:outline-none resize-none"></textarea>
                 </div>
                 <div class="flex items-center space-x-2 pt-1">
-                    <input type="checkbox" id="post-display-check" checked class="w-4 h-4 text-[#3B5D50] rounded border-gray-300">
-                    <label for="post-display-check" class="text-xs text-gray-700 font-medium whitespace-nowrap">피드에 즉시 노출</label>
+                    <input type="checkbox" id="post-display-check" checked class="w-4 h-4 text-[#3B5D50] rounded border-gray-700 bg-[#2A2A2A]">
+                    <label for="post-display-check" class="text-xs text-gray-300 font-medium whitespace-nowrap">피드에 즉시 노출</label>
                 </div>
                 <button onclick="submitNewPost()" class="w-full py-2.5 church-primary text-white rounded-xl font-medium text-xs shadow-md whitespace-nowrap" id="submit-btn-text">
                     등록하기
@@ -204,29 +239,23 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 5. 커스텀 삭제 확인 모달 -->
-    <!-- ========================================== -->
-    <div id="confirm-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl w-full max-w-xs p-6 shadow-2xl border church-border text-center space-y-4">
-            <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto text-lg">
+    <div id="confirm-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-[#1E1E1E] text-gray-100 rounded-2xl w-full max-w-xs p-6 shadow-2xl border border-gray-800 text-center space-y-4">
+            <div class="w-12 id-alert bg-rose-500/20 text-rose-400 rounded-full flex items-center justify-center mx-auto text-lg h-12">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
             <div>
-                <h3 class="text-base font-bold text-gray-800">게시글 삭제</h3>
-                <p class="text-xs text-gray-500 mt-1">정말 이 이야기를 삭제하시겠습니까?</p>
+                <h3 class="text-base font-bold text-white whitespace-nowrap">게시글 삭제</h3>
+                <p class="text-xs text-gray-400 mt-1 whitespace-nowrap">정말 이 이야기를 삭제하시겠습니까?</p>
             </div>
             <div class="grid grid-cols-2 gap-2 pt-2">
-                <button onclick="closeConfirmModal()" class="py-2.5 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium">취소</button>
-                <button id="confirm-yes-btn" class="py-2.5 bg-rose-500 text-white rounded-xl text-xs font-medium">삭제하기</button>
+                <button onclick="closeConfirmModal()" class="py-2.5 bg-gray-800 text-gray-300 rounded-xl text-xs font-medium whitespace-nowrap">취소</button>
+                <button id="confirm-yes-btn" class="py-2.5 bg-rose-600 text-white rounded-xl text-xs font-medium whitespace-nowrap">삭제하기</button>
             </div>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- 6. 사진 확대보기 라이트박스 -->
-    <!-- ========================================== -->
-    <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center hidden">
+    <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/95 flex items-center justify-center hidden">
         <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white text-xl p-2 z-50"><i class="fa-solid fa-xmark"></i></button>
         <div class="overflow-hidden w-full h-full flex items-center justify-center relative">
             <img id="lightbox-img" src="" alt="확대 이미지" class="max-w-full max-h-full object-contain select-none">
@@ -236,14 +265,6 @@
         </div>
     </div>
 
-    <footer class="text-center py-5 text-[11px] text-gray-400 border-t church-border bg-white mt-auto">
-        <p class="whitespace-nowrap">그리스도의 은혜를 나누는 마음</p>
-        <p class="mt-0.5 whitespace-nowrap">세종꿈의교회 23목장</p>
-    </footer>
-
-    <!-- ========================================== -->
-    <!-- Firebase SDK 및 연동 로직 -->
-    <!-- ========================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -264,8 +285,9 @@
         let tapTimer = null;
         let currentUser = null;
         let currentMokjang = "세종꿈의교회 23목장";
-        let uploadedBase64Image = null;
+        let selectedImagesList = [];
         let postToDeleteId = null;
+        let activeCommentPost = null;
 
         const tapOverlay = document.getElementById('secret-tap-overlay');
         tapOverlay.addEventListener('click', (e) => {
@@ -289,12 +311,9 @@
             if (!usernameInput) { alert('성함이나 직분을 입력해 주세요.'); return; }
             if (!mokjangInput) { alert('목장 이름을 입력해 주세요.'); return; }
 
-            // 목장 이름이 기존과 다를 경우 새로운 목장으로 입력할 것인지 확인
             if (mokjangInput !== currentMokjang) {
                 const isNewMokjang = confirm(`입력하신 목장 이름("${mokjangInput}")이 기존과 다릅니다. 새로운 목장으로 입력할까요?`);
-                if (!isNewMokjang) {
-                    return; // 사용자가 취소하면 중단
-                }
+                if (!isNewMokjang) return;
             }
 
             currentUser = usernameInput;
@@ -310,55 +329,131 @@
             loadMokjangFeed();
         };
 
-        window.handleFileSelect = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
+        function compressImage(file, callback) {
             const reader = new FileReader();
-            reader.onload = function(e) {
-                uploadedBase64Image = e.target.result;
-                document.getElementById('file-preview-img').src = uploadedBase64Image;
-                document.getElementById('file-preview-container').classList.remove('hidden');
-                document.getElementById('url-input-container').classList.add('hidden');
-                document.getElementById('post-image-url').value = '';
+            reader.onload = function (e) {
+                const img = new Image();
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 1024;
+
+                    if (width > height && width > maxDim) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    } else if (height > maxDim) {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    callback(dataUrl);
+                };
+                img.src = e.target.result;
             };
             reader.readAsDataURL(file);
+        }
+
+        window.handleFilesSelect = function(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            const remainingSlots = 5 - selectedImagesList.length;
+            if (remainingSlots <= 0) {
+                alert('사진은 최대 5장까지만 등록할 수 있습니다.');
+                return;
+            }
+
+            const filesToProcess = Array.from(files).slice(0, remainingSlots);
+            filesToProcess.forEach(file => {
+                compressImage(file, function(compressedDataUrl) {
+                    selectedImagesList.push(compressedDataUrl);
+                    renderImagePreviews();
+                });
+            });
+            event.target.value = '';
         };
 
-        window.clearFileSelection = function() {
-            uploadedBase64Image = null;
-            document.getElementById('file-preview-container').classList.add('hidden');
-            document.getElementById('file-preview-img').src = '';
-            document.getElementById('post-file-input').value = '';
+        window.addUrlImage = function() {
+            const urlInput = document.getElementById('post-image-url');
+            const url = urlInput.value.trim();
+            if (!url) return;
+
+            if (selectedImagesList.length >= 5) {
+                alert('사진은 최대 5장까지만 등록할 수 있습니다.');
+                return;
+            }
+
+            selectedImagesList.push(url);
+            urlInput.value = '';
+            renderImagePreviews();
+        };
+
+        window.removeSelectedImage = function(index) {
+            selectedImagesList.splice(index, 1);
+            renderImagePreviews();
         };
 
         window.toggleUrlInput = function() {
-            const container = document.getElementById('url-input-container');
-            container.classList.toggle('hidden');
-            if (!container.classList.contains('hidden')) {
-                clearFileSelection();
-            }
+            document.getElementById('url-input-container').classList.toggle('hidden');
         };
 
-        window.openWriteModal = function(postId = null, existingContent = "", existingImageUrl = "") {
+        window.triggerFilePicker = function() {
+            if (selectedImagesList.length >= 5) {
+                alert('최대 5장까지 선택되었습니다.');
+                return;
+            }
+            document.getElementById('post-multi-file-input').click();
+        };
+
+        function renderImagePreviews() {
+            const grid = document.getElementById('selected-images-grid');
+            const indicator = document.getElementById('image-count-indicator');
+            grid.innerHTML = "";
+            indicator.innerText = `${selectedImagesList.length} / 5장`;
+
+            selectedImagesList.forEach((imgSrc, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = "relative bg-gray-800 rounded-xl aspect-square overflow-hidden border border-gray-700 flex items-center justify-center";
+                thumb.innerHTML = `
+                    <img src="${imgSrc}" class="w-full h-full object-cover">
+                    <button type="button" onclick="removeSelectedImage(${idx})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center shadow"><i class="fa-solid fa-xmark"></i></button>
+                `;
+                grid.appendChild(thumb);
+            });
+
+            if (selectedImagesList.length < 5) {
+                const addBtn = document.createElement('button');
+                addBtn.type = "button";
+                addBtn.onclick = triggerFilePicker;
+                addBtn.className = "border-2 border-dashed border-gray-700 rounded-xl aspect-square flex flex-col items-center justify-center text-gray-400 hover:bg-gray-800 transition-colors";
+                addBtn.innerHTML = `
+                    <i class="fa-solid fa-plus text-base mb-1 text-emerald-400"></i>
+                    <span class="text-[10px] whitespace-nowrap">사진 추가</span>
+                `;
+                grid.appendChild(addBtn);
+            }
+        }
+
+        window.openWriteModal = function(postId = null, existingContent = "", existingImages = []) {
             document.getElementById('editing-post-id').value = postId || "";
             document.getElementById('post-content').value = existingContent || "";
-            document.getElementById('post-image-url').value = existingImageUrl && !existingImageUrl.startsWith('data:') ? existingImageUrl : "";
             document.getElementById('post-mokjang-name').value = currentMokjang;
             
-            if (existingImageUrl && existingImageUrl.startsWith('data:')) {
-                uploadedBase64Image = existingImageUrl;
-                document.getElementById('file-preview-img').src = existingImageUrl;
-                document.getElementById('file-preview-container').classList.remove('hidden');
-            } else {
-                clearFileSelection();
-            }
+            selectedImagesList = Array.isArray(existingImages) ? [...existingImages] : (existingImages ? [existingImages] : []);
+            renderImagePreviews();
 
             if (postId) {
-                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-pen-to-square church-primary-text mr-1.5"></i>목장 이야기 수정하기`;
+                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-pen-to-square text-emerald-400 mr-1.5"></i>목장 이야기 수정하기`;
                 document.getElementById('submit-btn-text').innerText = "수정 완료";
             } else {
-                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-camera church-primary-text mr-1.5"></i>목장 이야기 올리기`;
+                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-camera text-emerald-400 mr-1.5"></i>목장 이야기 올리기`;
                 document.getElementById('submit-btn-text').innerText = "등록하기";
             }
 
@@ -367,39 +462,39 @@
 
         window.closeWriteModal = function() {
             document.getElementById('write-modal').classList.add('hidden');
-            clearFileSelection();
+            selectedImagesList = [];
             document.getElementById('post-content').value = '';
-            document.getElementById('post-image-url').value = '';
             document.getElementById('editing-post-id').value = '';
         };
 
         window.submitNewPost = async function() {
             const postId = document.getElementById('editing-post-id').value;
-            const mokjangName = currentMokjang; // 현재 로그인된 목장 이름으로 고정 자동 반영
-            const urlInput = document.getElementById('post-image-url').value.trim();
+            const mokjangName = currentMokjang;
             const content = document.getElementById('post-content').value.trim();
             const isChecked = document.getElementById('post-display-check').checked;
-
-            const finalImageUrl = uploadedBase64Image || urlInput || "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=800&q=80";
 
             if (!content) {
                 alert('이야기 내용을 입력해 주세요.');
                 return;
             }
 
+            const finalImages = selectedImagesList.length > 0 ? selectedImagesList : ["https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=800&q=80"];
+
             try {
                 if (postId) {
                     const postRef = doc(db, "mokjang_posts", postId);
                     await updateDoc(postRef, {
                         content: content,
-                        imageUrl: finalImageUrl,
+                        images: finalImages,
+                        imageUrl: finalImages[0],
                         isChecked: isChecked
                     });
                 } else {
                     await addDoc(collection(db, "mokjang_posts"), {
                         mokjangName: mokjangName,
-                        author: currentUser, // 로그인한 관리자/멤버 이름 자동 반영
-                        imageUrl: finalImageUrl,
+                        author: currentUser,
+                        images: finalImages,
+                        imageUrl: finalImages[0],
                         content: content,
                         isChecked: isChecked,
                         likes: 0,
@@ -437,7 +532,7 @@
         });
 
         function loadMokjangFeed() {
-            const feedContainer = document.getElementById('feed-container');
+            const feedContainer = document.getElementById('shorts-feed-container');
             const q = query(
                 collection(db, "mokjang_posts"),
                 where("mokjangName", "==", currentMokjang),
@@ -449,9 +544,9 @@
                 
                 if (snapshot.empty) {
                     feedContainer.innerHTML = `
-                        <div class="text-center py-16 text-gray-400">
-                            <i class="fa-solid fa-camera-retro text-3xl mb-2 opacity-40"></i>
-                            <p class="text-xs">등록된 목장 이야기가 없습니다.</p>
+                        <div class="flex flex-col items-center justify-center h-full text-gray-500 space-y-2">
+                            <i class="fa-solid fa-camera-retro text-4xl opacity-40"></i>
+                            <p class="text-xs whitespace-nowrap">등록된 목장 이야기가 없습니다.</p>
                         </div>
                     `;
                     return;
@@ -472,69 +567,61 @@
                     const hasLiked = post.likedUsers && post.likedUsers.includes(currentUser);
                     const isAuthor = post.author === currentUser;
                     const card = document.createElement('div');
-                    card.className = "bg-white rounded-2xl overflow-hidden shadow-xs border church-border space-y-2.5 pb-3";
+                    card.className = "shorts-card w-full relative bg-black flex flex-col justify-end";
                     
-                    let commentsHtml = '';
-                    if (post.comments && post.comments.length > 0) {
-                        commentsHtml = post.comments.map(c => `
-                            <div class="bg-gray-50 rounded-xl p-2 text-xs flex justify-between items-start">
-                                <div>
-                                    <span class="font-bold text-gray-700 mr-2">${c.author}</span>
-                                    <span class="text-gray-600">${c.text}</span>
-                                </div>
-                                <span class="text-[10px] text-gray-400 shrink-0 ml-2">${c.time || ''}</span>
-                            </div>
-                        `).join('');
-                    }
+                    const imgArray = post.images && Array.isArray(post.images) ? post.images : (post.imageUrl ? [post.imageUrl] : []);
+                    let bgImg = imgArray.length > 0 ? imgArray[0] : '';
 
                     let authorActionsHtml = '';
                     if (isAuthor) {
+                        const imagesParam = JSON.stringify(imgArray).replace(/"/g, '&quot;');
                         authorActionsHtml = `
-                            <div class="flex items-center space-x-2 text-[11px]">
-                                <button onclick="openWriteModal('${post.id}', \`${escapeHtml(post.content)}\`, '${post.imageUrl}')" class="text-emerald-700 hover:underline">수정</button>
-                                <span class="text-gray-300">|</span>
-                                <button onclick="confirmDeletePost('${post.id}')" class="text-rose-500 hover:underline">삭제</button>
+                            <div class="flex items-center space-x-2 text-[11px] bg-black/40 px-2 py-1 rounded-lg backdrop-blur-md">
+                                <button onclick="openWriteModal('${post.id}', \`${escapeHtml(post.content)}\`, ${imagesParam})" class="text-emerald-400 hover:underline whitespace-nowrap">수정</button>
+                                <span class="text-gray-500">|</span>
+                                <button onclick="confirmDeletePost('${post.id}')" class="text-rose-400 hover:underline whitespace-nowrap">삭제</button>
                             </div>
                         `;
                     }
 
                     card.innerHTML = `
-                        <div class="flex items-center justify-between px-3 pt-3">
-                            <div class="flex items-center space-x-2 overflow-hidden">
-                                <div class="w-7 h-7 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-xs shrink-0">
+                        <!-- Background Image or Slide -->
+                        <div class="absolute inset-0 z-0 bg-neutral-900 overflow-hidden flex items-center justify-center cursor-pointer" onclick="openLightbox('${bgImg}')">
+                            <img src="${bgImg}" class="w-full h-full object-cover brightness-90" alt="목장 사진">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/30"></div>
+                        </div>
+
+                        <!-- Right Sidebar Action Buttons (Shorts Style) -->
+                        <div class="absolute right-3 bottom-24 z-20 flex flex-col items-center space-y-4">
+                            <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex flex-col items-center space-y-1 group">
+                                <div class="w-12 h-12 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white shadow-lg border border-white/10 group-active:scale-90 transition-transform">
+                                    <i class="${hasLiked ? 'fa-solid text-rose-500' : 'fa-regular text-white'} fa-heart text-xl"></i>
+                                </div>
+                                <span class="text-[11px] font-bold text-white shadow-text">${post.likes || 0}</span>
+                            </button>
+
+                            <button onclick="openCommentDrawer('${post.id}')" class="flex flex-col items-center space-y-1 group">
+                                <div class="w-12 h-12 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white shadow-lg border border-white/10 group-active:scale-90 transition-transform">
+                                    <i class="fa-regular fa-comment-dots text-xl"></i>
+                                </div>
+                                <span class="text-[11px] font-bold text-white shadow-text">${post.comments ? post.comments.length : 0}</span>
+                            </button>
+                        </div>
+
+                        <!-- Bottom Content Overlay -->
+                        <div class="relative z-20 p-4 pb-8 space-y-2 max-w-[80%]">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 rounded-full bg-emerald-800 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-md">
                                     ${post.author.charAt(0)}
                                 </div>
                                 <div class="overflow-hidden">
-                                    <span class="text-xs font-bold text-gray-800 truncate block">${post.author}</span>
+                                    <span class="text-xs font-bold text-white truncate block whitespace-nowrap">${post.author}</span>
+                                    <span class="text-[10px] text-gray-300 block whitespace-nowrap">${formatDate(post.createdAt)}</span>
                                 </div>
-                            </div>
-                            <div class="flex items-center space-x-2">
                                 ${authorActionsHtml}
-                                <span class="text-[10px] text-gray-400 shrink-0">${formatDate(post.createdAt)}</span>
                             </div>
-                        </div>
-
-                        <div class="w-full bg-black/5 overflow-hidden cursor-pointer" onclick="openLightbox('${post.imageUrl}')">
-                            <img src="${post.imageUrl}" alt="목장 이야기 사진" class="w-full max-h-80 object-cover">
-                        </div>
-
-                        <div class="px-3 space-y-2">
-                            <div class="text-xs text-gray-700 leading-relaxed">${escapeHtml(post.content)}</div>
-                            
-                            <div class="flex items-center justify-between pt-2 border-t church-border">
-                                <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 text-xs font-medium ${hasLiked ? 'text-rose-500' : 'text-gray-500'}">
-                                    <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i>
-                                    <span>${post.likes || 0}</span>
-                                </button>
-                                <span class="text-[11px] text-gray-400"><i class="fa-regular fa-comment-dots mr-1"></i>댓글 ${post.comments ? post.comments.length : 0}</span>
-                            </div>
-
-                            <div class="space-y-1.5 pt-1">
-                                <div class="space-y-1 max-h-28 overflow-y-auto">${commentsHtml}</div>
-                                <div class="flex space-x-1.5 pt-1">
-                                    <input type="text" id="comment-input-${post.id}" placeholder="댓글을 남겨주세요..." class="flex-1 px-3 py-1.5 rounded-xl border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none">
-                                    <button onclick="addComment('${post.id}')" class="px-3 py-1.5 church-primary text-white rounded-xl text-xs font-medium whitespace-nowrap">등록</button>
-                                </div>
+                            <div class="text-xs text-gray-100 leading-relaxed line-clamp-3 font-light">
+                                ${escapeHtml(post.content)}
                             </div>
                         </div>
                     `;
@@ -554,10 +641,59 @@
             } catch (error) { console.error("좋아요 오류:", error); }
         };
 
-        window.addComment = async function(postId) {
-            const inputEl = document.getElementById(`comment-input-${postId}`);
+        window.openCommentDrawer = function(postId) {
+            activeCommentPost = postId;
+            document.getElementById('active-comment-post-id').value = postId;
+            document.getElementById('comment-drawer').classList.remove('hidden');
+            loadCommentsForPost(postId);
+        };
+
+        window.closeCommentDrawer = function() {
+            document.getElementById('comment-drawer').classList.add('hidden');
+            activeCommentPost = null;
+        };
+
+        function loadCommentsForPost(postId) {
+            const container = document.getElementById('comment-list-container');
+            const countTitle = document.getElementById('comment-count-title');
+            
+            const postRef = doc(db, "mokjang_posts", postId);
+            onSnapshot(postRef, (docSnap) => {
+                if (!docSnap.exists()) return;
+                const data = docSnap.data();
+                const comments = data.comments || [];
+                countTitle.innerText = comments.length;
+                
+                container.innerHTML = "";
+                if (comments.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-10 text-gray-500 text-xs whitespace-nowrap">
+                            아직 작성된 댓글이 없습니다. 첫 댓글을 남겨보세요!
+                        </div>
+                    `;
+                    return;
+                }
+
+                comments.forEach(c => {
+                    const item = document.createElement('div');
+                    item.className = "bg-[#2A2A2A] rounded-xl p-2.5 text-xs flex justify-between items-start";
+                    item.innerHTML = `
+                        <div>
+                            <span class="font-bold text-emerald-400 mr-2 whitespace-nowrap">${c.author}</span>
+                            <span class="text-gray-200">${escapeHtml(c.text)}</span>
+                        </div>
+                        <span class="text-[10px] text-gray-500 shrink-0 ml-2 whitespace-nowrap">${c.time || ''}</span>
+                    `;
+                    container.appendChild(item);
+                });
+            });
+        }
+
+        window.submitDrawerComment = async function() {
+            const postId = document.getElementById('active-comment-post-id').value;
+            const inputEl = document.getElementById('drawer-comment-input');
             const text = inputEl.value.trim();
-            if (!text) return;
+            if (!text || !postId) return;
 
             const now = new Date();
             const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
