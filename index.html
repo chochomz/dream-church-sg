@@ -9,7 +9,7 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Pretendard 모바일 최적화 웹폰트 */
+        /* Pretendard 웹폰트 */
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         
         html, body {
@@ -29,7 +29,7 @@
         .church-accent { background-color: #E8F0EC; }
         .church-border { border-color: #E5E7EB; }
 
-        /* 부드러운 스크롤 */
+        /* 피드 스크롤 최적화 */
         #feed-container {
             -webkit-overflow-scrolling: touch;
             overflow-y: auto;
@@ -43,16 +43,19 @@
             border-radius: 4px;
         }
 
+        /* 모달 터치 제어 */
         #lightbox-modal, #write-modal, #confirm-modal, #save-confirm-modal, #edit-confirm-modal, #comments-popup-modal {
             touch-action: none;
             overscroll-behavior: contain;
         }
+
+        /* 사진 뷰어 이미지 변환 */
         #lightbox-img {
             transition: transform 0.15s ease-out;
             transform-origin: center center;
         }
 
-        /* 하나의 테두리 안에 여러 사진이 부드럽게 이어지는 연속 프레임 */
+        /* 사진 통합 컨테이너 */
         .continuous-photo-container {
             border: 1px solid #E5E7EB;
             border-radius: 14px;
@@ -73,12 +76,12 @@
             opacity: 0.92;
         }
         
-        /* 사진 사이의 1px 실선 구분 */
+        /* 사진 사이 구분선 */
         .photo-block-item:not(:last-child) {
             border-bottom: 1px solid #E5E7EB;
         }
 
-        /* 연필 캡션: 테두리 없이 위 사진에 가깝게 붙고, 아래 사진과는 확실한 갭(mb-2.5) 부여 */
+        /* 사진별 연필 캡션 텍스트 */
         .photo-caption-text {
             font-size: 13.5px;
             line-height: 1.5;
@@ -90,7 +93,7 @@
             overflow-wrap: anywhere;
         }
 
-        /* 오른쪽 상단 슬라이드 메뉴 애니메이션 */
+        /* 오른쪽 상단 연한 연두색 슬라이드 메뉴 애니메이션 */
         .slide-menu-container {
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             transform-origin: right center;
@@ -171,21 +174,21 @@
         </div>
     </div>
 
-    <!-- [글쓰기 / 수정 모달] -->
+    <!-- [글쓰기 / 수정 모달: 흔들림 없는 고정 축소 레이아웃] -->
     <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-4 shadow-2xl border church-border max-h-[90vh] flex flex-col overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-4 shadow-2xl border church-border max-h-[88vh] flex flex-col overflow-hidden">
             <div class="flex items-center justify-between pb-2 border-b church-border shrink-0">
                 <h3 class="text-sm font-bold text-gray-800" id="modal-title-text"><i class="fa-solid fa-camera church-primary-text mr-1.5"></i>목장 이야기 올리기</h3>
                 <button onclick="closeWriteModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             
-            <div class="space-y-3 flex-1 overflow-y-auto pt-3">
+            <div class="space-y-3 flex-1 overflow-y-auto pt-3 px-0.5">
                 <input type="hidden" id="editing-post-id" value="">
                 
                 <!-- 사진 첨부 영역 -->
                 <div class="space-y-1.5">
                     <div class="flex justify-between items-center text-[11px]">
-                        <label class="font-medium text-gray-700">사진 추가 (최대 5장)</label>
+                        <label class="font-medium text-gray-700">사진 등록 (최대 5장)</label>
                         <span id="image-count-indicator" class="text-gray-400">0 / 5장</span>
                     </div>
 
@@ -193,26 +196,26 @@
                     <input type="file" id="post-multi-file-input" accept="image/*" multiple class="hidden" onchange="handleFilesSelect(event)">
 
                     <!-- 사진 썸네일 & '+' 추가 버튼 중앙 정렬 -->
-                    <div id="selected-images-grid" class="flex flex-wrap items-center justify-center gap-2 py-1.5"></div>
+                    <div id="selected-images-grid" class="flex flex-wrap items-center justify-center gap-2 py-1 bg-gray-50/60 rounded-xl border border-gray-100 min-h-[72px]"></div>
                 </div>
 
-                <!-- 내용 입력 영역 (터치 포커스 시 점선 테두리 변환) -->
+                <!-- 내용 입력 영역 -->
                 <div class="w-full" id="post-content-container">
                     <div class="flex justify-between items-center mb-1 text-[11px]">
                         <span class="font-medium text-gray-700">내용 입력</span>
                         <span id="char-count-indicator" class="text-gray-400">0 / 200자</span>
                     </div>
-                    <textarea id="post-content" rows="4" maxlength="200" oninput="updateCharCount(this)" placeholder="목장 가족들과 나눌 따뜻한 이야기를 입력하세요..." 
+                    <textarea id="post-content" rows="3" maxlength="200" oninput="updateCharCount(this)" placeholder="목장 가족들과 나눌 따뜻한 이야기를 입력하세요..." 
                               class="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] text-sm focus:border-2 focus:border-dashed focus:border-[#3B5D50] focus:outline-none resize-none bg-white block transition-all"></textarea>
                 </div>
+            </div>
 
-                <!-- 등록하기 버튼 (중앙 배치 & 콤팩트 사이즈) -->
-                <div class="pt-2 flex justify-center">
-                    <button type="button" onclick="requestSavePost()" class="px-6 py-2.5 church-primary text-white rounded-xl font-semibold text-xs shadow-md active:scale-95 transition-all inline-flex items-center space-x-1.5" id="submit-btn-text">
-                        <i class="fa-solid fa-check"></i>
-                        <span>등록하기</span>
-                    </button>
-                </div>
+            <!-- 하단 고정 등록/수정 버튼 -->
+            <div class="pt-2 border-t church-border shrink-0 flex justify-center">
+                <button type="button" onclick="requestSavePost()" class="px-6 py-2.5 church-primary text-white rounded-xl font-semibold text-xs shadow-md active:scale-95 transition-all inline-flex items-center space-x-1.5" id="submit-btn-text">
+                    <i class="fa-solid fa-check"></i>
+                    <span>등록하기</span>
+                </button>
             </div>
         </div>
     </div>
@@ -234,7 +237,7 @@
         </div>
     </div>
 
-    <!-- [수정 확인 모달] -->
+    <!-- [수정 확인 모달: 고정 레이아웃] -->
     <div id="edit-confirm-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
         <div class="bg-white rounded-xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3">
             <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-base">
@@ -244,6 +247,11 @@
                 <h3 class="text-sm font-bold text-gray-800">게시글 수정</h3>
                 <p class="text-[11px] text-gray-500 mt-0.5">이 이야기를 수정하시겠습니까?</p>
             </div>
+            <!-- 고정 요약 카드 -->
+            <div id="edit-summary-card" class="bg-gray-50 rounded-lg p-2.5 text-left border border-gray-100 max-h-24 overflow-y-auto text-xs text-gray-600">
+                <p id="edit-preview-text" class="line-clamp-2 text-[11px] text-gray-700"></p>
+                <div id="edit-preview-thumbs" class="flex items-center space-x-1.5 mt-1.5 overflow-hidden"></div>
+            </div>
             <div class="grid grid-cols-2 gap-2 pt-1">
                 <button onclick="closeEditConfirmModal()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium">취소</button>
                 <button id="edit-confirm-yes-btn" class="py-2 church-primary text-white rounded-lg text-xs font-semibold">수정하기</button>
@@ -251,7 +259,7 @@
         </div>
     </div>
 
-    <!-- [삭제 확인 모달] -->
+    <!-- [삭제 확인 모달: 고정 레이아웃] -->
     <div id="confirm-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
         <div class="bg-white rounded-xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3">
             <div class="w-10 h-10 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto text-base">
@@ -260,6 +268,11 @@
             <div>
                 <h3 class="text-sm font-bold text-gray-800">게시글 삭제</h3>
                 <p class="text-[11px] text-gray-500 mt-0.5">정말 이 이야기를 삭제하시겠습니까?</p>
+            </div>
+            <!-- 고정 요약 카드 -->
+            <div id="delete-summary-card" class="bg-gray-50 rounded-lg p-2.5 text-left border border-gray-100 max-h-24 overflow-y-auto text-xs text-gray-600">
+                <p id="delete-preview-text" class="line-clamp-2 text-[11px] text-gray-700"></p>
+                <div id="delete-preview-thumbs" class="flex items-center space-x-1.5 mt-1.5 overflow-hidden"></div>
             </div>
             <div class="grid grid-cols-2 gap-2 pt-1">
                 <button onclick="closeConfirmModal()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium">취소</button>
@@ -296,7 +309,6 @@
         </div>
     </div>
 
-    <!-- [클라이언트 스크립트 모듈] -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -335,7 +347,6 @@
             console.error("Firebase 초기화 에러:", e);
         }
 
-        // 안정적인 루트 컬렉션
         function getPostsCollection() {
             return collection(db, 'mokjang_posts');
         }
@@ -370,7 +381,6 @@
             }, 2500);
         }
 
-        // 익명 인증 초기화
         async function initAuth() {
             setDbStatus('connecting');
             if (!auth) { setDbStatus('error'); return; }
@@ -391,7 +401,6 @@
         }
         initAuth();
 
-        // 이미지 파일 압축 (최대 640px, JPEG 0.6)
         function processImageFile(file, callback) {
             if (!file) return callback(null);
             const reader = new FileReader();
@@ -481,10 +490,10 @@
 
             selectedImagesList.forEach((src, idx) => {
                 const thumb = document.createElement('div');
-                thumb.className = "relative bg-gray-100 rounded-xl w-18 h-18 overflow-hidden border church-border flex items-center justify-center shrink-0 shadow-2xs";
+                thumb.className = "relative bg-gray-100 rounded-xl w-14 h-14 overflow-hidden border church-border flex items-center justify-center shrink-0 shadow-2xs";
                 thumb.innerHTML = `
                     <img src="${src}" class="w-full h-full object-cover">
-                    <button type="button" onclick="removeSelectedImage(${idx})" class="absolute top-1 right-1 bg-black/60 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center hover:bg-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                    <button type="button" onclick="removeSelectedImage(${idx})" class="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center hover:bg-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
                 `;
                 grid.appendChild(thumb);
             });
@@ -493,10 +502,10 @@
                 const addBtn = document.createElement('button');
                 addBtn.type = "button";
                 addBtn.onclick = triggerFilePicker;
-                addBtn.className = "w-18 h-18 border-2 border-dashed church-border rounded-xl flex flex-col items-center justify-center text-gray-500 hover:bg-emerald-50 active:scale-95 transition-all bg-gray-50/70 shrink-0";
+                addBtn.className = "w-14 h-14 border-2 border-dashed church-border rounded-xl flex flex-col items-center justify-center text-gray-500 hover:bg-emerald-50 active:scale-95 transition-all bg-white shrink-0";
                 addBtn.innerHTML = `
-                    <i class="fa-solid fa-plus text-lg mb-0.5 church-primary-text"></i>
-                    <span class="text-[10px] font-medium text-gray-600">사진 추가</span>
+                    <i class="fa-solid fa-plus text-base mb-0.5 church-primary-text"></i>
+                    <span class="text-[9px] font-medium text-gray-600">추가</span>
                 `;
                 grid.appendChild(addBtn);
             }
@@ -588,7 +597,6 @@
             }
         };
 
-        // 오른쪽 상단 '+' 슬라이드 메뉴 토글
         window.toggleActionMenu = function(postId, event) {
             if (event) event.stopPropagation();
             const menu = document.getElementById(`action-menu-${postId}`);
@@ -596,13 +604,12 @@
             if (!menu) return;
 
             const isOpen = menu.classList.contains('menu-open');
-            // 다른 열린 메뉴 모두 닫기
             closeAllActionMenus();
 
             if (!isOpen) {
                 menu.classList.remove('menu-closed');
                 menu.classList.add('menu-open');
-                if (btn) btn.classList.add('rotate-45', 'text-rose-600');
+                if (btn) btn.classList.add('rotate-45', 'text-emerald-700');
             }
         };
 
@@ -612,11 +619,10 @@
                 m.classList.add('menu-closed');
             });
             document.querySelectorAll('[id^="action-btn-"]').forEach(b => {
-                b.classList.remove('rotate-45', 'text-rose-600');
+                b.classList.remove('rotate-45', 'text-emerald-700');
             });
         }
 
-        // 바깥 터치나 스크롤 시 자동 슬라이드 닫기
         document.addEventListener('click', function(e) {
             if (!e.target.closest('[id^="action-menu-"]') && !e.target.closest('[id^="action-btn-"]')) {
                 closeAllActionMenus();
@@ -628,9 +634,24 @@
             feedScrollEl.addEventListener('scroll', closeAllActionMenus, { passive: true });
         }
 
-        // 수정 재확인
+        // 수정 재확인 (고정 요약 레이아웃 지원)
         window.requestEditPost = function(postId, content, imagesJson) {
             closeAllActionMenus();
+            
+            // 고정 레이아웃 미리보기 채우기
+            const previewText = document.getElementById('edit-preview-text');
+            const previewThumbs = document.getElementById('edit-preview-thumbs');
+            previewText.innerText = content || "내용 없음";
+            previewThumbs.innerHTML = "";
+            
+            const imgs = Array.isArray(imagesJson) ? imagesJson : [];
+            imgs.slice(0, 4).forEach(src => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.className = "w-8 h-8 rounded object-cover border border-gray-200 shrink-0";
+                previewThumbs.appendChild(img);
+            });
+
             const yesBtn = document.getElementById('edit-confirm-yes-btn');
             yesBtn.onclick = function() {
                 closeEditConfirmModal();
@@ -643,10 +664,25 @@
             document.getElementById('edit-confirm-modal').classList.add('hidden');
         };
 
-        // 삭제 재확인
-        window.confirmDeletePost = function(postId) {
+        // 삭제 재확인 (고정 요약 레이아웃 지원)
+        window.confirmDeletePost = function(postId, content, imagesJson) {
             closeAllActionMenus();
             postToDeleteId = postId;
+
+            // 고정 레이아웃 미리보기 채우기
+            const previewText = document.getElementById('delete-preview-text');
+            const previewThumbs = document.getElementById('delete-preview-thumbs');
+            previewText.innerText = content || "내용 없음";
+            previewThumbs.innerHTML = "";
+            
+            const imgs = Array.isArray(imagesJson) ? imagesJson : [];
+            imgs.slice(0, 4).forEach(src => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.className = "w-8 h-8 rounded object-cover border border-gray-200 shrink-0";
+                previewThumbs.appendChild(img);
+            });
+
             document.getElementById('confirm-modal').classList.remove('hidden');
         };
 
@@ -670,7 +706,6 @@
             }
         });
 
-        // 사진별 연필 캡션 에디터 토글
         window.togglePhotoCaptionEditor = function(postId, photoIdx) {
             const editor = document.getElementById(`caption-editor-${postId}-${photoIdx}`);
             if (!editor) return;
@@ -719,7 +754,6 @@
 
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
-                    // 외국인 더미 사진 영구 삭제 및 배제
                     const rawImg = data.imageUrl || "";
                     const rawImgs = Array.isArray(data.images) ? data.images.join(" ") : "";
                     if (rawImg.includes("unsplash") || rawImgs.includes("unsplash")) {
@@ -771,7 +805,6 @@
 
                     const photoCaptions = post.photoCaptions || {};
 
-                    // 한 테두리 안에 실선으로 구분되어 연속 배치
                     let mediaSectionHtml = '';
                     if (imgArray.length > 0) {
                         const photosHtml = imgArray.map((url, i) => {
@@ -789,7 +822,7 @@
                                         </button>
                                     </div>
 
-                                    <!-- 사진 바로 밑에 딱 붙고 아래 사진과는 갭을 두는 이야기 -->
+                                    <!-- 사진 바로 밑에 붙고 아래 사진과는 간격을 두는 이야기 -->
                                     <div id="caption-display-${post.id}-${i}" class="photo-caption-text ${caption ? '' : 'hidden'}">
                                         <div class="flex items-start space-x-1.5">
                                             <i class="fa-regular fa-comment-dots text-emerald-600 text-xs mt-0.5 shrink-0"></i>
@@ -797,7 +830,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- 클릭 시 열리는 점선 테두리 글쓰기 창 -->
+                                    <!-- 점선 테두리 글쓰기 창 -->
                                     <div id="caption-editor-${post.id}-${i}" class="hidden p-2.5 bg-emerald-50/40 border-2 border-dashed border-[#3B5D50] rounded-b-xl m-1">
                                         <div class="flex justify-between items-center mb-1 text-[11px] text-emerald-800 font-semibold">
                                             <span><i class="fa-solid fa-pencil mr-1"></i>이 사진 이야기 쓰기</span>
@@ -828,7 +861,7 @@
 
                     card.innerHTML = `
                         <div class="w-full bg-white rounded-2xl border church-border shadow-xs flex flex-col p-3 box-border relative">
-                            <!-- 작성자 헤더 & 왼쪽 슬라이드 오픈 관리 메뉴 -->
+                            <!-- 작성자 헤더 & 연한 연두색 슬라이드 관리 메뉴 -->
                             <div class="flex items-center justify-between pb-1.5 relative">
                                 <div class="flex items-center space-x-2">
                                     <div class="w-7 h-7 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
@@ -840,16 +873,16 @@
                                     </div>
                                 </div>
 
-                                <!-- 오른쪽 상단 '+' 버튼 및 왼쪽 슬라이드 메뉴 -->
+                                <!-- 오른쪽 상단 '+' 버튼 및 연한 연두색 슬라이드 메뉴 -->
                                 <div class="relative flex items-center">
-                                    <!-- 왼쪽으로 스르륵 열리는 슬라이드 메뉴 바 -->
-                                    <div id="action-menu-${post.id}" class="slide-menu-container menu-closed absolute right-7 bg-slate-800 text-white rounded-full shadow-md py-1 px-2.5 z-20 flex items-center space-x-2 whitespace-nowrap">
-                                        <button onclick="requestEditPost('${post.id}', \`${escapeHtml(post.content || '')}\`, ${imagesParam})" class="text-[11px] text-gray-200 hover:text-white font-medium flex items-center space-x-1">
+                                    <!-- 왼쪽으로 스르륵 열리는 연한 연두색 슬라이드 바 -->
+                                    <div id="action-menu-${post.id}" class="slide-menu-container menu-closed absolute right-7 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-3 z-20 flex items-center space-x-2.5 whitespace-nowrap">
+                                        <button onclick="requestEditPost('${post.id}', \`${escapeHtml(post.content || '')}\`, ${imagesParam})" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform">
                                             <i class="fa-solid fa-pen text-[9px]"></i>
                                             <span>수정</span>
                                         </button>
-                                        <span class="text-white/30 text-[10px]">|</span>
-                                        <button onclick="confirmDeletePost('${post.id}')" class="text-[11px] text-rose-300 hover:text-rose-100 font-medium flex items-center space-x-1">
+                                        <span class="text-[#A7D1B7] text-[10px]">|</span>
+                                        <button onclick="confirmDeletePost('${post.id}', \`${escapeHtml(post.content || '')}\`, ${imagesParam})" class="text-[11px] font-semibold text-rose-600 hover:text-rose-700 flex items-center space-x-1 active:scale-95 transition-transform">
                                             <i class="fa-solid fa-trash-can text-[9px]"></i>
                                             <span>삭제</span>
                                         </button>
@@ -857,13 +890,13 @@
 
                                     <!-- 도톰한 '+' 토글 버튼 -->
                                     <button type="button" id="action-btn-${post.id}" onclick="toggleActionMenu('${post.id}', event)" 
-                                            class="w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all font-black text-sm" title="더보기">
+                                            class="w-6 h-6 rounded-full flex items-center justify-center text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 transition-all font-black text-sm" title="더보기">
                                         <i class="fa-solid fa-plus transition-transform duration-200"></i>
                                     </button>
                                 </div>
                             </div>
 
-                            <!-- 본문 텍스트: 창 밖 이탈 방지 줄바꿈 + 16px 폰트 확대 + 상하여백 축소 -->
+                            <!-- 본문 텍스트: 창 밖 이탈 방지 줄바꿈 + 16px 폰트 확대 -->
                             ${post.content ? `
                             <div class="py-1 text-[16px] text-gray-800 leading-relaxed break-words overflow-wrap-anywhere whitespace-pre-wrap">
                                 ${escapeHtml(post.content)}
@@ -873,7 +906,7 @@
                             <!-- 사진 영역: 하나의 테두리 프레임 안에 실선으로 연결 -->
                             ${mediaSectionHtml}
 
-                            <!-- 마지막 사진 바로 아래 배치된 반응 버튼들 (실선 없이 밀착) -->
+                            <!-- 마지막 사진 바로 아래 배치된 반응 버튼들 -->
                             <div class="pt-2 flex items-center justify-between">
                                 <div class="flex items-center space-x-3.5">
                                     <!-- 손하트 / 하트 -->
@@ -922,7 +955,6 @@
             });
         }
 
-        // 댓글 팝업 제어
         window.openCommentsModal = function(postId) {
             currentActivePopupPostId = postId;
             renderCommentsModalList(postId);
@@ -1055,7 +1087,6 @@
             }
         };
 
-        // 라이트박스 확대 및 90도 회전 영구 저장
         const lightboxModal = document.getElementById('lightbox-modal');
         const lightboxImg = document.getElementById('lightbox-img');
 
@@ -1138,7 +1169,6 @@
             });
         }
 
-        // 유틸리티 함수
         function formatDate(timestamp) {
             if (!timestamp) return '';
             const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -1154,3 +1184,4 @@
     </script>
 </body>
 </html>
+```
