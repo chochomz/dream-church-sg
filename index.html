@@ -502,65 +502,48 @@
             loadMokjangFeed();
         };
 
-        function compressImageSource(src, callback) {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            let hasCalledBack = false;
-
-            img.onload = function () {
-                if (hasCalledBack) return;
-                hasCalledBack = true;
-                try {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const maxDim = 840; // 모바일 2x 레티나 규격
-
-                    if (width > height && width > maxDim) {
-                        height = Math.round((height * maxDim) / width);
-                        width = maxDim;
-                    } else if (height > maxDim) {
-                        width = Math.round((width * maxDim) / height);
-                        height = maxDim;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-                    ctx.fillStyle = "#ffffff";
-                    ctx.fillRect(0, 0, width, height);
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
-                    callback(dataUrl);
-                } catch (canvasErr) {
-                    console.warn("캔버스 추출 실패, 원본 유지:", canvasErr);
-                    callback(src);
-                }
-            };
-
-            img.onerror = function() {
-                if (hasCalledBack) return;
-                hasCalledBack = true;
-                callback(src);
-            };
-
-            setTimeout(() => {
-                if (!hasCalledBack) {
-                    hasCalledBack = true;
-                    callback(src);
-                }
-            }, 3000);
-
-            img.src = src;
-        }
-
-        function compressImage(file, callback) {
+        // 안전한 2x 리사이징 및 Base64 변환
+        function processImageFile(file, callback) {
             const reader = new FileReader();
-            reader.onload = function (e) {
-                compressImageSource(e.target.result, callback);
+            reader.onload = function(e) {
+                const rawData = e.target.result;
+                const img = new Image();
+                img.onload = function() {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        let w = img.width;
+                        let h = img.height;
+                        const maxDim = 840; // 모바일 2x 레티나 기준
+
+                        if (w > h && w > maxDim) {
+                            h = Math.round((h * maxDim) / w);
+                            w = maxDim;
+                        } else if (h > maxDim) {
+                            w = Math.round((w * maxDim) / h);
+                            h = maxDim;
+                        }
+
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = "#ffffff";
+                        ctx.fillRect(0, 0, w, h);
+                        ctx.drawImage(img, 0, 0, w, h);
+
+                        const compressed = canvas.toDataURL('image/jpeg', 0.8);
+                        callback(compressed);
+                    } catch (err) {
+                        console.warn("리사이징 예외, 원본 데이터 사용:", err);
+                        callback(rawData);
+                    }
+                };
+                img.onerror = function() {
+                    callback(rawData);
+                };
+                img.src = rawData;
+            };
+            reader.onerror = function() {
+                callback(null);
             };
             reader.readAsDataURL(file);
         }
@@ -578,9 +561,9 @@
             const filesToProcess = Array.from(files).slice(0, remainingSlots);
             let processed = 0;
             filesToProcess.forEach(file => {
-                compressImage(file, function(compressedDataUrl) {
-                    if (compressedDataUrl) {
-                        selectedImagesList.push(compressedDataUrl);
+                processImageFile(file, function(resultDataUrl) {
+                    if (resultDataUrl) {
+                        selectedImagesList.push(resultDataUrl);
                     }
                     processed++;
                     if (processed === filesToProcess.length) {
@@ -774,7 +757,7 @@
             setDbStatus('saving');
 
             try {
-                // 사진이 아예 없거나 빈 배열인 비정상 글 검색 후 삭제
+                // 사진이 아예 없는 비정상 글 검색 후 일괄 삭제
                 const broken = cachedPosts.filter(p => {
                     const hasImgs = Array.isArray(p.images) && p.images.some(img => typeof img === 'string' && img.trim().length > 0);
                     const hasSingle = typeof p.imageUrl === 'string' && p.imageUrl.trim().length > 0;
@@ -867,33 +850,31 @@
                         imgArray = [post.imageUrl];
                     }
 
-                    // 사진 렌더링 HTML (가로 스냅 스와이프 형태)
+                    // 사진 렌더링 HTML (배경 박스, 대체 문구 없이 순수 사진만 깔끔하게 출력)
                     let mediaSectionHtml = '';
-                    if (imgArray.length > 0) {
-                        if (imgArray.length === 1) {
-                            mediaSectionHtml = `
-                                <div class="w-full h-full bg-black/5 rounded-lg overflow-hidden flex items-center justify-center cursor-pointer relative" onclick="openLightbox('${imgArray[0]}')">
-                                    <img src="${imgArray[0]}" alt="목장 사진" class="w-full h-full object-contain">
+                    if (imgArray.length === 1) {
+                        mediaSectionHtml = `
+                            <div class="w-full h-full rounded-lg overflow-hidden flex items-center justify-center cursor-pointer relative" onclick="openLightbox('${imgArray[0]}')">
+                                <img src="${imgArray[0]}" alt="목장 사진" class="w-full h-full object-contain">
+                            </div>
+                        `;
+                    } else if (imgArray.length > 1) {
+                        const slidesHtml = imgArray.map((url, i) => `
+                            <div class="image-snap-item min-w-full h-full flex items-center justify-center relative cursor-pointer" onclick="openLightbox('${url}')">
+                                <img src="${url}" class="w-full h-full object-contain">
+                                <span class="absolute top-2 right-2 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded-full pointer-events-none">${i + 1}/${imgArray.length}</span>
+                            </div>
+                        `).join('');
+                        mediaSectionHtml = `
+                            <div class="w-full h-full rounded-lg overflow-hidden relative">
+                                <div class="image-snap-row flex w-full h-full overflow-x-auto">
+                                    ${slidesHtml}
                                 </div>
-                            `;
-                        } else {
-                            const slidesHtml = imgArray.map((url, i) => `
-                                <div class="image-snap-item min-w-full h-full flex items-center justify-center relative bg-black/5 cursor-pointer" onclick="openLightbox('${url}')">
-                                    <img src="${url}" class="w-full h-full object-contain">
-                                    <span class="absolute top-2 right-2 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded-full pointer-events-none">${i + 1}/${imgArray.length}</span>
-                                </div>
-                            `).join('');
-                            mediaSectionHtml = `
-                                <div class="w-full h-full rounded-lg overflow-hidden relative">
-                                    <div class="image-snap-row flex w-full h-full overflow-x-auto">
-                                        ${slidesHtml}
-                                    </div>
-                                </div>
-                            `;
-                        }
+                            </div>
+                        `;
                     }
 
-                    // 비정상 글 정리 및 관리를 위해 모든 카드에 삭제 버튼 노출 지원
+                    // 비정상 글 정리 및 관리를 위해 모든 카드에 삭제 버튼 노출
                     const imagesParam = JSON.stringify(imgArray).replace(/"/g, '&quot;');
                     const authorActionsHtml = `
                         <div class="flex items-center space-x-1 text-[10px]">
@@ -921,13 +902,9 @@
                                 </div>
                             </div>
 
-                            <!-- 미디어 사진 영역 (정상 비율 100% 핏 & 유연한 높이) -->
+                            <!-- 미디어 사진 영역: 사진만 온전히 표시 -->
                             <div class="flex-1 min-h-[160px] w-full py-1 flex flex-col justify-center overflow-hidden">
-                                ${mediaSectionHtml || `
-                                    <div class="w-full h-full bg-emerald-50/40 rounded-lg border border-dashed border-emerald-100 flex items-center justify-center p-3 text-center">
-                                        <p class="text-xs text-emerald-900/80 leading-relaxed font-medium">“사랑과 격려가 넘치는 우리 목장 이야기”</p>
-                                    </div>
-                                `}
+                                ${mediaSectionHtml}
                             </div>
 
                             <!-- 글 내용 (편안한 스크롤) -->
