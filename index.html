@@ -64,7 +64,7 @@
 <body class="flex flex-col min-h-screen">
 
     <!-- ========================================== -->
-    <!-- 1. 시크릿 입장 화면 -->
+    <!-- 1. 시크릿 입장 화면 ("세종꿈의교회" 글자가 "23목장"보다 더 크게 수정) -->
     <!-- ========================================== -->
     <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-6 text-white text-center">
         <div class="cursor-pointer select-none group relative inline-block" id="secret-login-area">
@@ -80,16 +80,17 @@
             <div class="absolute inset-0 w-full h-full rounded-full z-20 cursor-pointer" id="secret-tap-overlay"></div>
         </div>
 
+        <!-- 문구 배치: 세종꿈의교회(더 큼) / 23목장 / 두 줄 띄고 / 우리들의 목장 이야기 -->
         <div class="select-none space-y-1">
-            <h2 class="text-lg font-medium text-emerald-100 tracking-wide whitespace-nowrap">세종꿈의교회</h2>
-            <h1 class="text-2xl font-bold tracking-wider text-white whitespace-nowrap">23목장</h1>
+            <h1 class="text-3xl font-bold tracking-wider text-white whitespace-nowrap">세종꿈의교회</h1>
+            <h2 class="text-xl font-semibold text-emerald-100 tracking-wide whitespace-nowrap mt-1">23목장</h2>
             <div class="h-6"></div>
             <p class="text-sm text-emerald-100/90 font-light whitespace-nowrap">우리들의 목장 이야기</p>
         </div>
     </div>
 
     <!-- ========================================== -->
-    <!-- 2. 사용자 인증 모달 -->
+    <!-- 2. 사용자 인증 모달 (새로운 목장 입력 확인 기능 포함) -->
     <!-- ========================================== -->
     <div id="auth-modal" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl border church-border">
@@ -149,7 +150,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- 4. 게시글 작성/수정 모달 (파일/카메라/URL 선택 가능) -->
+    <!-- 4. 게시글 작성/수정 모달 -->
     <!-- ========================================== -->
     <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl border church-border max-h-[90vh] overflow-y-auto">
@@ -161,10 +162,9 @@
                 <input type="hidden" id="editing-post-id" value="">
                 <div>
                     <label class="block text-[11px] font-medium text-gray-600 mb-1 whitespace-nowrap">목장 이름</label>
-                    <input type="text" id="post-mokjang-name" value="세종꿈의교회 23목장" class="w-full px-3 py-2 rounded-xl border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none">
+                    <input type="text" id="post-mokjang-name" value="세종꿈의교회 23목장" class="w-full px-3 py-2 rounded-xl border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none" readonly>
                 </div>
                 
-                <!-- 사진 입력 방식 선택 탭 -->
                 <div class="space-y-2">
                     <label class="block text-[11px] font-medium text-gray-600 whitespace-nowrap">사진 추가 방식</label>
                     <div class="grid grid-cols-2 gap-2">
@@ -179,13 +179,11 @@
                         </button>
                     </div>
 
-                    <!-- 파일 선택 미리보기 영역 -->
                     <div id="file-preview-container" class="hidden relative mt-2 bg-gray-50 rounded-xl p-2 border church-border text-center">
                         <img id="file-preview-img" src="" alt="미리보기" class="max-h-40 mx-auto rounded-lg object-contain">
                         <button type="button" onclick="clearFileSelection()" class="absolute top-3 right-3 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center shadow"><i class="fa-solid fa-xmark"></i></button>
                     </div>
 
-                    <!-- URL 입력 영역 -->
                     <div id="url-input-container" class="hidden mt-2">
                         <input type="text" id="post-image-url" placeholder="이미지 주소(https://...)를 입력하세요" class="w-full px-3 py-2 rounded-xl border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none">
                     </div>
@@ -248,7 +246,7 @@
     <!-- ========================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "YOUR_FIREBASE_API_KEY",
@@ -291,6 +289,14 @@
             if (!usernameInput) { alert('성함이나 직분을 입력해 주세요.'); return; }
             if (!mokjangInput) { alert('목장 이름을 입력해 주세요.'); return; }
 
+            // 목장 이름이 기존과 다를 경우 새로운 목장으로 입력할 것인지 확인
+            if (mokjangInput !== currentMokjang) {
+                const isNewMokjang = confirm(`입력하신 목장 이름("${mokjangInput}")이 기존과 다릅니다. 새로운 목장으로 입력할까요?`);
+                if (!isNewMokjang) {
+                    return; // 사용자가 취소하면 중단
+                }
+            }
+
             currentUser = usernameInput;
             currentMokjang = mokjangInput;
 
@@ -304,7 +310,6 @@
             loadMokjangFeed();
         };
 
-        // 파일 선택 처리 (Base64 변환)
         window.handleFileSelect = function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -339,6 +344,7 @@
             document.getElementById('editing-post-id').value = postId || "";
             document.getElementById('post-content').value = existingContent || "";
             document.getElementById('post-image-url').value = existingImageUrl && !existingImageUrl.startsWith('data:') ? existingImageUrl : "";
+            document.getElementById('post-mokjang-name').value = currentMokjang;
             
             if (existingImageUrl && existingImageUrl.startsWith('data:')) {
                 uploadedBase64Image = existingImageUrl;
@@ -369,7 +375,7 @@
 
         window.submitNewPost = async function() {
             const postId = document.getElementById('editing-post-id').value;
-            const mokjangName = document.getElementById('post-mokjang-name').value.trim();
+            const mokjangName = currentMokjang; // 현재 로그인된 목장 이름으로 고정 자동 반영
             const urlInput = document.getElementById('post-image-url').value.trim();
             const content = document.getElementById('post-content').value.trim();
             const isChecked = document.getElementById('post-display-check').checked;
@@ -383,7 +389,6 @@
 
             try {
                 if (postId) {
-                    // 수정 처리
                     const postRef = doc(db, "mokjang_posts", postId);
                     await updateDoc(postRef, {
                         content: content,
@@ -391,10 +396,9 @@
                         isChecked: isChecked
                     });
                 } else {
-                    // 신규 등록
                     await addDoc(collection(db, "mokjang_posts"), {
                         mokjangName: mokjangName,
-                        author: currentUser,
+                        author: currentUser, // 로그인한 관리자/멤버 이름 자동 반영
                         imageUrl: finalImageUrl,
                         content: content,
                         isChecked: isChecked,
@@ -411,7 +415,6 @@
             }
         };
 
-        // 삭제 확인 모달 제어
         window.confirmDeletePost = function(postId) {
             postToDeleteId = postId;
             document.getElementById('confirm-modal').classList.remove('hidden');
@@ -484,7 +487,6 @@
                         `).join('');
                     }
 
-                    // 본인 글인 경우 수정/삭제 버튼 노출
                     let authorActionsHtml = '';
                     if (isAuthor) {
                         authorActionsHtml = `
@@ -620,4 +622,3 @@
     </script>
 </body>
 </html>
-```eof
