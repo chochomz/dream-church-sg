@@ -1105,6 +1105,19 @@
         });
         lightboxModal.addEventListener('touchend', () => { initialDistance = null; panning = false; });
 
+        // [빈 공간 터치 시 가상 키보드 내리기 (blur 처리)]
+        function dismissKeyboardOnOutsideTap(e) {
+            const activeEl = document.activeElement;
+            if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+                // 클릭/터치한 대상이 입력창이나 버튼이 아닌 빈 공간일 때만 키보드 닫기
+                if (e.target !== activeEl && !e.target.closest('button') && !e.target.closest('input') && !e.target.closest('textarea') && !e.target.closest('label')) {
+                    activeEl.blur();
+                }
+            }
+        }
+        document.addEventListener('touchstart', dismissKeyboardOnOutsideTap, { passive: true });
+        document.addEventListener('click', dismissKeyboardOnOutsideTap);
+
         function formatDate(timestamp) {
             if (!timestamp) return '';
             const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
