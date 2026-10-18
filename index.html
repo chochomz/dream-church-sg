@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>우리들의 목장 이야기 - 세종꿈의교회 23목장</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -10,12 +10,31 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        
+        /* 아이폰 확대기능 및 터치 하이라이트 완전 제거 핵심 스타일 */
         body {
             font-family: 'Noto Sans KR', sans-serif;
             background-color: #F8F9FA;
             color: #333333;
-            -webkit-tap-highlight-color: transparent;
+            -webkit-tap-highlight-color: transparent; /* 터치 시 파란색 배경 제거 */
+            touch-action: manipulation; /* 줌 동작 최적화 및 더블탭 딜레이 제거 */
+            overscroll-behavior: none; /* 페이지 바운스 효과 제거 */
         }
+
+        /* 시크릿 게이트 영역 터치 버그 방지 */
+        #secret-gate-screen {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none; /* 이 영역은 스크롤 및 줌 완전 차단 */
+        }
+
+        /* 로고 이미지 자체의 확대 동작 방지 */
+        #secret-logo-img {
+            pointer-events: none; /* 이미지는 클릭 이벤트만 통과시킴 */
+            -webkit-touch-callout: none; /* 아이폰 이미지 길게 누르기 메뉴 방지 */
+            -webkit-user-select: none;
+        }
+
         /* 교회 스타일 따뜻한 파스텔톤 컬러 */
         .church-primary { background-color: #3B5D50; } /* 딥 세이지 그린 */
         .church-primary-text { color: #3B5D50; }
@@ -30,7 +49,7 @@
             }
             50% {
                 box-shadow: 0 0 40px 20px rgba(255, 255, 255, 0.95), inset 0 0 25px rgba(255, 255, 255, 0.7);
-                transform: scale(1.05);
+                transform: scale(1.04);
             }
         }
 
@@ -52,27 +71,28 @@
 <body class="flex flex-col min-h-screen">
 
     <!-- ========================================== -->
-    <!-- 1. 시크릿 입장 화면 (로고 7번 터치, 원본 디자인 적용) -->
+    <!-- 1. 시크릿 입장 화면 (아이폰 확대기능 차단 적용) -->
     <!-- ========================================== -->
     <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-6 text-white">
-        <div class="text-center cursor-pointer select-none group" id="secret-logo-btn" title="빠르게 7번 터치하세요">
+        <!-- 전체 영역을 클릭/터치 영역으로 설정 (이미지 위로 투명 div 배치) -->
+        <div class="text-center select-none group relative" id="secret-login-area" title="빠르게 7번 터치하세요">
             <!-- 둥근 로고 컨테이너 + 빛나는 애니메이션 -->
-            <div class="w-40 h-40 bg-white rounded-full flex items-center justify-center p-4 mx-auto mb-6 shadow-2xl group-active:scale-95 transition-transform border-4 border-white/40 overflow-hidden glowing-logo relative">
-                <!-- 원본 이미지와 100% 일치하는 SVG 그래픽 -->
-                <svg viewBox="0 0 200 200" class="w-full h-full object-contain">
-                    <!-- 배경 은은한 빛 효과 (원본 흰색/연한 회색 배경 위에 더 자연스럽게) -->
+            <div class="w-40 h-40 bg-white rounded-full flex items-center justify-center p-4 mx-auto mb-6 shadow-2xl group-active:scale-95 transition-transform border-4 border-white/40 overflow-hidden glowing-logo relative z-10">
+                <!-- 원본 이미지와 100% 일치하는 SVG 그래픽 (포인터 이벤트 차단) -->
+                <svg viewBox="0 0 200 200" class="w-full h-full object-contain" id="secret-logo-img">
                     <circle cx="100" cy="100" r="60" fill="#ffffff" opacity="0.1" filter="blur(10px)" />
-                    <!-- 왼쪽 하늘색 영역 (정확한 모양 및 색상) -->
                     <polygon points="35,118 100,118 100,58" fill="#5B9BD5" />
-                    <!-- 오른쪽 진한 남색 영역 (정확한 모양 및 색상) -->
                     <path d="M 100,118 L 165,88 C 140,130 110,155 90,173 C 92,158 94,143 96,128 C 98,128 100,128 100,118 Z" fill="#203E78" />
-                    <!-- 중앙 십자가 (두께 및 길이 비율 조정) -->
                     <rect x="91" y="40" width="18" height="78" fill="#203E78" rx="2" />
                     <rect x="76" y="55" width="48" height="18" fill="#203E78" rx="2" />
                 </svg>
             </div>
+            <!-- 로고 위에 덮어씌워 오직 클릭 이벤트만 받는 투명 레이어 -->
+            <div class="absolute inset-0 w-full h-full rounded-full z-20 cursor-pointer" id="secret-tap-overlay"></div>
+            
             <h1 class="text-2xl font-bold tracking-wider mb-2">세종꿈의교회 23목장</h1>
             <p class="text-sm text-emerald-100/80 font-light">우리들의 목장 이야기</p>
+            <p class="text-xs text-emerald-200/50 mt-1">(로고 영역을 빠르게 7번 터치)</p>
         </div>
     </div>
 
@@ -109,9 +129,9 @@
     <!-- ========================================== -->
     <div id="main-feed-screen" class="flex flex-col flex-1 hidden">
         <!-- 상단 고정 헤더 -->
-        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b church-border shadow-xs px-4 py-3 flex items-center justify-between">
+        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b church-border church-border shadow-xs px-4 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <!-- 둥근 형태의 헤더 로고 (정확한 원본 디자인 적용) -->
+                <!-- 둥근 형태의 헤더 로고 (애니메이션 제외, 클릭 이벤트 없음) -->
                 <div class="w-10 h-10 church-primary rounded-full flex items-center justify-center p-0.5 shadow-sm border-2 border-emerald-100 overflow-hidden bg-white">
                     <svg viewBox="0 0 200 200" class="w-full h-full object-contain scale-110">
                         <polygon points="35,118 100,118 100,58" fill="#5B9BD5" />
@@ -218,11 +238,18 @@
         let currentUser = null;
         let currentMokjang = "세종꿈의교회 23목장";
 
-        // 1. 로고 7번 터치 시크릿 게이트 구현
-        const logoBtn = document.getElementById('secret-logo-btn');
-        logoBtn.addEventListener('click', () => {
+        // 1. [수정됨] 로고 영역 7번 터치 시크릿 게이트 구현 (이미지 확대/축소 버그 원천 차단)
+        const loginArea = document.getElementById('secret-login-area');
+        const tapOverlay = document.getElementById('secret-tap-overlay');
+
+        tapOverlay.addEventListener('click', (e) => {
+            // 이벤트 버블링 및 기본 동작 방지 (확대 이벤트 막기)
+            e.preventDefault();
+            e.stopPropagation();
+            
             tapCount++;
             clearTimeout(tapTimer);
+            
             if (tapCount >= 7) {
                 tapCount = 0;
                 document.getElementById('secret-gate-screen').classList.add('hidden');
@@ -237,14 +264,8 @@
             const usernameInput = document.getElementById('auth-username-input').value.trim();
             const mokjangInput = document.getElementById('auth-mokjang-input').value.trim();
 
-            if (!usernameInput) {
-                alert('참여하실 성함이나 직분을 입력해 주세요.');
-                return;
-            }
-            if (!mokjangInput) {
-                alert('목장 이름을 입력해 주세요.');
-                return;
-            }
+            if (!usernameInput) { alert('참여하실 성함이나 직분을 입력해 주세요.'); return; }
+            if (!mokjangInput) { alert('목장 이름을 입력해 주세요.'); return; }
 
             currentUser = usernameInput;
             currentMokjang = mokjangInput;
@@ -256,19 +277,14 @@
             document.getElementById('auth-modal').classList.add('hidden');
             document.getElementById('main-feed-screen').classList.remove('hidden');
 
-            // 실시간 피드 데이터 로드 시작
             loadMokjangFeed();
         };
 
         // 3. 모달 제어
-        window.openWriteModal = function() {
-            document.getElementById('write-modal').classList.remove('hidden');
-        };
-        window.closeWriteModal = function() {
-            document.getElementById('write-modal').classList.add('hidden');
-        };
+        window.openWriteModal = function() { document.getElementById('write-modal').classList.remove('hidden'); };
+        window.closeWriteModal = function() { document.getElementById('write-modal').classList.add('hidden'); };
 
-        // 4. 새 글 작성 (사진 중심)
+        // 4. 새 글 작성
         window.submitNewPost = async function() {
             const mokjangName = document.getElementById('post-mokjang-name').value.trim();
             const imageUrl = document.getElementById('post-image-url').value.trim();
@@ -281,10 +297,13 @@
             }
 
             try {
+                // 이미지가 없을 경우 사용할 기본 이미지 URL (필요시 수정)
+                const defaultImageUrl = "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=800&q=80";
+                
                 await addDoc(collection(db, "mokjang_posts"), {
                     mokjangName: mokjangName,
                     author: currentUser,
-                    imageUrl: imageUrl || "logo.png", // 이미지가 없을 경우 로고 이미지 기본 설정
+                    imageUrl: imageUrl || defaultImageUrl,
                     content: content,
                     isChecked: isChecked,
                     likes: 0,
@@ -297,16 +316,14 @@
                 document.getElementById('post-content').value = '';
                 closeWriteModal();
             } catch (error) {
-                console.error("게시글 등록 오류:", error);
-                alert("등록 중 오류가 발생했습니다. 다시 시도해 주세요.");
+                console.error("등록 오류:", error);
+                alert("등록 중 오류가 발생했습니다.");
             }
         };
 
         // 5. 실시간 피드 로드 및 목장 격리
         function loadMokjangFeed() {
             const feedContainer = document.getElementById('feed-container');
-            
-            // 현재 설정된 목장 이름과 관리자가 체크(isChecked == true)한 데이터만 실시간 조회
             const q = query(
                 collection(db, "mokjang_posts"),
                 where("mokjangName", "==", currentMokjang),
@@ -326,7 +343,6 @@
                     return;
                 }
 
-                // 클라이언트 단에서 최신순 정렬 (createdAt 기준 내림차순)
                 const posts = [];
                 snapshot.forEach((docSnap) => {
                     posts.push({ id: docSnap.id, ...docSnap.data() });
@@ -372,7 +388,7 @@
 
                         <!-- 사진 영역 (터치시 핀치 줌 / 확대 라이트박스 실행) -->
                         <div class="w-full bg-black/5 overflow-hidden cursor-pointer" onclick="openLightbox('${post.imageUrl}')">
-                            <img src="${post.imageUrl}" alt="목장 사역 및 야유회 사진" class="w-full max-h-96 object-cover hover:scale-102 transition-transform duration-300">
+                            <img src="${post.imageUrl}" alt="목장 이야기 사진" class="w-full max-h-96 object-cover hover:scale-102 transition-transform duration-300">
                         </div>
 
                         <div class="px-4 space-y-2">
@@ -402,27 +418,19 @@
             });
         }
 
-        // 6. 좋아요(하트) 토글 처리
+        // 6. 좋아요 토글
         window.toggleLike = async function(postId, hasLiked) {
             const postRef = doc(db, "mokjang_posts", postId);
             try {
                 if (hasLiked) {
-                    await updateDoc(postRef, {
-                        likes: increment(-1),
-                        likedUsers: arrayRemove(currentUser)
-                    });
+                    await updateDoc(postRef, { likes: increment(-1), likedUsers: arrayRemove(currentUser) });
                 } else {
-                    await updateDoc(postRef, {
-                        likes: increment(1),
-                        likedUsers: arrayUnion(currentUser)
-                    });
+                    await updateDoc(postRef, { likes: increment(1), likedUsers: arrayUnion(currentUser) });
                 }
-            } catch (error) {
-                console.error("좋아요 처리 오류:", error);
-            }
+            } catch (error) { console.error("좋아요 오류:", error); }
         };
 
-        // 7. 응원 댓글 추가 처리
+        // 7. 댓글 추가
         window.addComment = async function(postId) {
             const inputEl = document.getElementById(`comment-input-${postId}`);
             const text = inputEl.value.trim();
@@ -430,108 +438,62 @@
 
             const now = new Date();
             const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-            const commentObj = {
-                author: currentUser,
-                text: text,
-                time: timeStr
-            };
+            const commentObj = { author: currentUser, text: text, time: timeStr };
 
             const postRef = doc(db, "mokjang_posts", postId);
             try {
-                await updateDoc(postRef, {
-                    comments: arrayUnion(commentObj)
-                });
+                await updateDoc(postRef, { comments: arrayUnion(commentObj) });
                 inputEl.value = '';
-            } catch (error) {
-                console.error("댓글 등록 오류:", error);
-            }
+            } catch (error) { console.error("댓글 오류:", error); }
         };
 
-        // 8. 모바일 최적화 사진 뷰어 (핀치 줌 및 터치 드래그 기능)
+        // 8. 모바일 최적화 사진 확대보기 (핀치 줌)
         let scale = 1;
         let panning = false;
         let pointX = 0;
         let pointY = 0;
         let startX = 0;
         let startY = 0;
-
         const lightboxModal = document.getElementById('lightbox-modal');
         const lightboxImg = document.getElementById('lightbox-img');
 
         window.openLightbox = function(url) {
             lightboxImg.src = url;
-            scale = 1;
-            pointX = 0;
-            pointY = 0;
-            updateImageTransform();
+            scale = 1; pointX = 0; pointY = 0; updateImageTransform();
             lightboxModal.classList.remove('hidden');
         };
-
-        window.closeLightbox = function() {
-            lightboxModal.classList.add('hidden');
-        };
-
-        function updateImageTransform() {
-            lightboxImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
-        }
+        window.closeLightbox = function() { lightboxModal.classList.add('hidden'); };
+        function updateImageTransform() { lightboxImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
 
         let initialDistance = null;
-
         lightboxModal.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
-                initialDistance = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
+                initialDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
             } else if (e.touches.length === 1 && scale > 1) {
-                panning = true;
-                startX = e.touches[0].clientX - pointX;
-                startY = e.touches[0].clientY - pointY;
+                panning = true; startX = e.touches[0].clientX - pointX; startY = e.touches[0].clientY - pointY;
             }
         });
-
         lightboxModal.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2 && initialDistance) {
-                const currentDistance = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
+                const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
                 const zoomFactor = currentDistance / initialDistance;
                 scale = Math.min(Math.max(1, scale * zoomFactor), 4);
-                initialDistance = currentDistance;
-                updateImageTransform();
+                initialDistance = currentDistance; updateImageTransform();
             } else if (panning && e.touches.length === 1) {
-                pointX = e.touches[0].clientX - startX;
-                pointY = e.touches[0].clientY - startY;
-                updateImageTransform();
+                pointX = e.touches[0].clientX - startX; pointY = e.touches[0].clientY - startY; updateImageTransform();
             }
         });
+        lightboxModal.addEventListener('touchend', () => { initialDistance = null; panning = false; });
 
-        lightboxModal.addEventListener('touchend', (e) => {
-            initialDistance = null;
-            panning = false;
-            if (scale < 1) {
-                scale = 1;
-                pointX = 0;
-                pointY = 0;
-                updateImageTransform();
-            }
-        });
-
-        // 더블탭으로 확대/원복
         let lastTapTime = 0;
-        lightboxImg.addEventListener('click', (e) => {
+        lightboxImg.addEventListener('click', () => {
             const currentTime = new Date().getTime();
             if (currentTime - lastTapTime < 300) {
-                scale = scale > 1 ? 1 : 2.5;
-                pointX = 0;
-                pointY = 0;
-                updateImageTransform();
+                scale = scale > 1 ? 1 : 2.5; pointX = 0; pointY = 0; updateImageTransform();
             }
             lastTapTime = currentTime;
         });
 
-        // 유틸리티 함수
         function formatDate(timestamp) {
             if (!timestamp) return '';
             const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
