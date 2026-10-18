@@ -17,12 +17,24 @@
             -webkit-tap-highlight-color: transparent;
         }
         /* 교회 스타일 따뜻한 파스텔톤 컬러 */
-        .church-primary { background-color: #3B5D50; } 
+        .church-primary { background-color: #3B5D50; } /* 딥 세이지 그린 */
         .church-primary-text { color: #3B5D50; }
         .church-accent { background-color: #E8F0EC; }
         .church-border { border-color: #D4DCD7; }
 
-        /* 사진 확대/축소 라이트박스 스타일 */
+        /* 십자가에서 빛이 환하게 퍼지는 애니메이션 정의 */
+        @keyframes cross-pulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        /* 로고 컨테이너에 애니메이션 적용 */
+        .glowing-logo {
+            animation: cross-pulse 4s ease-in-out infinite;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+        }
+
+        /* 이미지 확대/축소 라이트박스 스타일 */
         #lightbox-modal {
             touch-action: none;
         }
@@ -35,12 +47,13 @@
 <body class="flex flex-col min-h-screen">
 
     <!-- ========================================== -->
-    <!-- 1. 시크릿 입장 화면 (원본 시안 그대로 노출, 7번 터치) -->
+    <!-- 1. 시크릿 입장 화면 (둥근 로고 및 빛나는 애니메이션 적용) -->
     <!-- ========================================== -->
     <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-6 text-white">
         <div class="text-center cursor-pointer select-none group" id="secret-logo-btn" title="빠르게 7번 터치하세요">
-            <!-- 원본 시안 비율을 그대로 보여주는 둥근/카드형 로고 컨테이너 -->
-            <div class="w-48 h-32 bg-white rounded-2xl flex items-center justify-center p-3 mx-auto mb-6 shadow-2xl group-active:scale-95 transition-transform border border-white/20 overflow-hidden">
+            <!-- 로고 컨테이너: 둥글게, 테두리, 그리고 은은한 빛나는 애니메이션 클래스(glowing-logo) 적용 -->
+            <div class="w-40 h-40 bg-white rounded-full flex items-center justify-center p-2 mx-auto mb-6 shadow-2xl group-active:scale-95 transition-transform border-4 border-white/30 overflow-hidden glowing-logo">
+                <!-- 원본 시안 로고 이미지 적용 (파일명 logo.png 기준) -->
                 <img src="logo.png" alt="세종꿈의교회 로고" class="w-full h-full object-contain">
             </div>
             <h1 class="text-2xl font-bold tracking-wider mb-2">세종꿈의교회 23목장</h1>
@@ -80,15 +93,16 @@
     <!-- 3. 메인 피드 화면 -->
     <!-- ========================================== -->
     <div id="main-feed-screen" class="flex flex-col flex-1 hidden">
-        <!-- 상단 고정 헤더 -->
+        <!-- 상단 고정 헤더 (둥근 로고 적용) -->
         <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b church-border shadow-xs px-4 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="h-9 w-24 bg-white rounded-lg flex items-center justify-center p-1 border church-border shadow-2xs overflow-hidden">
-                    <img src="logo.png" alt="세종꿈의교회 로고" class="w-full h-full object-contain">
+                <!-- 둥근 형태의 헤더 로고 (애니메이션 제외, 깔끔하게) -->
+                <div class="w-10 h-10 church-primary rounded-full flex items-center justify-center p-0.5 shadow-sm border-2 border-emerald-100 overflow-hidden">
+                    <img src="logo.png" alt="세종꿈의교회 로고" class="w-full h-full object-contain scale-110">
                 </div>
                 <div>
-                    <h1 class="text-xs font-bold text-gray-800" id="header-mokjang-title">세종꿈의교회 23목장</h1>
-                    <p class="text-[10px] text-gray-500" id="header-user-display">로그인 정보 없음</p>
+                    <h1 class="text-sm font-bold text-gray-800" id="header-mokjang-title">세종꿈의교회 23목장</h1>
+                    <p class="text-[11px] text-gray-500" id="header-user-display">로그인 정보 없음</p>
                 </div>
             </div>
             <div class="flex items-center space-x-2">
@@ -101,17 +115,17 @@
 
         <!-- 피드 목록 영역 (인피니트 스크롤 구조) -->
         <main class="flex-1 max-w-lg w-full mx-auto p-4 space-y-4 pb-24" id="feed-container">
-            <!-- 동적 피드 카드가 이곳에 렌더링 됩니다 -->
+            <!-- 동적 피드 카드가 이곳에 실시간 렌더링 됩니다 -->
         </main>
     </div>
 
     <!-- ========================================== -->
-    <!-- 4. 게시글 작성 모달 (사역/야유회 사진) -->
+    <!-- 4. 게시글 작성 모달 (관리자용) -->
     <!-- ========================================== -->
     <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl border church-border">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-base font-bold text-gray-800"><i class="fa-solid fa-camera church-primary-text mr-2"></i>사역 및 야유회 사진 이야기</h3>
+                <h3 class="text-base font-bold text-gray-800"><i class="fa-solid fa-camera church-primary-text mr-2"></i>목장 사진 이야기 남기기</h3>
                 <button onclick="closeWriteModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
             <div class="space-y-4">
@@ -120,13 +134,13 @@
                     <input type="text" id="post-mokjang-name" value="세종꿈의교회 23목장" class="w-full px-3 py-2 rounded-xl border church-border text-sm focus:ring-2 focus:ring-[#3B5D50] focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">사진 링크 (URL) 또는 첨부 설명</label>
-                    <input type="text" id="post-image-url" placeholder="이미지 주소(URL)를 입력하세요 (예: 식당 봉사, 야유회 사진)" class="w-full px-3 py-2 rounded-xl border church-border text-sm focus:ring-2 focus:ring-[#3B5D50] focus:outline-none">
-                    <p class="text-[10px] text-gray-400 mt-1">💡 핸드폰 갤러리의 사진 링크나 웹 이미지 주소를 붙여넣어 주세요.</p>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">사진 링크 (URL) 또는 설명</label>
+                    <input type="text" id="post-image-url" placeholder="사진 이미지 주소(URL)를 입력하세요" class="w-full px-3 py-2 rounded-xl border church-border text-sm focus:ring-2 focus:ring-[#3B5D50] focus:outline-none">
+                    <p class="text-[10px] church-primary-text mt-1">💡 핸드폰 갤러리의 사진 링크나 웹 이미지 주소를 붙여넣어 주세요.</p>
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">간단한 이야기 (식당 봉사, 야유회 등)</label>
-                    <textarea id="post-content" rows="3" placeholder="예: 은혜로운 교회 식당 사역 후기, 즐거웠던 목장 야유회 나눔입니다!" class="w-full px-3 py-2 rounded-xl border church-border text-sm focus:ring-2 focus:ring-[#3B5D50] focus:outline-none resize-none"></textarea>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">간단한 이야기</label>
+                    <textarea id="post-content" rows="3" placeholder="즐거웠던 목장 모임이나 사역 이야기를 적어주세요..." class="w-full px-3 py-2 rounded-xl border church-border text-sm focus:ring-2 focus:ring-[#3B5D50] focus:outline-none resize-none"></textarea>
                 </div>
                 <div class="flex items-center space-x-2 pt-2">
                     <input type="checkbox" id="post-display-check" checked class="w-4 h-4 text-[#3B5D50] rounded border-gray-300 focus:ring-[#3B5D50]">
@@ -163,8 +177,9 @@
     <!-- ========================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, where, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, where, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, increment, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // Firebase 설정 (본인의 Firebase 프로젝트 정보로 반드시 교체하세요)
         const firebaseConfig = {
             apiKey: "YOUR_FIREBASE_API_KEY",
             authDomain: "dream-data.firebaseapp.com",
@@ -177,12 +192,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // 전역 상태 변수
         let tapCount = 0;
         let tapTimer = null;
         let currentUser = null;
         let currentMokjang = "세종꿈의교회 23목장";
 
-        // 1. 시크릿 게이트 (로고 7번 터치)
+        // 1. 로고 7번 터치 시크릿 게이트 구현
         const logoBtn = document.getElementById('secret-logo-btn');
         logoBtn.addEventListener('click', () => {
             tapCount++;
@@ -196,13 +212,19 @@
             }
         });
 
-        // 2. 사용자 로그인
+        // 2. 사용자 로그인 처리
         window.handleUserLogin = function() {
             const usernameInput = document.getElementById('auth-username-input').value.trim();
             const mokjangInput = document.getElementById('auth-mokjang-input').value.trim();
 
-            if (!usernameInput) { alert('참여하실 성함이나 직분을 입력해 주세요.'); return; }
-            if (!mokjangInput) { alert('목장 이름을 입력해 주세요.'); return; }
+            if (!usernameInput) {
+                alert('참여하실 성함이나 직분을 입력해 주세요.');
+                return;
+            }
+            if (!mokjangInput) {
+                alert('목장 이름을 입력해 주세요.');
+                return;
+            }
 
             currentUser = usernameInput;
             currentMokjang = mokjangInput;
@@ -214,14 +236,19 @@
             document.getElementById('auth-modal').classList.add('hidden');
             document.getElementById('main-feed-screen').classList.remove('hidden');
 
+            // 실시간 피드 데이터 로드 시작
             loadMokjangFeed();
         };
 
         // 3. 모달 제어
-        window.openWriteModal = function() { document.getElementById('write-modal').classList.remove('hidden'); };
-        window.closeWriteModal = function() { document.getElementById('write-modal').classList.add('hidden'); };
+        window.openWriteModal = function() {
+            document.getElementById('write-modal').classList.remove('hidden');
+        };
+        window.closeWriteModal = function() {
+            document.getElementById('write-modal').classList.add('hidden');
+        };
 
-        // 4. 사진 이야기 등록
+        // 4. 새 글 작성 (사진 중심)
         window.submitNewPost = async function() {
             const mokjangName = document.getElementById('post-mokjang-name').value.trim();
             const imageUrl = document.getElementById('post-image-url').value.trim();
@@ -237,7 +264,7 @@
                 await addDoc(collection(db, "mokjang_posts"), {
                     mokjangName: mokjangName,
                     author: currentUser,
-                    imageUrl: imageUrl || "logo.png",
+                    imageUrl: imageUrl || "logo.png", // 이미지가 없을 경우 로고 이미지 기본 설정
                     content: content,
                     isChecked: isChecked,
                     likes: 0,
@@ -250,14 +277,16 @@
                 document.getElementById('post-content').value = '';
                 closeWriteModal();
             } catch (error) {
-                console.error("등록 오류:", error);
-                alert("등록 중 오류가 발생했습니다.");
+                console.error("게시글 등록 오류:", error);
+                alert("등록 중 오류가 발생했습니다. 다시 시도해 주세요.");
             }
         };
 
-        // 5. 실시간 피드 로드 및 목장 격리
+        // 5. 실시간 피드 로드 및 목장 격리 (예전 목장 이야기 필터링)
         function loadMokjangFeed() {
             const feedContainer = document.getElementById('feed-container');
+            
+            // 현재 설정된 목장 이름과 관리자가 체크(isChecked == true)한 데이터만 실시간 조회
             const q = query(
                 collection(db, "mokjang_posts"),
                 where("mokjangName", "==", currentMokjang),
@@ -271,12 +300,13 @@
                     feedContainer.innerHTML = `
                         <div class="text-center py-16 text-gray-400">
                             <i class="fa-solid fa-camera-retro text-4xl mb-3 opacity-40"></i>
-                            <p class="text-sm">등록된 사역 및 야유회 사진 이야기가 없습니다.</p>
+                            <p class="text-sm">등록된 목장 사진 이야기가 없습니다.</p>
                         </div>
                     `;
                     return;
                 }
 
+                // 클라이언트 단에서 최신순 정렬 (createdAt 기준 내림차순)
                 const posts = [];
                 snapshot.forEach((docSnap) => {
                     posts.push({ id: docSnap.id, ...docSnap.data() });
@@ -320,7 +350,7 @@
                             <span class="text-[11px] text-gray-400">${formatDate(post.createdAt)}</span>
                         </div>
 
-                        <!-- 사진 영역 -->
+                        <!-- 사진 영역 (터치시 핀치 줌 / 확대 라이트박스 실행) -->
                         <div class="w-full bg-black/5 overflow-hidden cursor-pointer" onclick="openLightbox('${post.imageUrl}')">
                             <img src="${post.imageUrl}" alt="목장 사역 및 야유회 사진" class="w-full max-h-96 object-cover hover:scale-102 transition-transform duration-300">
                         </div>
@@ -352,19 +382,27 @@
             });
         }
 
-        // 6. 좋아요 토글
+        // 6. 좋아요(하트) 토글 처리 (배열 연산 충돌 방지)
         window.toggleLike = async function(postId, hasLiked) {
             const postRef = doc(db, "mokjang_posts", postId);
             try {
                 if (hasLiked) {
-                    await updateDoc(postRef, { likes: increment(-1), likedUsers: arrayRemove(currentUser) });
+                    await updateDoc(postRef, {
+                        likes: increment(-1),
+                        likedUsers: arrayRemove(currentUser)
+                    });
                 } else {
-                    await updateDoc(postRef, { likes: increment(1), likedUsers: arrayUnion(currentUser) });
+                    await updateDoc(postRef, {
+                        likes: increment(1),
+                        likedUsers: arrayUnion(currentUser)
+                    });
                 }
-            } catch (error) { console.error("좋아요 오류:", error); }
+            } catch (error) {
+                console.error("좋아요 처리 오류:", error);
+            }
         };
 
-        // 7. 응원 댓글 추가
+        // 7. 응원 댓글 추가 처리
         window.addComment = async function(postId) {
             const inputEl = document.getElementById(`comment-input-${postId}`);
             const text = inputEl.value.trim();
@@ -372,18 +410,24 @@
 
             const now = new Date();
             const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-            const commentObj = { author: currentUser, text: text, time: timeStr };
+            const commentObj = {
+                author: currentUser,
+                text: text,
+                time: timeStr
+            };
 
             const postRef = doc(db, "mokjang_posts", postId);
             try {
-                await updateDoc(postRef, { comments: arrayUnion(commentObj) });
+                await updateDoc(postRef, {
+                    comments: arrayUnion(commentObj)
+                });
                 inputEl.value = '';
-            } catch (error) { console.error("댓글 오류:", error); }
+            } catch (error) {
+                console.error("댓글 등록 오류:", error);
+            }
         };
 
-        // ==========================================
-        // 8. 모바일 핀치 줌 라이트박스
-        // ==========================================
+        // 8. 모바일 최적화 사진 뷰어 (핀치 줌 및 터치 드래그 기능)
         let scale = 1;
         let panning = false;
         let pointX = 0;
@@ -396,44 +440,84 @@
 
         window.openLightbox = function(url) {
             lightboxImg.src = url;
-            scale = 1; pointX = 0; pointY = 0; updateImageTransform();
+            scale = 1;
+            pointX = 0;
+            pointY = 0;
+            updateImageTransform();
             lightboxModal.classList.remove('hidden');
         };
 
-        window.closeLightbox = function() { lightboxModal.classList.add('hidden'); };
-        function updateImageTransform() { lightboxImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
+        window.closeLightbox = function() {
+            lightboxModal.classList.add('hidden');
+        };
+
+        function updateImageTransform() {
+            lightboxImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+        }
 
         let initialDistance = null;
+
         lightboxModal.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
-                initialDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                // 두 손가락 터치 시 줌 시작
+                initialDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
             } else if (e.touches.length === 1 && scale > 1) {
-                panning = true; startX = e.touches[0].clientX - pointX; startY = e.touches[0].clientY - pointY;
+                // 한 손가락 터치 시 드래그 시작 (확대 상태일 때)
+                panning = true;
+                startX = e.touches[0].clientX - pointX;
+                startY = e.touches[0].clientY - pointY;
             }
         });
 
         lightboxModal.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2 && initialDistance) {
-                const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                // 핀치 줌 계산
+                const currentDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
                 const zoomFactor = currentDistance / initialDistance;
-                scale = Math.min(Math.max(1, scale * zoomFactor), 4);
-                initialDistance = currentDistance; updateImageTransform();
+                scale = Math.min(Math.max(1, scale * zoomFactor), 4); // 최대 4배 확대
+                initialDistance = currentDistance;
+                updateImageTransform();
             } else if (panning && e.touches.length === 1) {
-                pointX = e.touches[0].clientX - startX; pointY = e.touches[0].clientY - startY; updateImageTransform();
+                // 드래그 이동
+                pointX = e.touches[0].clientX - startX;
+                pointY = e.touches[0].clientY - startY;
+                updateImageTransform();
             }
         });
 
-        lightboxModal.addEventListener('touchend', () => { initialDistance = null; panning = false; });
+        lightboxModal.addEventListener('touchend', (e) => {
+            initialDistance = null;
+            panning = false;
+            // 확대 상태가 1배율보다 작으면 자동으로 1배율로 복원 (옵션)
+            if (scale < 1) {
+                scale = 1;
+                pointX = 0;
+                pointY = 0;
+                updateImageTransform();
+            }
+        });
 
+        // 더블탭으로 확대/원복 기능
         let lastTapTime = 0;
-        lightboxImg.addEventListener('click', () => {
+        lightboxImg.addEventListener('click', (e) => {
             const currentTime = new Date().getTime();
             if (currentTime - lastTapTime < 300) {
-                scale = scale > 1 ? 1 : 2.5; pointX = 0; pointY = 0; updateImageTransform();
+                // 300ms 이내 클릭 시 더블탭으로 간주
+                scale = scale > 1 ? 1 : 2.5; // 확대 상태면 축소, 축소 상태면 2.5배 확대
+                pointX = 0;
+                pointY = 0;
+                updateImageTransform();
             }
             lastTapTime = currentTime;
         });
 
+        // 유틸리티 함수
         function formatDate(timestamp) {
             if (!timestamp) return '';
             const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -441,6 +525,7 @@
         }
 
         function escapeHtml(str) {
+            if (!str) return '';
             return str.replace(/[&<>'"]/g, function(match) {
                 return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match];
             });
@@ -448,4 +533,3 @@
     </script>
 </body>
 </html>
-```eof
