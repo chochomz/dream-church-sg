@@ -86,12 +86,19 @@
             scroll-snap-type: x mandatory;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow-x: auto;
         }
         .image-snap-row::-webkit-scrollbar {
             display: none;
         }
         .image-snap-item {
             scroll-snap-align: center;
+            flex-shrink: 0;
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
@@ -856,24 +863,24 @@
                         imgArray = [post.imageUrl];
                     }
 
-                    // 사진 렌더링 HTML (배경 박스, 대체 문구 없이 순수 사진만 깔끔하게 출력)
+                    // 사진 렌더링 HTML (Flex 높이 붕괴 방지: min-h-0 및 h-full object-contain 강제)
                     let mediaSectionHtml = '';
                     if (imgArray.length === 1) {
                         mediaSectionHtml = `
-                            <div class="w-full h-full rounded-lg overflow-hidden flex items-center justify-center cursor-pointer relative" onclick="openLightbox('${imgArray[0]}')">
-                                <img src="${imgArray[0]}" alt="목장 사진" class="w-full h-full object-contain">
+                            <div class="w-full h-full min-h-0 flex items-center justify-center cursor-pointer relative overflow-hidden" onclick="openLightbox('${imgArray[0]}')">
+                                <img src="${imgArray[0]}" alt="목장 사진" class="max-w-full max-h-full w-auto h-auto object-contain block mx-auto select-none pointer-events-auto">
                             </div>
                         `;
                     } else if (imgArray.length > 1) {
                         const slidesHtml = imgArray.map((url, i) => `
-                            <div class="image-snap-item min-w-full h-full flex items-center justify-center relative cursor-pointer" onclick="openLightbox('${url}')">
-                                <img src="${url}" class="w-full h-full object-contain">
+                            <div class="image-snap-item min-w-full h-full min-h-0 flex items-center justify-center relative cursor-pointer overflow-hidden" onclick="openLightbox('${url}')">
+                                <img src="${url}" class="max-w-full max-h-full w-auto h-auto object-contain block mx-auto select-none">
                                 <span class="absolute top-2 right-2 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded-full pointer-events-none">${i + 1}/${imgArray.length}</span>
                             </div>
                         `).join('');
                         mediaSectionHtml = `
-                            <div class="w-full h-full rounded-lg overflow-hidden relative">
-                                <div class="image-snap-row flex w-full h-full overflow-x-auto">
+                            <div class="w-full h-full min-h-0 overflow-hidden relative">
+                                <div class="image-snap-row">
                                     ${slidesHtml}
                                 </div>
                             </div>
@@ -895,7 +902,7 @@
                     card.innerHTML = `
                         <div class="w-full h-full bg-white rounded-xl border church-border shadow-xs flex flex-col p-2.5 box-border overflow-hidden">
                             <!-- 헤더: 작성자 및 관리 -->
-                            <div class="flex items-center justify-between pb-1.5 shrink-0">
+                            <div class="flex items-center justify-between pb-1 shrink-0">
                                 <div class="flex items-center space-x-1.5 overflow-hidden">
                                     <div class="w-6 h-6 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-[10px] shrink-0">
                                         ${escapeHtml((post.author || 'M').charAt(0))}
@@ -908,18 +915,18 @@
                                 </div>
                             </div>
 
-                            <!-- 미디어 사진 영역: 사진만 온전히 표시 -->
-                            <div class="flex-1 min-h-[160px] w-full py-1 flex flex-col justify-center overflow-hidden">
+                            <!-- 미디어 사진 영역: min-h-0 추가로 flexbox 높이 붕괴 방지 -->
+                            <div class="flex-1 min-h-0 w-full py-0.5 flex flex-col justify-center items-center overflow-hidden relative">
                                 ${mediaSectionHtml}
                             </div>
 
                             <!-- 글 내용 (편안한 스크롤) -->
-                            <div class="shrink-0 max-h-20 overflow-y-auto text-xs text-gray-800 leading-snug whitespace-pre-wrap py-1">
+                            <div class="shrink-0 max-h-16 overflow-y-auto text-xs text-gray-800 leading-snug whitespace-pre-wrap py-1">
                                 ${escapeHtml(post.content)}
                             </div>
 
                             <!-- 하단 반응 바 (좋아요, 댓글수 터치 시 팝업, + 버튼) -->
-                            <div class="pt-1.5 shrink-0 flex items-center justify-between">
+                            <div class="pt-1 shrink-0 flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
                                     <!-- 좋아요 버튼 -->
                                     <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-500' : 'text-gray-500'}">
