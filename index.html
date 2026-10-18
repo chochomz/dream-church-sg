@@ -369,6 +369,7 @@
             messagingSenderId: "812415684377",
             appId: "1:812415684377:web:de8859d1502b3c05acbf88"
         };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-mokjang-app';
 
         let app, auth, db;
         try {
@@ -377,6 +378,14 @@
             db = getFirestore(app);
         } catch (e) {
             console.error("Firebase init error:", e);
+        }
+
+        // 테니스 클럽 표준 컬렉션 참조 헬퍼
+        function getPostsCollection() {
+            return collection(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts');
+        }
+        function getPostDocRef(postId) {
+            return doc(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts', postId);
         }
 
         function setDbStatus(status) {
@@ -513,7 +522,7 @@
             loadMokjangFeed();
         };
 
-        // 고용량 완전 배제: 모바일 화면에 충분한 720px 초경량(70~120KB) 압축 알고리즘
+        // 세종 대왕테니스 클럽의 검증된 표준 이미지 변환 알고리즘
         function processImageFile(file, callback) {
             if (!file) return callback(null);
             
@@ -525,7 +534,7 @@
                         const canvas = document.createElement('canvas');
                         let width = img.width;
                         let height = img.height;
-                        const maxDim = 720; // 모바일 화면에서 충분히 선명하고 용량은 100KB 미만으로 축소
+                        const maxDim = 800;
 
                         if (width > height) {
                             if (width > maxDim) {
@@ -542,23 +551,17 @@
                         canvas.width = width;
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
-                        
-                        // 배경 투명화 방지 흰색 채움
-                        ctx.fillStyle = "#ffffff";
-                        ctx.fillRect(0, 0, width, height);
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        // 고용량 사진을 100KB 미만의 가벼운 JPEG로 확 낮춤
-                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.60);
-                        callback(compressedDataUrl);
+                        const compressed = canvas.toDataURL('image/jpeg', 0.7);
+                        callback(compressed);
                     } catch (err) {
-                        console.error("압축 중 오류 발생:", err);
+                        console.warn("Canvas compression fallback:", err);
                         callback(e.target.result);
                     }
                 };
                 img.onerror = function() {
-                    console.error("이미지 로드 실패");
-                    callback(null);
+                    callback(e.target.result);
                 };
                 img.src = e.target.result;
             };
@@ -715,9 +718,8 @@
                     await initAuth();
                 }
 
-                const postsCol = collection(db, 'mokjang_posts');
                 if (postId) {
-                    const postRef = doc(db, 'mokjang_posts', postId);
+                    const postRef = getPostDocRef(postId);
                     await updateDoc(postRef, {
                         content: content,
                         images: finalImages,
@@ -725,6 +727,7 @@
                         isChecked: isChecked
                     });
                 } else {
+                    const postsCol = getPostsCollection();
                     await addDoc(postsCol, {
                         mokjangName: mokjangName,
                         author: currentUser,
@@ -742,8 +745,7 @@
                 showNotification("게시글이 성공적으로 저장되었습니다.");
             } catch (error) {
                 console.error("저장 오류:", error);
-                // 1MB 초과 등 구글 DB 에러 발생 시 사용자에게 명확히 알림
-                showNotification("저장 실패: 사진 용량이나 데이터베이스 오류 (" + error.message + ")");
+                showNotification("저장 실패: " + error.message);
                 setDbStatus('error');
             }
         };
@@ -763,7 +765,7 @@
             setDbStatus('saving');
             try {
                 if (!db) { setDbStatus('error'); return; }
-                await deleteDoc(doc(db, 'mokjang_posts', postToDeleteId));
+                await deleteDoc(getPostDocRef(postToDeleteId));
                 closeConfirmModal();
                 setDbStatus('connected');
                 showNotification("삭제되었습니다.");
@@ -780,7 +782,6 @@
             setDbStatus('saving');
 
             try {
-                // 사진이 아예 없는 비정상 글 검색 후 일괄 삭제
                 const broken = cachedPosts.filter(p => {
                     const hasImgs = Array.isArray(p.images) && p.images.some(img => typeof img === 'string' && img.trim().length > 0);
                     const hasSingle = typeof p.imageUrl === 'string' && p.imageUrl.trim().length > 0;
@@ -794,7 +795,7 @@
                 }
 
                 for (const post of broken) {
-                    await deleteDoc(doc(db, 'mokjang_posts', post.id));
+                    await deleteDoc(getPostDocRef(post.id));
                 }
 
                 setDbStatus('connected');
@@ -820,7 +821,7 @@
                 await initAuth();
             }
 
-            const postsCol = collection(db, 'mokjang_posts');
+            const postsCol = getPostsCollection();
 
             onSnapshot(postsCol, (snapshot) => {
                 feedContainer.innerHTML = "";
@@ -835,7 +836,6 @@
                 
                 cachedPosts = posts;
 
-                // 팝업 모달이 열려있다면 실시간 내용 갱신
                 if (currentActivePopupPostId) {
                     renderCommentsModalList(currentActivePopupPostId);
                 }
@@ -865,7 +865,6 @@
                     const card = document.createElement('section');
                     card.className = "feed-card-item w-full flex flex-col p-1.5 box-border";
                     
-                    // 사진 리스트 정제
                     let imgArray = [];
                     if (Array.isArray(post.images) && post.images.length > 0) {
                         imgArray = post.images.filter(img => typeof img === 'string' && img.trim().length > 0);
@@ -873,7 +872,6 @@
                         imgArray = [post.imageUrl];
                     }
 
-                    // 사진 렌더링 HTML (Flex 높이 붕괴 방지: min-h-0 및 h-full object-contain 강제)
                     let mediaSectionHtml = '';
                     if (imgArray.length === 1) {
                         mediaSectionHtml = `
@@ -897,7 +895,6 @@
                         `;
                     }
 
-                    // 비정상 글 정리 및 관리를 위해 모든 카드에 삭제 버튼 노출
                     const imagesParam = JSON.stringify(imgArray).replace(/"/g, '&quot;');
                     const authorActionsHtml = `
                         <div class="flex items-center space-x-1 text-[10px]">
@@ -911,7 +908,6 @@
 
                     card.innerHTML = `
                         <div class="w-full h-full bg-white rounded-xl border church-border shadow-xs flex flex-col p-2.5 box-border overflow-hidden">
-                            <!-- 헤더: 작성자 및 관리 -->
                             <div class="flex items-center justify-between pb-1 shrink-0">
                                 <div class="flex items-center space-x-1.5 overflow-hidden">
                                     <div class="w-6 h-6 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-[10px] shrink-0">
@@ -925,32 +921,26 @@
                                 </div>
                             </div>
 
-                            <!-- 미디어 사진 영역: min-h-0 추가로 flexbox 높이 붕괴 방지 -->
                             <div class="flex-1 min-h-0 w-full py-0.5 flex flex-col justify-center items-center overflow-hidden relative">
                                 ${mediaSectionHtml}
                             </div>
 
-                            <!-- 글 내용 (편안한 스크롤) -->
                             <div class="shrink-0 max-h-16 overflow-y-auto text-xs text-gray-800 leading-snug whitespace-pre-wrap py-1">
                                 ${escapeHtml(post.content)}
                             </div>
 
-                            <!-- 하단 반응 바 (좋아요, 댓글수 터치 시 팝업, + 버튼) -->
                             <div class="pt-1 shrink-0 flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
-                                    <!-- 좋아요 버튼 -->
                                     <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-500' : 'text-gray-500'}">
                                         <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-xs"></i>
                                         <span class="text-[11px] font-medium">${post.likes || 0}</span>
                                     </button>
 
-                                    <!-- 댓글수 영역 (터치 시 상하 스크롤 팝업 모달 오픈) -->
                                     <button type="button" onclick="openCommentsModal('${post.id}')" class="flex items-center space-x-1 text-gray-500 hover:text-emerald-700 transition-colors" title="댓글 전체보기">
                                         <i class="fa-regular fa-comment-dots text-xs"></i>
                                         <span class="text-[11px] font-semibold">${commentCount}</span>
                                     </button>
 
-                                    <!-- 댓글수 오른쪽 '+' 버튼 (해당 라인 인라인 댓글 입력창 토글) -->
                                     <button type="button" onclick="toggleInlineCommentInput('${post.id}')" class="w-4 h-4 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-600 hover:text-emerald-700 flex items-center justify-center text-[10px] font-bold transition-colors" title="이 피드에 바로 댓글 쓰기">
                                         <i class="fa-solid fa-plus text-[9px]"></i>
                                     </button>
@@ -962,7 +952,6 @@
                                 </div>
                             </div>
 
-                            <!-- '+' 버튼 클릭 시 노출되는 해당 라인 인라인 댓글 작성 바 -->
                             <div id="inline-comment-row-${post.id}" class="mt-1 pt-1 hidden shrink-0">
                                 <div class="flex space-x-1 items-center">
                                     <input type="text" id="inline-comment-input-${post.id}" maxlength="200" placeholder="댓글을 남겨주세요..." 
@@ -1073,7 +1062,7 @@
             const commentObj = { author: currentUser, text: text, time: timeStr };
 
             if (!db) return;
-            const postRef = doc(db, 'mokjang_posts', postId);
+            const postRef = getPostDocRef(postId);
             setDbStatus('saving');
             try {
                 await updateDoc(postRef, { comments: arrayUnion(commentObj) });
@@ -1087,7 +1076,7 @@
 
         window.toggleLike = async function(postId, hasLiked) {
             if (!db) return;
-            const postRef = doc(db, 'mokjang_posts', postId);
+            const postRef = getPostDocRef(postId);
             setDbStatus('saving');
             try {
                 if (hasLiked) {
