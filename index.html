@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우리들의 목장 이야기 - 세종꿈의교회 23목장</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome 아이콘 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #F8F9FA;
+            color: #333333;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* 부드러운 파스텔톤 교회 스타일 컬러 팔레트 */
+        .church-primary { background-color: #3B5D50; } /* 딥 세이지 그린 */
+        .church-primary-text { color: #3B5D50; }
+        .church-accent { background-color: #E8F0EC; }
+        .church-border { border-color: #D4DCD7; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- ========================================== -->
+    <!-- 1. 시크릿 입장 화면 (로고 7번 터치) -->
+    <!-- ========================================== -->
+    <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-6 text-white">
+        <div class="text-center cursor-pointer select-none group" id="secret-logo-btn" title="빠르게 7번 터치하세요">
+            <div class="w-28 h-28 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-white/20 shadow-xl group-active:scale-95 transition-transform">
+                <i class="fa-solid fa-church text-5xl text-white"></i>
+            </div>
+            <h1 class="text-2xl font-bold tracking-wider mb-2">세종꿈의교회 23목장</h1>
+            <p class="text-sm text-emerald-100/80 font-light">우리들의 목장 이야기</p>
+        </div>
+        <div class="mt-12 text-xs text-emerald-200/60 text-center tracking-widest">
+            <span>TOUCH LOGO TO ENTER</span>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. 사용자 인증 모달 (이름 등록 확인) -->
+    <!-- ========================================== -->
+    <div id="auth-modal" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl border church-border">
+            <div class="text-center mb-5">
+                <div class="w-12 h-12 church-accent church-primary-text rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fa-solid fa-user-shield text-lg"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">목장 멤버 인증</h3>
+                <p class="text-xs text-gray-500 mt-1">목자/부목자님이 사전에 지정한 성함만 입력해 주세요.</p>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">참여 직분 / 성함</label>
+                    <input type="text" id="auth-username-input" placeholder="예: 김목자, 이부목자, 홍길동" class="w-full px-4 py-3 rounded-xl border church-border text-sm focus:outline-none focus:ring-2 focus:ring-[#3B5D50]">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">현재 목장 이름</label>
+                    <input type="text" id="auth-mokjang-input" value="세종꿈의교회 23목장" placeholder="목장 이름 입력" class="w-full px-4 py-3 rounded-xl border church-border text-sm focus:outline-none focus:ring-2 focus:ring-[#3B5D50]">
+                </div>
+                <button onclick="handleUserLogin()" class="w-full py-3 church-primary text-white rounded-xl font-medium text-sm shadow-md hover:opacity-95 transition-opacity">
+                    입장하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. 메인 피드 화면 -->
+    <!-- ========================================== -->
+    <div id="main-feed-screen" class="flex flex-col flex-1 hidden">
+        <!-- 상단 고정 헤더 -->
+        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b church-border shadow-xs px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 church-primary rounded-xl flex items-center justify-center text-white shadow-sm">
+                    <i class="fa-solid fa-church text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-bold text-gray-800" id="header-mokjang-title">세종꿈의교회 23목장</h1>
+                    <p class="text-[11px] text-gray-500" id="header-user-display">로그인 정보 없음</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <!-- 관리자(목자) 글쓰기 오픈 버튼 (관리자 지정 권한 연동 가능) -->
+                <button onclick="openWriteModal()" class="px-3 py-1.5 church-accent church-primary-text rounded-lg text-xs font-medium flex items-center space-x-1 shadow-xs hover:bg-[#d8e8e0] transition-colors">
+                    <i class="fa-solid fa-pen-nib text-xs"></i>
+                    <span>글쓰기</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- 피드 목록 영역 (인피니트 스크롤 구조) -->
+        <main class="flex-1 max-w-lg w-full mx-auto p-4 space-y-4 pb-24" id="feed-container">
+            <!-- 동적 피드 카드가 이곳에 실시간 렌더링 됩니다 -->
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 4. 게시글 작성 모달 (관리자용) -->
+    <!-- ========================================== -->
+    <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl border church-border">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-gray-800"><i class="fa-solid fa-pen-nib church-primary-text mr-2"></i>목장 이야기 남기기</h3>
+                <button onclick="closeWriteModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">목장 이름 (구분 기준)</label>
+                    <input type="text" id="post-mokjang-name" value="세종꿈의교회 23목장" class="w-full px-3 py-2 rounded-xl border church-border text-sm focus:ring-2 focus:ring-[#3B5D50] focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">나눔 내용</label>
+                    <textarea id="post-content" rows="5" placeholder="이번 주 목장 은혜 나눔 및 소식을 적어주세요..." class="w-full px-3 py-2 rounded-xl border church-border text-sm focus:ring-2 focus:ring-[#3B5D50] focus:outline-none resize-none"></textarea>
+                </div>
+                <div class="flex items-center space-x-2 pt-2">
+                    <input type="checkbox" id="post-display-check" checked class="w-4 h-4 text-[#3B5D50] rounded border-gray-300 focus:ring-[#3B5D50]">
+                    <label for="post-display-check" class="text-xs text-gray-700 font-medium">관리자 체크 (현재 피드 화면에 디스플레이)</label>
+                </div>
+                <button onclick="submitNewPost()" class="w-full py-3 church-primary text-white rounded-xl font-medium text-sm shadow-md hover:opacity-95 transition-opacity">
+                    등록하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 푸터 안내 -->
+    <footer class="text-center py-6 text-xs text-gray-400 border-t church-border bg-white mt-auto">
+        <p>그리스도의 은혜를 나누는 마음</p>
+        <p class="mt-1">세종꿈의교회 23목장</p>
+    </footer>
+
+    <!-- ========================================== -->
+    <!-- Firebase SDK 및 연동 로직 (dream-data) -->
+    <!-- ========================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, increment, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Firebase 설정 (firebase id: dream-data 기준 연동 구성)
+        const firebaseConfig = {
+            apiKey: "YOUR_FIREBASE_API_KEY",
+            authDomain: "dream-data.firebaseapp.com",
+            projectId: "dream-data",
+            storageBucket: "dream-data.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 전역 상태 변수
+        let tapCount = 0;
+        let tapTimer = null;
+        let currentUser = null;
+        let currentMokjang = "세종꿈의교회 23목장";
+
+        // 1. 로고 7번 터치 시크릿 게이트 구현
+        const logoBtn = document.getElementById('secret-logo-btn');
+        logoBtn.addEventListener('click', () => {
+            tapCount++;
+            clearTimeout(tapTimer);
+            if (tapCount >= 7) {
+                tapCount = 0;
+                document.getElementById('secret-gate-screen').classList.add('hidden');
+                document.getElementById('auth-modal').classList.remove('hidden');
+            } else {
+                tapTimer = setTimeout(() => { tapCount = 0; }, 800);
+            }
+        });
+
+        // 2. 사용자 로그인 처리
+        window.handleUserLogin = function() {
+            const usernameInput = document.getElementById('auth-username-input').value.trim();
+            const mokjangInput = document.getElementById('auth-mokjang-input').value.trim();
+
+            if (!usernameInput) {
+                alert('참여하실 성함이나 직분을 입력해 주세요.');
+                return;
+            }
+            if (!mokjangInput) {
+                alert('목장 이름을 입력해 주세요.');
+                return;
+            }
+
+            currentUser = usernameInput;
+            currentMokjang = mokjangInput;
+
+            document.getElementById('header-user-display').innerText = `${currentUser} 님`;
+            document.getElementById('header-mokjang-title').innerText = currentMokjang;
+            document.getElementById('post-mokjang-name').value = currentMokjang;
+
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('main-feed-screen').classList.remove('hidden');
+
+            // 실시간 피드 데이터 로드 시작
+            loadMokjangFeed();
+        };
+
+        // 3. 모달 제어
+        window.openWriteModal = function() {
+            document.getElementById('write-modal').classList.remove('hidden');
+        };
+        window.closeWriteModal = function() {
+            document.getElementById('write-modal').classList.add('hidden');
+        };
+
+        // 4. 새 글 작성 (동시 입력 시 데이터 충돌 방지: Firestore 트랜잭션/문서 고유 ID 자동 생성)
+        window.submitNewPost = async function() {
+            const mokjangName = document.getElementById('post-mokjang-name').value.trim();
+            const content = document.getElementById('post-content').value.trim();
+            const isChecked = document.getElementById('post-display-check').checked;
+
+            if (!content) {
+                alert('나눔 내용을 입력해 주세요.');
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "mokjang_posts"), {
+                    mokjangName: mokjangName,
+                    author: currentUser,
+                    content: content,
+                    isChecked: isChecked, // 관리자가 체크한 것만 디스플레이
+                    likes: 0,
+                    likedUsers: [],
+                    comments: [],
+                    createdAt: new Date()
+                });
+
+                document.getElementById('post-content').value = '';
+                closeWriteModal();
+            } catch (error) {
+                console.error("게시글 등록 오류:", error);
+                alert("등록 중 오류가 발생했습니다. 다시 시도해 주세요.");
+            }
+        };
+
+        // 5. 실시간 피드 로드 및 목장 격리 (예전 목장 이야기 필터링)
+        function loadMokjangFeed() {
+            const feedContainer = document.getElementById('feed-container');
+            
+            // 현재 설정된 목장 이름과 관리자가 체크(isChecked == true)한 데이터만 실시간 조회
+            const q = query(
+                collection(db, "mokjang_posts"),
+                where("mokjangName", "==", currentMokjang),
+                where("isChecked", "==", true)
+            );
+
+            onSnapshot(q, (snapshot) => {
+                feedContainer.innerHTML = "";
+                
+                if (snapshot.empty) {
+                    feedContainer.innerHTML = `
+                        <div class="text-center py-16 text-gray-400">
+                            <i class="fa-solid fa-comments text-4xl mb-3 opacity-40"></i>
+                            <p class="text-sm">등록된 목장 이야기가 없습니다.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 클라이언트 단에서 최신순 정렬 (createdAt 기준 내림차순)
+                const posts = [];
+                snapshot.forEach((docSnap) => {
+                    posts.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                
+                posts.sort((a, b) => {
+                    const timeA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+                    const timeB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+                    return timeB - timeA;
+                });
+
+                posts.forEach((post) => {
+                    const hasLiked = post.likedUsers && post.likedUsers.includes(currentUser);
+                    const card = document.createElement('div');
+                    card.className = "bg-white rounded-2xl p-5 shadow-xs border church-border space-y-3";
+                    
+                    let commentsHtml = '';
+                    if (post.comments && post.comments.length > 0) {
+                        commentsHtml = post.comments.map(c => `
+                            <div class="bg-gray-50 rounded-xl p-2.5 text-xs flex justify-between items-start">
+                                <div>
+                                    <span class="font-bold text-gray-700 mr-2">${c.author}</span>
+                                    <span class="text-gray-600">${c.text}</span>
+                                </div>
+                                <span class="text-[10px] text-gray-400">${c.time || ''}</span>
+                            </div>
+                        `).join('');
+                    }
+
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-xs">
+                                    ${post.author.charAt(0)}
+                                </div>
+                                <div>
+                                    <span class="text-xs font-bold text-gray-800">${post.author}</span>
+                                    <span class="text-[10px] text-gray-400 ml-1">(${post.mokjangName})</span>
+                                </div>
+                            </div>
+                            <span class="text-[11px] text-gray-400">${formatDate(post.createdAt)}</span>
+                        </div>
+                        <div class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap py-1">${escapeHtml(post.content)}</div>
+                        
+                        <!-- 하트 및 반응 바 -->
+                        <div class="flex items-center justify-between pt-2 border-t church-border">
+                            <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1.5 text-xs font-medium ${hasLiked ? 'text-rose-500' : 'text-gray-500 hover:text-rose-500'} transition-colors">
+                                <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-base"></i>
+                                <span>${post.likes || 0}</span>
+                            </button>
+                            <span class="text-xs text-gray-400"><i class="fa-regular fa-comment-dots mr-1"></i>댓글 ${post.comments ? post.comments.length : 0}</span>
+                        </div>
+
+                        <!-- 댓글 목록 및 입력 -->
+                        <div class="space-y-2 pt-2">
+                            <div class="space-y-1.5 max-h-32 overflow-y-auto">${commentsHtml}</div>
+                            <div class="flex space-x-2 pt-1">
+                                <input type="text" id="comment-input-${post.id}" placeholder="응원 댓글을 남겨주세요..." class="flex-1 px-3 py-1.5 rounded-xl border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none">
+                                <button onclick="addComment('${post.id}')" class="px-3 py-1.5 church-primary text-white rounded-xl text-xs font-medium">등록</button>
+                            </div>
+                        </div>
+                    `;
+                    feedContainer.appendChild(card);
+                });
+            });
+        }
+
+        // 6. 좋아요(하트) 토글 처리 (동시 입력 충돌 방지 arrayUnion/arrayRemove 활용)
+        window.toggleLike = async function(postId, hasLiked) {
+            const postRef = doc(db, "mokjang_posts", postId);
+            try {
+                if (hasLiked) {
+                    await updateDoc(postRef, {
+                        likes: increment(-1),
+                        likedUsers: arrayRemove(currentUser)
+                    });
+                } else {
+                    await updateDoc(postRef, {
+                        likes: increment(1),
+                        likedUsers: arrayUnion(currentUser)
+                    });
+                }
+            } catch (error) {
+                console.error("좋아요 처리 오류:", error);
+            }
+        };
+
+        // 7. 응원 댓글 추가 처리 (동시 입력 대응 arrayUnion 활용)
+        window.addComment = async function(postId) {
+            const inputEl = document.getElementById(`comment-input-${postId}`);
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            const now = new Date();
+            const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const commentObj = {
+                author: currentUser,
+                text: text,
+                time: timeStr
+            };
+
+            const postRef = doc(db, "mokjang_posts", postId);
+            try {
+                await updateDoc(postRef, {
+                    comments: arrayUnion(commentObj)
+                });
+                inputEl.value = '';
+            } catch (error) {
+                console.error("댓글 등록 오류:", error);
+                alert("댓글 등록 중 오류가 발생했습니다.");
+            }
+        };
+
+        // 유틸리티 함수
+        function formatDate(timestamp) {
+            if (!timestamp) return '';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>'"]/
+            , 
+            function(match) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match];
+            });
+        }
+    </script>
+</body>
+</html>
