@@ -259,15 +259,13 @@
         let postToDeleteId = null;
         let currentUserUid = null;
 
-         const firebaseConfig = {
-          apiKey: "AIzaSyDKD5LUQL84ZuPH5UJrHBj7yAYDTabDWVA",
-          authDomain: "dream-data-146a4.firebaseapp.com",
-          projectId: "dream-data-146a4",
-          storageBucket: "dream-data-146a4.firebasestorage.app",
-          messagingSenderId: "812415684377",
-          appId: "1:812415684377:web:de8859d1502b3c05acbf88"
-        };
-
+        const firebaseConfig = {
+            apiKey: "YOUR_REAL_FIREBASE_API_KEY",
+            authDomain: "dream-data-146a4.firebaseapp.com",
+            projectId: "dream-data-146a4",
+            storageBucket: "dream-data-146a4.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-mokjang-app';
 
@@ -318,7 +316,6 @@
             } catch (e) {
                 console.warn("Auth fallback mode active:", e);
                 currentUserUid = crypto.randomUUID();
-                // If keys are invalid or failed, show red error light as requested
                 setDbStatus('error');
             }
         }
@@ -559,7 +556,7 @@
                 setDbStatus('connected');
             } catch (error) {
                 console.error("저장 오류:", error);
-                alert("저장 중 오류가 발생했습니다.");
+                alert("저장 중 오류가 발생했습니다. (Firestore 보안 규칙을 확인해 주세요)");
                 setDbStatus('error');
             }
         };
@@ -768,34 +765,6 @@
                 inputEl.value = '';
                 setDbStatus('connected');
             } catch (error) { console.error("댓글 오류:", error); setDbStatus('error'); }
-        };
-
-        window.toggleCommentInput = function(postId) {
-            const section = document.getElementById(`comment-section-${postId}`);
-            if (section) {
-                section.classList.toggle('hidden');
-                if (!section.classList.contains('hidden')) {
-                    const input = document.getElementById(`comment-input-${postId}`);
-                    if (input) input.focus();
-                }
-            }
-        };
-
-        window.addComment = async function(postId) {
-            const inputEl = document.getElementById(`comment-input-${postId}`);
-            const text = inputEl.value.trim();
-            if (!text) return;
-
-            const now = new Date();
-            const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-            const commentObj = { author: currentUser, text: text, time: timeStr };
-
-            if (!db) return;
-            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts', postId);
-            try {
-                await updateDoc(postRef, { comments: arrayUnion(commentObj) });
-                inputEl.value = '';
-            } catch (error) { console.error("댓글 오류:", error); }
         };
 
         let scale = 1;
