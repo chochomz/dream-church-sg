@@ -259,21 +259,18 @@
             <div class="space-y-2.5 flex-1 overflow-y-auto pt-2">
                 <input type="hidden" id="editing-post-id" value="">
                 
-                <div class="space-y-1">
+                <div class="space-y-1.5">
                     <div class="flex justify-between items-center text-[10px]">
                         <label class="font-medium text-gray-600 whitespace-nowrap">사진 추가 (최대 5장)</label>
                         <span id="image-count-indicator" class="text-gray-400 whitespace-nowrap">0 / 5장</span>
                     </div>
 
-                    <!-- 사진/파일 단독 업로드 버튼 -->
-                    <label class="w-full border border-dashed church-border rounded-lg py-2.5 px-2 text-center cursor-pointer hover:bg-emerald-50 text-[11px] flex items-center justify-center space-x-1.5 transition-colors bg-gray-50/50">
-                        <i class="fa-solid fa-images church-primary-text text-sm shrink-0"></i>
-                        <span class="font-medium text-gray-700 whitespace-nowrap">앨범 / 카메라에서 사진 선택</span>
-                        <input type="file" id="post-multi-file-input" accept="image/*" multiple class="hidden" onchange="handleFilesSelect(event)">
-                    </label>
+                    <!-- 숨김 처리된 공용 파일 입력창 -->
+                    <input type="file" id="post-multi-file-input" accept="image/*" multiple class="hidden" onchange="handleFilesSelect(event)">
 
-                    <div id="selected-images-grid" class="grid grid-cols-3 gap-1.5 mt-1">
-                        <!-- 선택된 썸네일 -->
+                    <!-- 사진 썸네일 및 '+' 추가 버튼 중앙 정렬 컨테이너 -->
+                    <div id="selected-images-grid" class="flex flex-wrap items-center justify-center gap-2 py-1">
+                        <!-- 선택된 썸네일들과 '+' 추가 버튼이 여기에 중앙 정렬되어 렌더링됩니다 -->
                     </div>
                 </div>
 
@@ -607,9 +604,10 @@
             grid.innerHTML = "";
             indicator.innerText = `${selectedImagesList.length} / 5장`;
 
+            // 선택된 사진 썸네일들
             selectedImagesList.forEach((imgSrc, idx) => {
                 const thumb = document.createElement('div');
-                thumb.className = "relative bg-gray-100 rounded-lg aspect-square overflow-hidden border church-border flex items-center justify-center";
+                thumb.className = "relative bg-gray-100 rounded-lg w-20 h-20 overflow-hidden border church-border flex items-center justify-center shrink-0 shadow-2xs";
                 thumb.innerHTML = `
                     <img src="${imgSrc}" class="w-full h-full object-cover">
                     <button type="button" onclick="removeSelectedImage(${idx})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center shadow"><i class="fa-solid fa-xmark"></i></button>
@@ -617,14 +615,15 @@
                 grid.appendChild(thumb);
             });
 
+            // 5장 미만일 때 노출되는 '+' 사진 추가 버튼 (기능 통합 및 중앙 정렬)
             if (selectedImagesList.length < 5) {
                 const addBtn = document.createElement('button');
                 addBtn.type = "button";
                 addBtn.onclick = triggerFilePicker;
-                addBtn.className = "border-2 border-dashed church-border rounded-lg aspect-square flex flex-col items-center justify-center text-gray-400 hover:bg-emerald-50 transition-colors";
+                addBtn.className = "w-20 h-20 border-2 border-dashed church-border rounded-lg flex flex-col items-center justify-center text-gray-500 hover:bg-emerald-50 active:scale-95 transition-all bg-gray-50/70 shrink-0";
                 addBtn.innerHTML = `
-                    <i class="fa-solid fa-plus text-sm mb-0.5 church-primary-text"></i>
-                    <span class="text-[9px] whitespace-nowrap">사진 추가</span>
+                    <i class="fa-solid fa-plus text-base mb-1 church-primary-text"></i>
+                    <span class="text-[10px] font-medium text-gray-700 whitespace-nowrap">사진 추가</span>
                 `;
                 grid.appendChild(addBtn);
             }
