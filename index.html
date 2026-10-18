@@ -2,14 +2,17 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>우리들의 목장 이야기 - 세종꿈의교회 23목장</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
         
-        body {
+        html, body {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
             font-family: 'Noto Sans KR', sans-serif;
             background-color: #F8F9FA;
             color: #222222;
@@ -49,7 +52,7 @@
             animation: divine-glow 4s ease-in-out infinite;
         }
 
-        #lightbox-modal, #auth-modal, #write-modal, #confirm-modal, #save-confirm-modal {
+        #lightbox-modal, #auth-modal, #write-modal, #confirm-modal, #save-confirm-modal, #db-status-modal {
             touch-action: none;
             overscroll-behavior: contain;
         }
@@ -59,9 +62,9 @@
         }
     </style>
 </head>
-<body class="flex flex-col min-h-screen bg-[#F8F9FA]">
+<body class="flex flex-col min-h-screen bg-[#F8F9FA] w-full max-w-full">
 
-    <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-4 text-white text-center">
+    <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-4 text-white text-center w-full h-full">
         <div class="cursor-pointer select-none group relative inline-block" id="secret-login-area">
             <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center p-2.5 mx-auto mb-5 shadow-2xl group-active:scale-95 transition-transform border-4 border-white/40 overflow-hidden glowing-logo relative z-10">
                 <svg viewBox="0 0 200 200" class="w-full h-full object-contain" id="secret-logo-img">
@@ -108,9 +111,8 @@
         </div>
     </div>
 
-    <div id="main-feed-screen" class="flex flex-col flex-1 hidden">
-        <!-- 초슬림 상단 헤더: 높이와 패딩을 최소화하여 화면 낭비 제거 -->
-        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-xs border-b church-border shadow-xs px-2 py-1.5 flex items-center justify-between">
+    <div id="main-feed-screen" class="flex flex-col flex-1 w-full max-w-full hidden">
+        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-xs border-b church-border shadow-xs px-2 py-1.5 flex items-center justify-between w-full">
             <div class="flex items-center space-x-1.5 overflow-hidden">
                 <div class="w-7 h-7 church-primary rounded-full flex items-center justify-center p-0.5 shadow-xs border border-emerald-100 overflow-hidden bg-white shrink-0">
                     <svg viewBox="0 0 200 200" class="w-full h-full object-contain scale-110">
@@ -125,11 +127,12 @@
                     <p class="text-[9px] text-gray-500 truncate whitespace-nowrap" id="header-user-display">로그인 정보 없음</p>
                 </div>
             </div>
+            
             <div class="shrink-0 flex items-center space-x-1.5">
-                <div class="flex items-center space-x-1 px-1.5 py-0.5 bg-gray-50 border church-border rounded" title="연동 상태">
-                    <span id="db-status-lamp" class="w-2 h-2 rounded-full bg-blue-500 animate-pulse inline-block"></span>
-                    <span id="db-status-text" class="text-[9px] text-gray-500 whitespace-nowrap">연동중</span>
-                </div>
+                <!-- 텍스트 없이 단일 램프만 표시 (터치 시 상태 팝업 모달 호출) -->
+                <button type="button" onclick="openDbStatusModal()" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors focus:outline-none" title="서버 연동 상태 보기">
+                    <span id="db-status-lamp" class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse transition-all"></span>
+                </button>
                 <button onclick="openWriteModal()" class="px-2.5 py-1 church-accent church-primary-text rounded text-[11px] font-medium flex items-center space-x-1 shadow-2xs whitespace-nowrap">
                     <i class="fa-solid fa-camera text-[10px]"></i>
                     <span>글쓰기</span>
@@ -137,10 +140,40 @@
             </div>
         </header>
 
-        <!-- 피드 메인 컨테이너: 좌우 패딩을 px-1로 극단적으로 좁히고 정보 밀도 극대화 -->
+        <!-- 피드 메인 컨테이너: 화면 전체 가로 폭에 정밀 맞춤 -->
         <main class="flex-1 w-full max-w-md mx-auto px-1 py-1 space-y-1.5 pb-10" id="feed-container">
             <!-- 동적 피드 카드가 이곳에 렌더링됩니다 -->
         </main>
+    </div>
+
+    <!-- 심플 연동 상태 팝업 모달 -->
+    <div id="db-status-modal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-xl w-full max-w-xs p-4 shadow-xl border church-border text-center space-y-3">
+            <div class="flex items-center justify-between pb-1 border-b church-border">
+                <span class="text-xs font-bold text-gray-700">시스템 연동 상태</span>
+                <button onclick="closeDbStatusModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xs"></i></button>
+            </div>
+            <div class="py-2 flex flex-col items-center justify-center space-y-2">
+                <div id="modal-status-badge" class="w-10 h-10 rounded-full flex items-center justify-center text-white bg-emerald-500 shadow-sm">
+                    <i id="modal-status-icon" class="fa-solid fa-cloud-check text-lg"></i>
+                </div>
+                <div>
+                    <h4 id="modal-status-title" class="text-xs font-bold text-gray-800">정상 연동됨</h4>
+                    <p id="modal-status-desc" class="text-[10px] text-gray-500 mt-0.5">Firebase 클라우드와 실시간 동기화 중입니다.</p>
+                </div>
+            </div>
+            <div class="bg-gray-50 p-2 rounded text-[10px] text-gray-600 text-left space-y-1">
+                <div class="flex justify-between">
+                    <span class="text-gray-400">데이터베이스:</span>
+                    <span class="font-medium">Cloud Firestore (default)</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-400">동기화 채널:</span>
+                    <span class="font-medium text-emerald-700">mokjang_posts</span>
+                </div>
+            </div>
+            <button onclick="closeDbStatusModal()" class="w-full py-1.5 church-primary text-white rounded text-xs font-medium">닫기</button>
+        </div>
     </div>
 
     <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-2 hidden">
@@ -242,7 +275,6 @@
         </div>
     </div>
 
-    <!-- 슬림 하단 푸터: 높이와 여백을 최소화하여 스크롤 간섭 방지 -->
     <footer class="text-center py-2 text-[10px] text-gray-400 border-t church-border bg-white mt-auto">
         <p class="whitespace-nowrap leading-none">그리스도의 은혜를 나누는 마음 · 세종꿈의교회 23목장</p>
     </footer>
@@ -260,6 +292,7 @@
         let postToDeleteId = null;
         let currentUserUid = null;
         let isAuthReady = false;
+        let currentDbStatus = 'connecting';
 
         // Firebase 설정
         const firebaseConfig = {
@@ -280,26 +313,61 @@
             console.error("Firebase init error:", e);
         }
 
+        // 램프 상태 및 팝업 정보 업데이트
         function setDbStatus(status) {
+            currentDbStatus = status;
             const lamp = document.getElementById('db-status-lamp');
-            const text = document.getElementById('db-status-text');
-            if (!lamp || !text) return;
+            const badge = document.getElementById('modal-status-badge');
+            const icon = document.getElementById('modal-status-icon');
+            const title = document.getElementById('modal-status-title');
+            const desc = document.getElementById('modal-status-desc');
 
-            lamp.className = "w-2 h-2 rounded-full inline-block";
-            if (status === 'connecting') {
-                lamp.classList.add('bg-blue-500', 'animate-pulse');
-                text.innerText = '연동중';
-            } else if (status === 'connected') {
-                lamp.classList.add('bg-emerald-500');
-                text.innerText = '연동됨';
-            } else if (status === 'saving') {
-                lamp.classList.add('bg-emerald-500', 'animate-pulse');
-                text.innerText = '저장중';
-            } else if (status === 'error') {
-                lamp.classList.add('bg-rose-500');
-                text.innerText = '연동오류';
+            if (lamp) {
+                lamp.className = "w-2.5 h-2.5 rounded-full inline-block transition-all";
+                if (status === 'connecting') {
+                    lamp.classList.add('bg-blue-500', 'animate-pulse');
+                } else if (status === 'connected') {
+                    lamp.classList.add('bg-emerald-500');
+                } else if (status === 'saving') {
+                    lamp.classList.add('bg-amber-500', 'animate-pulse');
+                } else if (status === 'error') {
+                    lamp.classList.add('bg-rose-500');
+                }
+            }
+
+            if (badge && icon && title && desc) {
+                if (status === 'connected') {
+                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center text-white bg-emerald-500 shadow-sm";
+                    icon.className = "fa-solid fa-cloud-check text-lg";
+                    title.innerText = "정상 연동됨";
+                    desc.innerText = "Firebase 클라우드와 실시간 동기화 중입니다.";
+                } else if (status === 'connecting') {
+                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center text-white bg-blue-500 shadow-sm animate-pulse";
+                    icon.className = "fa-solid fa-spinner fa-spin text-lg";
+                    title.innerText = "연동 진행 중";
+                    desc.innerText = "클라우드 서버에 접속하고 있습니다...";
+                } else if (status === 'saving') {
+                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center text-white bg-amber-500 shadow-sm";
+                    icon.className = "fa-solid fa-cloud-arrow-up text-lg";
+                    title.innerText = "데이터 저장 중";
+                    desc.innerText = "게시글 및 댓글을 클라우드에 기록 중입니다.";
+                } else {
+                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center text-white bg-rose-500 shadow-sm";
+                    icon.className = "fa-solid fa-triangle-exclamation text-lg";
+                    title.innerText = "연동 실패";
+                    desc.innerText = "네트워크 상태나 보안 규칙을 확인해 주세요.";
+                }
             }
         }
+
+        window.openDbStatusModal = function() {
+            setDbStatus(currentDbStatus);
+            document.getElementById('db-status-modal').classList.remove('hidden');
+        };
+
+        window.closeDbStatusModal = function() {
+            document.getElementById('db-status-modal').classList.add('hidden');
+        };
 
         function showNotification(msg) {
             const existing = document.getElementById('app-notification-toast');
@@ -339,7 +407,6 @@
         }
         initAuth();
 
-        // 7회 탭 잠금해제
         const tapOverlay = document.getElementById('secret-tap-overlay');
         tapOverlay.addEventListener('click', (e) => {
             e.preventDefault();
@@ -382,7 +449,7 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    const maxDim = 800; // 최적화 압축
+                    const maxDim = 800;
 
                     if (width > height && width > maxDim) {
                         height = Math.round((height * maxDim) / width);
@@ -659,7 +726,6 @@
                     const hasLiked = post.likedUsers && post.likedUsers.includes(currentUser);
                     const isAuthor = post.author === currentUser;
                     
-                    // 초밀집형 카드: 기본 border만 유지, 여백을 극단적으로 최소화
                     const card = document.createElement('div');
                     card.className = "bg-white rounded-lg border border-gray-200 overflow-hidden shadow-2xs space-y-1.5 p-2";
                     
@@ -712,7 +778,6 @@
                     }
 
                     card.innerHTML = `
-                        <!-- 헤더 정보 영역: 마진 최소화 -->
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-1.5 overflow-hidden">
                                 <div class="w-5 h-5 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-[10px] shrink-0">
@@ -726,15 +791,12 @@
                             </div>
                         </div>
 
-                        <!-- 사진 영역 -->
                         ${imagesHtml}
 
-                        <!-- 본문 텍스트: 간결하고 촘촘한 배치 -->
                         <div class="text-[11.5px] text-gray-800 leading-snug font-normal whitespace-pre-wrap">
                             ${escapeHtml(post.content)}
                         </div>
 
-                        <!-- 하단 인터랙션 영역: 여백 극소화 -->
                         <div class="flex items-center justify-between pt-0.5 border-t border-gray-100 text-xs">
                             <div class="flex items-center space-x-2.5">
                                 <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-500' : 'text-gray-500'}">
@@ -751,7 +813,6 @@
                             </button>
                         </div>
 
-                        <!-- 댓글 섹션 (토글형) -->
                         <div id="comment-section-${post.id}" class="space-y-1 pt-1 border-t border-gray-100 hidden">
                             <div class="space-y-1 max-h-24 overflow-y-auto">${commentsHtml}</div>
                             <div class="flex space-x-1 pt-0.5 items-center">
