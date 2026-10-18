@@ -8,30 +8,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
-        
         html, body {
             width: 100%;
             height: 100%;
             max-width: 100%;
-            overflow: hidden;
-            font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Noto Sans KR', sans-serif;
+            font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
             background-color: #F8F9FA;
             color: #1F2937;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
-            letter-spacing: -0.02em;
-        }
-
-        #secret-gate-screen {
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        #secret-logo-img {
-            pointer-events: none;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
         }
 
         .church-primary { background-color: #3B5D50; }
@@ -39,31 +24,21 @@
         .church-accent { background-color: #E8F0EC; }
         .church-border { border-color: #E5E7EB; }
 
-        @keyframes divine-glow {
-            0%, 100% {
-                box-shadow: 0 0 10px rgba(59, 93, 80, 0.3), inset 0 0 10px rgba(255, 255, 255, 0.2);
-                transform: scale(1);
-            }
-            50% {
-                box-shadow: 0 0 30px 10px rgba(59, 93, 80, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.5);
-                transform: scale(1.02);
-            }
-        }
-
-        .glowing-logo {
-            animation: divine-glow 4s ease-in-out infinite;
-        }
-
-        /* 부드러운 자연스러운 스크롤 & 상하 여백 최소화 */
+        /* 부드러운 스크롤 */
         #feed-container {
-            overflow-y: auto;
-            height: calc(100dvh - 46px);
-            scrollbar-width: thin;
             -webkit-overflow-scrolling: touch;
-            padding-bottom: 30px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+        #feed-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        #feed-container::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.15);
+            border-radius: 4px;
         }
 
-        #lightbox-modal, #auth-modal, #write-modal, #confirm-modal, #save-confirm-modal, #db-status-modal, #comments-popup-modal {
+        #lightbox-modal, #auth-modal, #write-modal, #confirm-modal, #save-confirm-modal, #edit-confirm-modal, #comments-popup-modal {
             touch-action: none;
             overscroll-behavior: contain;
         }
@@ -72,25 +47,16 @@
             transform-origin: center center;
         }
 
-        /* 부드럽고 따뜻한 감성 본문 폰트 */
-        .post-body-text {
-            font-size: 14.5px;
-            line-height: 1.68;
-            font-weight: 450;
-            color: #27272A;
-            word-break: keep-all;
-            letter-spacing: -0.015em;
-        }
-
         /* 하나의 테두리 안에 여러 사진이 부드럽게 이어지는 연속 프레임 */
         .continuous-photo-container {
             border: 1px solid #E5E7EB;
             border-radius: 14px;
             overflow: hidden;
-            background-color: #F3F4F6;
+            background-color: #ffffff;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            margin-top: 4px;
+            margin-bottom: 4px;
         }
         .continuous-photo-item {
             width: 100%;
@@ -101,199 +67,138 @@
         .continuous-photo-item:active {
             opacity: 0.92;
         }
+        
+        /* 사진 사이의 1px 실선 구분 */
+        .photo-block-item:not(:last-child) {
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        /* 사진별 개별 이야기 캡션 말풍선 상자 */
+        .photo-caption-text {
+            font-size: 13.5px;
+            line-height: 1.5;
+            color: #374151;
+            background-color: #F9FAFB;
+            padding: 8px 12px;
+            border-top: 1px dashed #E5E7EB;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        /* 터치 시 점선 테두리 포커스 */
+        .touch-dashed-focus:focus {
+            border-style: dashed !important;
+            border-width: 2px !important;
+            border-color: #3B5D50 !important;
+            outline: none !important;
+        }
     </style>
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
 
-    <!-- [비밀 게이트 인트로] (개발 편의를 위해 임시 hidden 처리) -->
-    <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-4 text-white text-center w-full h-full hidden">
-        <div class="cursor-pointer select-none group relative inline-block" id="secret-login-area">
-            <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center p-2.5 mx-auto mb-5 shadow-2xl group-active:scale-95 transition-transform border-4 border-white/40 overflow-hidden glowing-logo relative z-10">
-                <svg viewBox="0 0 200 200" class="w-full h-full object-contain" id="secret-logo-img">
-                    <circle cx="100" cy="100" r="60" fill="#ffffff" opacity="0.1" filter="blur(10px)" />
+    <!-- [메인 헤더] -->
+    <header class="h-[48px] shrink-0 bg-white border-b church-border shadow-2xs px-3 flex items-center justify-between w-full z-30">
+        <div class="flex items-center space-x-2 overflow-hidden">
+            <div class="w-7 h-7 church-primary rounded-full flex items-center justify-center p-0.5 shadow-xs border border-emerald-100 overflow-hidden bg-white shrink-0">
+                <svg viewBox="0 0 200 200" class="w-full h-full object-contain scale-110">
                     <polygon points="35,118 100,118 100,58" fill="#5B9BD5" />
                     <path d="M 100,118 L 165,88 C 140,130 110,155 90,173 C 92,158 94,143 96,128 C 98,128 100,128 100,118 Z" fill="#203E78" />
                     <rect x="91" y="40" width="18" height="78" fill="#203E78" rx="2" />
                     <rect x="76" y="55" width="48" height="18" fill="#203E78" rx="2" />
                 </svg>
             </div>
-            <div class="absolute inset-0 w-full h-full rounded-full z-20 cursor-pointer" id="secret-tap-overlay"></div>
-        </div>
-
-        <div class="select-none space-y-1">
-            <h1 class="text-3xl font-extrabold tracking-wider text-white whitespace-nowrap">세종꿈의교회</h1>
-            <h2 class="text-xl font-semibold text-emerald-100 tracking-wide whitespace-nowrap mt-1">23목장</h2>
-            <div class="h-4"></div>
-            <p class="text-xs text-emerald-100/90 font-light whitespace-nowrap">우리들의 목장 이야기</p>
-        </div>
-    </div>
-
-    <!-- [목장원 인증 모달] (개발 편의를 위해 임시 hidden 유지) -->
-    <div id="auth-modal" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
-        <div class="bg-white rounded-xl w-full max-w-xs p-5 shadow-2xl border church-border">
-            <div class="text-center mb-4">
-                <div class="w-10 h-10 church-accent church-primary-text rounded-full flex items-center justify-center mx-auto mb-2">
-                    <i class="fa-solid fa-user-shield text-base"></i>
-                </div>
-                <h3 class="text-base font-bold text-gray-800 whitespace-nowrap">목장 멤버 인증</h3>
-                <p class="text-[11px] text-gray-500 mt-0.5 whitespace-nowrap">성함과 목장 이름을 입력해 주세요.</p>
-            </div>
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-medium text-gray-600 mb-1 whitespace-nowrap">성함 / 직분</label>
-                    <input type="text" id="auth-username-input" placeholder="예: 김목자, 홍길동" class="w-full px-3 py-2 rounded-lg border church-border text-xs focus:outline-none focus:ring-1 focus:ring-[#3B5D50]">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-medium text-gray-600 mb-1 whitespace-nowrap">목장 이름</label>
-                    <input type="text" id="auth-mokjang-input" value="세종꿈의교회 23목장" class="w-full px-3 py-2 rounded-lg border church-border text-xs focus:outline-none focus:ring-1 focus:ring-[#3B5D50]">
-                </div>
-                <button onclick="handleUserLogin()" class="w-full py-2.5 church-primary text-white rounded-lg font-medium text-xs shadow-xs whitespace-nowrap">
-                    입장하기
-                </button>
+            <div class="overflow-hidden leading-tight">
+                <h1 class="text-xs font-bold text-gray-800 truncate whitespace-nowrap" id="header-mokjang-title">세종꿈의교회 23목장</h1>
+                <p class="text-[10px] text-gray-500 truncate whitespace-nowrap" id="header-user-display">로그인 중...</p>
             </div>
         </div>
-    </div>
-
-    <!-- [메인 화면] -->
-    <div id="main-feed-screen" class="flex flex-col h-full w-full max-w-full overflow-hidden">
-        <header class="h-[46px] shrink-0 bg-white border-b church-border shadow-xs px-2.5 flex items-center justify-between w-full z-30">
-            <div class="flex items-center space-x-1.5 overflow-hidden">
-                <div class="w-7 h-7 church-primary rounded-full flex items-center justify-center p-0.5 shadow-xs border border-emerald-100 overflow-hidden bg-white shrink-0">
-                    <svg viewBox="0 0 200 200" class="w-full h-full object-contain scale-110">
-                        <polygon points="35,118 100,118 100,58" fill="#5B9BD5" />
-                        <path d="M 100,118 L 165,88 C 140,130 110,155 90,173 C 92,158 94,143 96,128 C 98,128 100,128 100,118 Z" fill="#203E78" />
-                        <rect x="91" y="40" width="18" height="78" fill="#203E78" rx="2" />
-                        <rect x="76" y="55" width="48" height="18" fill="#203E78" rx="2" />
-                    </svg>
-                </div>
-                <div class="overflow-hidden leading-tight">
-                    <h1 class="text-[11px] font-bold text-gray-800 truncate whitespace-nowrap" id="header-mokjang-title">세종꿈의교회 23목장</h1>
-                    <p class="text-[9px] text-gray-500 truncate whitespace-nowrap" id="header-user-display">테스트목자 님</p>
-                </div>
-            </div>
-            
-            <div class="shrink-0 flex items-center space-x-2">
-                <!-- 상부 연동 램프 -->
-                <button type="button" onclick="openDbStatusModal()" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors focus:outline-none">
-                    <span id="db-status-lamp" class="w-2.5 h-2.5 rounded-full bg-sky-300 animate-pulse transition-all"></span>
-                </button>
-                <button onclick="openWriteModal()" class="px-2.5 py-1 church-accent church-primary-text rounded text-[11px] font-medium flex items-center space-x-1 shadow-2xs whitespace-nowrap">
-                    <i class="fa-solid fa-camera text-[10px]"></i>
-                    <span>글쓰기</span>
-                </button>
-            </div>
-        </header>
-
-        <!-- 피드 메인 컨테이너: 상하 1화면 리미티드 스크롤 (Snap) -->
-        <main class="w-full max-w-md mx-auto overflow-hidden bg-[#F8F9FA]" id="feed-container">
-            <!-- 동적 피드 카드가 1화면씩 렌더링됩니다 -->
-        </main>
-    </div>
-
-    <!-- 연동 상태 팝업 모달 -->
-    <div id="db-status-modal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 hidden">
-        <div class="bg-white rounded-xl w-full max-w-xs p-4 shadow-xl border church-border text-center space-y-3">
-            <div class="flex items-center justify-between pb-1 border-b church-border">
-                <span class="text-xs font-bold text-gray-700">시스템 연동 상태</span>
-                <button onclick="closeDbStatusModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xs"></i></button>
-            </div>
-            <div class="py-2 flex flex-col items-center justify-center space-y-2">
-                <div id="modal-status-badge" class="w-10 h-10 rounded-full flex items-center justify-center text-white bg-emerald-300 shadow-xs">
-                    <i id="modal-status-icon" class="fa-solid fa-cloud-check text-lg text-emerald-800"></i>
-                </div>
-                <div>
-                    <h4 id="modal-status-title" class="text-xs font-bold text-gray-800">정상 연동됨</h4>
-                    <p id="modal-status-desc" class="text-[10px] text-gray-500 mt-0.5">Firebase 클라우드와 실시간 동기화 중입니다.</p>
-                </div>
-            </div>
-            <div class="bg-gray-50 p-2 rounded text-[10px] text-gray-600 text-left space-y-1">
-                <div class="flex justify-between">
-                    <span class="text-gray-400">데이터베이스:</span>
-                    <span class="font-medium">Cloud Firestore</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-400">컬렉션:</span>
-                    <span class="font-medium text-emerald-700">mokjang_posts</span>
-                </div>
-            </div>
-
-            <!-- 사진 없는 비정상 이전 글 일괄 정리 도구 -->
-            <button onclick="cleanupBrokenPosts()" class="w-full py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded text-[11px] font-medium border border-rose-200 transition-colors">
-                <i class="fa-solid fa-broom mr-1"></i>사진 없는 비정상 글 자동 청소
+        
+        <div class="shrink-0 flex items-center space-x-2">
+            <!-- 클라우드 연동 램프 -->
+            <button type="button" onclick="openDbStatusModal()" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors focus:outline-none" title="서버 연동 상태">
+                <span id="db-status-lamp" class="w-2.5 h-2.5 rounded-full bg-emerald-400 transition-all inline-block"></span>
             </button>
-
-            <button onclick="closeDbStatusModal()" class="w-full py-1.5 church-primary text-white rounded text-xs font-medium">닫기</button>
+            <button onclick="openWriteModal()" class="px-3 py-1.5 church-accent church-primary-text rounded-lg text-xs font-semibold flex items-center space-x-1.5 shadow-2xs hover:bg-emerald-100/70 active:scale-95 transition-all">
+                <i class="fa-solid fa-camera text-[11px]"></i>
+                <span>글쓰기</span>
+            </button>
         </div>
-    </div>
+    </header>
 
-    <!-- [댓글 전용 팝업 스크린 모달 (상하 스크롤)] -->
+    <!-- [피드 메인 컨테이너 (스크롤 뷰)] -->
+    <main class="w-full max-w-md mx-auto flex-1 overflow-y-auto px-1 py-1" id="feed-container">
+        <!-- 게시글 목록이 동적으로 들어옵니다 -->
+    </main>
+
+    <!-- [댓글 전용 팝업 스크린 모달] -->
     <div id="comments-popup-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex flex-col justify-end hidden">
         <div class="bg-white rounded-t-2xl w-full max-w-md mx-auto max-h-[75vh] flex flex-col shadow-2xl border-t church-border overflow-hidden">
-            <!-- 팝업 헤더 -->
-            <div class="flex items-center justify-between px-3 py-2.5 border-b church-border shrink-0 bg-gray-50/70">
+            <div class="flex items-center justify-between px-3.5 py-3 border-b church-border shrink-0 bg-gray-50/80">
                 <div class="flex items-center space-x-1.5">
                     <i class="fa-regular fa-comment-dots church-primary-text text-sm"></i>
                     <h3 class="text-xs font-bold text-gray-800">댓글 <span id="comments-modal-count" class="text-emerald-700 font-semibold">0</span></h3>
                 </div>
-                <button onclick="closeCommentsModal()" class="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-200 text-xs">
-                    <i class="fa-solid fa-xmark"></i>
+                <button onclick="closeCommentsModal()" class="w-7 h-7 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-200 text-xs">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
-            <!-- 팝업 상하 스크롤 댓글 목록 -->
-            <div id="comments-modal-list" class="flex-1 overflow-y-auto p-3 space-y-2 text-xs">
-                <!-- 댓글 항목들이 상하 스크롤 형태로 여기에 렌더링됩니다 -->
-            </div>
+            <!-- 댓글 목록 스크롤 -->
+            <div id="comments-modal-list" class="flex-1 overflow-y-auto p-3 space-y-2.5 text-xs"></div>
 
-            <!-- 팝업 하단 작성 영역 -->
-            <div class="p-2 border-t church-border bg-white shrink-0 flex items-center space-x-1.5">
+            <!-- 하단 작성 인풋 -->
+            <div class="p-2.5 border-t church-border bg-white shrink-0 flex items-center space-x-1.5">
                 <input type="text" id="comments-modal-input" maxlength="200" placeholder="댓글을 입력하세요..." 
                        onkeydown="if(event.key==='Enter') addCommentFromModal()" 
-                       class="flex-1 px-2.5 py-1.5 text-xs bg-gray-50 border church-border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#3B5D50]">
-                <button onclick="addCommentFromModal()" class="px-3 py-1.5 church-primary text-white text-xs font-medium rounded-lg whitespace-nowrap shadow-2xs">
+                       class="flex-1 px-3 py-2 text-xs bg-gray-50 border church-border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#3B5D50]">
+                <button onclick="addCommentFromModal()" class="px-3.5 py-2 church-primary text-white text-xs font-semibold rounded-lg whitespace-nowrap shadow-2xs active:scale-95 transition-transform">
                     등록
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- [글쓰기 모달] -->
-    <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-2 hidden">
-        <div class="bg-white rounded-xl w-full max-w-sm p-3 shadow-2xl border church-border max-h-[85vh] flex flex-col overflow-y-auto">
-            <div class="flex items-center justify-between pb-1.5 border-b church-border shrink-0">
-                <h3 class="text-xs font-bold text-gray-800 whitespace-nowrap" id="modal-title-text"><i class="fa-solid fa-camera church-primary-text mr-1"></i>목장 이야기 올리기</h3>
-                <button onclick="closeWriteModal()" class="text-gray-400 hover:text-gray-600 p-0.5"><i class="fa-solid fa-xmark text-sm"></i></button>
+    <!-- [글쓰기 / 수정 모달] -->
+    <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-sm p-4 shadow-2xl border church-border max-h-[90vh] flex flex-col overflow-y-auto">
+            <div class="flex items-center justify-between pb-2 border-b church-border shrink-0">
+                <h3 class="text-sm font-bold text-gray-800" id="modal-title-text"><i class="fa-solid fa-camera church-primary-text mr-1.5"></i>목장 이야기 올리기</h3>
+                <button onclick="closeWriteModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
-            <div class="space-y-2.5 flex-1 overflow-y-auto pt-2">
+            
+            <div class="space-y-3 flex-1 overflow-y-auto pt-3">
                 <input type="hidden" id="editing-post-id" value="">
                 
+                <!-- 사진 첨부 영역 -->
                 <div class="space-y-1.5">
-                    <div class="flex justify-between items-center text-[10px]">
-                        <label class="font-medium text-gray-600 whitespace-nowrap">사진 추가 (최대 5장)</label>
-                        <span id="image-count-indicator" class="text-gray-400 whitespace-nowrap">0 / 5장</span>
+                    <div class="flex justify-between items-center text-[11px]">
+                        <label class="font-medium text-gray-700">사진 추가 (최대 5장)</label>
+                        <span id="image-count-indicator" class="text-gray-400">0 / 5장</span>
                     </div>
 
-                    <!-- 숨김 처리된 공용 파일 입력창 -->
+                    <!-- 숨김 처리 파일 인풋 -->
                     <input type="file" id="post-multi-file-input" accept="image/*" multiple class="hidden" onchange="handleFilesSelect(event)">
 
-                    <!-- 사진 썸네일 및 '+' 추가 버튼 중앙 정렬 컨테이너 -->
-                    <div id="selected-images-grid" class="flex flex-wrap items-center justify-center gap-2 py-1">
-                        <!-- 선택된 썸네일들과 '+' 추가 버튼이 여기에 중앙 정렬되어 렌더링됩니다 -->
-                    </div>
+                    <!-- 사진 썸네일 & '+' 추가 버튼 중앙 정렬 -->
+                    <div id="selected-images-grid" class="flex flex-wrap items-center justify-center gap-2 py-1.5"></div>
                 </div>
 
+                <!-- 본문 내용 입력 영역 -->
                 <div class="w-full" id="post-content-container">
-                    <div class="flex justify-between items-center mb-0.5 text-[10px]">
-                        <span class="font-medium text-gray-600 whitespace-nowrap">내용 입력</span>
-                        <span id="char-count-indicator" class="text-gray-400 whitespace-nowrap">0 / 200자</span>
+                    <div class="flex justify-between items-center mb-1 text-[11px]">
+                        <span class="font-medium text-gray-700">내용 입력</span>
+                        <span id="char-count-indicator" class="text-gray-400">0 / 200자</span>
                     </div>
-                    <textarea id="post-content" rows="3" maxlength="200" onfocus="scrollToContentInput()" oninput="updateCharCount(this)" placeholder="내용을 입력하세요..." class="w-full px-2.5 py-2 rounded-lg border border-[#E5E7EB] text-xs focus:ring-0 focus:border-dashed focus:border-2 focus:border-[#3B5D50] focus:outline-none resize-none bg-white block transition-all"></textarea>
+                    <!-- 포커스 시 점선 테두리 변환 -->
+                    <textarea id="post-content" rows="4" maxlength="200" oninput="updateCharCount(this)" placeholder="목장 가족들과 나눌 따뜻한 이야기를 입력하세요..." 
+                              class="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] text-sm focus:border-2 focus:border-dashed focus:border-[#3B5D50] focus:outline-none resize-none bg-white block transition-all"></textarea>
                 </div>
 
-                <!-- 등록하기 버튼: 문자 크기에 맞게 아담한 사이즈로 중앙 정렬 -->
-                <div class="pt-1 flex justify-center w-full">
-                    <button type="button" id="submit-btn" onclick="requestSavePost()" class="px-5 py-2 church-primary text-white rounded-lg font-medium text-xs shadow-xs whitespace-nowrap inline-flex items-center justify-center hover:opacity-90 active:scale-95 transition-all">
-                        등록하기
+                <!-- 등록하기 버튼: 문자 사이즈에 맞게 아담하게 줄이고 중앙 정렬 -->
+                <div class="pt-2 flex justify-center">
+                    <button type="button" onclick="requestSavePost()" class="px-6 py-2.5 church-primary text-white rounded-xl font-semibold text-xs shadow-md active:scale-95 transition-all inline-flex items-center space-x-1.5" id="submit-btn-text">
+                        <i class="fa-solid fa-check"></i>
+                        <span>등록하기</span>
                     </button>
                 </div>
             </div>
@@ -307,12 +212,29 @@
                 <i class="fa-solid fa-circle-question"></i>
             </div>
             <div>
-                <h3 class="text-sm font-bold text-gray-800 whitespace-nowrap">게시글 저장</h3>
-                <p class="text-[11px] text-gray-500 mt-0.5 whitespace-nowrap">저장 하시겠습니까?</p>
+                <h3 class="text-sm font-bold text-gray-800">게시글 저장</h3>
+                <p class="text-[11px] text-gray-500 mt-0.5">이 이야기를 목장 피드에 올리시겠습니까?</p>
             </div>
-            <div class="grid grid-cols-2 gap-1.5 pt-1">
-                <button onclick="closeSaveConfirmModal()" class="py-2 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium whitespace-nowrap">취소</button>
-                <button onclick="executeSubmitPost()" class="py-2 church-primary text-white rounded-lg text-xs font-medium whitespace-nowrap">저장하기</button>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <button onclick="closeSaveConfirmModal()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium">취소</button>
+                <button onclick="executeSubmitPost()" class="py-2 church-primary text-white rounded-lg text-xs font-semibold">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- [수정 확인 모달] -->
+    <div id="edit-confirm-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3">
+            <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-base">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-gray-800">게시글 수정</h3>
+                <p class="text-[11px] text-gray-500 mt-0.5">이 이야기를 수정하시겠습니까?</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <button onclick="closeEditConfirmModal()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium">취소</button>
+                <button id="edit-confirm-yes-btn" class="py-2 church-primary text-white rounded-lg text-xs font-semibold">수정하기</button>
             </div>
         </div>
     </div>
@@ -321,77 +243,70 @@
     <div id="confirm-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
         <div class="bg-white rounded-xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3">
             <div class="w-10 h-10 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto text-base">
-                <i class="fa-solid fa-triangle-exclamation"></i>
+                <i class="fa-solid fa-trash-can"></i>
             </div>
             <div>
-                <h3 class="text-sm font-bold text-gray-800 whitespace-nowrap">게시글 삭제</h3>
-                <p class="text-[11px] text-gray-500 mt-0.5 whitespace-nowrap">정말 이 이야기를 삭제하시겠습니까?</p>
+                <h3 class="text-sm font-bold text-gray-800">게시글 삭제</h3>
+                <p class="text-[11px] text-gray-500 mt-0.5">정말 이 이야기를 삭제하시겠습니까?</p>
             </div>
-            <div class="grid grid-cols-2 gap-1.5 pt-1">
-                <button onclick="closeConfirmModal()" class="py-2 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium whitespace-nowrap">취소</button>
-                <button id="confirm-yes-btn" class="py-2 bg-rose-500 text-white rounded-lg text-xs font-medium whitespace-nowrap">삭제하기</button>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <button onclick="closeConfirmModal()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium">취소</button>
+                <button id="confirm-yes-btn" class="py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-xs font-semibold">삭제하기</button>
             </div>
         </div>
     </div>
 
-    <!-- [라이트박스 모달] -->
-    <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/95 flex flex-col justify-between hidden">
-        <!-- 라이트박스 상단 바: 회전 및 저장, 닫기 버튼 -->
-        <div class="w-full px-4 py-3 flex items-center justify-between z-50 bg-gradient-to-b from-black/80 to-transparent">
+    <!-- [라이트박스: 사진 확대 및 90도 회전 영구 저장] -->
+    <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-between hidden p-2">
+        <!-- 상단 툴바 -->
+        <div class="w-full flex items-center justify-between p-2 z-50">
+            <span class="text-white/70 text-xs px-2" id="lightbox-counter"></span>
             <div class="flex items-center space-x-2">
-                <!-- 90도 회전 버튼 -->
-                <button type="button" onclick="rotateLightboxImage()" class="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-xs font-medium flex items-center space-x-1.5 active:scale-95 transition-all">
-                    <i class="fa-solid fa-rotate-right text-xs"></i>
-                    <span>회전</span>
+                <button type="button" onclick="rotateLightboxImage()" class="px-3 py-1.5 bg-white/20 hover:bg-white/30 active:scale-95 text-white rounded-lg text-xs font-medium flex items-center space-x-1 transition-all">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>90° 회전</span>
                 </button>
-                <!-- 회전 각도 영구 저장 버튼 -->
-                <button type="button" id="lightbox-save-btn" onclick="saveRotatedImagePermanently()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium flex items-center space-x-1.5 active:scale-95 transition-all shadow-xs">
-                    <i class="fa-solid fa-floppy-disk text-xs"></i>
+                <button type="button" onclick="saveRotatedImagePermanent()" class="px-3 py-1.5 church-primary active:scale-95 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-md transition-all">
+                    <i class="fa-solid fa-floppy-disk"></i>
                     <span>각도 저장</span>
                 </button>
+                <button onclick="closeLightbox()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white text-sm hover:bg-white/30 transition-all">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-
-            <!-- 닫기 버튼 -->
-            <button onclick="closeLightbox()" class="text-white hover:text-gray-300 text-lg p-2 active:scale-95 transition-all">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
         </div>
 
-        <!-- 중앙 이미지 뷰어 영역 -->
-        <div class="overflow-hidden w-full flex-1 flex items-center justify-center relative px-2">
-            <img id="lightbox-img" src="" alt="확대 이미지" class="max-w-full max-h-full object-contain select-none">
+        <!-- 이미지 뷰어 -->
+        <div class="overflow-hidden w-full flex-1 flex items-center justify-center relative">
+            <img id="lightbox-img" src="" alt="확대 사진" class="max-w-full max-h-full object-contain select-none">
         </div>
 
         <!-- 하단 팁 바 -->
-        <div class="w-full pb-5 pt-2 text-center text-white/70 text-[11px] pointer-events-none select-none">
-            <span>두 손가락 확대/축소 | 회전 후 <b class="text-emerald-400">[각도 저장]</b>을 누르면 영구 반영됩니다</span>
+        <div class="w-full py-2 text-center text-white/50 text-[10px]">
+            회전 후 [각도 저장]을 누르면 사진 방향이 영구 저장됩니다.
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        let tapCount = 0;
-        let tapTimer = null;
-        let currentUser = "테스트목자";
+        let currentUser = "목장가족";
         let currentMokjang = "세종꿈의교회 23목장";
         let selectedImagesList = [];
         let postToDeleteId = null;
         let isAuthReady = false;
-        let isProcessingFiles = false;
         let currentDbStatus = 'connecting';
         let currentActivePopupPostId = null;
         let cachedPosts = [];
 
-        // 라이트박스 회전 & 영구 저장 관련 상태 변수
+        // 라이트박스 회전 제어 변수
         let currentLightboxPostId = null;
-        let currentLightboxImageIndex = -1;
-        let currentLightboxOriginalUrl = '';
-        let currentRotationAngle = 0; // 0, 90, 180, 270
+        let currentLightboxPhotoIdx = null;
+        let currentLightboxRotationAngle = 0;
 
-        // Firebase 프로젝트 설정
+        // Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyDKD5LUQL84ZuPH5UJrHBj7yAYDTabDWVA",
             authDomain: "dream-data-146a4.firebaseapp.com",
@@ -400,7 +315,6 @@
             messagingSenderId: "812415684377",
             appId: "1:812415684377:web:de8859d1502b3c05acbf88"
         };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-mokjang-app';
 
         let app, auth, db;
         try {
@@ -408,10 +322,10 @@
             auth = getAuth(app);
             db = getFirestore(app);
         } catch (e) {
-            console.error("Firebase init error:", e);
+            console.error("Firebase 초기화 에러:", e);
         }
 
-        // Firestore 컬렉션 다이렉트 루트 참조 (권한 거부 및 경로 꼬임 원천 차단)
+        // 안정적인 루트 컬렉션
         function getPostsCollection() {
             return collection(db, 'mokjang_posts');
         }
@@ -422,57 +336,14 @@
         function setDbStatus(status) {
             currentDbStatus = status;
             const lamp = document.getElementById('db-status-lamp');
-            const badge = document.getElementById('modal-status-badge');
-            const icon = document.getElementById('modal-status-icon');
-            const title = document.getElementById('modal-status-title');
-            const desc = document.getElementById('modal-status-desc');
-
             if (lamp) {
                 lamp.className = "w-2.5 h-2.5 rounded-full inline-block transition-all";
-                if (status === 'connecting') {
-                    lamp.classList.add('bg-sky-300', 'animate-pulse');
-                } else if (status === 'connected') {
-                    lamp.classList.add('bg-emerald-300');
-                } else if (status === 'saving') {
-                    lamp.classList.add('bg-emerald-300', 'animate-pulse');
-                } else if (status === 'error') {
-                    lamp.classList.add('bg-rose-300');
-                }
-            }
-
-            if (badge && icon && title && desc) {
-                if (status === 'connected') {
-                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center bg-emerald-300 shadow-xs";
-                    icon.className = "fa-solid fa-cloud-check text-lg text-emerald-800";
-                    title.innerText = "정상 연동됨";
-                    desc.innerText = "Firebase 클라우드와 실시간 동기화 중입니다.";
-                } else if (status === 'connecting') {
-                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center bg-sky-300 shadow-xs animate-pulse";
-                    icon.className = "fa-solid fa-spinner fa-spin text-lg text-sky-800";
-                    title.innerText = "연동 진행 중";
-                    desc.innerText = "클라우드 서버에 접속하고 있습니다...";
-                } else if (status === 'saving') {
-                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center bg-emerald-300 shadow-xs animate-pulse";
-                    icon.className = "fa-solid fa-cloud-arrow-up text-lg text-emerald-800";
-                    title.innerText = "데이터 저장 중";
-                    desc.innerText = "게시글 및 댓글을 클라우드에 기록 중입니다.";
-                } else {
-                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center bg-rose-300 shadow-xs";
-                    icon.className = "fa-solid fa-triangle-exclamation text-lg text-rose-800";
-                    title.innerText = "연동 실패";
-                    desc.innerText = "네트워크 상태나 보안 규칙을 확인해 주세요.";
-                }
+                if (status === 'connecting') lamp.classList.add('bg-sky-400', 'animate-pulse');
+                else if (status === 'connected') lamp.classList.add('bg-emerald-400');
+                else if (status === 'saving') lamp.classList.add('bg-emerald-300', 'animate-ping');
+                else lamp.classList.add('bg-rose-400');
             }
         }
-
-        window.openDbStatusModal = function() {
-            setDbStatus(currentDbStatus);
-            document.getElementById('db-status-modal').classList.remove('hidden');
-        };
-
-        window.closeDbStatusModal = function() {
-            document.getElementById('db-status-modal').classList.add('hidden');
-        };
 
         function showNotification(msg) {
             const existing = document.getElementById('app-notification-toast');
@@ -480,8 +351,8 @@
 
             const toast = document.createElement('div');
             toast.id = 'app-notification-toast';
-            toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-[11px] px-3 py-1.5 rounded-lg shadow-xl z-50 flex items-center space-x-1.5 transition-opacity duration-300 pointer-events-none max-w-[90vw] text-center';
-            toast.innerHTML = `<i class="fa-solid fa-circle-info text-emerald-400 shrink-0 text-xs"></i><span>${escapeHtml(msg)}</span>`;
+            toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-xs px-3.5 py-2 rounded-xl shadow-xl z-50 flex items-center space-x-1.5 transition-opacity duration-300 pointer-events-none max-w-[90vw] text-center font-medium';
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 shrink-0"></i><span>${escapeHtml(msg)}</span>`;
             document.body.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';
@@ -491,244 +362,155 @@
 
         async function initAuth() {
             setDbStatus('connecting');
-            if (!auth) {
-                setDbStatus('error');
-                return;
-            }
+            if (!auth) { setDbStatus('error'); return; }
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                await signInAnonymously(auth);
                 isAuthReady = true;
                 setDbStatus('connected');
-                // 로그인 화면 우회: 즉시 피드 로드 및 헤더 갱신
-                document.getElementById('header-user-display').innerText = `${currentUser} 님`;
+                document.getElementById('header-user-display').innerText = `${currentUser} 님 환영합니다`;
                 document.getElementById('header-mokjang-title').innerText = currentMokjang;
                 loadMokjangFeed();
             } catch (e) {
-                console.warn("익명 인증 알림:", e);
+                console.warn("익명 인증 경고:", e);
                 isAuthReady = true;
                 setDbStatus('connected');
-                document.getElementById('header-user-display').innerText = `${currentUser} 님`;
-                document.getElementById('header-mokjang-title').innerText = currentMokjang;
+                document.getElementById('header-user-display').innerText = `${currentUser} 님 환영합니다`;
                 loadMokjangFeed();
             }
         }
         initAuth();
 
-        // 7회 탭 잠금 해제 (임시 비활성화 상태에서도 이벤트 유지)
-        const tapOverlay = document.getElementById('secret-tap-overlay');
-        tapOverlay.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            tapCount++;
-            clearTimeout(tapTimer);
-            if (tapCount >= 7) {
-                tapCount = 0;
-                document.getElementById('secret-gate-screen').classList.add('hidden');
-                document.getElementById('auth-modal').classList.remove('hidden');
-            } else {
-                tapTimer = setTimeout(() => { tapCount = 0; }, 800);
-            }
-        });
+        // 모바일 초경량 최적화 이미지 압축 (최대 640px, JPEG 0.6)
+        function processImageFile(file, callback) {
+            if (!file) return callback(null);
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        const maxDim = 640;
 
-        window.handleUserLogin = async function() {
-            const usernameInput = document.getElementById('auth-username-input').value.trim();
-            const mokjangInput = document.getElementById('auth-mokjang-input').value.trim();
-
-            if (!usernameInput) { showNotification('성함이나 직분을 입력해 주세요.'); return; }
-            if (!mokjangInput) { showNotification('목장 이름을 입력해 주세요.'); return; }
-
-            currentUser = usernameInput;
-            currentMokjang = mokjangInput;
-
-            document.getElementById('header-user-display').innerText = `${currentUser} 님`;
-            document.getElementById('header-mokjang-title').innerText = currentMokjang;
-
-            document.getElementById('auth-modal').classList.add('hidden');
-            document.getElementById('main-feed-screen').classList.remove('hidden');
-
-            loadMokjangFeed();
-        };
-
-        // 스마트폰 사진을 확실하게 100% 읽어들이고 최적화하는 직관적 리더 (640px 초경량 다이어트)
-        function processImageFileAsync(file) {
-            return new Promise((resolve) => {
-                if (!file) return resolve(null);
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const rawData = e.target.result;
-                    if (!rawData) return resolve(null);
-
-                    const img = new Image();
-                    img.onload = function() {
-                        try {
-                            const canvas = document.createElement('canvas');
-                            let width = img.width;
-                            let height = img.height;
-                            const maxDim = 640; // Firestore 1MB 한도를 완벽히 지키기 위한 최적 크기
-
-                            if (width > height) {
-                                if (width > maxDim) {
-                                    height = Math.round((height * maxDim) / width);
-                                    width = maxDim;
-                                }
-                            } else {
-                                if (height > maxDim) {
-                                    width = Math.round((width * maxDim) / height);
-                                    height = maxDim;
-                                }
+                        if (width > height) {
+                            if (width > maxDim) {
+                                height = Math.round((height * maxDim) / width);
+                                width = maxDim;
                             }
-
-                            canvas.width = width;
-                            canvas.height = height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.imageSmoothingEnabled = true;
-                            ctx.imageSmoothingQuality = 'high';
-                            ctx.drawImage(img, 0, 0, width, height);
-
-                            const compressed = canvas.toDataURL('image/jpeg', 0.6);
-                            resolve(compressed);
-                        } catch (err) {
-                            console.warn("Canvas compress fallback:", err);
-                            resolve(rawData);
+                        } else {
+                            if (height > maxDim) {
+                                width = Math.round((width * maxDim) / height);
+                                height = maxDim;
+                            }
                         }
-                    };
-                    img.onerror = function() {
-                        resolve(rawData);
-                    };
-                    img.src = rawData;
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const compressed = canvas.toDataURL('image/jpeg', 0.6);
+                        callback(compressed);
+                    } catch (err) {
+                        console.warn("Canvas 압축 대체:", err);
+                        callback(e.target.result);
+                    }
                 };
-                reader.onerror = function() {
-                    resolve(null);
-                };
-                reader.readAsDataURL(file);
-            });
+                img.onerror = () => callback(e.target.result);
+                img.src = e.target.result;
+            };
+            reader.onerror = () => callback(null);
+            reader.readAsDataURL(file);
         }
-
-        window.handleFilesSelect = async function(event) {
-            const files = event.target.files;
-            if (!files || files.length === 0) return;
-
-            const remainingSlots = 5 - selectedImagesList.length;
-            if (remainingSlots <= 0) {
-                showNotification('사진은 최대 5장까지만 등록할 수 있습니다.');
-                return;
-            }
-
-            const filesToProcess = Array.from(files).slice(0, remainingSlots);
-            isProcessingFiles = true;
-            
-            const submitBtn = document.getElementById('submit-btn');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.classList.add('opacity-50');
-                submitBtn.innerText = "사진 처리 중...";
-            }
-
-            showNotification(`${filesToProcess.length}장의 사진을 변환 중입니다...`);
-
-            try {
-                const results = await Promise.all(filesToProcess.map(f => processImageFileAsync(f)));
-                results.forEach(res => {
-                    if (res) selectedImagesList.push(res);
-                });
-                renderImagePreviews();
-                showNotification(`사진 ${selectedImagesList.length}장 준비 완료`);
-            } catch (e) {
-                console.error("사진 처리 오류:", e);
-                showNotification("사진 처리 중 오류가 발생했습니다.");
-            } finally {
-                isProcessingFiles = false;
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.classList.remove('opacity-50');
-                    const isEdit = document.getElementById('editing-post-id').value;
-                    submitBtn.innerText = isEdit ? "수정 완료" : "등록하기";
-                }
-                event.target.value = '';
-            }
-        };
-
-        window.scrollToContentInput = function() {
-            setTimeout(() => {
-                const target = document.getElementById('post-content-container');
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            }, 250);
-        };
-
-        window.removeSelectedImage = function(index) {
-            selectedImagesList.splice(index, 1);
-            renderImagePreviews();
-        };
 
         window.triggerFilePicker = function() {
             if (selectedImagesList.length >= 5) {
-                showNotification('최대 5장까지 선택되었습니다.');
+                showNotification('사진은 최대 5장까지 선택 가능합니다.');
                 return;
             }
             document.getElementById('post-multi-file-input').click();
         };
 
-        window.updateCharCount = function(textarea) {
-            const len = textarea.value.length;
-            document.getElementById('char-count-indicator').innerText = `${len} / 200자`;
+        window.handleFilesSelect = function(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            const remaining = 5 - selectedImagesList.length;
+            if (remaining <= 0) {
+                showNotification('사진은 최대 5장까지만 등록할 수 있습니다.');
+                return;
+            }
+
+            const toProcess = Array.from(files).slice(0, remaining);
+            let done = 0;
+            toProcess.forEach(file => {
+                processImageFile(file, (result) => {
+                    if (result) selectedImagesList.push(result);
+                    done++;
+                    if (done === toProcess.length) {
+                        renderImagePreviews();
+                        showNotification(`사진 ${done}장이 등록되었습니다.`);
+                    }
+                });
+            });
+            event.target.value = '';
+        };
+
+        window.removeSelectedImage = function(idx) {
+            selectedImagesList.splice(idx, 1);
+            renderImagePreviews();
         };
 
         function renderImagePreviews() {
             const grid = document.getElementById('selected-images-grid');
-            const indicator = document.getElementById('image-count-indicator');
+            const ind = document.getElementById('image-count-indicator');
             grid.innerHTML = "";
-            indicator.innerText = `${selectedImagesList.length} / 5장`;
+            ind.innerText = `${selectedImagesList.length} / 5장`;
 
-            // 선택된 사진 썸네일들
-            selectedImagesList.forEach((imgSrc, idx) => {
+            selectedImagesList.forEach((src, idx) => {
                 const thumb = document.createElement('div');
-                thumb.className = "relative bg-gray-100 rounded-lg w-20 h-20 overflow-hidden border church-border flex items-center justify-center shrink-0 shadow-2xs";
+                thumb.className = "relative bg-gray-100 rounded-xl w-18 h-18 overflow-hidden border church-border flex items-center justify-center shrink-0 shadow-2xs";
                 thumb.innerHTML = `
-                    <img src="${imgSrc}" class="w-full h-full object-cover">
-                    <button type="button" onclick="removeSelectedImage(${idx})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center shadow"><i class="fa-solid fa-xmark"></i></button>
+                    <img src="${src}" class="w-full h-full object-cover">
+                    <button type="button" onclick="removeSelectedImage(${idx})" class="absolute top-1 right-1 bg-black/60 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center hover:bg-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
                 `;
                 grid.appendChild(thumb);
             });
 
-            // 5장 미만일 때 노출되는 '+' 사진 추가 버튼 (중앙 정렬)
             if (selectedImagesList.length < 5) {
                 const addBtn = document.createElement('button');
                 addBtn.type = "button";
                 addBtn.onclick = triggerFilePicker;
-                addBtn.className = "w-20 h-20 border-2 border-dashed church-border rounded-lg flex flex-col items-center justify-center text-gray-500 hover:bg-emerald-50 active:scale-95 transition-all bg-gray-50/70 shrink-0";
+                addBtn.className = "w-18 h-18 border-2 border-dashed church-border rounded-xl flex flex-col items-center justify-center text-gray-500 hover:bg-emerald-50 active:scale-95 transition-all bg-gray-50/70 shrink-0";
                 addBtn.innerHTML = `
-                    <i class="fa-solid fa-plus text-base mb-1 church-primary-text"></i>
-                    <span class="text-[10px] font-medium text-gray-700 whitespace-nowrap">사진 추가</span>
+                    <i class="fa-solid fa-plus text-lg mb-0.5 church-primary-text"></i>
+                    <span class="text-[10px] font-medium text-gray-600">사진 추가</span>
                 `;
                 grid.appendChild(addBtn);
             }
-            scrollToContentInput();
         }
+
+        window.updateCharCount = function(textarea) {
+            document.getElementById('char-count-indicator').innerText = `${textarea.value.length} / 200자`;
+        };
 
         window.openWriteModal = function(postId = null, existingContent = "", existingImages = []) {
             document.getElementById('editing-post-id').value = postId || "";
             const contentEl = document.getElementById('post-content');
             contentEl.value = existingContent || "";
             updateCharCount(contentEl);
-            
+
             selectedImagesList = Array.isArray(existingImages) ? [...existingImages] : (existingImages ? [existingImages] : []);
             renderImagePreviews();
 
-            const submitBtn = document.getElementById('submit-btn');
             if (postId) {
-                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-pen-to-square church-primary-text mr-1"></i>목장 이야기 수정하기`;
-                if (submitBtn) submitBtn.innerText = "수정 완료";
+                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-pen-to-square church-primary-text mr-1.5"></i>목장 이야기 수정하기`;
+                document.getElementById('submit-btn-text').innerHTML = `<i class="fa-solid fa-check"></i><span>수정 완료</span>`;
             } else {
-                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-camera church-primary-text mr-1"></i>목장 이야기 올리기`;
-                if (submitBtn) submitBtn.innerText = "등록하기";
+                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-camera church-primary-text mr-1.5"></i>목장 이야기 올리기`;
+                document.getElementById('submit-btn-text').innerHTML = `<i class="fa-solid fa-check"></i><span>등록하기</span>`;
             }
-
             document.getElementById('write-modal').classList.remove('hidden');
         };
 
@@ -737,17 +519,12 @@
             selectedImagesList = [];
             document.getElementById('post-content').value = '';
             document.getElementById('editing-post-id').value = '';
-            renderImagePreviews();
         };
 
         window.requestSavePost = function() {
-            if (isProcessingFiles) {
-                showNotification('사진 변환 작업 중입니다. 잠시만 기다려주세요.');
-                return;
-            }
             const content = document.getElementById('post-content').value.trim();
-            if (!content) {
-                showNotification('이야기 내용을 입력해 주세요.');
+            if (!content && selectedImagesList.length === 0) {
+                showNotification('이야기 내용이나 사진을 등록해 주세요.');
                 return;
             }
             document.getElementById('save-confirm-modal').classList.remove('hidden');
@@ -759,62 +536,87 @@
 
         window.executeSubmitPost = async function() {
             closeSaveConfirmModal();
-            
             const postId = document.getElementById('editing-post-id').value;
-            const mokjangName = currentMokjang;
             const content = document.getElementById('post-content').value.trim();
             const finalImages = [...selectedImagesList];
 
             closeWriteModal();
-            showNotification("클라우드 서버에 저장 중입니다...");
-
             setDbStatus('saving');
+
             try {
-                if (!db) {
-                    showNotification("데이터베이스가 초기화되지 않았습니다.");
-                    setDbStatus('error');
-                    return;
-                }
-
-                if (!isAuthReady) {
-                    await initAuth();
-                }
-
-                const primaryImage = finalImages.length > 0 ? finalImages[0] : "";
-
                 if (postId) {
-                    const postRef = getPostDocRef(postId);
-                    await updateDoc(postRef, {
+                    await updateDoc(getPostDocRef(postId), {
                         content: content,
                         images: finalImages,
-                        imageUrl: primaryImage,
-                        isPublished: true
+                        imageUrl: finalImages.length > 0 ? finalImages[0] : "",
+                        updatedAt: new Date()
                     });
+                    showNotification("게시글이 수정되었습니다.");
                 } else {
-                    const postsCol = getPostsCollection();
-                    await addDoc(postsCol, {
-                        mokjangName: mokjangName,
+                    await addDoc(getPostsCollection(), {
+                        mokjangName: currentMokjang,
                         author: currentUser,
-                        images: finalImages,
-                        imageUrl: primaryImage,
                         content: content,
-                        isPublished: true,
+                        images: finalImages,
+                        imageUrl: finalImages.length > 0 ? finalImages[0] : "",
                         likes: 0,
                         likedUsers: [],
+                        thumbsUp: 0,
+                        thumbedUsers: [],
                         comments: [],
+                        photoCaptions: {},
                         createdAt: new Date()
                     });
+                    showNotification("새로운 목장 이야기가 등록되었습니다!");
                 }
                 setDbStatus('connected');
-                showNotification("🎉 게시글과 사진이 성공적으로 저장되었습니다!");
-            } catch (error) {
-                console.error("저장 오류 발생:", error);
-                showNotification("⚠️ 저장 실패: " + (error.message || error));
+            } catch (err) {
+                console.error("게시글 저장 오류:", err);
+                showNotification("저장 실패: " + err.message);
                 setDbStatus('error');
             }
         };
 
+        // 관리 '+' 팝오버 토글
+        window.toggleActionMenu = function(postId, event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById(`action-menu-${postId}`);
+            const btn = document.getElementById(`action-btn-${postId}`);
+            if (!menu) return;
+
+            const isClosed = menu.classList.contains('hidden');
+            // 다른 열린 메뉴 닫기
+            document.querySelectorAll('[id^="action-menu-"]').forEach(m => m.classList.add('hidden'));
+            document.querySelectorAll('[id^="action-btn-"]').forEach(b => b.classList.remove('rotate-45', 'text-rose-600'));
+
+            if (isClosed) {
+                menu.classList.remove('hidden');
+                if (btn) btn.classList.add('rotate-45', 'text-rose-600');
+            }
+        };
+
+        // 수정 재확인
+        window.requestEditPost = function(postId, content, imagesJson) {
+            const menu = document.getElementById(`action-menu-${postId}`);
+            if (menu) menu.classList.add('hidden');
+
+            const yesBtn = document.getElementById('edit-confirm-yes-btn');
+            yesBtn.onclick = function() {
+                closeEditConfirmModal();
+                openWriteModal(postId, content, imagesJson);
+            };
+            document.getElementById('edit-confirm-modal').classList.remove('hidden');
+        };
+
+        window.closeEditConfirmModal = function() {
+            document.getElementById('edit-confirm-modal').classList.add('hidden');
+        };
+
+        // 삭제 재확인
         window.confirmDeletePost = function(postId) {
+            const menu = document.getElementById(`action-menu-${postId}`);
+            if (menu) menu.classList.add('hidden');
+
             postToDeleteId = postId;
             document.getElementById('confirm-modal').classList.remove('hidden');
         };
@@ -828,45 +630,50 @@
             if (!postToDeleteId) return;
             setDbStatus('saving');
             try {
-                if (!db) { setDbStatus('error'); return; }
                 await deleteDoc(getPostDocRef(postToDeleteId));
                 closeConfirmModal();
                 setDbStatus('connected');
-                showNotification("삭제되었습니다.");
-            } catch (error) {
-                console.error("삭제 오류:", error);
-                showNotification("삭제 중 오류가 발생했습니다.");
+                showNotification("이야기가 삭제되었습니다.");
+            } catch (err) {
+                console.error("삭제 에러:", err);
+                showNotification("삭제 실패: " + err.message);
                 setDbStatus('error');
             }
         });
 
-        window.cleanupBrokenPosts = async function() {
-            if (!db) return;
-            closeDbStatusModal();
+        window.togglePhotoCaptionEditor = function(postId, photoIdx) {
+            const editor = document.getElementById(`caption-editor-${postId}-${photoIdx}`);
+            if (!editor) return;
+            const isHidden = editor.classList.contains('hidden');
+            editor.classList.toggle('hidden');
+            if (isHidden) {
+                const input = document.getElementById(`caption-input-${postId}-${photoIdx}`);
+                if (input) input.focus();
+            }
+        };
+
+        window.savePhotoCaption = async function(postId, photoIdx) {
+            const input = document.getElementById(`caption-input-${postId}-${photoIdx}`);
+            if (!input) return;
+            const text = input.value.trim();
+
+            const post = cachedPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            const updated = { ...(post.photoCaptions || {}) };
+            if (text) updated[photoIdx] = text;
+            else delete updated[photoIdx];
+
             setDbStatus('saving');
-
             try {
-                const broken = cachedPosts.filter(p => {
-                    const hasImgs = Array.isArray(p.images) && p.images.some(img => typeof img === 'string' && img.trim().length > 0);
-                    const hasSingle = typeof p.imageUrl === 'string' && p.imageUrl.trim().length > 0;
-                    return !hasImgs && !hasSingle;
-                });
-
-                if (broken.length === 0) {
-                    showNotification("정리할 비정상 게시글이 없습니다.");
-                    setDbStatus('connected');
-                    return;
-                }
-
-                for (const post of broken) {
-                    await deleteDoc(getPostDocRef(post.id));
-                }
-
+                await updateDoc(getPostDocRef(postId), { photoCaptions: updated });
                 setDbStatus('connected');
-                showNotification(`비정상 게시글 ${broken.length}개를 모두 삭제했습니다.`);
+                showNotification("사진 이야기가 저장되었습니다.");
+                const editor = document.getElementById(`caption-editor-${postId}-${photoIdx}`);
+                if (editor) editor.classList.add('hidden');
             } catch (err) {
-                console.error("자동 정리 오류:", err);
-                showNotification("정리 중 오류가 발생했습니다.");
+                console.error("사진 이야기 저장 오류:", err);
+                showNotification("저장 실패: " + err.message);
                 setDbStatus('error');
             }
         };
@@ -875,177 +682,200 @@
             const feedContainer = document.getElementById('feed-container');
             if (!db) return;
 
-            if (!isAuthReady) {
-                feedContainer.innerHTML = `
-                    <div class="h-full flex flex-col items-center justify-center text-gray-400">
-                        <i class="fa-solid fa-spinner fa-spin text-xl mb-1 church-primary-text"></i>
-                        <p class="text-[11px]">연결 중입니다...</p>
-                    </div>
-                `;
-                await initAuth();
-            }
-
-            const postsCol = getPostsCollection();
-
-            onSnapshot(postsCol, (snapshot) => {
+            onSnapshot(getPostsCollection(), (snapshot) => {
+                feedContainer.innerHTML = "";
                 const posts = [];
-                snapshot.forEach((docSnap) => {
+
+                snapshot.forEach(docSnap => {
                     const data = docSnap.data();
-                    
-                    // 외국인 더미 사진(unsplash) 감지 시 DB에서 즉시 영구 자동 삭제
+                    // 외국인 더미 사진 영구 삭제 및 배제
                     const rawImg = data.imageUrl || "";
                     const rawImgs = Array.isArray(data.images) ? data.images.join(" ") : "";
-                    if (rawImg.includes("unsplash") || rawImg.includes("photo-1517486808906") ||
-                        rawImgs.includes("unsplash") || rawImgs.includes("photo-1517486808906")) {
-                        try {
-                            deleteDoc(getPostDocRef(docSnap.id));
-                        } catch(e) {}
+                    if (rawImg.includes("unsplash") || rawImgs.includes("unsplash")) {
+                        try { deleteDoc(getPostDocRef(docSnap.id)); } catch(e) {}
                         return;
                     }
-
-                    // 목장 이름 필터링 (공백 무시 유연한 매칭)
-                    const targetMokjang = (currentMokjang || "").replace(/\s+/g, '');
-                    const docMokjang = (data.mokjangName || "").replace(/\s+/g, '');
-                    const isMokjangMatch = !docMokjang || !targetMokjang || docMokjang.includes(targetMokjang) || targetMokjang.includes(docMokjang);
-
-                    // 유령 데이터 방지: isChecked 필터링을 제거하여 숨겨졌던 모든 정상 글을 화면에 온전히 표시합니다
-                    if (isMokjangMatch) {
-                        posts.push({ id: docSnap.id, ...data });
-                    }
+                    posts.push({ id: docSnap.id, ...data });
                 });
-                
+
                 cachedPosts = posts;
 
                 if (currentActivePopupPostId) {
                     renderCommentsModalList(currentActivePopupPostId);
                 }
 
-                feedContainer.innerHTML = "";
-
                 if (posts.length === 0) {
                     feedContainer.innerHTML = `
-                        <div class="h-full flex flex-col items-center justify-center p-6 text-center text-gray-400">
-                            <div class="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2 text-gray-400">
-                                <i class="fa-solid fa-camera text-xl"></i>
+                        <div class="h-64 flex flex-col items-center justify-center p-4 text-center">
+                            <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-xs border church-border mb-2.5 text-gray-300">
+                                <i class="fa-solid fa-camera-retro text-xl opacity-60"></i>
                             </div>
-                            <h3 class="text-xs font-bold text-gray-600">등록된 이야기가 없습니다</h3>
-                            <p class="text-[10px] text-gray-400 mt-1">상단의 글쓰기 버튼을 눌러 사진을 올려보세요!</p>
+                            <h3 class="text-xs font-bold text-gray-700">등록된 목장 이야기가 없습니다</h3>
+                            <p class="text-[10px] text-gray-400 mt-1">상단의 글쓰기 버튼을 눌러 첫 소식을 나눠주세요.</p>
                         </div>
                     `;
                     return;
                 }
 
                 posts.sort((a, b) => {
-                    const timeA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
-                    const timeB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
-                    return timeB - timeA;
+                    const tA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+                    const tB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                    return tB - tA;
                 });
 
-                posts.forEach((post, postIdx) => {
+                posts.forEach((post) => {
                     const hasLiked = post.likedUsers && post.likedUsers.includes(currentUser);
                     const thumbsCount = post.thumbsUp || 0;
                     const hasThumbed = post.thumbedUsers && post.thumbedUsers.includes(currentUser);
-                    
+
                     const card = document.createElement('article');
-                    // 상하 간격을 최소화 (단 1.5 간격)
-                    card.className = "w-full px-2.5 pt-1.5 pb-1 box-border";
-                    
-                    // 첨부된 사진 목록 추출
+                    // 상하 간격을 최소화
+                    card.className = "w-full px-2.5 pt-1.5 pb-2 box-border";
+
                     let imgArray = [];
                     if (Array.isArray(post.images) && post.images.length > 0) {
                         imgArray = post.images.filter(img => typeof img === 'string' && img.trim().length > 0);
-                    }
-                    if (imgArray.length === 0 && post.imageUrl && typeof post.imageUrl === 'string' && post.imageUrl.trim().length > 0) {
+                    } else if (post.imageUrl && typeof post.imageUrl === 'string' && post.imageUrl.trim().length > 0) {
                         imgArray = [post.imageUrl];
                     }
 
-                    // 1. 한번에 올린 사진들은 한 테두리 안에 이어지게 배치 (연속 프레임)
+                    const photoCaptions = post.photoCaptions || {};
+
+                    // 한 번에 올린 사진들은 한 테두리 안에 실선으로 구분되어 연속 배치
                     let mediaSectionHtml = '';
                     if (imgArray.length > 0) {
-                        const photosHtml = imgArray.map((url, i) => `
-                            <div class="w-full relative flex items-center justify-center bg-black/5" onclick="openLightbox('${post.id}', ${i}, '${url}')">
-                                <img src="${url}" alt="목장 사진 ${i+1}" class="w-full max-h-[460px] object-contain select-none continuous-photo-item block">
-                            </div>
-                        `).join('');
+                        const photosHtml = imgArray.map((url, i) => {
+                            const caption = photoCaptions[i] || '';
+                            return `
+                                <div class="w-full flex flex-col photo-block-item relative">
+                                    <div class="w-full relative flex items-center justify-center bg-black/5">
+                                        <img src="${url}" alt="목장 사진 ${i+1}" onclick="openLightbox('${post.id}', ${i}, '${url}')" class="w-full max-h-[480px] object-contain select-none continuous-photo-item block">
+                                        
+                                        <!-- 왼쪽 모서리 원형 연필 버튼 -->
+                                        <button type="button" onclick="event.stopPropagation(); togglePhotoCaptionEditor('${post.id}', ${i})" 
+                                                class="absolute top-2.5 left-2.5 w-7 h-7 rounded-full bg-white/90 hover:bg-white text-emerald-800 shadow-md flex items-center justify-center text-xs active:scale-90 transition-all border border-emerald-100/60 z-10" 
+                                                title="이 사진 이야기 작성">
+                                            <i class="fa-solid fa-pencil text-[11px]"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- 사진 바로 밑에 표시되는 개별 이야기 -->
+                                    <div id="caption-display-${post.id}-${i}" class="photo-caption-text ${caption ? '' : 'hidden'}">
+                                        <div class="flex items-start space-x-1.5">
+                                            <i class="fa-regular fa-comment-dots text-emerald-600 text-xs mt-0.5 shrink-0"></i>
+                                            <span class="flex-1 whitespace-pre-wrap">${escapeHtml(caption)}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- 클릭 시 열리는 점선 테두리 글쓰기 창 -->
+                                    <div id="caption-editor-${post.id}-${i}" class="hidden p-2.5 bg-emerald-50/40 border-2 border-dashed border-[#3B5D50] rounded-b-xl m-1">
+                                        <div class="flex justify-between items-center mb-1 text-[11px] text-emerald-800 font-semibold">
+                                            <span><i class="fa-solid fa-pencil mr-1"></i>이 사진 이야기 쓰기</span>
+                                            <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="text-gray-400 hover:text-gray-600">
+                                                <i class="fa-solid fa-xmark text-xs"></i>
+                                            </button>
+                                        </div>
+                                        <textarea id="caption-input-${post.id}-${i}" rows="2" maxlength="150" placeholder="이 사진에 담긴 이야기를 입력해 보세요..." 
+                                                  class="w-full p-2 bg-white rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#3B5D50] resize-none">${escapeHtml(caption)}</textarea>
+                                        <div class="flex justify-end mt-1.5 space-x-1">
+                                            <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="px-2.5 py-1 text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-600 rounded">취소</button>
+                                            <button type="button" onclick="savePhotoCaption('${post.id}', ${i})" class="px-3 py-1 text-[11px] church-primary text-white font-medium rounded shadow-2xs">저장</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
 
                         mediaSectionHtml = `
-                            <div class="w-full my-1 continuous-photo-container shadow-2xs">
+                            <div class="w-full continuous-photo-container shadow-2xs">
                                 ${photosHtml}
                             </div>
                         `;
                     }
 
                     const imagesParam = JSON.stringify(imgArray).replace(/"/g, '&quot;');
-                    const authorActionsHtml = `
-                        <div class="flex items-center space-x-1 text-[10px]">
-                            <button onclick="openWriteModal('${post.id}', \`${escapeHtml(post.content)}\`, ${imagesParam})" class="text-emerald-700 hover:underline">수정</button>
-                            <span class="text-gray-300">|</span>
-                            <button onclick="confirmDeletePost('${post.id}')" class="text-rose-500 hover:underline font-medium">삭제</button>
-                        </div>
-                    `;
-
                     const commentCount = post.comments ? post.comments.length : 0;
 
-                    // 2. 실선 구분선을 삭제하고 간격을 최소화하며, 반응 버튼들을 마지막 사진 바로 아래에 배치
                     card.innerHTML = `
-                        <div class="w-full bg-white rounded-2xl shadow-xs flex flex-col px-3 py-2.5 box-border">
-                            <!-- 작성자 헤더 (실선 구분 없음, 미니멀) -->
-                            <div class="flex items-center justify-between pb-1">
-                                <div class="flex items-center space-x-2 overflow-hidden">
-                                    <div class="w-6 h-6 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-[11px] shrink-0">
+                        <div class="w-full bg-white rounded-2xl border church-border shadow-xs flex flex-col p-3 box-border relative">
+                            <!-- 작성자 헤더 & 도톰한 '+' 메뉴 토글 -->
+                            <div class="flex items-center justify-between pb-1.5">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-7 h-7 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                                         ${escapeHtml((post.author || 'M').charAt(0))}
                                     </div>
-                                    <span class="text-xs font-bold text-gray-800 truncate">${escapeHtml(post.author)}</span>
+                                    <div>
+                                        <h4 class="text-xs font-bold text-gray-800">${escapeHtml(post.author || '목장가족')}</h4>
+                                        <p class="text-[9px] text-gray-400 leading-none">${formatDate(post.createdAt)}</p>
+                                    </div>
                                 </div>
-                                <div class="flex items-center space-x-2 shrink-0">
-                                    ${authorActionsHtml}
-                                    <span class="text-[9px] text-gray-400 font-light">${formatDate(post.createdAt)}</span>
-                                </div>
-                            </div>
 
-                            <!-- 본문 내용: 크고 부드러운 폰트로 변경 -->
-                            <div class="post-body-text whitespace-pre-wrap py-0.5">
-                                ${escapeHtml(post.content)}
-                            </div>
-
-                            <!-- 사진 영역: 한 테두리 안에 연속 이어짐 -->
-                            ${mediaSectionHtml}
-
-                            <!-- 2. 마지막 사진 바로 밑에 배치된 반응 버튼 그룹 (손하트, 엄지, 댓글, +) -->
-                            <div class="pt-1.5 flex items-center justify-between">
-                                <div class="flex items-center space-x-3.5">
-                                    <!-- 손하트(하트) -->
-                                    <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-500 font-semibold' : 'text-gray-500 hover:text-rose-500'} transition-all active:scale-90">
-                                        <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-[13px]"></i>
-                                        <span class="text-[11px]">${post.likes || 0}</span>
+                                <!-- 도톰한 '+' 버튼 & 수정/삭제 팝오버 -->
+                                <div class="relative">
+                                    <button type="button" id="action-btn-${post.id}" onclick="toggleActionMenu('${post.id}', event)" 
+                                            class="w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all font-black text-sm" title="더보기">
+                                        <i class="fa-solid fa-plus transition-transform duration-200"></i>
                                     </button>
 
-                                    <!-- 엄지 (엄지척/응원) -->
-                                    <button onclick="toggleThumb('${post.id}', ${hasThumbed})" class="flex items-center space-x-1 ${hasThumbed ? 'text-amber-500 font-semibold' : 'text-gray-500 hover:text-amber-500'} transition-all active:scale-90">
-                                        <i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-[13px]"></i>
-                                        <span class="text-[11px]">${thumbsCount}</span>
+                                    <!-- 팝오버 메뉴 -->
+                                    <div id="action-menu-${post.id}" class="hidden absolute right-0 top-7 bg-white rounded-xl shadow-lg border church-border py-1 px-1 z-20 flex flex-col w-20 space-y-0.5">
+                                        <button onclick="requestEditPost('${post.id}', \`${escapeHtml(post.content || '')}\`, ${imagesParam})" class="w-full text-left px-2 py-1 text-xs text-gray-700 hover:bg-emerald-50 hover:text-emerald-800 rounded font-medium flex items-center space-x-1.5">
+                                            <i class="fa-solid fa-pen text-[10px]"></i>
+                                            <span>수정</span>
+                                        </button>
+                                        <button onclick="confirmDeletePost('${post.id}')" class="w-full text-left px-2 py-1 text-xs text-rose-600 hover:bg-rose-50 rounded font-medium flex items-center space-x-1.5">
+                                            <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                            <span>삭제</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 본문 텍스트: 창 밖 이탈 방지 줄바꿈 + 16px 폰트 확대 + 상하여백 축소 -->
+                            ${post.content ? `
+                            <div class="py-1 text-[16px] text-gray-800 leading-relaxed break-words overflow-wrap-anywhere whitespace-pre-wrap">
+                                ${escapeHtml(post.content)}
+                            </div>
+                            ` : ''}
+
+                            <!-- 사진 영역: 하나의 테두리 프레임 안에 실선으로 연결 -->
+                            ${mediaSectionHtml}
+
+                            <!-- 마지막 사진 바로 아래 배치된 반응 버튼들 (실선 없이 밀착) -->
+                            <div class="pt-2 flex items-center justify-between">
+                                <div class="flex items-center space-x-3.5">
+                                    <!-- 손하트 / 하트 -->
+                                    <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-500 font-semibold' : 'text-gray-500'} active:scale-90 transition-transform">
+                                        <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i>
+                                        <span class="text-xs">${post.likes || 0}</span>
+                                    </button>
+
+                                    <!-- 엄지척 -->
+                                    <button onclick="toggleThumbsUp('${post.id}', ${hasThumbed})" class="flex items-center space-x-1 ${hasThumbed ? 'text-sky-600 font-semibold' : 'text-gray-500'} active:scale-90 transition-transform">
+                                        <i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i>
+                                        <span class="text-xs">${thumbsCount}</span>
                                     </button>
 
                                     <!-- 댓글 팝업 열기 -->
-                                    <button type="button" onclick="openCommentsModal('${post.id}')" class="flex items-center space-x-1 text-gray-500 hover:text-emerald-700 transition-all active:scale-90">
-                                        <i class="fa-regular fa-comment-dots text-[13px]"></i>
-                                        <span class="text-[11px] font-semibold">${commentCount}</span>
+                                    <button type="button" onclick="openCommentsModal('${post.id}')" class="flex items-center space-x-1 text-gray-500 hover:text-emerald-700 active:scale-90 transition-transform" title="댓글 열기">
+                                        <i class="fa-regular fa-comment-dots text-sm"></i>
+                                        <span class="text-xs">${commentCount}</span>
                                     </button>
 
-                                    <!-- + (인라인 댓글 바로 쓰기) -->
-                                    <button type="button" onclick="toggleInlineCommentInput('${post.id}')" class="w-5 h-5 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-600 hover:text-emerald-700 flex items-center justify-center text-[10px] font-bold transition-all active:scale-90">
+                                    <!-- 댓글 바로 쓰기 토글 '+' -->
+                                    <button type="button" onclick="toggleInlineCommentInput('${post.id}')" class="w-5 h-5 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-500 hover:text-emerald-700 flex items-center justify-center text-xs font-bold active:scale-90 transition-transform" title="댓글 바로 달기">
                                         <i class="fa-solid fa-plus text-[10px]"></i>
                                     </button>
                                 </div>
                             </div>
 
-                            <!-- 인라인 댓글 작성창 (실선 없이 부드러운 배경으로 처리) -->
+                            <!-- 인라인 댓글 작성란 -->
                             <div id="inline-comment-row-${post.id}" class="mt-2 pt-1 hidden">
                                 <div class="flex space-x-1.5 items-center">
-                                    <input type="text" id="inline-comment-input-${post.id}" maxlength="200" placeholder="댓글을 남겨주세요..." 
+                                    <input type="text" id="inline-comment-input-${post.id}" maxlength="200" placeholder="따뜻한 댓글을 남겨보세요..." 
                                            onkeydown="if(event.key==='Enter') addCommentInline('${post.id}')"
-                                           class="flex-1 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-emerald-600">
-                                    <button onclick="addCommentInline('${post.id}')" class="px-3 py-1.5 church-primary text-white rounded-lg text-xs font-medium whitespace-nowrap">
+                                           class="flex-1 px-3 py-1.5 border church-border rounded-lg text-xs focus:outline-none focus:border-emerald-600 bg-gray-50">
+                                    <button onclick="addCommentInline('${post.id}')" class="px-3 py-1.5 church-primary text-white rounded-lg text-xs font-medium whitespace-nowrap shadow-2xs">
                                         등록
                                     </button>
                                 </div>
@@ -1054,8 +884,8 @@
                     `;
                     feedContainer.appendChild(card);
                 });
-            }, (error) => {
-                console.error("피드 스냅샷 오류:", error);
+            }, (err) => {
+                console.error("피드 스냅샷 오류:", err);
                 setDbStatus('error');
             });
         }
@@ -1090,36 +920,34 @@
                 listEl.innerHTML = `
                     <div class="py-12 text-center text-gray-400">
                         <i class="fa-regular fa-comments text-2xl mb-1.5 opacity-40"></i>
-                        <p class="text-[11px]">아직 작성된 댓글이 없습니다.</p>
-                        <p class="text-[10px] text-gray-400 mt-0.5">첫 댓글로 따뜻한 은혜와 안부를 나눠보세요!</p>
+                        <p class="text-xs">아직 작성된 댓글이 없습니다.</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">첫 댓글로 사랑과 은혜를 나눠보세요!</p>
                     </div>
                 `;
                 return;
             }
 
             listEl.innerHTML = comments.map(c => `
-                <div class="bg-gray-50 rounded-xl p-2 border border-gray-100 flex flex-col space-y-0.5">
+                <div class="bg-gray-50 rounded-xl p-2.5 border border-gray-100 flex flex-col space-y-0.5">
                     <div class="flex items-center justify-between">
-                        <span class="font-bold text-gray-800 text-[11px]">${escapeHtml(c.author)}</span>
+                        <span class="font-bold text-gray-800 text-xs">${escapeHtml(c.author)}</span>
                         <span class="text-[9px] text-gray-400">${c.time || ''}</span>
                     </div>
-                    <p class="text-gray-700 text-[11px] leading-relaxed whitespace-pre-wrap">${escapeHtml(c.text)}</p>
+                    <p class="text-gray-700 text-xs leading-relaxed whitespace-pre-wrap">${escapeHtml(c.text)}</p>
                 </div>
             `).join('');
 
-            setTimeout(() => {
-                listEl.scrollTop = listEl.scrollHeight;
-            }, 50);
+            setTimeout(() => { listEl.scrollTop = listEl.scrollHeight; }, 50);
         }
 
         window.addCommentFromModal = async function() {
             if (!currentActivePopupPostId) return;
-            const inputEl = document.getElementById('comments-modal-input');
-            const text = inputEl.value.trim();
+            const input = document.getElementById('comments-modal-input');
+            const text = input.value.trim();
             if (!text) return;
 
             await submitComment(currentActivePopupPostId, text);
-            inputEl.value = '';
+            input.value = '';
         };
 
         window.toggleInlineCommentInput = function(postId) {
@@ -1134,253 +962,159 @@
         };
 
         window.addCommentInline = async function(postId) {
-            const inputEl = document.getElementById(`inline-comment-input-${postId}`);
-            const text = inputEl.value.trim();
+            const input = document.getElementById(`inline-comment-input-${postId}`);
+            const text = input.value.trim();
             if (!text) return;
 
             await submitComment(postId, text);
-            inputEl.value = '';
+            input.value = '';
             const row = document.getElementById(`inline-comment-row-${postId}`);
             if (row) row.classList.add('hidden');
         };
 
         async function submitComment(postId, text) {
             const now = new Date();
-            const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
             const commentObj = { author: currentUser, text: text, time: timeStr };
 
             if (!db) return;
-            const postRef = getPostDocRef(postId);
             setDbStatus('saving');
             try {
-                await updateDoc(postRef, { comments: arrayUnion(commentObj) });
+                await updateDoc(getPostDocRef(postId), { comments: arrayUnion(commentObj) });
                 setDbStatus('connected');
                 showNotification("댓글이 등록되었습니다.");
-            } catch (error) {
-                console.error("댓글 등록 오류:", error);
+            } catch (err) {
+                console.error("댓글 등록 오류:", err);
                 setDbStatus('error');
             }
         }
 
         window.toggleLike = async function(postId, hasLiked) {
             if (!db) return;
-            const postRef = getPostDocRef(postId);
             setDbStatus('saving');
             try {
                 if (hasLiked) {
-                    await updateDoc(postRef, { likes: increment(-1), likedUsers: arrayRemove(currentUser) });
+                    await updateDoc(getPostDocRef(postId), { likes: increment(-1), likedUsers: arrayRemove(currentUser) });
                 } else {
-                    await updateDoc(postRef, { likes: increment(1), likedUsers: arrayUnion(currentUser) });
+                    await updateDoc(getPostDocRef(postId), { likes: increment(1), likedUsers: arrayUnion(currentUser) });
                 }
                 setDbStatus('connected');
-            } catch (error) {
-                console.error("좋아요 오류:", error);
+            } catch (err) {
+                console.error("좋아요 오류:", err);
                 setDbStatus('error');
             }
         };
 
-        window.toggleThumb = async function(postId, hasThumbed) {
+        window.toggleThumbsUp = async function(postId, hasThumbed) {
             if (!db) return;
-            const postRef = getPostDocRef(postId);
             setDbStatus('saving');
             try {
                 if (hasThumbed) {
-                    await updateDoc(postRef, { thumbsUp: increment(-1), thumbedUsers: arrayRemove(currentUser) });
+                    await updateDoc(getPostDocRef(postId), { thumbsUp: increment(-1), thumbedUsers: arrayRemove(currentUser) });
                 } else {
-                    await updateDoc(postRef, { thumbsUp: increment(1), thumbedUsers: arrayUnion(currentUser) });
+                    await updateDoc(getPostDocRef(postId), { thumbsUp: increment(1), thumbedUsers: arrayUnion(currentUser) });
                 }
                 setDbStatus('connected');
-            } catch (error) {
-                console.error("엄지척 오류:", error);
+            } catch (err) {
+                console.error("엄지척 오류:", err);
                 setDbStatus('error');
             }
         };
 
-        let scale = 1;
-        let panning = false;
-        let pointX = 0;
-        let pointY = 0;
-        let startX = 0;
-        let startY = 0;
         const lightboxModal = document.getElementById('lightbox-modal');
         const lightboxImg = document.getElementById('lightbox-img');
 
-        window.openLightbox = function(postId, imageIndex, url) {
+        window.openLightbox = function(postId, photoIdx, url) {
             currentLightboxPostId = postId;
-            currentLightboxImageIndex = imageIndex;
-            currentLightboxOriginalUrl = url;
-            currentRotationAngle = 0; // 초기 각도 0도
+            currentLightboxPhotoIdx = photoIdx;
+            currentLightboxRotationAngle = 0;
 
             lightboxImg.src = url;
-            scale = 1; pointX = 0; pointY = 0; 
-            updateImageTransform();
-            
-            const saveBtn = document.getElementById('lightbox-save-btn');
-            if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk text-xs"></i><span>각도 저장</span>`;
-            }
-
+            lightboxImg.style.transform = `rotate(${currentLightboxRotationAngle}deg)`;
             lightboxModal.classList.remove('hidden');
         };
 
-        window.closeLightbox = function() { 
-            lightboxModal.classList.add('hidden'); 
+        window.closeLightbox = function() {
+            lightboxModal.classList.add('hidden');
             currentLightboxPostId = null;
-            currentLightboxImageIndex = -1;
-            currentRotationAngle = 0;
+            currentLightboxPhotoIdx = null;
+            currentLightboxRotationAngle = 0;
         };
 
-        // 90도씩 시계 방향 회전
         window.rotateLightboxImage = function() {
-            currentRotationAngle = (currentRotationAngle + 90) % 360;
-            updateImageTransform();
-            showNotification(`${currentRotationAngle}도 회전되었습니다.`);
+            currentLightboxRotationAngle = (currentLightboxRotationAngle + 90) % 360;
+            lightboxImg.style.transform = `rotate(${currentLightboxRotationAngle}deg)`;
         };
 
-        function updateImageTransform() { 
-            lightboxImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale}) rotate(${currentRotationAngle}deg)`; 
-        }
-
-        // 회전된 사진을 캔버스를 통해 영구 JPEG로 구워낸 후 Firestore에 덮어쓰기 저장
-        window.saveRotatedImagePermanently = async function() {
-            if (!currentLightboxPostId || !currentLightboxOriginalUrl) {
-                showNotification("저장할 사진 정보가 없습니다.");
+        window.saveRotatedImagePermanent = async function() {
+            if (!currentLightboxPostId || currentLightboxPhotoIdx === null) return;
+            if (currentLightboxRotationAngle === 0) {
+                showNotification("회전 각도를 변경한 후 저장해 주세요.");
                 return;
             }
 
-            if (currentRotationAngle === 0) {
-                showNotification("회전 변경 사항이 없습니다. 90도 회전 후 눌러주세요.");
-                return;
-            }
+            const post = cachedPosts.find(p => p.id === currentLightboxPostId);
+            if (!post) return;
 
-            const saveBtn = document.getElementById('lightbox-save-btn');
-            if (saveBtn) {
-                saveBtn.disabled = true;
-                saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i><span>저장 중...</span>`;
-            }
-
-            showNotification("회전된 이미지를 클라우드에 영구 저장하는 중입니다...");
             setDbStatus('saving');
+            showNotification("사진 회전 각도를 저장 중입니다...");
 
             try {
-                // 1. 가상 캔버스를 생성하여 회전 각도대로 새 이미지 굽기
-                const rotatedDataUrl = await getRotatedImageDataUrl(currentLightboxOriginalUrl, currentRotationAngle);
-                if (!rotatedDataUrl) throw new Error("이미지 회전 변환에 실패했습니다.");
+                const rotatedDataUrl = await getRotatedDataUrl(lightboxImg.src, currentLightboxRotationAngle);
+                const updatedImages = [...(post.images || [post.imageUrl])];
+                updatedImages[currentLightboxPhotoIdx] = rotatedDataUrl;
 
-                // 2. 현재 게시글 데이터 찾기
-                const post = cachedPosts.find(p => p.id === currentLightboxPostId);
-                if (!post) throw new Error("게시글 정보를 찾을 수 없습니다.");
-
-                let updatedImages = Array.isArray(post.images) ? [...post.images] : (post.imageUrl ? [post.imageUrl] : []);
-                if (currentLightboxImageIndex >= 0 && currentLightboxImageIndex < updatedImages.length) {
-                    updatedImages[currentLightboxImageIndex] = rotatedDataUrl;
-                } else {
-                    updatedImages[0] = rotatedDataUrl;
-                }
-
-                const postRef = getPostDocRef(currentLightboxPostId);
-                await updateDoc(postRef, {
+                await updateDoc(getPostDocRef(currentLightboxPostId), {
                     images: updatedImages,
-                    imageUrl: updatedImages[0]
+                    imageUrl: updatedImages[0] || ""
                 });
 
                 setDbStatus('connected');
                 showNotification("🎉 사진 회전 각도가 영구 저장되었습니다!");
-
-                // 화면 뷰어 및 상태 갱신
-                currentLightboxOriginalUrl = rotatedDataUrl;
-                lightboxImg.src = rotatedDataUrl;
-                currentRotationAngle = 0;
-                scale = 1; pointX = 0; pointY = 0;
-                updateImageTransform();
-
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.innerHTML = `<i class="fa-solid fa-check text-xs text-white"></i><span>저장 완료</span>`;
-                    setTimeout(() => {
-                        saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk text-xs"></i><span>각도 저장</span>`;
-                    }, 2000);
-                }
+                closeLightbox();
             } catch (err) {
-                console.error("회전 저장 오류:", err);
-                showNotification("저장 실패: " + err.message);
+                console.error("회전 각도 영구 저장 실패:", err);
+                showNotification("회전 저장 실패: " + err.message);
                 setDbStatus('error');
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk text-xs"></i><span>각도 저장</span>`;
-                }
             }
         };
 
-        // 이미지 회전 캔버스 처리 유틸 함수
-        function getRotatedImageDataUrl(srcUrl, angle) {
+        function getRotatedDataUrl(src, angle) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.crossOrigin = "anonymous";
                 img.onload = function() {
-                    try {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-
-                        if (angle === 90 || angle === 270) {
-                            canvas.width = img.height;
-                            canvas.height = img.width;
-                        } else {
-                            canvas.width = img.width;
-                            canvas.height = img.height;
-                        }
-
-                        ctx.translate(canvas.width / 2, canvas.height / 2);
-                        ctx.rotate((angle * Math.PI) / 180);
-                        ctx.drawImage(img, -img.width / 2, -img.height / 2);
-
-                        const rotatedResult = canvas.toDataURL('image/jpeg', 0.65);
-                        resolve(rotatedResult);
-                    } catch (e) {
-                        reject(e);
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    if (angle === 90 || angle === 270) {
+                        canvas.width = img.height;
+                        canvas.height = img.width;
+                    } else {
+                        canvas.width = img.width;
+                        canvas.height = img.height;
                     }
+                    ctx.translate(canvas.width / 2, canvas.height / 2);
+                    ctx.rotate((angle * Math.PI) / 180);
+                    ctx.drawImage(img, -img.width / 2, -img.height / 2);
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
                 };
-                img.onerror = () => reject(new Error("이미지를 불러오지 못했습니다."));
-                img.src = srcUrl;
+                img.onerror = reject;
+                img.src = src;
             });
         }
 
-        let initialDistance = null;
-        lightboxModal.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                initialDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-            } else if (e.touches.length === 1 && scale > 1) {
-                panning = true; startX = e.touches[0].clientX - pointX; startY = e.touches[0].clientY - pointY;
+        // 바깥 터치 시 열린 팝오버 메뉴 닫기
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('[id^="action-menu-"]') && !e.target.closest('[id^="action-btn-"]')) {
+                document.querySelectorAll('[id^="action-menu-"]').forEach(m => m.classList.add('hidden'));
+                document.querySelectorAll('[id^="action-btn-"]').forEach(b => b.classList.remove('rotate-45', 'text-rose-600'));
             }
         });
-        lightboxModal.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 2 && initialDistance) {
-                const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                const zoomFactor = currentDistance / initialDistance;
-                scale = Math.min(Math.max(1, scale * zoomFactor), 4);
-                initialDistance = currentDistance; updateImageTransform();
-            } else if (panning && e.touches.length === 1) {
-                pointX = e.touches[0].clientX - startX; pointY = e.touches[0].clientY - startY; updateImageTransform();
-            }
-        });
-        lightboxModal.addEventListener('touchend', () => { initialDistance = null; panning = false; });
-
-        function dismissKeyboardOnOutsideTap(e) {
-            const activeEl = document.activeElement;
-            if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
-                if (e.target !== activeEl && !e.target.closest('button') && !e.target.closest('input') && !e.target.closest('textarea') && !e.target.closest('label')) {
-                    activeEl.blur();
-                }
-            }
-        }
-        document.addEventListener('touchstart', dismissKeyboardOnOutsideTap, { passive: true });
-        document.addEventListener('click', dismissKeyboardOnOutsideTap);
 
         function formatDate(timestamp) {
             if (!timestamp) return '';
-            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-            return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+            const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
         }
 
         function escapeHtml(str) {
