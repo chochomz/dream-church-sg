@@ -11,8 +11,8 @@
         
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background-color: #FFFFFF;
-            color: #333333;
+            background-color: #F8F9FA;
+            color: #222222;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
             overscroll-behavior-y: auto;
@@ -59,11 +59,11 @@
         }
     </style>
 </head>
-<body class="flex flex-col min-h-screen bg-white">
+<body class="flex flex-col min-h-screen bg-[#F8F9FA]">
 
-    <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-6 text-white text-center">
+    <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-4 text-white text-center">
         <div class="cursor-pointer select-none group relative inline-block" id="secret-login-area">
-            <div class="w-36 h-36 bg-white rounded-full flex items-center justify-center p-3 mx-auto mb-6 shadow-2xl group-active:scale-95 transition-transform border-4 border-white/40 overflow-hidden glowing-logo relative z-10">
+            <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center p-2.5 mx-auto mb-5 shadow-2xl group-active:scale-95 transition-transform border-4 border-white/40 overflow-hidden glowing-logo relative z-10">
                 <svg viewBox="0 0 200 200" class="w-full h-full object-contain" id="secret-logo-img">
                     <circle cx="100" cy="100" r="60" fill="#ffffff" opacity="0.1" filter="blur(10px)" />
                     <polygon points="35,118 100,118 100,58" fill="#5B9BD5" />
@@ -76,42 +76,43 @@
         </div>
 
         <div class="select-none space-y-1">
-            <h1 class="text-4xl font-extrabold tracking-wider text-white whitespace-nowrap">세종꿈의교회</h1>
-            <h2 class="text-2xl font-semibold text-emerald-100 tracking-wide whitespace-nowrap mt-2">23목장</h2>
-            <div class="h-6"></div>
-            <p class="text-sm text-emerald-100/90 font-light whitespace-nowrap">쇼츠로 즐기는 우리들의 목장 이야기</p>
+            <h1 class="text-3xl font-extrabold tracking-wider text-white whitespace-nowrap">세종꿈의교회</h1>
+            <h2 class="text-xl font-semibold text-emerald-100 tracking-wide whitespace-nowrap mt-1">23목장</h2>
+            <div class="h-4"></div>
+            <p class="text-xs text-emerald-100/90 font-light whitespace-nowrap">우리들의 목장 이야기</p>
         </div>
     </div>
 
-    <div id="auth-modal" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl border church-border">
-            <div class="text-center mb-5">
-                <div class="w-12 h-12 church-accent church-primary-text rounded-full flex items-center justify-center mx-auto mb-3">
-                    <i class="fa-solid fa-user-shield text-lg"></i>
+    <div id="auth-modal" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-xl w-full max-w-xs p-5 shadow-2xl border church-border">
+            <div class="text-center mb-4">
+                <div class="w-10 h-10 church-accent church-primary-text rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fa-solid fa-user-shield text-base"></i>
                 </div>
-                <h3 class="text-lg font-bold text-gray-800 whitespace-nowrap">목장 멤버 인증</h3>
-                <p class="text-xs text-gray-500 mt-1 whitespace-nowrap">성함과 목장 이름을 입력해 주세요.</p>
+                <h3 class="text-base font-bold text-gray-800 whitespace-nowrap">목장 멤버 인증</h3>
+                <p class="text-[11px] text-gray-500 mt-0.5 whitespace-nowrap">성함과 목장 이름을 입력해 주세요.</p>
             </div>
-            <div class="space-y-4">
+            <div class="space-y-3">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1 whitespace-nowrap">성함 / 직분</label>
-                    <input type="text" id="auth-username-input" placeholder="예: 김목자, 홍길동" class="w-full px-4 py-3 rounded-xl border church-border text-sm focus:outline-none focus:ring-2 focus:ring-[#3B5D50]">
+                    <label class="block text-[11px] font-medium text-gray-600 mb-1 whitespace-nowrap">성함 / 직분</label>
+                    <input type="text" id="auth-username-input" placeholder="예: 김목자, 홍길동" class="w-full px-3 py-2 rounded-lg border church-border text-xs focus:outline-none focus:ring-1 focus:ring-[#3B5D50]">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1 whitespace-nowrap">목장 이름</label>
-                    <input type="text" id="auth-mokjang-input" value="세종꿈의교회 23목장" class="w-full px-4 py-3 rounded-xl border church-border text-sm focus:outline-none focus:ring-2 focus:ring-[#3B5D50]">
+                    <label class="block text-[11px] font-medium text-gray-600 mb-1 whitespace-nowrap">목장 이름</label>
+                    <input type="text" id="auth-mokjang-input" value="세종꿈의교회 23목장" class="w-full px-3 py-2 rounded-lg border church-border text-xs focus:outline-none focus:ring-1 focus:ring-[#3B5D50]">
                 </div>
-                <button onclick="handleUserLogin()" class="w-full py-3 church-primary text-white rounded-xl font-medium text-sm shadow-md whitespace-nowrap">
+                <button onclick="handleUserLogin()" class="w-full py-2.5 church-primary text-white rounded-lg font-medium text-xs shadow-xs whitespace-nowrap">
                     입장하기
                 </button>
             </div>
         </div>
     </div>
 
-    <div id="main-feed-screen" class="flex flex-col flex-1 hidden bg-white">
-        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b church-border shadow-xs px-4 py-2.5 flex items-center justify-between">
-            <div class="flex items-center space-x-2.5 overflow-hidden">
-                <div class="w-9 h-9 church-primary rounded-full flex items-center justify-center p-0.5 shadow-sm border border-emerald-100 overflow-hidden bg-white shrink-0">
+    <div id="main-feed-screen" class="flex flex-col flex-1 hidden">
+        <!-- 초슬림 상단 헤더: 높이와 패딩을 최소화하여 화면 낭비 제거 -->
+        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-xs border-b church-border shadow-xs px-2 py-1.5 flex items-center justify-between">
+            <div class="flex items-center space-x-1.5 overflow-hidden">
+                <div class="w-7 h-7 church-primary rounded-full flex items-center justify-center p-0.5 shadow-xs border border-emerald-100 overflow-hidden bg-white shrink-0">
                     <svg viewBox="0 0 200 200" class="w-full h-full object-contain scale-110">
                         <polygon points="35,118 100,118 100,58" fill="#5B9BD5" />
                         <path d="M 100,118 L 165,88 C 140,130 110,155 90,173 C 92,158 94,143 96,128 C 98,128 100,128 100,118 Z" fill="#203E78" />
@@ -119,131 +120,131 @@
                         <rect x="76" y="55" width="48" height="18" fill="#203E78" rx="2" />
                     </svg>
                 </div>
-                <div class="overflow-hidden">
-                    <h1 class="text-xs font-bold text-gray-800 truncate whitespace-nowrap" id="header-mokjang-title">세종꿈의교회 23목장</h1>
-                    <p class="text-[10px] text-gray-500 truncate whitespace-nowrap" id="header-user-display">로그인 정보 없음</p>
+                <div class="overflow-hidden leading-tight">
+                    <h1 class="text-[11px] font-bold text-gray-800 truncate whitespace-nowrap" id="header-mokjang-title">세종꿈의교회 23목장</h1>
+                    <p class="text-[9px] text-gray-500 truncate whitespace-nowrap" id="header-user-display">로그인 정보 없음</p>
                 </div>
             </div>
-            <div class="shrink-0 flex items-center space-x-2">
-                <!-- Firebase Connection Status Lamp Indicator -->
-                <div class="flex items-center space-x-1.5 px-2 py-1 bg-gray-50 border church-border rounded-lg" title="클라우드 파이어베이스 연동 상태">
-                    <span id="db-status-lamp" class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse inline-block"></span>
-                    <span id="db-status-text" class="text-[10px] text-gray-500 whitespace-nowrap">연동중</span>
+            <div class="shrink-0 flex items-center space-x-1.5">
+                <div class="flex items-center space-x-1 px-1.5 py-0.5 bg-gray-50 border church-border rounded" title="연동 상태">
+                    <span id="db-status-lamp" class="w-2 h-2 rounded-full bg-blue-500 animate-pulse inline-block"></span>
+                    <span id="db-status-text" class="text-[9px] text-gray-500 whitespace-nowrap">연동중</span>
                 </div>
-                <button onclick="openWriteModal()" class="px-3 py-1.5 church-accent church-primary-text rounded-lg text-xs font-medium flex items-center space-x-1 shadow-xs whitespace-nowrap">
-                    <i class="fa-solid fa-camera text-xs"></i>
+                <button onclick="openWriteModal()" class="px-2.5 py-1 church-accent church-primary-text rounded text-[11px] font-medium flex items-center space-x-1 shadow-2xs whitespace-nowrap">
+                    <i class="fa-solid fa-camera text-[10px]"></i>
                     <span>글쓰기</span>
                 </button>
             </div>
         </header>
 
-        <main class="flex-1 max-w-lg w-full mx-auto p-3 space-y-4 pb-24 bg-white" id="feed-container">
-            <!-- Dynamic infinity scroll feed cards rendered here -->
+        <!-- 피드 메인 컨테이너: 좌우 패딩을 px-1로 극단적으로 좁히고 정보 밀도 극대화 -->
+        <main class="flex-1 w-full max-w-md mx-auto px-1 py-1 space-y-1.5 pb-10" id="feed-container">
+            <!-- 동적 피드 카드가 이곳에 렌더링됩니다 -->
         </main>
     </div>
 
-    <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
-        <div class="bg-white rounded-2xl w-full max-w-lg p-4 shadow-2xl border church-border max-h-[75vh] flex flex-col overflow-y-auto">
-            <div class="flex items-center justify-between mb-2 shrink-0">
-                <h3 class="text-sm font-bold text-gray-800 whitespace-nowrap" id="modal-title-text"><i class="fa-solid fa-camera church-primary-text mr-1.5"></i>목장 이야기 올리기</h3>
-                <button onclick="closeWriteModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+    <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-2 hidden">
+        <div class="bg-white rounded-xl w-full max-w-sm p-3 shadow-2xl border church-border max-h-[85vh] flex flex-col overflow-y-auto">
+            <div class="flex items-center justify-between pb-1.5 border-b church-border shrink-0">
+                <h3 class="text-xs font-bold text-gray-800 whitespace-nowrap" id="modal-title-text"><i class="fa-solid fa-camera church-primary-text mr-1"></i>목장 이야기 올리기</h3>
+                <button onclick="closeWriteModal()" class="text-gray-400 hover:text-gray-600 p-0.5"><i class="fa-solid fa-xmark text-sm"></i></button>
             </div>
-            <div class="space-y-3 flex-1 overflow-y-auto pr-1">
+            <div class="space-y-2.5 flex-1 overflow-y-auto pt-2">
                 <input type="hidden" id="editing-post-id" value="">
                 
-                <div class="space-y-1.5">
-                    <div class="flex justify-between items-center">
-                        <label class="block text-[11px] font-medium text-gray-600 whitespace-nowrap">사진 추가 (최대 5장)</label>
-                        <span id="image-count-indicator" class="text-[10px] text-gray-400 whitespace-nowrap">0 / 5장</span>
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center text-[10px]">
+                        <label class="font-medium text-gray-600 whitespace-nowrap">사진 추가 (최대 5장)</label>
+                        <span id="image-count-indicator" class="text-gray-400 whitespace-nowrap">0 / 5장</span>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2">
-                        <label class="border church-border rounded-xl py-2 px-1 text-center cursor-pointer hover:bg-emerald-50 text-xs flex items-center justify-center space-x-1 transition-colors overflow-hidden">
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <label class="border church-border rounded-lg py-1.5 px-1 text-center cursor-pointer hover:bg-emerald-50 text-[11px] flex items-center justify-center space-x-1 transition-colors">
                             <i class="fa-solid fa-file-arrow-up church-primary-text shrink-0"></i>
-                            <span class="font-medium text-gray-700 whitespace-nowrap truncate text-[11px]">사진/파일</span>
+                            <span class="font-medium text-gray-700 whitespace-nowrap truncate">사진/파일</span>
                             <input type="file" id="post-multi-file-input" accept="image/*" multiple class="hidden" onchange="handleFilesSelect(event)">
                         </label>
-                        <button type="button" onclick="toggleUrlInput()" class="border church-border rounded-xl py-2 px-1 text-center hover:bg-emerald-50 text-xs flex items-center justify-center space-x-1 transition-colors overflow-hidden">
+                        <button type="button" onclick="toggleUrlInput()" class="border church-border rounded-lg py-1.5 px-1 text-center hover:bg-emerald-50 text-[11px] flex items-center justify-center space-x-1 transition-colors">
                             <i class="fa-solid fa-link church-primary-text shrink-0"></i>
-                            <span class="font-medium text-gray-700 whitespace-nowrap truncate text-[11px]">웹주소(URL)</span>
+                            <span class="font-medium text-gray-700 whitespace-nowrap truncate">웹주소(URL)</span>
                         </button>
                     </div>
 
-                    <div id="selected-images-grid" class="grid grid-cols-3 gap-2 mt-2">
-                        <!-- Dynamic thumbnails -->
+                    <div id="selected-images-grid" class="grid grid-cols-3 gap-1.5 mt-1">
+                        <!-- 선택된 썸네일 -->
                     </div>
 
-                    <div id="url-input-container" class="hidden mt-2 space-y-2">
-                        <div class="flex space-x-1.5">
-                            <input type="text" id="post-image-url" placeholder="https://..." class="flex-1 px-3 py-2 rounded-xl border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none">
-                            <button type="button" onclick="addUrlImage()" class="px-3 py-2 church-accent church-primary-text rounded-xl text-xs font-medium whitespace-nowrap">추가</button>
+                    <div id="url-input-container" class="hidden mt-1.5 space-y-1">
+                        <div class="flex space-x-1">
+                            <input type="text" id="post-image-url" placeholder="https://..." class="flex-1 px-2 py-1 rounded-lg border church-border text-[11px] focus:outline-none focus:ring-1 focus:ring-[#3B5D50]">
+                            <button type="button" onclick="addUrlImage()" class="px-2 py-1 church-accent church-primary-text rounded-lg text-[11px] font-medium whitespace-nowrap">추가</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="w-full">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-[11px] font-medium text-gray-600 whitespace-nowrap">내용 입력</span>
-                        <span id="char-count-indicator" class="text-[10px] text-gray-400 whitespace-nowrap">0 / 200자</span>
+                    <div class="flex justify-between items-center mb-0.5 text-[10px]">
+                        <span class="font-medium text-gray-600 whitespace-nowrap">내용 입력</span>
+                        <span id="char-count-indicator" class="text-gray-400 whitespace-nowrap">0 / 200자</span>
                     </div>
-                    <textarea id="post-content" rows="3" maxlength="200" oninput="updateCharCount(this)" placeholder="내용을 입력하세요..." class="w-full px-3 py-2.5 rounded-xl border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none resize-none bg-white block box-border"></textarea>
+                    <textarea id="post-content" rows="3" maxlength="200" oninput="updateCharCount(this)" placeholder="내용을 입력하세요..." class="w-full px-2 py-1.5 rounded-lg border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none resize-none bg-white block"></textarea>
                 </div>
-                <div class="flex items-center space-x-2 pt-1">
-                    <input type="checkbox" id="post-display-check" checked class="w-4 h-4 text-[#3B5D50] rounded border-gray-300">
-                    <label for="post-display-check" class="text-xs text-gray-700 font-medium whitespace-nowrap">피드에 즉시 노출</label>
+                <div class="flex items-center space-x-1.5">
+                    <input type="checkbox" id="post-display-check" checked class="w-3.5 h-3.5 text-[#3B5D50] rounded border-gray-300">
+                    <label for="post-display-check" class="text-[11px] text-gray-700 font-medium whitespace-nowrap">피드에 즉시 노출</label>
                 </div>
-                <button onclick="requestSavePost()" class="w-full py-2.5 church-primary text-white rounded-xl font-medium text-xs shadow-md whitespace-nowrap" id="submit-btn-text">
+                <button onclick="requestSavePost()" class="w-full py-2 church-primary text-white rounded-lg font-medium text-xs shadow-xs whitespace-nowrap" id="submit-btn-text">
                     등록하기
                 </button>
             </div>
         </div>
     </div>
 
-    <div id="save-confirm-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl w-full max-w-xs p-6 shadow-2xl border church-border text-center space-y-4">
-            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-lg">
+    <div id="save-confirm-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3">
+            <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-base">
                 <i class="fa-solid fa-circle-question"></i>
             </div>
             <div>
-                <h3 class="text-base font-bold text-gray-800 whitespace-nowrap">게시글 저장</h3>
-                <p class="text-xs text-gray-500 mt-1 whitespace-nowrap">저장 하시겠습니까?</p>
+                <h3 class="text-sm font-bold text-gray-800 whitespace-nowrap">게시글 저장</h3>
+                <p class="text-[11px] text-gray-500 mt-0.5 whitespace-nowrap">저장 하시겠습니까?</p>
             </div>
-            <div class="grid grid-cols-2 gap-2 pt-2">
-                <button onclick="closeSaveConfirmModal()" class="py-2.5 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium whitespace-nowrap">취소</button>
-                <button onclick="executeSubmitPost()" class="py-2.5 church-primary text-white rounded-xl text-xs font-medium whitespace-nowrap">저장하기</button>
+            <div class="grid grid-cols-2 gap-1.5 pt-1">
+                <button onclick="closeSaveConfirmModal()" class="py-2 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium whitespace-nowrap">취소</button>
+                <button onclick="executeSubmitPost()" class="py-2 church-primary text-white rounded-lg text-xs font-medium whitespace-nowrap">저장하기</button>
             </div>
         </div>
     </div>
 
-    <div id="confirm-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl w-full max-w-xs p-6 shadow-2xl border church-border text-center space-y-4">
-            <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto text-lg">
+    <div id="confirm-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3">
+            <div class="w-10 h-10 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto text-base">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
             <div>
-                <h3 class="text-base font-bold text-gray-800 whitespace-nowrap">게시글 삭제</h3>
-                <p class="text-xs text-gray-500 mt-1 whitespace-nowrap">정말 이 이야기를 삭제하시겠습니까?</p>
+                <h3 class="text-sm font-bold text-gray-800 whitespace-nowrap">게시글 삭제</h3>
+                <p class="text-[11px] text-gray-500 mt-0.5 whitespace-nowrap">정말 이 이야기를 삭제하시겠습니까?</p>
             </div>
-            <div class="grid grid-cols-2 gap-2 pt-2">
-                <button onclick="closeConfirmModal()" class="py-2.5 bg-gray-100 text-gray-700 rounded-xl text-xs font-medium whitespace-nowrap">취소</button>
-                <button id="confirm-yes-btn" class="py-2.5 bg-rose-500 text-white rounded-xl text-xs font-medium whitespace-nowrap">삭제하기</button>
+            <div class="grid grid-cols-2 gap-1.5 pt-1">
+                <button onclick="closeConfirmModal()" class="py-2 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium whitespace-nowrap">취소</button>
+                <button id="confirm-yes-btn" class="py-2 bg-rose-500 text-white rounded-lg text-xs font-medium whitespace-nowrap">삭제하기</button>
             </div>
         </div>
     </div>
 
     <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center hidden">
-        <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white text-xl p-2 z-50"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeLightbox()" class="absolute top-3 right-3 text-white text-lg p-2 z-50"><i class="fa-solid fa-xmark"></i></button>
         <div class="overflow-hidden w-full h-full flex items-center justify-center relative">
             <img id="lightbox-img" src="" alt="확대 이미지" class="max-w-full max-h-full object-contain select-none">
         </div>
-        <div class="absolute bottom-6 text-white text-[11px] bg-black/60 px-3 py-1 rounded-full pointer-events-none whitespace-nowrap">
+        <div class="absolute bottom-4 text-white text-[10px] bg-black/60 px-2.5 py-0.5 rounded-full pointer-events-none whitespace-nowrap">
             두 손가락으로 확대/축소 가능
         </div>
     </div>
 
-    <footer class="text-center py-5 text-[11px] text-gray-400 border-t church-border bg-white mt-auto">
-        <p class="whitespace-nowrap">그리스도의 은혜를 나누는 마음</p>
-        <p class="mt-0.5 whitespace-nowrap">세종꿈의교회 23목장</p>
+    <!-- 슬림 하단 푸터: 높이와 여백을 최소화하여 스크롤 간섭 방지 -->
+    <footer class="text-center py-2 text-[10px] text-gray-400 border-t church-border bg-white mt-auto">
+        <p class="whitespace-nowrap leading-none">그리스도의 은혜를 나누는 마음 · 세종꿈의교회 23목장</p>
     </footer>
 
     <script type="module">
@@ -260,7 +261,7 @@
         let currentUserUid = null;
         let isAuthReady = false;
 
-        // Firebase Configuration
+        // Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyDKD5LUQL84ZuPH5UJrHBj7yAYDTabDWVA",
             authDomain: "dream-data-146a4.firebaseapp.com",
@@ -284,7 +285,7 @@
             const text = document.getElementById('db-status-text');
             if (!lamp || !text) return;
 
-            lamp.className = "w-2.5 h-2.5 rounded-full inline-block";
+            lamp.className = "w-2 h-2 rounded-full inline-block";
             if (status === 'connecting') {
                 lamp.classList.add('bg-blue-500', 'animate-pulse');
                 text.innerText = '연동중';
@@ -296,7 +297,7 @@
                 text.innerText = '저장중';
             } else if (status === 'error') {
                 lamp.classList.add('bg-rose-500');
-                text.innerText = '보안규칙오류';
+                text.innerText = '연동오류';
             }
         }
 
@@ -306,13 +307,13 @@
 
             const toast = document.createElement('div');
             toast.id = 'app-notification-toast';
-            toast.className = 'fixed bottom-12 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl z-50 flex items-center space-x-2 transition-opacity duration-300 pointer-events-none max-w-[90vw] text-center';
-            toast.innerHTML = `<i class="fa-solid fa-circle-info text-emerald-400 shrink-0"></i><span>${escapeHtml(msg)}</span>`;
+            toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-[11px] px-3 py-1.5 rounded-lg shadow-xl z-50 flex items-center space-x-1.5 transition-opacity duration-300 pointer-events-none max-w-[90vw] text-center';
+            toast.innerHTML = `<i class="fa-solid fa-circle-info text-emerald-400 shrink-0 text-xs"></i><span>${escapeHtml(msg)}</span>`;
             document.body.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            }, 2500);
         }
 
         async function initAuth() {
@@ -330,10 +331,8 @@
                 currentUserUid = auth.currentUser?.uid || "anon-user";
                 isAuthReady = true;
                 setDbStatus('connected');
-                console.log("Firebase Auth 성공! UID:", currentUserUid);
             } catch (e) {
-                console.warn("익명 로그인 인증 주의 (규칙이 if true인 경우 작동 지속):", e);
-                // 콘솔에서 익명 로그인이 안 켜져 있어도 규칙이 true면 쓰기 가능하도록 세팅
+                console.warn("익명 인증 알림:", e);
                 isAuthReady = true;
                 setDbStatus('connected');
             }
@@ -383,7 +382,7 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    const maxDim = 800; // 800px로 최적화하여 1MB 초과 방지
+                    const maxDim = 800; // 최적화 압축
 
                     if (width > height && width > maxDim) {
                         height = Math.round((height * maxDim) / width);
@@ -398,8 +397,7 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    // 0.6 압축률로 Firestore 용량 절약
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.65);
                     callback(dataUrl);
                 };
                 img.src = e.target.result;
@@ -472,10 +470,10 @@
 
             selectedImagesList.forEach((imgSrc, idx) => {
                 const thumb = document.createElement('div');
-                thumb.className = "relative bg-gray-100 rounded-xl aspect-square overflow-hidden border church-border flex items-center justify-center";
+                thumb.className = "relative bg-gray-100 rounded-lg aspect-square overflow-hidden border church-border flex items-center justify-center";
                 thumb.innerHTML = `
                     <img src="${imgSrc}" class="w-full h-full object-cover">
-                    <button type="button" onclick="removeSelectedImage(${idx})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center shadow"><i class="fa-solid fa-xmark"></i></button>
+                    <button type="button" onclick="removeSelectedImage(${idx})" class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center shadow"><i class="fa-solid fa-xmark"></i></button>
                 `;
                 grid.appendChild(thumb);
             });
@@ -484,10 +482,10 @@
                 const addBtn = document.createElement('button');
                 addBtn.type = "button";
                 addBtn.onclick = triggerFilePicker;
-                addBtn.className = "border-2 border-dashed church-border rounded-xl aspect-square flex flex-col items-center justify-center text-gray-400 hover:bg-emerald-50 transition-colors";
+                addBtn.className = "border-2 border-dashed church-border rounded-lg aspect-square flex flex-col items-center justify-center text-gray-400 hover:bg-emerald-50 transition-colors";
                 addBtn.innerHTML = `
-                    <i class="fa-solid fa-plus text-base mb-1 church-primary-text"></i>
-                    <span class="text-[10px] whitespace-nowrap">사진 추가</span>
+                    <i class="fa-solid fa-plus text-sm mb-0.5 church-primary-text"></i>
+                    <span class="text-[9px] whitespace-nowrap">사진 추가</span>
                 `;
                 grid.appendChild(addBtn);
             }
@@ -503,10 +501,10 @@
             renderImagePreviews();
 
             if (postId) {
-                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-pen-to-square church-primary-text mr-1.5"></i>목장 이야기 수정하기`;
+                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-pen-to-square church-primary-text mr-1"></i>목장 이야기 수정하기`;
                 document.getElementById('submit-btn-text').innerText = "수정 완료";
             } else {
-                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-camera church-primary-text mr-1.5"></i>목장 이야기 올리기`;
+                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-camera church-primary-text mr-1"></i>목장 이야기 올리기`;
                 document.getElementById('submit-btn-text').innerText = "등록하기";
             }
 
@@ -542,7 +540,6 @@
             const content = document.getElementById('post-content').value.trim();
             const isChecked = document.getElementById('post-display-check').checked;
 
-            // 사진을 등록하지 않았을 경우 외국인 샘플 사진 대신 빈 배열([])로 저장
             const finalImages = [...selectedImagesList];
 
             setDbStatus('saving');
@@ -621,9 +618,9 @@
 
             if (!isAuthReady) {
                 feedContainer.innerHTML = `
-                    <div class="text-center py-16 text-gray-400">
-                        <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 church-primary-text"></i>
-                        <p class="text-xs">데이터베이스와 안전하게 연결 중입니다...</p>
+                    <div class="text-center py-10 text-gray-400">
+                        <i class="fa-solid fa-spinner fa-spin text-xl mb-1 church-primary-text"></i>
+                        <p class="text-[11px]">연결 중입니다...</p>
                     </div>
                 `;
                 await initAuth();
@@ -644,9 +641,9 @@
                 
                 if (posts.length === 0) {
                     feedContainer.innerHTML = `
-                        <div class="text-center py-16 text-gray-400">
-                            <i class="fa-solid fa-camera-retro text-3xl mb-2 opacity-40"></i>
-                            <p class="text-xs whitespace-nowrap">등록된 목장 이야기가 없습니다.</p>
+                        <div class="text-center py-12 text-gray-400 bg-white rounded-lg border border-gray-200 p-4">
+                            <i class="fa-solid fa-camera-retro text-2xl mb-1 opacity-40"></i>
+                            <p class="text-[11px] whitespace-nowrap">등록된 목장 이야기가 없습니다.</p>
                         </div>
                     `;
                     return;
@@ -661,24 +658,27 @@
                 posts.forEach((post) => {
                     const hasLiked = post.likedUsers && post.likedUsers.includes(currentUser);
                     const isAuthor = post.author === currentUser;
+                    
+                    // 초밀집형 카드: 기본 border만 유지, 여백을 극단적으로 최소화
                     const card = document.createElement('div');
-                    card.className = "bg-white rounded-2xl overflow-hidden shadow-xs border church-border space-y-2.5 pb-3";
+                    card.className = "bg-white rounded-lg border border-gray-200 overflow-hidden shadow-2xs space-y-1.5 p-2";
                     
                     const imgArray = (post.images && Array.isArray(post.images)) 
                         ? post.images.filter(img => img && !img.includes('unsplash.com')) 
                         : (post.imageUrl && !post.imageUrl.includes('unsplash.com') ? [post.imageUrl] : []);
+                    
                     let imagesHtml = '';
                     if (imgArray.length === 1) {
                         imagesHtml = `
-                            <div class="w-full bg-black/5 overflow-hidden cursor-pointer max-h-72 flex items-center justify-center" onclick="openLightbox('${imgArray[0]}')">
-                                <img src="${imgArray[0]}" alt="목장 사진" class="max-w-full max-h-72 object-contain my-auto">
+                            <div class="w-full bg-black/5 rounded overflow-hidden cursor-pointer max-h-56 flex items-center justify-center -mx-0.5" onclick="openLightbox('${imgArray[0]}')">
+                                <img src="${imgArray[0]}" alt="목장 사진" class="w-full max-h-56 object-cover">
                             </div>
                         `;
                     } else if (imgArray.length > 1) {
-                        imagesHtml = `<div class="grid grid-cols-2 gap-1 bg-black/5 p-1 max-h-80 overflow-y-auto">`;
+                        imagesHtml = `<div class="grid grid-cols-2 gap-1 rounded overflow-hidden -mx-0.5 max-h-60 overflow-y-auto">`;
                         imgArray.forEach((imgUrl) => {
                             imagesHtml += `
-                                <div class="aspect-square overflow-hidden cursor-pointer rounded-lg bg-black/10 flex items-center justify-center" onclick="openLightbox('${imgUrl}')">
+                                <div class="aspect-square overflow-hidden cursor-pointer bg-black/5 flex items-center justify-center rounded" onclick="openLightbox('${imgUrl}')">
                                     <img src="${imgUrl}" class="w-full h-full object-cover">
                                 </div>
                             `;
@@ -689,12 +689,12 @@
                     let commentsHtml = '';
                     if (post.comments && post.comments.length > 0) {
                         commentsHtml = post.comments.map(c => `
-                            <div class="bg-gray-50 rounded-xl p-2 text-xs flex justify-between items-start">
-                                <div>
-                                    <span class="font-bold text-gray-700 mr-2 whitespace-nowrap">${escapeHtml(c.author)}</span>
+                            <div class="bg-gray-50 rounded px-1.5 py-1 text-[11px] flex justify-between items-start leading-tight">
+                                <div class="pr-1">
+                                    <span class="font-bold text-gray-700 mr-1 whitespace-nowrap">${escapeHtml(c.author)}</span>
                                     <span class="text-gray-600">${escapeHtml(c.text)}</span>
                                 </div>
-                                <span class="text-[10px] text-gray-400 shrink-0 ml-2 whitespace-nowrap">${c.time || ''}</span>
+                                <span class="text-[9px] text-gray-400 shrink-0 whitespace-nowrap">${c.time || ''}</span>
                             </div>
                         `).join('');
                     }
@@ -703,7 +703,7 @@
                     if (isAuthor) {
                         const imagesParam = JSON.stringify(imgArray).replace(/"/g, '&quot;');
                         authorActionsHtml = `
-                            <div class="flex items-center space-x-2 text-[11px]">
+                            <div class="flex items-center space-x-1.5 text-[10px]">
                                 <button onclick="openWriteModal('${post.id}', \`${escapeHtml(post.content)}\`, ${imagesParam})" class="text-emerald-700 hover:underline whitespace-nowrap">수정</button>
                                 <span class="text-gray-300">|</span>
                                 <button onclick="confirmDeletePost('${post.id}')" class="text-rose-500 hover:underline whitespace-nowrap">삭제</button>
@@ -712,48 +712,51 @@
                     }
 
                     card.innerHTML = `
-                        <div class="flex items-center justify-between px-3 pt-3">
-                            <div class="flex items-center space-x-2 overflow-hidden">
-                                <div class="w-7 h-7 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-xs shrink-0">
+                        <!-- 헤더 정보 영역: 마진 최소화 -->
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-1.5 overflow-hidden">
+                                <div class="w-5 h-5 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-[10px] shrink-0">
                                     ${escapeHtml((post.author || 'M').charAt(0))}
                                 </div>
-                                <div class="overflow-hidden">
-                                    <span class="text-xs font-bold text-gray-800 truncate block whitespace-nowrap">${escapeHtml(post.author)}</span>
-                                </div>
+                                <span class="text-xs font-bold text-gray-800 truncate whitespace-nowrap">${escapeHtml(post.author)}</span>
                             </div>
                             <div class="flex items-center space-x-2">
                                 ${authorActionsHtml}
-                                <span class="text-[10px] text-gray-400 shrink-0 whitespace-nowrap">${formatDate(post.createdAt)}</span>
+                                <span class="text-[9px] text-gray-400 shrink-0 whitespace-nowrap">${formatDate(post.createdAt)}</span>
                             </div>
                         </div>
 
+                        <!-- 사진 영역 -->
                         ${imagesHtml}
 
-                        <div class="px-3 space-y-2">
-                            <div class="flex items-center space-x-3 pt-1">
-                                <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 text-xs font-medium ${hasLiked ? 'text-rose-500' : 'text-gray-600'}">
-                                    <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-base"></i>
-                                    <span>${post.likes || 0}</span>
+                        <!-- 본문 텍스트: 간결하고 촘촘한 배치 -->
+                        <div class="text-[11.5px] text-gray-800 leading-snug font-normal whitespace-pre-wrap">
+                            ${escapeHtml(post.content)}
+                        </div>
+
+                        <!-- 하단 인터랙션 영역: 여백 극소화 -->
+                        <div class="flex items-center justify-between pt-0.5 border-t border-gray-100 text-xs">
+                            <div class="flex items-center space-x-2.5">
+                                <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-500' : 'text-gray-500'}">
+                                    <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-xs"></i>
+                                    <span class="text-[11px] font-medium">${post.likes || 0}</span>
                                 </button>
-                                <span class="text-xs text-gray-600 font-medium flex items-center space-x-1">
-                                    <i class="fa-regular fa-comment-dots text-base"></i>
-                                    <span>${post.comments ? post.comments.length : 0}</span>
-                                </span>
-                                <button onclick="toggleCommentInput('${post.id}')" class="w-6 h-6 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center text-xs hover:bg-gray-200 transition-colors shadow-xs" title="댓글 작성하기">
-                                    <i class="fa-solid fa-plus text-[10px]"></i>
+                                <button onclick="toggleCommentInput('${post.id}')" class="flex items-center space-x-1 text-gray-500">
+                                    <i class="fa-regular fa-comment-dots text-xs"></i>
+                                    <span class="text-[11px] font-medium">${post.comments ? post.comments.length : 0}</span>
                                 </button>
                             </div>
+                            <button onclick="toggleCommentInput('${post.id}')" class="text-[10px] text-gray-400 hover:text-gray-600">
+                                댓글 쓰기
+                            </button>
+                        </div>
 
-                            <div class="text-xs text-gray-700 leading-relaxed font-light">
-                                ${escapeHtml(post.content)}
-                            </div>
-
-                            <div id="comment-section-${post.id}" class="space-y-1.5 pt-1 hidden">
-                                <div class="space-y-1 max-h-28 overflow-y-auto">${commentsHtml}</div>
-                                <div class="flex space-x-1.5 pt-1 items-center">
-                                    <input type="text" id="comment-input-${post.id}" maxlength="200" placeholder="댓글을 남겨주세요 (200자 이내)..." class="flex-1 px-2 py-1.5 border-b-2 border-emerald-700 bg-transparent text-xs focus:outline-none placeholder-gray-400">
-                                    <button onclick="addComment('${post.id}')" class="px-3 py-1.5 church-primary text-white rounded-xl text-xs font-medium whitespace-nowrap shadow-xs">등록</button>
-                                </div>
+                        <!-- 댓글 섹션 (토글형) -->
+                        <div id="comment-section-${post.id}" class="space-y-1 pt-1 border-t border-gray-100 hidden">
+                            <div class="space-y-1 max-h-24 overflow-y-auto">${commentsHtml}</div>
+                            <div class="flex space-x-1 pt-0.5 items-center">
+                                <input type="text" id="comment-input-${post.id}" maxlength="200" placeholder="댓글을 입력하세요..." class="flex-1 px-2 py-1 border border-gray-200 rounded text-[11px] focus:outline-none focus:border-emerald-600 bg-gray-50">
+                                <button onclick="addComment('${post.id}')" class="px-2 py-1 church-primary text-white rounded text-[11px] font-medium whitespace-nowrap">등록</button>
                             </div>
                         </div>
                     `;
@@ -762,9 +765,6 @@
             }, (error) => {
                 console.error("피드 스냅샷 오류:", error);
                 setDbStatus('error');
-                if (error.code === 'permission-denied') {
-                    showNotification("Firebase Firestore 규칙(Rules) 권한이 거부되었습니다.");
-                }
             });
         }
 
@@ -812,6 +812,7 @@
             } catch (error) { console.error("댓글 오류:", error); setDbStatus('error'); }
         };
 
+        // Lightbox Zoom Logic
         let scale = 1;
         let panning = false;
         let pointX = 0;
