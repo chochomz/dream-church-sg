@@ -68,7 +68,7 @@
             overscroll-behavior: contain;
         }
         #lightbox-img {
-            transition: transform 0.1s ease-out;
+            transition: transform 0.15s ease-out;
             transform-origin: center center;
         }
 
@@ -335,13 +335,36 @@
     </div>
 
     <!-- [라이트박스 모달] -->
-    <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center hidden">
-        <button onclick="closeLightbox()" class="absolute top-3 right-3 text-white text-lg p-2 z-50"><i class="fa-solid fa-xmark"></i></button>
-        <div class="overflow-hidden w-full h-full flex items-center justify-center relative">
+    <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/95 flex flex-col justify-between hidden">
+        <!-- 라이트박스 상단 바: 회전 및 저장, 닫기 버튼 -->
+        <div class="w-full px-4 py-3 flex items-center justify-between z-50 bg-gradient-to-b from-black/80 to-transparent">
+            <div class="flex items-center space-x-2">
+                <!-- 90도 회전 버튼 -->
+                <button type="button" onclick="rotateLightboxImage()" class="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-xs font-medium flex items-center space-x-1.5 active:scale-95 transition-all">
+                    <i class="fa-solid fa-rotate-right text-xs"></i>
+                    <span>회전</span>
+                </button>
+                <!-- 회전 각도 영구 저장 버튼 -->
+                <button type="button" id="lightbox-save-btn" onclick="saveRotatedImagePermanently()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium flex items-center space-x-1.5 active:scale-95 transition-all shadow-xs">
+                    <i class="fa-solid fa-floppy-disk text-xs"></i>
+                    <span>각도 저장</span>
+                </button>
+            </div>
+
+            <!-- 닫기 버튼 -->
+            <button onclick="closeLightbox()" class="text-white hover:text-gray-300 text-lg p-2 active:scale-95 transition-all">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
+
+        <!-- 중앙 이미지 뷰어 영역 -->
+        <div class="overflow-hidden w-full flex-1 flex items-center justify-center relative px-2">
             <img id="lightbox-img" src="" alt="확대 이미지" class="max-w-full max-h-full object-contain select-none">
         </div>
-        <div class="absolute bottom-4 text-white text-[10px] bg-black/60 px-2.5 py-0.5 rounded-full pointer-events-none whitespace-nowrap">
-            두 손가락으로 확대/축소 가능
+
+        <!-- 하단 팁 바 -->
+        <div class="w-full pb-5 pt-2 text-center text-white/70 text-[11px] pointer-events-none select-none">
+            <span>두 손가락 확대/축소 | 회전 후 <b class="text-emerald-400">[각도 저장]</b>을 누르면 영구 반영됩니다</span>
         </div>
     </div>
 
@@ -361,6 +384,12 @@
         let currentDbStatus = 'connecting';
         let currentActivePopupPostId = null;
         let cachedPosts = [];
+
+        // 라이트박스 회전 & 영구 저장 관련 상태 변수
+        let currentLightboxPostId = null;
+        let currentLightboxImageIndex = -1;
+        let currentLightboxOriginalUrl = '';
+        let currentRotationAngle = 0; // 0, 90, 180, 270
 
         // Firebase 프로젝트 설정
         const firebaseConfig = {
@@ -934,7 +963,7 @@
                     let mediaSectionHtml = '';
                     if (imgArray.length > 0) {
                         const photosHtml = imgArray.map((url, i) => `
-                            <div class="w-full relative flex items-center justify-center bg-black/5" onclick="openLightbox('${url}')">
+                            <div class="w-full relative flex items-center justify-center bg-black/5" onclick="openLightbox('${post.id}', ${i}, '${url}')">
                                 <img src="${url}" alt="목장 사진 ${i+1}" class="w-full max-h-[460px] object-contain select-none continuous-photo-item block">
                             </div>
                         `).join('');
@@ -1176,13 +1205,146 @@
         const lightboxModal = document.getElementById('lightbox-modal');
         const lightboxImg = document.getElementById('lightbox-img');
 
-        window.openLightbox = function(url) {
+        window.openLightbox = function(postId, imageIndex, url) {
+            currentLightboxPostId = postId;
+            currentLightboxImageIndex = imageIndex;
+            currentLightboxOriginalUrl = url;
+            currentRotationAngle = 0; // 초기 각도 0도
+
             lightboxImg.src = url;
-            scale = 1; pointX = 0; pointY = 0; updateImageTransform();
+            scale = 1; pointX = 0; pointY = 0; 
+            updateImageTransform();
+            
+            const saveBtn = document.getElementById('lightbox-save-btn');
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk text-xs"></i><span>각도 저장</span>`;
+            }
+
             lightboxModal.classList.remove('hidden');
         };
-        window.closeLightbox = function() { lightboxModal.classList.add('hidden'); };
-        function updateImageTransform() { lightboxImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
+
+        window.closeLightbox = function() { 
+            lightboxModal.classList.add('hidden'); 
+            currentLightboxPostId = null;
+            currentLightboxImageIndex = -1;
+            currentRotationAngle = 0;
+        };
+
+        // 90도씩 시계 방향 회전
+        window.rotateLightboxImage = function() {
+            currentRotationAngle = (currentRotationAngle + 90) % 360;
+            updateImageTransform();
+            showNotification(`${currentRotationAngle}도 회전되었습니다.`);
+        };
+
+        function updateImageTransform() { 
+            lightboxImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale}) rotate(${currentRotationAngle}deg)`; 
+        }
+
+        // 회전된 사진을 캔버스를 통해 영구 JPEG로 구워낸 후 Firestore에 덮어쓰기 저장
+        window.saveRotatedImagePermanently = async function() {
+            if (!currentLightboxPostId || !currentLightboxOriginalUrl) {
+                showNotification("저장할 사진 정보가 없습니다.");
+                return;
+            }
+
+            if (currentRotationAngle === 0) {
+                showNotification("회전 변경 사항이 없습니다. 90도 회전 후 눌러주세요.");
+                return;
+            }
+
+            const saveBtn = document.getElementById('lightbox-save-btn');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i><span>저장 중...</span>`;
+            }
+
+            showNotification("회전된 이미지를 클라우드에 영구 저장하는 중입니다...");
+            setDbStatus('saving');
+
+            try {
+                // 1. 가상 캔버스를 생성하여 회전 각도대로 새 이미지 굽기
+                const rotatedDataUrl = await getRotatedImageDataUrl(currentLightboxOriginalUrl, currentRotationAngle);
+                if (!rotatedDataUrl) throw new Error("이미지 회전 변환에 실패했습니다.");
+
+                // 2. 현재 게시글 데이터 찾기
+                const post = cachedPosts.find(p => p.id === currentLightboxPostId);
+                if (!post) throw new Error("게시글 정보를 찾을 수 없습니다.");
+
+                let updatedImages = Array.isArray(post.images) ? [...post.images] : (post.imageUrl ? [post.imageUrl] : []);
+                if (currentLightboxImageIndex >= 0 && currentLightboxImageIndex < updatedImages.length) {
+                    updatedImages[currentLightboxImageIndex] = rotatedDataUrl;
+                } else {
+                    updatedImages[0] = rotatedDataUrl;
+                }
+
+                const postRef = getPostDocRef(currentLightboxPostId);
+                await updateDoc(postRef, {
+                    images: updatedImages,
+                    imageUrl: updatedImages[0]
+                });
+
+                setDbStatus('connected');
+                showNotification("🎉 사진 회전 각도가 영구 저장되었습니다!");
+
+                // 화면 뷰어 및 상태 갱신
+                currentLightboxOriginalUrl = rotatedDataUrl;
+                lightboxImg.src = rotatedDataUrl;
+                currentRotationAngle = 0;
+                scale = 1; pointX = 0; pointY = 0;
+                updateImageTransform();
+
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = `<i class="fa-solid fa-check text-xs text-white"></i><span>저장 완료</span>`;
+                    setTimeout(() => {
+                        saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk text-xs"></i><span>각도 저장</span>`;
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error("회전 저장 오류:", err);
+                showNotification("저장 실패: " + err.message);
+                setDbStatus('error');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk text-xs"></i><span>각도 저장</span>`;
+                }
+            }
+        };
+
+        // 이미지 회전 캔버스 처리 유틸 함수
+        function getRotatedImageDataUrl(srcUrl, angle) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = function() {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        if (angle === 90 || angle === 270) {
+                            canvas.width = img.height;
+                            canvas.height = img.width;
+                        } else {
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                        }
+
+                        ctx.translate(canvas.width / 2, canvas.height / 2);
+                        ctx.rotate((angle * Math.PI) / 180);
+                        ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+                        const rotatedResult = canvas.toDataURL('image/jpeg', 0.65);
+                        resolve(rotatedResult);
+                    } catch (e) {
+                        reject(e);
+                    }
+                };
+                img.onerror = () => reject(new Error("이미지를 불러오지 못했습니다."));
+                img.src = srcUrl;
+            });
+        }
 
         let initialDistance = null;
         lightboxModal.addEventListener('touchstart', (e) => {
