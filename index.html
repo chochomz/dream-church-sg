@@ -8,6 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- html2canvas & jsPDF CDN (이미지 및 PDF 한 장 저장/인쇄용) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         /* Pretendard 웹폰트 */
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -55,16 +58,16 @@
             transform-origin: center center;
         }
 
-        /* 사진 통합 컨테이너 */
+        /* 사진 통합 컨테이너: 상하 여백 극단적 밀착 */
         .continuous-photo-container {
             border: 1px solid #E5E7EB;
-            border-radius: 14px;
+            border-radius: 12px;
             overflow: hidden;
             background-color: #ffffff;
             display: flex;
             flex-direction: column;
-            margin-top: 2px;
-            margin-bottom: 2px;
+            margin-top: 1px;
+            margin-bottom: 1px;
         }
         .continuous-photo-item {
             width: 100%;
@@ -81,13 +84,13 @@
             border-bottom: 1px solid #E5E7EB;
         }
 
-        /* 사진별 연필 캡션 텍스트 */
+        /* 사진별 연필 캡션 텍스트: 위 사진에 바짝 밀착 */
         .photo-caption-text {
             font-size: 13.5px;
-            line-height: 1.45;
+            line-height: 1.4;
             color: #374151;
-            padding: 4px 8px 3px 8px;
-            margin-bottom: 8px;
+            padding: 2px 6px 2px 6px;
+            margin-bottom: 4px;
             background: transparent;
             word-break: break-word;
             overflow-wrap: anywhere;
@@ -107,6 +110,28 @@
             opacity: 1;
             transform: translateX(0) scale(1);
             pointer-events: auto;
+        }
+
+        /* 인쇄 전용 스타일: 해당 포스트 외 숨김 처리 */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-area, #print-area * {
+                visibility: visible;
+            }
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 10px;
+                background: white;
+            }
+            .no-print {
+                display: none !important;
+            }
         }
     </style>
 </head>
@@ -142,9 +167,12 @@
     </header>
 
     <!-- [피드 메인 컨테이너] -->
-    <main class="w-full max-w-md mx-auto flex-1 overflow-y-auto px-1 py-1" id="feed-container">
+    <main class="w-full max-w-md mx-auto flex-1 overflow-y-auto px-1 py-0.5" id="feed-container">
         <!-- 게시글 목록이 실시간으로 동적 렌더링됩니다 -->
     </main>
+
+    <!-- [인쇄 전용 숨김 컨테이너] -->
+    <div id="print-area" class="hidden"></div>
 
     <!-- [댓글 전용 팝업 스크린 모달] -->
     <div id="comments-popup-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex flex-col justify-end hidden">
@@ -327,6 +355,11 @@
         let currentLightboxPostId = null;
         let currentLightboxPhotoIdx = null;
         let currentLightboxRotationAngle = 0;
+
+        // 사진 밑 댓글(+버튼) 작성 중 내용 보관 및 5분 자동 만료 캐시
+        // 구조: { [postId]: { text: string, updatedAt: number } }
+        const commentDrafts = {};
+        const DRAFT_EXPIRE_MS = 5 * 60 * 1000; // 5분 (300,000ms)
 
         // Firebase 설정
         const firebaseConfig = {
@@ -623,6 +656,23 @@
             });
         }
 
+        // 스크롤 발생 시 열려 있던 모든 인라인 댓글창 자동 닫기 (입력 내용은 commentDrafts에 자동 보존됨)
+        function closeAllInlineCommentInputs() {
+            document.querySelectorAll('[id^="inline-comment-row-"]').forEach(row => {
+                if (!row.classList.contains('hidden')) {
+                    const postId = row.id.replace('inline-comment-row-', '');
+                    const input = document.getElementById(`inline-comment-input-${postId}`);
+                    if (input && input.value.trim().length > 0) {
+                        commentDrafts[postId] = {
+                            text: input.value,
+                            updatedAt: Date.now()
+                        };
+                    }
+                    row.classList.add('hidden');
+                }
+            });
+        }
+
         document.addEventListener('click', function(e) {
             if (!e.target.closest('[id^="action-menu-"]') && !e.target.closest('[id^="action-btn-"]')) {
                 closeAllActionMenus();
@@ -631,7 +681,10 @@
 
         const feedScrollEl = document.getElementById('feed-container');
         if (feedScrollEl) {
-            feedScrollEl.addEventListener('scroll', closeAllActionMenus, { passive: true });
+            feedScrollEl.addEventListener('scroll', () => {
+                closeAllActionMenus();
+                closeAllInlineCommentInputs();
+            }, { passive: true });
         }
 
         // 수정 재확인
@@ -741,6 +794,97 @@
             }
         };
 
+        /* 1. 이미지 한 장 저장 (PNG 다운로드) */
+        window.exportPostAsImage = async function(postId) {
+            const cardEl = document.getElementById(`post-card-${postId}`);
+            if (!cardEl) return;
+            showNotification("게시글 이미지를 생성 중입니다...");
+
+            const noExportEls = cardEl.querySelectorAll('.no-export');
+            noExportEls.forEach(el => el.style.display = 'none');
+
+            try {
+                const canvas = await html2canvas(cardEl, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+
+                const link = document.createElement('a');
+                link.download = `목장이야기_${postId.substring(0, 6)}_${formatFileDate(new Date())}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showNotification("🖼️ 게시글 이미지가 저장되었습니다!");
+            } catch (e) {
+                console.error("이미지 저장 오류:", e);
+                showNotification("이미지 저장 중 오류가 발생했습니다.");
+            } finally {
+                noExportEls.forEach(el => el.style.display = '');
+            }
+        };
+
+        /* 2. PDF 한 장 저장 (PDF 다운로드) */
+        window.exportPostAsPdf = async function(postId) {
+            const cardEl = document.getElementById(`post-card-${postId}`);
+            if (!cardEl) return;
+            showNotification("PDF 문서를 생성 중입니다...");
+
+            const noExportEls = cardEl.querySelectorAll('.no-export');
+            noExportEls.forEach(el => el.style.display = 'none');
+
+            try {
+                const canvas = await html2canvas(cardEl, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const { jsPDF } = window.jspdf;
+                
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = 210;
+                const pageHeight = 297;
+                const imgWidth = pageWidth - 20;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                pdf.addImage(imgData, 'JPEG', 10, 10, imgWidth, Math.min(imgHeight, pageHeight - 20));
+                pdf.save(`목장이야기_${postId.substring(0, 6)}_${formatFileDate(new Date())}.pdf`);
+                showNotification("📄 PDF 저장이 완료되었습니다!");
+            } catch (e) {
+                console.error("PDF 저장 오류:", e);
+                showNotification("PDF 생성 중 오류가 발생했습니다.");
+            } finally {
+                noExportEls.forEach(el => el.style.display = '');
+            }
+        };
+
+        /* 3. 게시글 단독 인쇄 */
+        window.printSinglePost = function(postId) {
+            const cardEl = document.getElementById(`post-card-${postId}`);
+            const printArea = document.getElementById('print-area');
+            if (!cardEl || !printArea) return;
+
+            const clone = cardEl.cloneNode(true);
+            const noExportEls = clone.querySelectorAll('.no-export');
+            noExportEls.forEach(el => el.remove());
+
+            printArea.innerHTML = '';
+            printArea.appendChild(clone);
+            printArea.classList.remove('hidden');
+
+            window.print();
+
+            setTimeout(() => {
+                printArea.classList.add('hidden');
+                printArea.innerHTML = '';
+            }, 500);
+        };
+
+        function formatFileDate(d) {
+            return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}_${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+
         async function loadMokjangFeed() {
             const feedContainer = document.getElementById('feed-container');
             if (!db) return;
@@ -791,7 +935,7 @@
                     const hasThumbed = post.thumbedUsers && post.thumbedUsers.includes(currentUser);
 
                     const card = document.createElement('article');
-                    card.className = "w-full px-2 pt-1 pb-1.5 box-border";
+                    card.className = "w-full px-2 pt-0.5 pb-1 box-border";
 
                     let imgArray = [];
                     if (Array.isArray(post.images) && post.images.length > 0) {
@@ -813,13 +957,13 @@
                                         
                                         <!-- 오른쪽 하단 모서리 반투명 연필 버튼 -->
                                         <button type="button" onclick="event.stopPropagation(); togglePhotoCaptionEditor('${post.id}', ${i})" 
-                                                class="absolute bottom-2.5 right-2.5 w-7 h-7 rounded-full bg-black/35 hover:bg-black/50 text-white backdrop-blur-[2px] shadow-sm flex items-center justify-center text-xs active:scale-90 transition-all border border-white/20 z-10" 
+                                                class="no-export absolute bottom-2 right-2 w-7 h-7 rounded-full bg-black/35 hover:bg-black/50 text-white backdrop-blur-[2px] shadow-sm flex items-center justify-center text-xs active:scale-90 transition-all border border-white/20 z-10" 
                                                 title="이 사진 이야기 작성">
                                             <i class="fa-solid fa-pencil text-[10.5px]"></i>
                                         </button>
                                     </div>
 
-                                    <!-- 사진 바로 밑에 붙고 아래 사진과는 간격을 두는 이야기 -->
+                                    <!-- 사진 바로 밑에 붙는 이야기 (위 사진에 바짝 밀착) -->
                                     <div id="caption-display-${post.id}-${i}" class="photo-caption-text ${caption ? '' : 'hidden'}">
                                         <div class="flex items-start space-x-1.5">
                                             <i class="fa-regular fa-comment-dots text-emerald-600 text-xs mt-0.5 shrink-0"></i>
@@ -828,16 +972,16 @@
                                     </div>
 
                                     <!-- 테두리 없는 깔끔한 글쓰기 창 -->
-                                    <div id="caption-editor-${post.id}-${i}" class="hidden p-2 bg-emerald-50/50 rounded-b-xl m-0.5">
-                                        <div class="flex justify-between items-center mb-1 text-[11px] text-emerald-900 font-semibold px-0.5">
+                                    <div id="caption-editor-${post.id}-${i}" class="no-export hidden p-1.5 bg-emerald-50/50 rounded-b-xl m-0.5">
+                                        <div class="flex justify-between items-center mb-0.5 text-[11px] text-emerald-900 font-semibold px-0.5">
                                             <span><i class="fa-solid fa-pencil mr-1 text-[10px]"></i>이 사진 이야기 쓰기</span>
                                             <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="text-gray-400 hover:text-gray-600">
                                                 <i class="fa-solid fa-xmark text-xs"></i>
                                             </button>
                                         </div>
                                         <textarea id="caption-input-${post.id}-${i}" rows="2" maxlength="150" placeholder="이 사진에 담긴 이야기를 입력해 보세요..." 
-                                                  class="w-full p-2 bg-white rounded-lg border-0 text-xs focus:outline-none focus:ring-0 resize-none shadow-2xs">${escapeHtml(caption)}</textarea>
-                                        <div class="flex justify-end mt-1.5 space-x-1.5">
+                                                  class="w-full p-1.5 bg-white rounded-lg border-0 text-xs focus:outline-none focus:ring-0 resize-none shadow-2xs">${escapeHtml(caption)}</textarea>
+                                        <div class="flex justify-end mt-1 space-x-1.5">
                                             <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="px-2.5 py-1 text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-600 rounded">취소</button>
                                             <button type="button" onclick="savePhotoCaption('${post.id}', ${i})" class="px-3 py-1 text-[11px] church-primary text-white font-medium rounded shadow-2xs">저장</button>
                                         </div>
@@ -857,11 +1001,11 @@
                     const commentCount = post.comments ? post.comments.length : 0;
 
                     card.innerHTML = `
-                        <div class="w-full bg-white rounded-2xl border church-border shadow-xs flex flex-col p-2.5 box-border relative">
-                            <!-- 작성자 헤더 & 연한 연두색 슬라이드 관리 메뉴 -->
-                            <div class="flex items-center justify-between pb-1 relative">
-                                <div class="flex items-center space-x-2">
-                                    <div class="w-7 h-7 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                        <div id="post-card-${post.id}" class="w-full bg-white rounded-2xl border church-border shadow-xs flex flex-col p-2 box-border relative">
+                            <!-- 작성자 헤더 & 슬라이드 관리 메뉴 -->
+                            <div class="flex items-center justify-between pb-0.5 relative">
+                                <div class="flex items-center space-x-1.5">
+                                    <div class="w-6 h-6 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                                         ${escapeHtml((post.author || 'M').charAt(0))}
                                     </div>
                                     <div>
@@ -870,8 +1014,8 @@
                                     </div>
                                 </div>
 
-                                <!-- 오른쪽 상단 '+' 버튼 및 연한 연두색 슬라이드 메뉴 -->
-                                <div class="relative flex items-center">
+                                <!-- 오른쪽 상단 '+' 버튼 및 슬라이드 메뉴 -->
+                                <div class="no-export relative flex items-center">
                                     <div id="action-menu-${post.id}" class="slide-menu-container menu-closed absolute right-7 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-3 z-20 flex items-center space-x-2.5 whitespace-nowrap">
                                         <button onclick="requestEditPost('${post.id}', \`${escapeHtml(post.content || '')}\`, ${imagesParam})" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform">
                                             <i class="fa-solid fa-pen text-[9px]"></i>
@@ -891,19 +1035,20 @@
                                 </div>
                             </div>
 
-                            <!-- 본문 텍스트: 상하부 밀착 + 자간/줄간격 정돈 -->
+                            <!-- 본문 텍스트: 상하 여백 극단적 밀착 -->
                             ${post.content ? `
-                            <div class="py-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight break-words overflow-wrap-anywhere whitespace-pre-wrap">
+                            <div class="pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight break-words overflow-wrap-anywhere whitespace-pre-wrap">
                                 ${escapeHtml(post.content)}
                             </div>
                             ` : ''}
 
-                            <!-- 사진 영역: 하나의 테두리 프레임 안에 실선으로 연결 -->
+                            <!-- 사진 영역: 본문과 1px 마진으로 바짝 밀착 -->
                             ${mediaSectionHtml}
 
-                            <!-- 마지막 사진 바로 아래 배치된 반응 버튼들 -->
-                            <div class="pt-1.5 flex items-center justify-between">
-                                <div class="flex items-center space-x-3.5">
+                            <!-- 마지막 사진 바로 아래 배치된 반응 버튼들 & [반대편 저장/인쇄 이모지 버튼들] -->
+                            <div class="pt-1 flex items-center justify-between">
+                                <!-- 왼쪽: 손하트, 엄지, 댓글, + -->
+                                <div class="flex items-center space-x-3">
                                     <!-- 손하트 / 하트 -->
                                     <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-500 font-semibold' : 'text-gray-500'} active:scale-90 transition-transform">
                                         <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i>
@@ -922,17 +1067,42 @@
                                         <span class="text-xs">${commentCount}</span>
                                     </button>
 
-                                    <!-- 댓글 바로 쓰기 토글 '+' -->
-                                    <button type="button" onclick="toggleInlineCommentInput('${post.id}')" class="w-5 h-5 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-500 hover:text-emerald-700 flex items-center justify-center text-xs font-bold active:scale-90 transition-transform" title="댓글 바로 달기">
+                                    <!-- 댓글 바로 쓰기 토글 '+' (스크롤 시 닫히며 5분간 내용 보존) -->
+                                    <button type="button" onclick="toggleInlineCommentInput('${post.id}')" class="no-export w-5 h-5 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-500 hover:text-emerald-700 flex items-center justify-center text-xs font-bold active:scale-90 transition-transform" title="댓글 바로 달기">
                                         <i class="fa-solid fa-plus text-[10px]"></i>
+                                    </button>
+                                </div>
+
+                                <!-- 오른쪽(반대편): 이미지 저장, PDF 저장, 인쇄 이모지 버튼 -->
+                                <div class="no-export flex items-center space-x-2 text-gray-500">
+                                    <!-- 이미지 한 장 저장 -->
+                                    <button type="button" onclick="exportPostAsImage('${post.id}')" 
+                                            class="w-7 h-7 rounded-lg bg-gray-50 hover:bg-emerald-50 text-emerald-800 border border-gray-200/80 flex items-center justify-center text-xs active:scale-90 transition-all shadow-2xs" 
+                                            title="게시글 이미지로 한 장 저장">
+                                        <span>🖼️</span>
+                                    </button>
+
+                                    <!-- PDF 한 장 저장 -->
+                                    <button type="button" onclick="exportPostAsPdf('${post.id}')" 
+                                            class="w-7 h-7 rounded-lg bg-gray-50 hover:bg-rose-50 text-rose-700 border border-gray-200/80 flex items-center justify-center text-xs active:scale-90 transition-all shadow-2xs" 
+                                            title="게시글 PDF로 한 장 저장">
+                                        <span>📄</span>
+                                    </button>
+
+                                    <!-- 인쇄하기 -->
+                                    <button type="button" onclick="printSinglePost('${post.id}')" 
+                                            class="w-7 h-7 rounded-lg bg-gray-50 hover:bg-sky-50 text-sky-700 border border-gray-200/80 flex items-center justify-center text-xs active:scale-90 transition-all shadow-2xs" 
+                                            title="게시글 인쇄">
+                                        <span>🖨️</span>
                                     </button>
                                 </div>
                             </div>
 
-                            <!-- 인라인 댓글 작성란 -->
-                            <div id="inline-comment-row-${post.id}" class="mt-1.5 pt-0.5 hidden">
+                            <!-- 각 사진 밑 인라인 댓글 등록창 -->
+                            <div id="inline-comment-row-${post.id}" class="no-export mt-1 pt-0.5 hidden">
                                 <div class="flex space-x-1.5 items-center">
                                     <input type="text" id="inline-comment-input-${post.id}" maxlength="200" placeholder="따뜻한 댓글을 남겨보세요..." 
+                                           oninput="handleDraftInput('${post.id}', this.value)"
                                            onkeydown="if(event.key==='Enter') addCommentInline('${post.id}')"
                                            class="flex-1 px-3 py-1.5 border church-border rounded-lg text-xs focus:outline-none focus:border-emerald-600 bg-gray-50">
                                     <button onclick="addCommentInline('${post.id}')" class="px-3 py-1.5 church-primary text-white rounded-lg text-xs font-medium whitespace-nowrap shadow-2xs">
@@ -1010,14 +1180,52 @@
             input.value = '';
         };
 
+        // 댓글 실시간 타이핑 시 5분 만료 타이머 갱신
+        window.handleDraftInput = function(postId, val) {
+            commentDrafts[postId] = {
+                text: val,
+                updatedAt: Date.now()
+            };
+        };
+
+        // '+' 버튼 토글: 열릴 때 5분 이내 작성 중이던 내용 복원, 5분 초과 시 자동 삭제
         window.toggleInlineCommentInput = function(postId) {
             const row = document.getElementById(`inline-comment-row-${postId}`);
-            if (row) {
-                row.classList.toggle('hidden');
-                if (!row.classList.contains('hidden')) {
-                    const input = document.getElementById(`inline-comment-input-${postId}`);
-                    if (input) input.focus();
+            if (!row) return;
+
+            const isCurrentlyHidden = row.classList.contains('hidden');
+
+            if (isCurrentlyHidden) {
+                // 다른 열려 있는 댓글창은 닫음
+                closeAllInlineCommentInputs();
+                row.classList.remove('hidden');
+
+                const input = document.getElementById(`inline-comment-input-${postId}`);
+                if (input) {
+                    const draft = commentDrafts[postId];
+                    if (draft) {
+                        const elapsed = Date.now() - draft.updatedAt;
+                        if (elapsed <= DRAFT_EXPIRE_MS) {
+                            // 5분 이내: 작성 중이던 내용 그대로 복원
+                            input.value = draft.text;
+                        } else {
+                            // 5분 경과: 자동 초기화
+                            delete commentDrafts[postId];
+                            input.value = '';
+                        }
+                    }
+                    input.focus();
                 }
+            } else {
+                // 직접 닫을 때 내용 보관
+                const input = document.getElementById(`inline-comment-input-${postId}`);
+                if (input && input.value.trim().length > 0) {
+                    commentDrafts[postId] = {
+                        text: input.value,
+                        updatedAt: Date.now()
+                    };
+                }
+                row.classList.add('hidden');
             }
         };
 
@@ -1028,6 +1236,7 @@
 
             await submitComment(postId, text);
             input.value = '';
+            delete commentDrafts[postId]; // 정상 등록 시 임시 저장 내용 파기
             const row = document.getElementById(`inline-comment-row-${postId}`);
             if (row) row.classList.add('hidden');
         };
