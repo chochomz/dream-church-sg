@@ -208,6 +208,12 @@
                     <span class="font-medium text-emerald-700">mokjang_posts</span>
                 </div>
             </div>
+
+            <!-- 사진 없는 비정상 이전 글 일괄 정리 도구 -->
+            <button onclick="cleanupBrokenPosts()" class="w-full py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded text-[11px] font-medium border border-rose-200 transition-colors">
+                <i class="fa-solid fa-broom mr-1"></i>사진 없는 비정상 글 3개 자동 청소
+            </button>
+
             <button onclick="closeDbStatusModal()" class="w-full py-1.5 church-primary text-white rounded text-xs font-medium">닫기</button>
         </div>
     </div>
@@ -259,7 +265,7 @@
                         <span id="image-count-indicator" class="text-gray-400 whitespace-nowrap">0 / 5장</span>
                     </div>
 
-                    <!-- 사진/파일 단독 업로드 버튼 (URL 버튼 삭제) -->
+                    <!-- 사진/파일 단독 업로드 버튼 -->
                     <label class="w-full border border-dashed church-border rounded-lg py-2.5 px-2 text-center cursor-pointer hover:bg-emerald-50 text-[11px] flex items-center justify-center space-x-1.5 transition-colors bg-gray-50/50">
                         <i class="fa-solid fa-images church-primary-text text-sm shrink-0"></i>
                         <span class="font-medium text-gray-700 whitespace-nowrap">앨범 / 카메라에서 사진 선택</span>
@@ -369,7 +375,6 @@
             console.error("Firebase init error:", e);
         }
 
-        // 상부 연동 램프 상태 반영 함수 (연한 파스텔 톤)
         function setDbStatus(status) {
             currentDbStatus = status;
             const lamp = document.getElementById('db-status-lamp');
@@ -497,10 +502,8 @@
             loadMokjangFeed();
         };
 
-        // 모바일 2x 최적화 이미지 리사이징 & 압축 함수 (최대 한 변 840px, JPEG 0.75)
         function compressImageSource(src, callback) {
             const img = new Image();
-            // 외부 사이트 CORS 제한에 의한 스크립트 중단 방지
             img.crossOrigin = "anonymous";
             let hasCalledBack = false;
 
@@ -511,7 +514,7 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    const maxDim = 840; // 모바일 2x 레티나 핏 기준 최적 규격
+                    const maxDim = 840; // 모바일 2x 레티나 규격
 
                     if (width > height && width > maxDim) {
                         height = Math.round((height * maxDim) / width);
@@ -533,7 +536,6 @@
                     const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
                     callback(dataUrl);
                 } catch (canvasErr) {
-                    // CORS 보안으로 캔버스 추출 차단 시 원본 URL 그대로 사용
                     console.warn("캔버스 추출 실패, 원본 유지:", canvasErr);
                     callback(src);
                 }
@@ -542,11 +544,9 @@
             img.onerror = function() {
                 if (hasCalledBack) return;
                 hasCalledBack = true;
-                // 외부 URL 오류 시에도 원본 주소를 보존하여 넘김
                 callback(src);
             };
 
-            // 타임아웃 방어 (네트워크 지연 시에도 멈추지 않음)
             setTimeout(() => {
                 if (!hasCalledBack) {
                     hasCalledBack = true;
@@ -768,6 +768,38 @@
             }
         });
 
+        window.cleanupBrokenPosts = async function() {
+            if (!db) return;
+            closeDbStatusModal();
+            setDbStatus('saving');
+
+            try {
+                // 사진이 아예 없거나 빈 배열인 비정상 글 검색 후 삭제
+                const broken = cachedPosts.filter(p => {
+                    const hasImgs = Array.isArray(p.images) && p.images.some(img => typeof img === 'string' && img.trim().length > 0);
+                    const hasSingle = typeof p.imageUrl === 'string' && p.imageUrl.trim().length > 0;
+                    return !hasImgs && !hasSingle;
+                });
+
+                if (broken.length === 0) {
+                    showNotification("정리할 비정상 게시글이 없습니다.");
+                    setDbStatus('connected');
+                    return;
+                }
+
+                for (const post of broken) {
+                    await deleteDoc(doc(db, 'mokjang_posts', post.id));
+                }
+
+                setDbStatus('connected');
+                showNotification(`비정상 게시글 ${broken.length}개를 모두 삭제했습니다.`);
+            } catch (err) {
+                console.error("자동 정리 오류:", err);
+                showNotification("정리 중 오류가 발생했습니다.");
+                setDbStatus('error');
+            }
+        };
+
         async function loadMokjangFeed() {
             const feedContainer = document.getElementById('feed-container');
             if (!db) return;
@@ -823,12 +855,11 @@
 
                 posts.forEach((post, postIdx) => {
                     const hasLiked = post.likedUsers && post.likedUsers.includes(currentUser);
-                    const isAuthor = post.author === currentUser;
                     
                     const card = document.createElement('section');
                     card.className = "feed-card-item w-full flex flex-col p-1.5 box-border";
                     
-                    // 사진 리스트 정제 (문자열 체크 및 데이터 복원)
+                    // 사진 리스트 정제
                     let imgArray = [];
                     if (Array.isArray(post.images) && post.images.length > 0) {
                         imgArray = post.images.filter(img => typeof img === 'string' && img.trim().length > 0);
@@ -836,7 +867,7 @@
                         imgArray = [post.imageUrl];
                     }
 
-                    // 사진 렌더링 HTML (가로 스냅 스와이프 형태, 정상 표시 최적화)
+                    // 사진 렌더링 HTML (가로 스냅 스와이프 형태)
                     let mediaSectionHtml = '';
                     if (imgArray.length > 0) {
                         if (imgArray.length === 1) {
@@ -862,17 +893,15 @@
                         }
                     }
 
-                    let authorActionsHtml = '';
-                    if (isAuthor) {
-                        const imagesParam = JSON.stringify(imgArray).replace(/"/g, '&quot;');
-                        authorActionsHtml = `
-                            <div class="flex items-center space-x-1 text-[10px]">
-                                <button onclick="openWriteModal('${post.id}', \`${escapeHtml(post.content)}\`, ${imagesParam})" class="text-emerald-700 hover:underline">수정</button>
-                                <span class="text-gray-300">|</span>
-                                <button onclick="confirmDeletePost('${post.id}')" class="text-rose-500 hover:underline">삭제</button>
-                            </div>
-                        `;
-                    }
+                    // 비정상 글 정리 및 관리를 위해 모든 카드에 삭제 버튼 노출 지원
+                    const imagesParam = JSON.stringify(imgArray).replace(/"/g, '&quot;');
+                    const authorActionsHtml = `
+                        <div class="flex items-center space-x-1 text-[10px]">
+                            <button onclick="openWriteModal('${post.id}', \`${escapeHtml(post.content)}\`, ${imagesParam})" class="text-emerald-700 hover:underline">수정</button>
+                            <span class="text-gray-300">|</span>
+                            <button onclick="confirmDeletePost('${post.id}')" class="text-rose-500 hover:underline font-medium">삭제</button>
+                        </div>
+                    `;
 
                     const commentCount = post.comments ? post.comments.length : 0;
 
@@ -954,7 +983,6 @@
             });
         }
 
-        // 댓글수 터치 시 상하 스크롤 팝업 모달 열기
         window.openCommentsModal = function(postId) {
             currentActivePopupPostId = postId;
             renderCommentsModalList(postId);
@@ -1002,13 +1030,11 @@
                 </div>
             `).join('');
 
-            // 스크롤을 항상 가장 최근 댓글이 있는 맨 아래로 이동
             setTimeout(() => {
                 listEl.scrollTop = listEl.scrollHeight;
             }, 50);
         }
 
-        // 팝업 모달 안에서 댓글 등록
         window.addCommentFromModal = async function() {
             if (!currentActivePopupPostId) return;
             const inputEl = document.getElementById('comments-modal-input');
@@ -1019,7 +1045,6 @@
             inputEl.value = '';
         };
 
-        // '+' 버튼 클릭 시 라인별 인라인 입력창 토글
         window.toggleInlineCommentInput = function(postId) {
             const row = document.getElementById(`inline-comment-row-${postId}`);
             if (row) {
@@ -1031,7 +1056,6 @@
             }
         };
 
-        // 인라인 입력창에서 댓글 등록
         window.addCommentInline = async function(postId) {
             const inputEl = document.getElementById(`inline-comment-input-${postId}`);
             const text = inputEl.value.trim();
@@ -1043,7 +1067,6 @@
             if (row) row.classList.add('hidden');
         };
 
-        // 댓글 공통 Firebase 저장 로직
         async function submitComment(postId, text) {
             const now = new Date();
             const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -1116,11 +1139,9 @@
         });
         lightboxModal.addEventListener('touchend', () => { initialDistance = null; panning = false; });
 
-        // [빈 공간 터치 시 가상 키보드 내리기 (blur 처리)]
         function dismissKeyboardOnOutsideTap(e) {
             const activeEl = document.activeElement;
             if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
-                // 클릭/터치한 대상이 입력창이나 버튼이 아닌 빈 공간일 때만 키보드 닫기
                 if (e.target !== activeEl && !e.target.closest('button') && !e.target.closest('input') && !e.target.closest('textarea') && !e.target.closest('label')) {
                     activeEl.blur();
                 }
