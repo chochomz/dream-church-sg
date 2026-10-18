@@ -522,19 +522,22 @@
             loadMokjangFeed();
         };
 
-        // 세종 대왕테니스 클럽의 검증된 표준 이미지 변환 알고리즘
+        // 스마트폰 사진을 확실하게 100% 읽어들이고 최적화하는 직관적 리더
         function processImageFile(file, callback) {
             if (!file) return callback(null);
             
             const reader = new FileReader();
             reader.onload = function(e) {
+                const rawDataUrl = e.target.result;
+                if (!rawDataUrl) return callback(null);
+
                 const img = new Image();
                 img.onload = function() {
                     try {
                         const canvas = document.createElement('canvas');
                         let width = img.width;
                         let height = img.height;
-                        const maxDim = 800;
+                        const maxDim = 800; // 모바일 2x 최적 해상도
 
                         if (width > height) {
                             if (width > maxDim) {
@@ -551,21 +554,26 @@
                         canvas.width = width;
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
                         ctx.drawImage(img, 0, 0, width, height);
 
                         const compressed = canvas.toDataURL('image/jpeg', 0.7);
                         callback(compressed);
                     } catch (err) {
-                        console.warn("Canvas compression fallback:", err);
-                        callback(e.target.result);
+                        console.warn("캔버스 압축 대체:", err);
+                        // 캔버스 에러 시 원본 Base64로 즉시 fallback (절대 유실 방지)
+                        callback(rawDataUrl);
                     }
                 };
                 img.onerror = function() {
-                    callback(e.target.result);
+                    // 이미지 로드 에러 시에도 raw 데이터 보존
+                    callback(rawDataUrl);
                 };
-                img.src = e.target.result;
+                img.src = rawDataUrl;
             };
             reader.onerror = function() {
+                console.error("FileReader 에러");
                 callback(null);
             };
             reader.readAsDataURL(file);
@@ -583,6 +591,9 @@
 
             const filesToProcess = Array.from(files).slice(0, remainingSlots);
             let processed = 0;
+            
+            showNotification(`${filesToProcess.length}장의 사진을 준비 중입니다...`);
+
             filesToProcess.forEach(file => {
                 processImageFile(file, function(resultDataUrl) {
                     if (resultDataUrl) {
@@ -591,6 +602,7 @@
                     processed++;
                     if (processed === filesToProcess.length) {
                         renderImagePreviews();
+                        showNotification(`사진 ${selectedImagesList.length}장 준비 완료`);
                     }
                 });
             });
@@ -718,12 +730,15 @@
                     await initAuth();
                 }
 
+                // 사진 데이터 단일/배열 양쪽 완벽 매핑
+                const primaryImage = finalImages.length > 0 ? finalImages[0] : "";
+
                 if (postId) {
                     const postRef = getPostDocRef(postId);
                     await updateDoc(postRef, {
                         content: content,
                         images: finalImages,
-                        imageUrl: finalImages.length > 0 ? finalImages[0] : "",
+                        imageUrl: primaryImage,
                         isChecked: isChecked
                     });
                 } else {
@@ -732,7 +747,7 @@
                         mokjangName: mokjangName,
                         author: currentUser,
                         images: finalImages,
-                        imageUrl: finalImages.length > 0 ? finalImages[0] : "",
+                        imageUrl: primaryImage,
                         content: content,
                         isChecked: isChecked,
                         likes: 0,
@@ -882,15 +897,16 @@
                     const card = document.createElement('section');
                     card.className = "feed-card-item w-full flex flex-col p-2 box-border";
                     
-                    // 첨부된 사진 목록 추출
+                    // 첨부된 사진 목록 추출 (images 배열 및 imageUrl 완벽 호환)
                     let imgArray = [];
                     if (Array.isArray(post.images) && post.images.length > 0) {
                         imgArray = post.images.filter(img => typeof img === 'string' && img.trim().length > 0);
-                    } else if (post.imageUrl && typeof post.imageUrl === 'string' && post.imageUrl.trim().length > 0) {
+                    }
+                    if (imgArray.length === 0 && post.imageUrl && typeof post.imageUrl === 'string' && post.imageUrl.trim().length > 0) {
                         imgArray = [post.imageUrl];
                     }
 
-                    // 사진 렌더링 HTML (절대 흰색 마스크에 가려지지 않도록 높이 100% 보장)
+                    // 사진 렌더링 HTML (미디어 영역을 시원하게 채움)
                     let mediaSectionHtml = '';
                     if (imgArray.length === 1) {
                         mediaSectionHtml = `
@@ -913,7 +929,7 @@
                             </div>
                         `;
                     } else {
-                        // 사진이 없을 때만 미니멀 안내
+                        // 사진이 없는 예전 글
                         mediaSectionHtml = `
                             <div class="w-full h-full flex flex-col items-center justify-center text-gray-300">
                                 <i class="fa-regular fa-image text-3xl mb-1 opacity-50"></i>
