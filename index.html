@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -249,7 +249,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         let tapCount = 0;
         let tapTimer = null;
@@ -258,15 +258,20 @@
         let selectedImagesList = [];
         let postToDeleteId = null;
         let currentUserUid = null;
+        let isAuthReady = false;
 
-        const firebaseConfig = {
-          apiKey: "AIzaSyDKD5LUQL84ZuPH5UJrHBj7yAYDTabDWVA",
-          authDomain: "dream-data-146a4.firebaseapp.com",
-          projectId: "dream-data-146a4",
-          storageBucket: "dream-data-146a4.firebasestorage.app",
-          messagingSenderId: "812415684377",
-          appId: "1:812415684377:web:de8859d1502b3c05acbf88"
+        // Firebase Configuration - Environment config with fallback
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config)
+            : {
+                apiKey: "AIzaSyDKD5LUQL84ZuPH5UJrHBj7yAYDTabDWVA",
+                authDomain: "dream-data-146a4.firebaseapp.com",
+                projectId: "dream-data-146a4",
+                storageBucket: "dream-data-146a4.firebasestorage.app",
+                messagingSenderId: "812415684377",
+                appId: "1:812415684377:web:de8859d1502b3c05acbf88"
             };
+
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-mokjang-app';
 
         let app, auth, db;
@@ -275,9 +280,10 @@
             auth = getAuth(app);
             db = getFirestore(app);
         } catch (e) {
-            console.warn("Firebase init warning:", e);
+            console.error("Firebase init warning:", e);
         }
 
+        // Connection status lamp indicator
         function setDbStatus(status) {
             const lamp = document.getElementById('db-status-lamp');
             const text = document.getElementById('db-status-text');
@@ -299,6 +305,23 @@
             }
         }
 
+        // Non-blocking toast notification to avoid iframe alert issues
+        function showNotification(msg) {
+            const existing = document.getElementById('app-notification-toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.id = 'app-notification-toast';
+            toast.className = 'fixed bottom-12 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl z-50 flex items-center space-x-2 transition-opacity duration-300 pointer-events-none';
+            toast.innerHTML = `<i class="fa-solid fa-circle-info text-emerald-400"></i><span>${escapeHtml(msg)}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        // Complete authentication before querying Firestore
         async function initAuth() {
             setDbStatus('connecting');
             try {
@@ -312,9 +335,10 @@
                 } else {
                     currentUserUid = crypto.randomUUID();
                 }
+                isAuthReady = true;
                 setDbStatus('connected');
             } catch (e) {
-                console.warn("Auth fallback mode active:", e);
+                console.error("Auth initialization error:", e);
                 currentUserUid = crypto.randomUUID();
                 setDbStatus('error');
             }
@@ -340,8 +364,8 @@
             const usernameInput = document.getElementById('auth-username-input').value.trim();
             const mokjangInput = document.getElementById('auth-mokjang-input').value.trim();
 
-            if (!usernameInput) { alert('성함이나 직분을 입력해 주세요.'); return; }
-            if (!mokjangInput) { alert('목장 이름을 입력해 주세요.'); return; }
+            if (!usernameInput) { showNotification('성함이나 직분을 입력해 주세요.'); return; }
+            if (!mokjangInput) { showNotification('목장 이름을 입력해 주세요.'); return; }
 
             currentUser = usernameInput;
             currentMokjang = mokjangInput;
@@ -392,7 +416,7 @@
 
             const remainingSlots = 5 - selectedImagesList.length;
             if (remainingSlots <= 0) {
-                alert('사진은 최대 5장까지만 등록할 수 있습니다.');
+                showNotification('사진은 최대 5장까지만 등록할 수 있습니다.');
                 return;
             }
 
@@ -412,7 +436,7 @@
             if (!url) return;
 
             if (selectedImagesList.length >= 5) {
-                alert('사진은 최대 5장까지만 등록할 수 있습니다.');
+                showNotification('사진은 최대 5장까지만 등록할 수 있습니다.');
                 return;
             }
 
@@ -432,7 +456,7 @@
 
         window.triggerFilePicker = function() {
             if (selectedImagesList.length >= 5) {
-                alert('최대 5장까지 선택되었습니다.');
+                showNotification('최대 5장까지 선택되었습니다.');
                 return;
             }
             document.getElementById('post-multi-file-input').click();
@@ -502,7 +526,7 @@
         window.requestSavePost = function() {
             const content = document.getElementById('post-content').value.trim();
             if (!content) {
-                alert('이야기 내용을 입력해 주세요.');
+                showNotification('이야기 내용을 입력해 주세요.');
                 return;
             }
             document.getElementById('save-confirm-modal').classList.remove('hidden');
@@ -526,10 +550,15 @@
             setDbStatus('saving');
             try {
                 if (!db) {
-                    alert("데이터베이스가 초기화되지 않았습니다.");
+                    showNotification("데이터베이스가 초기화되지 않았습니다.");
                     setDbStatus('error');
                     return;
                 }
+
+                if (!isAuthReady) {
+                    await initAuth();
+                }
+
                 const postsCol = collection(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts');
                 if (postId) {
                     const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts', postId);
@@ -554,9 +583,10 @@
                     });
                 }
                 setDbStatus('connected');
+                showNotification("게시글이 성공적으로 저장되었습니다.");
             } catch (error) {
                 console.error("저장 오류:", error);
-                alert("저장 중 오류가 발생했습니다. (Firestore 보안 규칙을 확인해 주세요)");
+                showNotification("저장 중 오류가 발생했습니다.");
                 setDbStatus('error');
             }
         };
@@ -579,16 +609,28 @@
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts', postToDeleteId));
                 closeConfirmModal();
                 setDbStatus('connected');
+                showNotification("삭제되었습니다.");
             } catch (error) {
                 console.error("삭제 오류:", error);
-                alert("삭제 중 오류가 발생했습니다.");
+                showNotification("삭제 중 오류가 발생했습니다.");
                 setDbStatus('error');
             }
         });
 
-        function loadMokjangFeed() {
+        async function loadMokjangFeed() {
             const feedContainer = document.getElementById('feed-container');
             if (!db) return;
+
+            if (!isAuthReady) {
+                feedContainer.innerHTML = `
+                    <div class="text-center py-16 text-gray-400">
+                        <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 church-primary-text"></i>
+                        <p class="text-xs">데이터베이스와 안전하게 연결 중입니다...</p>
+                    </div>
+                `;
+                await initAuth();
+            }
+
             const postsCol = collection(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts');
 
             onSnapshot(postsCol, (snapshot) => {
@@ -649,7 +691,7 @@
                         commentsHtml = post.comments.map(c => `
                             <div class="bg-gray-50 rounded-xl p-2 text-xs flex justify-between items-start">
                                 <div>
-                                    <span class="font-bold text-gray-700 mr-2 whitespace-nowrap">${c.author}</span>
+                                    <span class="font-bold text-gray-700 mr-2 whitespace-nowrap">${escapeHtml(c.author)}</span>
                                     <span class="text-gray-600">${escapeHtml(c.text)}</span>
                                 </div>
                                 <span class="text-[10px] text-gray-400 shrink-0 ml-2 whitespace-nowrap">${c.time || ''}</span>
@@ -673,10 +715,10 @@
                         <div class="flex items-center justify-between px-3 pt-3">
                             <div class="flex items-center space-x-2 overflow-hidden">
                                 <div class="w-7 h-7 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-xs shrink-0">
-                                    ${post.author.charAt(0)}
+                                    ${escapeHtml(post.author.charAt(0))}
                                 </div>
                                 <div class="overflow-hidden">
-                                    <span class="text-xs font-bold text-gray-800 truncate block whitespace-nowrap">${post.author}</span>
+                                    <span class="text-xs font-bold text-gray-800 truncate block whitespace-nowrap">${escapeHtml(post.author)}</span>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-2">
