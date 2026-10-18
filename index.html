@@ -63,8 +63,8 @@
             background-color: #ffffff;
             display: flex;
             flex-direction: column;
-            margin-top: 4px;
-            margin-bottom: 4px;
+            margin-top: 2px;
+            margin-bottom: 2px;
         }
         .continuous-photo-item {
             width: 100%;
@@ -84,10 +84,10 @@
         /* 사진별 연필 캡션 텍스트 */
         .photo-caption-text {
             font-size: 13.5px;
-            line-height: 1.5;
+            line-height: 1.45;
             color: #374151;
-            padding: 5px 10px 4px 10px;
-            margin-bottom: 10px;
+            padding: 4px 8px 3px 8px;
+            margin-bottom: 8px;
             background: transparent;
             word-break: break-word;
             overflow-wrap: anywhere;
@@ -174,7 +174,7 @@
         </div>
     </div>
 
-    <!-- [글쓰기 / 수정 모달: 흔들림 없는 고정 축소 레이아웃] -->
+    <!-- [글쓰기 / 수정 모달: 고정 축소 레이아웃] -->
     <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
         <div class="bg-white rounded-2xl w-full max-w-sm p-4 shadow-2xl border church-border max-h-[88vh] flex flex-col overflow-hidden">
             <div class="flex items-center justify-between pb-2 border-b church-border shrink-0">
@@ -634,11 +634,10 @@
             feedScrollEl.addEventListener('scroll', closeAllActionMenus, { passive: true });
         }
 
-        // 수정 재확인 (고정 요약 레이아웃 지원)
+        // 수정 재확인
         window.requestEditPost = function(postId, content, imagesJson) {
             closeAllActionMenus();
             
-            // 고정 레이아웃 미리보기 채우기
             const previewText = document.getElementById('edit-preview-text');
             const previewThumbs = document.getElementById('edit-preview-thumbs');
             previewText.innerText = content || "내용 없음";
@@ -664,12 +663,11 @@
             document.getElementById('edit-confirm-modal').classList.add('hidden');
         };
 
-        // 삭제 재확인 (고정 요약 레이아웃 지원)
+        // 삭제 재확인
         window.confirmDeletePost = function(postId, content, imagesJson) {
             closeAllActionMenus();
             postToDeleteId = postId;
 
-            // 고정 레이아웃 미리보기 채우기
             const previewText = document.getElementById('delete-preview-text');
             const previewThumbs = document.getElementById('delete-preview-thumbs');
             previewText.innerText = content || "내용 없음";
@@ -743,7 +741,6 @@
             }
         };
 
-        // 피드 로드 및 실시간 동기화
         async function loadMokjangFeed() {
             const feedContainer = document.getElementById('feed-container');
             if (!db) return;
@@ -794,7 +791,7 @@
                     const hasThumbed = post.thumbedUsers && post.thumbedUsers.includes(currentUser);
 
                     const card = document.createElement('article');
-                    card.className = "w-full px-2.5 pt-1.5 pb-2 box-border";
+                    card.className = "w-full px-2 pt-1 pb-1.5 box-border";
 
                     let imgArray = [];
                     if (Array.isArray(post.images) && post.images.length > 0) {
@@ -814,11 +811,11 @@
                                     <div class="w-full relative flex items-center justify-center bg-black/5">
                                         <img src="${url}" alt="목장 사진 ${i+1}" onclick="openLightbox('${post.id}', ${i}, '${url}')" class="w-full max-h-[480px] object-contain select-none continuous-photo-item block">
                                         
-                                        <!-- 왼쪽 모서리 원형 연필 버튼 -->
+                                        <!-- 오른쪽 하단 모서리 반투명 연필 버튼 -->
                                         <button type="button" onclick="event.stopPropagation(); togglePhotoCaptionEditor('${post.id}', ${i})" 
-                                                class="absolute top-2.5 left-2.5 w-7 h-7 rounded-full bg-white/90 hover:bg-white text-emerald-800 shadow-md flex items-center justify-center text-xs active:scale-90 transition-all border border-emerald-100/60 z-10" 
+                                                class="absolute bottom-2.5 right-2.5 w-7 h-7 rounded-full bg-black/35 hover:bg-black/50 text-white backdrop-blur-[2px] shadow-sm flex items-center justify-center text-xs active:scale-90 transition-all border border-white/20 z-10" 
                                                 title="이 사진 이야기 작성">
-                                            <i class="fa-solid fa-pencil text-[11px]"></i>
+                                            <i class="fa-solid fa-pencil text-[10.5px]"></i>
                                         </button>
                                     </div>
 
@@ -830,17 +827,17 @@
                                         </div>
                                     </div>
 
-                                    <!-- 점선 테두리 글쓰기 창 -->
-                                    <div id="caption-editor-${post.id}-${i}" class="hidden p-2.5 bg-emerald-50/40 border-2 border-dashed border-[#3B5D50] rounded-b-xl m-1">
-                                        <div class="flex justify-between items-center mb-1 text-[11px] text-emerald-800 font-semibold">
-                                            <span><i class="fa-solid fa-pencil mr-1"></i>이 사진 이야기 쓰기</span>
+                                    <!-- 테두리 없는 깔끔한 글쓰기 창 -->
+                                    <div id="caption-editor-${post.id}-${i}" class="hidden p-2 bg-emerald-50/50 rounded-b-xl m-0.5">
+                                        <div class="flex justify-between items-center mb-1 text-[11px] text-emerald-900 font-semibold px-0.5">
+                                            <span><i class="fa-solid fa-pencil mr-1 text-[10px]"></i>이 사진 이야기 쓰기</span>
                                             <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="text-gray-400 hover:text-gray-600">
                                                 <i class="fa-solid fa-xmark text-xs"></i>
                                             </button>
                                         </div>
                                         <textarea id="caption-input-${post.id}-${i}" rows="2" maxlength="150" placeholder="이 사진에 담긴 이야기를 입력해 보세요..." 
-                                                  class="w-full p-2 bg-white rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#3B5D50] resize-none">${escapeHtml(caption)}</textarea>
-                                        <div class="flex justify-end mt-1.5 space-x-1">
+                                                  class="w-full p-2 bg-white rounded-lg border-0 text-xs focus:outline-none focus:ring-0 resize-none shadow-2xs">${escapeHtml(caption)}</textarea>
+                                        <div class="flex justify-end mt-1.5 space-x-1.5">
                                             <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="px-2.5 py-1 text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-600 rounded">취소</button>
                                             <button type="button" onclick="savePhotoCaption('${post.id}', ${i})" class="px-3 py-1 text-[11px] church-primary text-white font-medium rounded shadow-2xs">저장</button>
                                         </div>
@@ -860,22 +857,21 @@
                     const commentCount = post.comments ? post.comments.length : 0;
 
                     card.innerHTML = `
-                        <div class="w-full bg-white rounded-2xl border church-border shadow-xs flex flex-col p-3 box-border relative">
+                        <div class="w-full bg-white rounded-2xl border church-border shadow-xs flex flex-col p-2.5 box-border relative">
                             <!-- 작성자 헤더 & 연한 연두색 슬라이드 관리 메뉴 -->
-                            <div class="flex items-center justify-between pb-1.5 relative">
+                            <div class="flex items-center justify-between pb-1 relative">
                                 <div class="flex items-center space-x-2">
                                     <div class="w-7 h-7 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                                         ${escapeHtml((post.author || 'M').charAt(0))}
                                     </div>
                                     <div>
-                                        <h4 class="text-xs font-bold text-gray-800">${escapeHtml(post.author || '목장가족')}</h4>
-                                        <p class="text-[9px] text-gray-400 leading-none">${formatDate(post.createdAt)}</p>
+                                        <h4 class="text-xs font-bold text-gray-800 leading-tight">${escapeHtml(post.author || '목장가족')}</h4>
+                                        <p class="text-[9px] text-gray-400 leading-none mt-0.5">${formatDate(post.createdAt)}</p>
                                     </div>
                                 </div>
 
                                 <!-- 오른쪽 상단 '+' 버튼 및 연한 연두색 슬라이드 메뉴 -->
                                 <div class="relative flex items-center">
-                                    <!-- 왼쪽으로 스르륵 열리는 연한 연두색 슬라이드 바 -->
                                     <div id="action-menu-${post.id}" class="slide-menu-container menu-closed absolute right-7 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-3 z-20 flex items-center space-x-2.5 whitespace-nowrap">
                                         <button onclick="requestEditPost('${post.id}', \`${escapeHtml(post.content || '')}\`, ${imagesParam})" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform">
                                             <i class="fa-solid fa-pen text-[9px]"></i>
@@ -888,7 +884,6 @@
                                         </button>
                                     </div>
 
-                                    <!-- 도톰한 '+' 토글 버튼 -->
                                     <button type="button" id="action-btn-${post.id}" onclick="toggleActionMenu('${post.id}', event)" 
                                             class="w-6 h-6 rounded-full flex items-center justify-center text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 transition-all font-black text-sm" title="더보기">
                                         <i class="fa-solid fa-plus transition-transform duration-200"></i>
@@ -896,9 +891,9 @@
                                 </div>
                             </div>
 
-                            <!-- 본문 텍스트: 창 밖 이탈 방지 줄바꿈 + 16px 폰트 확대 -->
+                            <!-- 본문 텍스트: 상하부 밀착 + 자간/줄간격 정돈 -->
                             ${post.content ? `
-                            <div class="py-1 text-[16px] text-gray-800 leading-relaxed break-words overflow-wrap-anywhere whitespace-pre-wrap">
+                            <div class="py-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight break-words overflow-wrap-anywhere whitespace-pre-wrap">
                                 ${escapeHtml(post.content)}
                             </div>
                             ` : ''}
@@ -907,7 +902,7 @@
                             ${mediaSectionHtml}
 
                             <!-- 마지막 사진 바로 아래 배치된 반응 버튼들 -->
-                            <div class="pt-2 flex items-center justify-between">
+                            <div class="pt-1.5 flex items-center justify-between">
                                 <div class="flex items-center space-x-3.5">
                                     <!-- 손하트 / 하트 -->
                                     <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-500 font-semibold' : 'text-gray-500'} active:scale-90 transition-transform">
@@ -935,7 +930,7 @@
                             </div>
 
                             <!-- 인라인 댓글 작성란 -->
-                            <div id="inline-comment-row-${post.id}" class="mt-2 pt-1 hidden">
+                            <div id="inline-comment-row-${post.id}" class="mt-1.5 pt-0.5 hidden">
                                 <div class="flex space-x-1.5 items-center">
                                     <input type="text" id="inline-comment-input-${post.id}" maxlength="200" placeholder="따뜻한 댓글을 남겨보세요..." 
                                            onkeydown="if(event.key==='Enter') addCommentInline('${post.id}')"
@@ -1184,4 +1179,3 @@
     </script>
 </body>
 </html>
-```
