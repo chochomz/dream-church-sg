@@ -11,14 +11,14 @@
         
         html, body {
             width: 100%;
+            height: 100%;
             max-width: 100%;
-            overflow-x: hidden;
+            overflow: hidden;
             font-family: 'Noto Sans KR', sans-serif;
             background-color: #F8F9FA;
             color: #222222;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
-            overscroll-behavior-y: auto;
         }
 
         #secret-gate-screen {
@@ -52,7 +52,25 @@
             animation: divine-glow 4s ease-in-out infinite;
         }
 
-        #lightbox-modal, #auth-modal, #write-modal, #confirm-modal, #save-confirm-modal, #db-status-modal {
+        /* 1화면 1카드 상하 스냅 스크롤 */
+        #feed-container {
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+            overflow-y: scroll;
+            height: calc(100dvh - 46px);
+            scrollbar-width: none;
+        }
+        #feed-container::-webkit-scrollbar {
+            display: none;
+        }
+        .feed-card-item {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            height: calc(100dvh - 46px);
+            max-height: calc(100dvh - 46px);
+        }
+
+        #lightbox-modal, #auth-modal, #write-modal, #confirm-modal, #save-confirm-modal, #db-status-modal, #comments-popup-modal {
             touch-action: none;
             overscroll-behavior: contain;
         }
@@ -60,10 +78,24 @@
             transition: transform 0.1s ease-out;
             transform-origin: center center;
         }
+
+        /* 가로 스와이프 이미지 컨테이너 */
+        .image-snap-row {
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .image-snap-row::-webkit-scrollbar {
+            display: none;
+        }
+        .image-snap-item {
+            scroll-snap-align: center;
+        }
     </style>
 </head>
-<body class="flex flex-col min-h-screen bg-[#F8F9FA] w-full max-w-full">
+<body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
 
+    <!-- [비밀 게이트 인트로] -->
     <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-4 text-white text-center w-full h-full">
         <div class="cursor-pointer select-none group relative inline-block" id="secret-login-area">
             <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center p-2.5 mx-auto mb-5 shadow-2xl group-active:scale-95 transition-transform border-4 border-white/40 overflow-hidden glowing-logo relative z-10">
@@ -86,6 +118,7 @@
         </div>
     </div>
 
+    <!-- [목장원 인증 모달] -->
     <div id="auth-modal" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
         <div class="bg-white rounded-xl w-full max-w-xs p-5 shadow-2xl border church-border">
             <div class="text-center mb-4">
@@ -111,8 +144,9 @@
         </div>
     </div>
 
-    <div id="main-feed-screen" class="flex flex-col flex-1 w-full max-w-full hidden">
-        <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-xs border-b church-border shadow-xs px-2 py-1.5 flex items-center justify-between w-full">
+    <!-- [메인 화면] -->
+    <div id="main-feed-screen" class="flex flex-col h-full w-full max-w-full overflow-hidden hidden">
+        <header class="h-[46px] shrink-0 bg-white border-b church-border shadow-xs px-2.5 flex items-center justify-between w-full z-30">
             <div class="flex items-center space-x-1.5 overflow-hidden">
                 <div class="w-7 h-7 church-primary rounded-full flex items-center justify-center p-0.5 shadow-xs border border-emerald-100 overflow-hidden bg-white shrink-0">
                     <svg viewBox="0 0 200 200" class="w-full h-full object-contain scale-110">
@@ -128,10 +162,10 @@
                 </div>
             </div>
             
-            <div class="shrink-0 flex items-center space-x-1.5">
-                <!-- 텍스트 없이 단일 램프만 표시 (터치 시 상태 팝업 모달 호출) -->
-                <button type="button" onclick="openDbStatusModal()" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors focus:outline-none" title="서버 연동 상태 보기">
-                    <span id="db-status-lamp" class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse transition-all"></span>
+            <div class="shrink-0 flex items-center space-x-2">
+                <!-- 상부 연동 램프 (설명 텍스트 없음, 연한 파스텔 톤) -->
+                <button type="button" onclick="openDbStatusModal()" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors focus:outline-none">
+                    <span id="db-status-lamp" class="w-2.5 h-2.5 rounded-full bg-sky-300 animate-pulse transition-all"></span>
                 </button>
                 <button onclick="openWriteModal()" class="px-2.5 py-1 church-accent church-primary-text rounded text-[11px] font-medium flex items-center space-x-1 shadow-2xs whitespace-nowrap">
                     <i class="fa-solid fa-camera text-[10px]"></i>
@@ -140,9 +174,9 @@
             </div>
         </header>
 
-        <!-- 피드 메인 컨테이너: 화면 전체 가로 폭에 정밀 맞춤 -->
-        <main class="flex-1 w-full max-w-md mx-auto px-1 py-1 space-y-1.5 pb-10" id="feed-container">
-            <!-- 동적 피드 카드가 이곳에 렌더링됩니다 -->
+        <!-- 피드 메인 컨테이너: 상하 1화면 리미티드 스크롤 (Snap) -->
+        <main class="w-full max-w-md mx-auto overflow-hidden bg-[#F8F9FA]" id="feed-container">
+            <!-- 동적 피드 카드가 1화면씩 렌더링됩니다 -->
         </main>
     </div>
 
@@ -154,8 +188,8 @@
                 <button onclick="closeDbStatusModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xs"></i></button>
             </div>
             <div class="py-2 flex flex-col items-center justify-center space-y-2">
-                <div id="modal-status-badge" class="w-10 h-10 rounded-full flex items-center justify-center text-white bg-emerald-500 shadow-sm">
-                    <i id="modal-status-icon" class="fa-solid fa-cloud-check text-lg"></i>
+                <div id="modal-status-badge" class="w-10 h-10 rounded-full flex items-center justify-center text-white bg-emerald-300 shadow-xs">
+                    <i id="modal-status-icon" class="fa-solid fa-cloud-check text-lg text-emerald-800"></i>
                 </div>
                 <div>
                     <h4 id="modal-status-title" class="text-xs font-bold text-gray-800">정상 연동됨</h4>
@@ -165,10 +199,10 @@
             <div class="bg-gray-50 p-2 rounded text-[10px] text-gray-600 text-left space-y-1">
                 <div class="flex justify-between">
                     <span class="text-gray-400">데이터베이스:</span>
-                    <span class="font-medium">Cloud Firestore (default)</span>
+                    <span class="font-medium">Cloud Firestore</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-400">동기화 채널:</span>
+                    <span class="text-gray-400">컬렉션:</span>
                     <span class="font-medium text-emerald-700">mokjang_posts</span>
                 </div>
             </div>
@@ -176,6 +210,38 @@
         </div>
     </div>
 
+    <!-- [댓글 전용 팝업 스크린 모달 (상하 스크롤)] -->
+    <div id="comments-popup-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex flex-col justify-end hidden">
+        <div class="bg-white rounded-t-2xl w-full max-w-md mx-auto max-h-[75vh] flex flex-col shadow-2xl border-t church-border overflow-hidden">
+            <!-- 팝업 헤더 -->
+            <div class="flex items-center justify-between px-3 py-2.5 border-b church-border shrink-0 bg-gray-50/70">
+                <div class="flex items-center space-x-1.5">
+                    <i class="fa-regular fa-comment-dots church-primary-text text-sm"></i>
+                    <h3 class="text-xs font-bold text-gray-800">댓글 <span id="comments-modal-count" class="text-emerald-700 font-semibold">0</span></h3>
+                </div>
+                <button onclick="closeCommentsModal()" class="w-6 h-6 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-200 text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- 팝업 상하 스크롤 댓글 목록 -->
+            <div id="comments-modal-list" class="flex-1 overflow-y-auto p-3 space-y-2 text-xs">
+                <!-- 댓글 항목들이 상하 스크롤 형태로 여기에 렌더링됩니다 -->
+            </div>
+
+            <!-- 팝업 하단 작성 영역 -->
+            <div class="p-2 border-t church-border bg-white shrink-0 flex items-center space-x-1.5">
+                <input type="text" id="comments-modal-input" maxlength="200" placeholder="댓글을 입력하세요..." 
+                       onkeydown="if(event.key==='Enter') addCommentFromModal()" 
+                       class="flex-1 px-2.5 py-1.5 text-xs bg-gray-50 border church-border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#3B5D50]">
+                <button onclick="addCommentFromModal()" class="px-3 py-1.5 church-primary text-white text-xs font-medium rounded-lg whitespace-nowrap shadow-2xs">
+                    등록
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- [글쓰기 모달] -->
     <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-2 hidden">
         <div class="bg-white rounded-xl w-full max-w-sm p-3 shadow-2xl border church-border max-h-[85vh] flex flex-col overflow-y-auto">
             <div class="flex items-center justify-between pb-1.5 border-b church-border shrink-0">
@@ -233,6 +299,7 @@
         </div>
     </div>
 
+    <!-- [저장 확인 모달] -->
     <div id="save-confirm-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
         <div class="bg-white rounded-xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3">
             <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-base">
@@ -249,6 +316,7 @@
         </div>
     </div>
 
+    <!-- [삭제 확인 모달] -->
     <div id="confirm-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
         <div class="bg-white rounded-xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3">
             <div class="w-10 h-10 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto text-base">
@@ -265,6 +333,7 @@
         </div>
     </div>
 
+    <!-- [라이트박스 모달] -->
     <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center hidden">
         <button onclick="closeLightbox()" class="absolute top-3 right-3 text-white text-lg p-2 z-50"><i class="fa-solid fa-xmark"></i></button>
         <div class="overflow-hidden w-full h-full flex items-center justify-center relative">
@@ -274,10 +343,6 @@
             두 손가락으로 확대/축소 가능
         </div>
     </div>
-
-    <footer class="text-center py-2 text-[10px] text-gray-400 border-t church-border bg-white mt-auto">
-        <p class="whitespace-nowrap leading-none">그리스도의 은혜를 나누는 마음 · 세종꿈의교회 23목장</p>
-    </footer>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -290,11 +355,12 @@
         let currentMokjang = "세종꿈의교회 23목장";
         let selectedImagesList = [];
         let postToDeleteId = null;
-        let currentUserUid = null;
         let isAuthReady = false;
         let currentDbStatus = 'connecting';
+        let currentActivePopupPostId = null;
+        let cachedPosts = [];
 
-        // Firebase 설정
+        // Firebase 프로젝트 설정
         const firebaseConfig = {
             apiKey: "AIzaSyDKD5LUQL84ZuPH5UJrHBj7yAYDTabDWVA",
             authDomain: "dream-data-146a4.firebaseapp.com",
@@ -313,7 +379,7 @@
             console.error("Firebase init error:", e);
         }
 
-        // 램프 상태 및 팝업 정보 업데이트
+        // 상부 연동 램프 상태 반영 함수 (연한 파스텔 톤)
         function setDbStatus(status) {
             currentDbStatus = status;
             const lamp = document.getElementById('db-status-lamp');
@@ -325,35 +391,35 @@
             if (lamp) {
                 lamp.className = "w-2.5 h-2.5 rounded-full inline-block transition-all";
                 if (status === 'connecting') {
-                    lamp.classList.add('bg-blue-500', 'animate-pulse');
+                    lamp.classList.add('bg-sky-300', 'animate-pulse');
                 } else if (status === 'connected') {
-                    lamp.classList.add('bg-emerald-500');
+                    lamp.classList.add('bg-emerald-300');
                 } else if (status === 'saving') {
-                    lamp.classList.add('bg-amber-500', 'animate-pulse');
+                    lamp.classList.add('bg-emerald-300', 'animate-pulse');
                 } else if (status === 'error') {
-                    lamp.classList.add('bg-rose-500');
+                    lamp.classList.add('bg-rose-300');
                 }
             }
 
             if (badge && icon && title && desc) {
                 if (status === 'connected') {
-                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center text-white bg-emerald-500 shadow-sm";
-                    icon.className = "fa-solid fa-cloud-check text-lg";
+                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center bg-emerald-300 shadow-xs";
+                    icon.className = "fa-solid fa-cloud-check text-lg text-emerald-800";
                     title.innerText = "정상 연동됨";
                     desc.innerText = "Firebase 클라우드와 실시간 동기화 중입니다.";
                 } else if (status === 'connecting') {
-                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center text-white bg-blue-500 shadow-sm animate-pulse";
-                    icon.className = "fa-solid fa-spinner fa-spin text-lg";
+                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center bg-sky-300 shadow-xs animate-pulse";
+                    icon.className = "fa-solid fa-spinner fa-spin text-lg text-sky-800";
                     title.innerText = "연동 진행 중";
                     desc.innerText = "클라우드 서버에 접속하고 있습니다...";
                 } else if (status === 'saving') {
-                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center text-white bg-amber-500 shadow-sm";
-                    icon.className = "fa-solid fa-cloud-arrow-up text-lg";
+                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center bg-emerald-300 shadow-xs animate-pulse";
+                    icon.className = "fa-solid fa-cloud-arrow-up text-lg text-emerald-800";
                     title.innerText = "데이터 저장 중";
                     desc.innerText = "게시글 및 댓글을 클라우드에 기록 중입니다.";
                 } else {
-                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center text-white bg-rose-500 shadow-sm";
-                    icon.className = "fa-solid fa-triangle-exclamation text-lg";
+                    badge.className = "w-10 h-10 rounded-full flex items-center justify-center bg-rose-300 shadow-xs";
+                    icon.className = "fa-solid fa-triangle-exclamation text-lg text-rose-800";
                     title.innerText = "연동 실패";
                     desc.innerText = "네트워크 상태나 보안 규칙을 확인해 주세요.";
                 }
@@ -396,7 +462,6 @@
                 } else {
                     await signInAnonymously(auth);
                 }
-                currentUserUid = auth.currentUser?.uid || "anon-user";
                 isAuthReady = true;
                 setDbStatus('connected');
             } catch (e) {
@@ -407,6 +472,7 @@
         }
         initAuth();
 
+        // 7회 탭 잠금 해제
         const tapOverlay = document.getElementById('secret-tap-overlay');
         tapOverlay.addEventListener('click', (e) => {
             e.preventDefault();
@@ -449,7 +515,7 @@
                     const canvas = document.createElement('canvas');
                     let width = img.width;
                     let height = img.height;
-                    const maxDim = 800;
+                    const maxDim = 900;
 
                     if (width > height && width > maxDim) {
                         height = Math.round((height * maxDim) / width);
@@ -462,9 +528,11 @@
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(0, 0, width, height);
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.65);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
                     callback(dataUrl);
                 };
                 img.src = e.target.result;
@@ -606,7 +674,6 @@
             const mokjangName = currentMokjang;
             const content = document.getElementById('post-content').value.trim();
             const isChecked = document.getElementById('post-display-check').checked;
-
             const finalImages = [...selectedImagesList];
 
             setDbStatus('saving');
@@ -685,7 +752,7 @@
 
             if (!isAuthReady) {
                 feedContainer.innerHTML = `
-                    <div class="text-center py-10 text-gray-400">
+                    <div class="h-full flex flex-col items-center justify-center text-gray-400">
                         <i class="fa-solid fa-spinner fa-spin text-xl mb-1 church-primary-text"></i>
                         <p class="text-[11px]">연결 중입니다...</p>
                     </div>
@@ -706,11 +773,21 @@
                     }
                 });
                 
+                cachedPosts = posts;
+
+                // 팝업 모달이 열려있다면 실시간 내용 갱신
+                if (currentActivePopupPostId) {
+                    renderCommentsModalList(currentActivePopupPostId);
+                }
+
                 if (posts.length === 0) {
                     feedContainer.innerHTML = `
-                        <div class="text-center py-12 text-gray-400 bg-white rounded-lg border border-gray-200 p-4">
-                            <i class="fa-solid fa-camera-retro text-2xl mb-1 opacity-40"></i>
-                            <p class="text-[11px] whitespace-nowrap">등록된 목장 이야기가 없습니다.</p>
+                        <div class="h-full flex flex-col items-center justify-center p-4 text-center">
+                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-xs border church-border mb-3 text-gray-300">
+                                <i class="fa-solid fa-camera-retro text-2xl opacity-60"></i>
+                            </div>
+                            <h3 class="text-xs font-bold text-gray-700">등록된 목장 이야기가 없습니다</h3>
+                            <p class="text-[10px] text-gray-400 mt-1">상단의 글쓰기 버튼을 눌러 첫 소식을 나눠주세요.</p>
                         </div>
                     `;
                     return;
@@ -722,102 +799,128 @@
                     return timeB - timeA;
                 });
 
-                posts.forEach((post) => {
+                posts.forEach((post, postIdx) => {
                     const hasLiked = post.likedUsers && post.likedUsers.includes(currentUser);
                     const isAuthor = post.author === currentUser;
                     
-                    const card = document.createElement('div');
-                    card.className = "bg-white rounded-lg border border-gray-200 overflow-hidden shadow-2xs space-y-1.5 p-2";
+                    const card = document.createElement('section');
+                    card.className = "feed-card-item w-full flex flex-col p-1.5 box-border";
                     
-                    const imgArray = (post.images && Array.isArray(post.images)) 
-                        ? post.images.filter(img => img && !img.includes('unsplash.com')) 
-                        : (post.imageUrl && !post.imageUrl.includes('unsplash.com') ? [post.imageUrl] : []);
-                    
-                    let imagesHtml = '';
-                    if (imgArray.length === 1) {
-                        imagesHtml = `
-                            <div class="w-full bg-black/5 rounded overflow-hidden cursor-pointer max-h-56 flex items-center justify-center -mx-0.5" onclick="openLightbox('${imgArray[0]}')">
-                                <img src="${imgArray[0]}" alt="목장 사진" class="w-full max-h-56 object-cover">
-                            </div>
-                        `;
-                    } else if (imgArray.length > 1) {
-                        imagesHtml = `<div class="grid grid-cols-2 gap-1 rounded overflow-hidden -mx-0.5 max-h-60 overflow-y-auto">`;
-                        imgArray.forEach((imgUrl) => {
-                            imagesHtml += `
-                                <div class="aspect-square overflow-hidden cursor-pointer bg-black/5 flex items-center justify-center rounded" onclick="openLightbox('${imgUrl}')">
-                                    <img src="${imgUrl}" class="w-full h-full object-cover">
-                                </div>
-                            `;
-                        });
-                        imagesHtml += `</div>`;
+                    // 사진 리스트 정제
+                    let imgArray = [];
+                    if (Array.isArray(post.images) && post.images.length > 0) {
+                        imgArray = post.images.filter(img => img && typeof img === 'string' && !img.includes('unsplash.com'));
+                    } else if (post.imageUrl && typeof post.imageUrl === 'string' && !post.imageUrl.includes('unsplash.com')) {
+                        imgArray = [post.imageUrl];
                     }
 
-                    let commentsHtml = '';
-                    if (post.comments && post.comments.length > 0) {
-                        commentsHtml = post.comments.map(c => `
-                            <div class="bg-gray-50 rounded px-1.5 py-1 text-[11px] flex justify-between items-start leading-tight">
-                                <div class="pr-1">
-                                    <span class="font-bold text-gray-700 mr-1 whitespace-nowrap">${escapeHtml(c.author)}</span>
-                                    <span class="text-gray-600">${escapeHtml(c.text)}</span>
+                    // 사진 렌더링 HTML (가로 스냅 스와이프 형태)
+                    let mediaSectionHtml = '';
+                    if (imgArray.length > 0) {
+                        if (imgArray.length === 1) {
+                            mediaSectionHtml = `
+                                <div class="w-full flex-1 min-h-0 bg-black/5 rounded-lg overflow-hidden flex items-center justify-center cursor-pointer relative" onclick="openLightbox('${imgArray[0]}')">
+                                    <img src="${imgArray[0]}" alt="목장 사진" class="w-full h-full object-contain">
                                 </div>
-                                <span class="text-[9px] text-gray-400 shrink-0 whitespace-nowrap">${c.time || ''}</span>
-                            </div>
-                        `).join('');
+                            `;
+                        } else {
+                            const slidesHtml = imgArray.map((url, i) => `
+                                <div class="image-snap-item min-w-full h-full flex items-center justify-center relative bg-black/5 cursor-pointer" onclick="openLightbox('${url}')">
+                                    <img src="${url}" class="w-full h-full object-contain">
+                                    <span class="absolute top-2 right-2 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded-full pointer-events-none">${i + 1}/${imgArray.length}</span>
+                                </div>
+                            `).join('');
+                            mediaSectionHtml = `
+                                <div class="w-full flex-1 min-h-0 rounded-lg overflow-hidden relative">
+                                    <div class="image-snap-row flex w-full h-full overflow-x-auto">
+                                        ${slidesHtml}
+                                    </div>
+                                </div>
+                            `;
+                        }
                     }
 
                     let authorActionsHtml = '';
                     if (isAuthor) {
                         const imagesParam = JSON.stringify(imgArray).replace(/"/g, '&quot;');
                         authorActionsHtml = `
-                            <div class="flex items-center space-x-1.5 text-[10px]">
-                                <button onclick="openWriteModal('${post.id}', \`${escapeHtml(post.content)}\`, ${imagesParam})" class="text-emerald-700 hover:underline whitespace-nowrap">수정</button>
+                            <div class="flex items-center space-x-1 text-[10px]">
+                                <button onclick="openWriteModal('${post.id}', \`${escapeHtml(post.content)}\`, ${imagesParam})" class="text-emerald-700 hover:underline">수정</button>
                                 <span class="text-gray-300">|</span>
-                                <button onclick="confirmDeletePost('${post.id}')" class="text-rose-500 hover:underline whitespace-nowrap">삭제</button>
+                                <button onclick="confirmDeletePost('${post.id}')" class="text-rose-500 hover:underline">삭제</button>
                             </div>
                         `;
                     }
 
+                    const commentCount = post.comments ? post.comments.length : 0;
+
                     card.innerHTML = `
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-1.5 overflow-hidden">
-                                <div class="w-5 h-5 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-[10px] shrink-0">
-                                    ${escapeHtml((post.author || 'M').charAt(0))}
+                        <div class="w-full h-full bg-white rounded-xl border church-border shadow-xs flex flex-col p-2.5 box-border overflow-hidden">
+                            <!-- 헤더: 작성자 및 관리 -->
+                            <div class="flex items-center justify-between pb-1.5 border-b church-border shrink-0">
+                                <div class="flex items-center space-x-1.5 overflow-hidden">
+                                    <div class="w-6 h-6 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-[10px] shrink-0">
+                                        ${escapeHtml((post.author || 'M').charAt(0))}
+                                    </div>
+                                    <span class="text-xs font-bold text-gray-800 truncate">${escapeHtml(post.author)}</span>
                                 </div>
-                                <span class="text-xs font-bold text-gray-800 truncate whitespace-nowrap">${escapeHtml(post.author)}</span>
+                                <div class="flex items-center space-x-2 shrink-0">
+                                    ${authorActionsHtml}
+                                    <span class="text-[9px] text-gray-400">${formatDate(post.createdAt)}</span>
+                                </div>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                ${authorActionsHtml}
-                                <span class="text-[9px] text-gray-400 shrink-0 whitespace-nowrap">${formatDate(post.createdAt)}</span>
+
+                            <!-- 미디어 사진 영역 (가변 높이 100% 핏) -->
+                            <div class="flex-1 min-h-0 w-full py-1.5 flex flex-col justify-center overflow-hidden">
+                                ${mediaSectionHtml || `
+                                    <div class="w-full h-full bg-emerald-50/40 rounded-lg border border-dashed border-emerald-100 flex items-center justify-center p-3 text-center">
+                                        <p class="text-xs text-emerald-900/80 leading-relaxed font-medium">“사랑과 격려가 넘치는 우리 목장 이야기”</p>
+                                    </div>
+                                `}
                             </div>
-                        </div>
 
-                        ${imagesHtml}
-
-                        <div class="text-[11.5px] text-gray-800 leading-snug font-normal whitespace-pre-wrap">
-                            ${escapeHtml(post.content)}
-                        </div>
-
-                        <div class="flex items-center justify-between pt-0.5 border-t border-gray-100 text-xs">
-                            <div class="flex items-center space-x-2.5">
-                                <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-500' : 'text-gray-500'}">
-                                    <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-xs"></i>
-                                    <span class="text-[11px] font-medium">${post.likes || 0}</span>
-                                </button>
-                                <button onclick="toggleCommentInput('${post.id}')" class="flex items-center space-x-1 text-gray-500">
-                                    <i class="fa-regular fa-comment-dots text-xs"></i>
-                                    <span class="text-[11px] font-medium">${post.comments ? post.comments.length : 0}</span>
-                                </button>
+                            <!-- 글 내용 (말줄임 없이 편안한 스크롤) -->
+                            <div class="shrink-0 max-h-24 overflow-y-auto text-xs text-gray-800 leading-snug whitespace-pre-wrap py-1 border-t church-border">
+                                ${escapeHtml(post.content)}
                             </div>
-                            <button onclick="toggleCommentInput('${post.id}')" class="text-[10px] text-gray-400 hover:text-gray-600">
-                                댓글 쓰기
-                            </button>
-                        </div>
 
-                        <div id="comment-section-${post.id}" class="space-y-1 pt-1 border-t border-gray-100 hidden">
-                            <div class="space-y-1 max-h-24 overflow-y-auto">${commentsHtml}</div>
-                            <div class="flex space-x-1 pt-0.5 items-center">
-                                <input type="text" id="comment-input-${post.id}" maxlength="200" placeholder="댓글을 입력하세요..." class="flex-1 px-2 py-1 border border-gray-200 rounded text-[11px] focus:outline-none focus:border-emerald-600 bg-gray-50">
-                                <button onclick="addComment('${post.id}')" class="px-2 py-1 church-primary text-white rounded text-[11px] font-medium whitespace-nowrap">등록</button>
+                            <!-- 하단 반응 바 (좋아요, 댓글수 터치 시 팝업, + 버튼) -->
+                            <div class="pt-1.5 border-t church-border shrink-0 flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <!-- 좋아요 버튼 -->
+                                    <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-500' : 'text-gray-500'}">
+                                        <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-xs"></i>
+                                        <span class="text-[11px] font-medium">${post.likes || 0}</span>
+                                    </button>
+
+                                    <!-- 댓글수 영역 (터치 시 상하 스크롤 팝업 모달 오픈) -->
+                                    <button type="button" onclick="openCommentsModal('${post.id}')" class="flex items-center space-x-1 text-gray-500 hover:text-emerald-700 transition-colors" title="댓글 전체보기">
+                                        <i class="fa-regular fa-comment-dots text-xs"></i>
+                                        <span class="text-[11px] font-semibold">${commentCount}</span>
+                                    </button>
+
+                                    <!-- 댓글수 오른쪽 '+' 버튼 (해당 라인 인라인 댓글 입력창 토글) -->
+                                    <button type="button" onclick="toggleInlineCommentInput('${post.id}')" class="w-4 h-4 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-600 hover:text-emerald-700 flex items-center justify-center text-[10px] font-bold transition-colors" title="이 피드에 바로 댓글 쓰기">
+                                        <i class="fa-solid fa-plus text-[9px]"></i>
+                                    </button>
+                                </div>
+
+                                <div class="flex items-center space-x-1 text-[9px] text-gray-400">
+                                    <span>${postIdx + 1}/${posts.length}</span>
+                                    <i class="fa-solid fa-arrows-up-down text-[8px] opacity-60"></i>
+                                </div>
+                            </div>
+
+                            <!-- '+' 버튼 클릭 시 노출되는 해당 라인 인라인 댓글 작성 바 -->
+                            <div id="inline-comment-row-${post.id}" class="mt-1 pt-1 border-t church-border hidden shrink-0">
+                                <div class="flex space-x-1 items-center">
+                                    <input type="text" id="inline-comment-input-${post.id}" maxlength="200" placeholder="댓글을 남겨주세요..." 
+                                           onkeydown="if(event.key==='Enter') addCommentInline('${post.id}')"
+                                           class="flex-1 px-2 py-1 border church-border rounded text-[11px] focus:outline-none focus:border-emerald-600 bg-gray-50">
+                                    <button onclick="addCommentInline('${post.id}')" class="px-2.5 py-1 church-primary text-white rounded text-[11px] font-medium whitespace-nowrap">
+                                        등록
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -827,6 +930,114 @@
                 console.error("피드 스냅샷 오류:", error);
                 setDbStatus('error');
             });
+        }
+
+        // 댓글수 터치 시 상하 스크롤 팝업 모달 열기
+        window.openCommentsModal = function(postId) {
+            currentActivePopupPostId = postId;
+            renderCommentsModalList(postId);
+            document.getElementById('comments-popup-modal').classList.remove('hidden');
+            setTimeout(() => {
+                const input = document.getElementById('comments-modal-input');
+                if (input) input.focus();
+            }, 100);
+        };
+
+        window.closeCommentsModal = function() {
+            currentActivePopupPostId = null;
+            document.getElementById('comments-popup-modal').classList.add('hidden');
+        };
+
+        function renderCommentsModalList(postId) {
+            const listEl = document.getElementById('comments-modal-list');
+            const countEl = document.getElementById('comments-modal-count');
+            if (!listEl) return;
+
+            const post = cachedPosts.find(p => p.id === postId);
+            if (!post) return;
+
+            const comments = post.comments || [];
+            countEl.innerText = comments.length;
+
+            if (comments.length === 0) {
+                listEl.innerHTML = `
+                    <div class="py-12 text-center text-gray-400">
+                        <i class="fa-regular fa-comments text-2xl mb-1.5 opacity-40"></i>
+                        <p class="text-[11px]">아직 작성된 댓글이 없습니다.</p>
+                        <p class="text-[10px] text-gray-400 mt-0.5">첫 댓글로 따뜻한 은혜와 안부를 나눠보세요!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = comments.map(c => `
+                <div class="bg-gray-50 rounded-xl p-2 border border-gray-100 flex flex-col space-y-0.5">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-gray-800 text-[11px]">${escapeHtml(c.author)}</span>
+                        <span class="text-[9px] text-gray-400">${c.time || ''}</span>
+                    </div>
+                    <p class="text-gray-700 text-[11px] leading-relaxed whitespace-pre-wrap">${escapeHtml(c.text)}</p>
+                </div>
+            `).join('');
+
+            // 스크롤을 항상 가장 최근 댓글이 있는 맨 아래로 이동
+            setTimeout(() => {
+                listEl.scrollTop = listEl.scrollHeight;
+            }, 50);
+        }
+
+        // 팝업 모달 안에서 댓글 등록
+        window.addCommentFromModal = async function() {
+            if (!currentActivePopupPostId) return;
+            const inputEl = document.getElementById('comments-modal-input');
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            await submitComment(currentActivePopupPostId, text);
+            inputEl.value = '';
+        };
+
+        // '+' 버튼 클릭 시 라인별 인라인 입력창 토글
+        window.toggleInlineCommentInput = function(postId) {
+            const row = document.getElementById(`inline-comment-row-${postId}`);
+            if (row) {
+                row.classList.toggle('hidden');
+                if (!row.classList.contains('hidden')) {
+                    const input = document.getElementById(`inline-comment-input-${postId}`);
+                    if (input) input.focus();
+                }
+            }
+        };
+
+        // 인라인 입력창에서 댓글 등록
+        window.addCommentInline = async function(postId) {
+            const inputEl = document.getElementById(`inline-comment-input-${postId}`);
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            await submitComment(postId, text);
+            inputEl.value = '';
+            const row = document.getElementById(`inline-comment-row-${postId}`);
+            if (row) row.classList.add('hidden');
+        };
+
+        // 댓글 공통 Firebase 저장 로직
+        async function submitComment(postId, text) {
+            const now = new Date();
+            const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const commentObj = { author: currentUser, text: text, time: timeStr };
+
+            if (!db) return;
+            const postRef = doc(db, 'mokjang_posts', postId);
+            setDbStatus('saving');
+            try {
+                await updateDoc(postRef, { comments: arrayUnion(commentObj) });
+                setDbStatus('connected');
+                showNotification("댓글이 등록되었습니다.");
+            } catch (error) {
+                console.error("댓글 등록 오류:", error);
+                setDbStatus('error');
+            }
         }
 
         window.toggleLike = async function(postId, hasLiked) {
@@ -840,40 +1051,12 @@
                     await updateDoc(postRef, { likes: increment(1), likedUsers: arrayUnion(currentUser) });
                 }
                 setDbStatus('connected');
-            } catch (error) { console.error("좋아요 오류:", error); setDbStatus('error'); }
-        };
-
-        window.toggleCommentInput = function(postId) {
-            const section = document.getElementById(`comment-section-${postId}`);
-            if (section) {
-                section.classList.toggle('hidden');
-                if (!section.classList.contains('hidden')) {
-                    const input = document.getElementById(`comment-input-${postId}`);
-                    if (input) input.focus();
-                }
+            } catch (error) {
+                console.error("좋아요 오류:", error);
+                setDbStatus('error');
             }
         };
 
-        window.addComment = async function(postId) {
-            const inputEl = document.getElementById(`comment-input-${postId}`);
-            const text = inputEl.value.trim();
-            if (!text) return;
-
-            const now = new Date();
-            const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-            const commentObj = { author: currentUser, text: text, time: timeStr };
-
-            if (!db) return;
-            const postRef = doc(db, 'mokjang_posts', postId);
-            setDbStatus('saving');
-            try {
-                await updateDoc(postRef, { comments: arrayUnion(commentObj) });
-                inputEl.value = '';
-                setDbStatus('connected');
-            } catch (error) { console.error("댓글 오류:", error); setDbStatus('error'); }
-        };
-
-        // Lightbox Zoom Logic
         let scale = 1;
         let panning = false;
         let pointX = 0;
