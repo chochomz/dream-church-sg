@@ -74,7 +74,7 @@
             justify-content: flex-end;
         }
 
-        #lightbox-modal, #auth-modal, #write-modal, #confirm-modal, #comment-drawer {
+        #lightbox-modal, #auth-modal, #write-modal, #confirm-modal, #save-confirm-modal, #comment-drawer {
             touch-action: none;
             overscroll-behavior: contain;
         }
@@ -189,26 +189,17 @@
             </div>
             <div class="space-y-3">
                 <input type="hidden" id="editing-post-id" value="">
-                <div>
-                    <label class="block text-[11px] font-medium text-gray-300 mb-1 whitespace-nowrap">목장 이름</label>
-                    <input type="text" id="post-mokjang-name" value="세종꿈의교회 23목장" class="w-full px-3 py-2 rounded-xl bg-[#2A2A2A] border border-gray-700 text-xs text-white focus:outline-none" readonly>
-                </div>
                 
                 <div class="space-y-2">
-                    <div class="flex justify-between items-center">
-                        <label class="block text-[11px] font-medium text-gray-300 whitespace-nowrap">사진 추가 (최대 5장)</label>
-                        <span id="image-count-indicator" class="text-[10px] text-gray-400">0 / 5장</span>
-                    </div>
-
                     <div class="grid grid-cols-2 gap-2">
                         <label class="border border-gray-700 bg-[#2A2A2A] rounded-xl py-2 px-1 text-center cursor-pointer hover:bg-gray-800 text-xs flex items-center justify-center space-x-1 transition-colors overflow-hidden">
                             <i class="fa-solid fa-file-arrow-up text-emerald-400 shrink-0"></i>
-                            <span class="font-medium text-gray-200 whitespace-nowrap truncate text-[11px]">사진/파일 선택</span>
+                            <span class="font-medium text-gray-200 whitespace-nowrap truncate text-[11px]">사진/파일</span>
                             <input type="file" id="post-multi-file-input" accept="image/*" multiple class="hidden" onchange="handleFilesSelect(event)">
                         </label>
                         <button type="button" onclick="toggleUrlInput()" class="border border-gray-700 bg-[#2A2A2A] rounded-xl py-2 px-1 text-center hover:bg-gray-800 text-xs flex items-center justify-center space-x-1 transition-colors overflow-hidden">
                             <i class="fa-solid fa-link text-emerald-400 shrink-0"></i>
-                            <span class="font-medium text-gray-200 whitespace-nowrap truncate text-[11px]">웹주소(URL) 입력</span>
+                            <span class="font-medium text-gray-200 whitespace-nowrap truncate text-[11px]">웹주소(URL)</span>
                         </button>
                     </div>
 
@@ -225,23 +216,42 @@
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-medium text-gray-300 mb-1 whitespace-nowrap">이야기 나누기</label>
-                    <textarea id="post-content" rows="3" placeholder="즐거웠던 목장 모임이나 사역 소식을 남겨주세요..." class="w-full px-3 py-2 rounded-xl bg-[#2A2A2A] border border-gray-700 text-xs text-white focus:outline-none resize-none"></textarea>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-[11px] font-medium text-gray-300 whitespace-nowrap">이야기 나누기</label>
+                        <span id="char-count-indicator" class="text-[10px] text-gray-400">0 / 200자</span>
+                    </div>
+                    <textarea id="post-content" rows="2" maxlength="200" oninput="updateCharCount(this)" placeholder="내용을 입력하세요..." class="w-full px-3 py-2 rounded-xl bg-[#2A2A2A] border border-gray-700 text-xs text-white focus:outline-none resize-none"></textarea>
                 </div>
                 <div class="flex items-center space-x-2 pt-1">
                     <input type="checkbox" id="post-display-check" checked class="w-4 h-4 text-[#3B5D50] rounded border-gray-700 bg-[#2A2A2A]">
                     <label for="post-display-check" class="text-xs text-gray-300 font-medium whitespace-nowrap">피드에 즉시 노출</label>
                 </div>
-                <button onclick="submitNewPost()" class="w-full py-2.5 church-primary text-white rounded-xl font-medium text-xs shadow-md whitespace-nowrap" id="submit-btn-text">
+                <button onclick="requestSavePost()" class="w-full py-2.5 church-primary text-white rounded-xl font-medium text-xs shadow-md whitespace-nowrap" id="submit-btn-text">
                     등록하기
                 </button>
             </div>
         </div>
     </div>
 
+    <div id="save-confirm-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-[#1E1E1E] text-gray-100 rounded-2xl w-full max-w-xs p-6 shadow-2xl border border-gray-800 text-center space-y-4">
+            <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-lg">
+                <i class="fa-solid fa-circle-question"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-white whitespace-nowrap">게시글 저장</h3>
+                <p class="text-xs text-gray-400 mt-1 whitespace-nowrap">저장 하시겠습니까?</p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button onclick="closeSaveConfirmModal()" class="py-2.5 bg-gray-800 text-gray-300 rounded-xl text-xs font-medium whitespace-nowrap">취소</button>
+                <button onclick="executeSubmitPost()" class="py-2.5 church-primary text-white rounded-xl text-xs font-medium whitespace-nowrap">저장하기</button>
+            </div>
+        </div>
+    </div>
+
     <div id="confirm-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
         <div class="bg-[#1E1E1E] text-gray-100 rounded-2xl w-full max-w-xs p-6 shadow-2xl border border-gray-800 text-center space-y-4">
-            <div class="w-12 id-alert bg-rose-500/20 text-rose-400 rounded-full flex items-center justify-center mx-auto text-lg h-12">
+            <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-full flex items-center justify-center mx-auto text-lg">
                 <i class="fa-solid fa-triangle-exclamation"></i>
             </div>
             <div>
@@ -321,7 +331,6 @@
 
             document.getElementById('header-user-display').innerText = `${currentUser} 님`;
             document.getElementById('header-mokjang-title').innerText = currentMokjang;
-            document.getElementById('post-mokjang-name').value = currentMokjang;
 
             document.getElementById('auth-modal').classList.add('hidden');
             document.getElementById('main-feed-screen').classList.remove('hidden');
@@ -412,11 +421,14 @@
             document.getElementById('post-multi-file-input').click();
         };
 
+        window.updateCharCount = function(textarea) {
+            const len = textarea.value.length;
+            document.getElementById('char-count-indicator').innerText = `${len} / 200자`;
+        };
+
         function renderImagePreviews() {
             const grid = document.getElementById('selected-images-grid');
-            const indicator = document.getElementById('image-count-indicator');
             grid.innerHTML = "";
-            indicator.innerText = `${selectedImagesList.length} / 5장`;
 
             selectedImagesList.forEach((imgSrc, idx) => {
                 const thumb = document.createElement('div');
@@ -443,8 +455,9 @@
 
         window.openWriteModal = function(postId = null, existingContent = "", existingImages = []) {
             document.getElementById('editing-post-id').value = postId || "";
-            document.getElementById('post-content').value = existingContent || "";
-            document.getElementById('post-mokjang-name').value = currentMokjang;
+            const contentEl = document.getElementById('post-content');
+            contentEl.value = existingContent || "";
+            updateCharCount(contentEl);
             
             selectedImagesList = Array.isArray(existingImages) ? [...existingImages] : (existingImages ? [existingImages] : []);
             renderImagePreviews();
@@ -467,16 +480,25 @@
             document.getElementById('editing-post-id').value = '';
         };
 
-        window.submitNewPost = async function() {
-            const postId = document.getElementById('editing-post-id').value;
-            const mokjangName = currentMokjang;
+        window.requestSavePost = function() {
             const content = document.getElementById('post-content').value.trim();
-            const isChecked = document.getElementById('post-display-check').checked;
-
             if (!content) {
                 alert('이야기 내용을 입력해 주세요.');
                 return;
             }
+            document.getElementById('save-confirm-modal').classList.remove('hidden');
+        };
+
+        window.closeSaveConfirmModal = function() {
+            document.getElementById('save-confirm-modal').classList.add('hidden');
+        };
+
+        window.executeSubmitPost = async function() {
+            closeSaveConfirmModal();
+            const postId = document.getElementById('editing-post-id').value;
+            const mokjangName = currentMokjang;
+            const content = document.getElementById('post-content').value.trim();
+            const isChecked = document.getElementById('post-display-check').checked;
 
             const finalImages = selectedImagesList.length > 0 ? selectedImagesList : ["https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=800&q=80"];
 
