@@ -513,7 +513,7 @@
             loadMokjangFeed();
         };
 
-        // [핵심 교정] 스마트폰 고화질 원본 사진(10MB+)을 Firestore 1MB 제한 안(100~200KB)으로 확실하게 압축
+        // 고용량 완전 배제: 모바일 화면에 충분한 720px 초경량(70~120KB) 압축 알고리즘
         function processImageFile(file, callback) {
             if (!file) return callback(null);
             
@@ -525,7 +525,7 @@
                         const canvas = document.createElement('canvas');
                         let width = img.width;
                         let height = img.height;
-                        const maxDim = 960; // 모바일 화면에서 선명하게 꽉 차는 최적 규격
+                        const maxDim = 720; // 모바일 화면에서 충분히 선명하고 용량은 100KB 미만으로 축소
 
                         if (width > height) {
                             if (width > maxDim) {
@@ -543,13 +543,13 @@
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         
-                        // 투명 배경 방지 (흰색 바탕 채움)
+                        // 배경 투명화 방지 흰색 채움
                         ctx.fillStyle = "#ffffff";
                         ctx.fillRect(0, 0, width, height);
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        // 용량을 10MB -> 100KB대로 확실히 축소하여 구글 1MB 저장 거부 방지
-                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.65);
+                        // 고용량 사진을 100KB 미만의 가벼운 JPEG로 확 낮춤
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.60);
                         callback(compressedDataUrl);
                     } catch (err) {
                         console.error("압축 중 오류 발생:", err);
