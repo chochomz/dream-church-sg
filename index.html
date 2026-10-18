@@ -125,6 +125,11 @@
                 </div>
             </div>
             <div class="shrink-0 flex items-center space-x-2">
+                <!-- Firebase Connection Status Lamp Indicator -->
+                <div class="flex items-center space-x-1.5 px-2 py-1 bg-gray-50 border church-border rounded-lg" title="클라우드 파이어베이스 연동 상태">
+                    <span id="db-status-lamp" class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse inline-block"></span>
+                    <span id="db-status-text" class="text-[10px] text-gray-500 whitespace-nowrap">연동중</span>
+                </div>
                 <button onclick="openWriteModal()" class="px-3 py-1.5 church-accent church-primary-text rounded-lg text-xs font-medium flex items-center space-x-1 shadow-xs whitespace-nowrap">
                     <i class="fa-solid fa-camera text-xs"></i>
                     <span>글쓰기</span>
@@ -242,40 +247,76 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sejong-dream-23-mokjang';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "AIzaSyDummyKeyForFallbackOnly",
-            authDomain: "default.firebaseapp.com",
-            projectId: "default-project"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        let currentUserUid = null;
         let tapCount = 0;
         let tapTimer = null;
         let currentUser = null;
         let currentMokjang = "세종꿈의교회 23목장";
         let selectedImagesList = [];
         let postToDeleteId = null;
+        let currentUserUid = null;
 
-        // Authenticate anonymously or with custom token for secure Firestore access
+        const firebaseConfig = typeof __firebase_config !== 'undefined' && __firebase_config ? __firebase_config : {
+            apiKey: "AIzaSyDummyKeyForLocalTesting12345",
+            authDomain: "dream-data.firebaseapp.com",
+            projectId: "dream-data",
+            storageBucket: "dream-data.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-mokjang-app';
+
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (e) {
+            console.warn("Firebase init warning:", e);
+        }
+
+        function setDbStatus(status) {
+            const lamp = document.getElementById('db-status-lamp');
+            const text = document.getElementById('db-status-text');
+            if (!lamp || !text) return;
+
+            lamp.className = "w-2.5 h-2.5 rounded-full inline-block";
+            if (status === 'connecting') {
+                lamp.classList.add('bg-blue-500', 'animate-pulse');
+                text.innerText = '연동중';
+            } else if (status === 'connected') {
+                lamp.classList.add('bg-emerald-500');
+                text.innerText = '연동됨';
+            } else if (status === 'saving') {
+                lamp.classList.add('bg-emerald-500', 'animate-pulse');
+                text.innerText = '저장중';
+            } else if (status === 'error') {
+                lamp.classList.add('bg-rose-500');
+                text.innerText = '연동오류';
+            }
+        }
+
         async function initAuth() {
+            setDbStatus('connecting');
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
+                if (auth) {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    currentUserUid = auth.currentUser?.uid || crypto.randomUUID();
                 } else {
-                    await signInAnonymously(auth);
+                    currentUserUid = crypto.randomUUID();
                 }
-                currentUserUid = auth.currentUser?.uid || crypto.randomUUID();
+                setDbStatus('connected');
             } catch (e) {
-                console.error("Auth error:", e);
+                console.warn("Auth fallback mode active:", e);
                 currentUserUid = crypto.randomUUID();
+                // If keys are invalid or failed, show red error light as requested
+                setDbStatus('error');
             }
         }
         initAuth();
@@ -473,7 +514,7 @@
 
         window.executeSubmitPost = async function() {
             closeSaveConfirmModal();
-            closeWriteModal(); // Both write modal and save confirm modal close together
+            closeWriteModal();
             
             const postId = document.getElementById('editing-post-id').value;
             const mokjangName = currentMokjang;
@@ -482,7 +523,13 @@
 
             const finalImages = selectedImagesList.length > 0 ? selectedImagesList : ["https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=800&q=80"];
 
+            setDbStatus('saving');
             try {
+                if (!db) {
+                    alert("데이터베이스가 초기화되지 않았습니다.");
+                    setDbStatus('error');
+                    return;
+                }
                 const postsCol = collection(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts');
                 if (postId) {
                     const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts', postId);
@@ -506,9 +553,11 @@
                         createdAt: new Date()
                     });
                 }
+                setDbStatus('connected');
             } catch (error) {
                 console.error("저장 오류:", error);
                 alert("저장 중 오류가 발생했습니다.");
+                setDbStatus('error');
             }
         };
 
@@ -524,17 +573,22 @@
 
         document.getElementById('confirm-yes-btn').addEventListener('click', async () => {
             if (!postToDeleteId) return;
+            setDbStatus('saving');
             try {
+                if (!db) { setDbStatus('error'); return; }
                 await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts', postToDeleteId));
                 closeConfirmModal();
+                setDbStatus('connected');
             } catch (error) {
                 console.error("삭제 오류:", error);
                 alert("삭제 중 오류가 발생했습니다.");
+                setDbStatus('error');
             }
         });
 
         function loadMokjangFeed() {
             const feedContainer = document.getElementById('feed-container');
+            if (!db) return;
             const postsCol = collection(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts');
 
             onSnapshot(postsCol, (snapshot) => {
@@ -634,7 +688,6 @@
                         ${imagesHtml}
 
                         <div class="px-3 space-y-2">
-                            <!-- Left-aligned heart, comment count, and '+' button right below image -->
                             <div class="flex items-center space-x-3 pt-1">
                                 <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 text-xs font-medium ${hasLiked ? 'text-rose-500' : 'text-gray-600'}">
                                     <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-base"></i>
@@ -653,12 +706,11 @@
                                 ${escapeHtml(post.content)}
                             </div>
 
-                            <!-- Expandable comment input section toggled by '+' button -->
                             <div id="comment-section-${post.id}" class="space-y-1.5 pt-1 hidden">
                                 <div class="space-y-1 max-h-28 overflow-y-auto">${commentsHtml}</div>
-                                <div class="flex space-x-1.5 pt-1">
-                                    <input type="text" id="comment-input-${post.id}" placeholder="댓글을 남겨주세요..." class="flex-1 px-3 py-1.5 rounded-xl border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none">
-                                    <button onclick="addComment('${post.id}')" class="px-3 py-1.5 church-primary text-white rounded-xl text-xs font-medium whitespace-nowrap">등록</button>
+                                <div class="flex space-x-1.5 pt-1 items-center">
+                                    <input type="text" id="comment-input-${post.id}" maxlength="200" placeholder="댓글을 남겨주세요 (200자 이내)..." class="flex-1 px-2 py-1.5 border-b-2 border-emerald-700 bg-transparent text-xs focus:outline-none placeholder-gray-400">
+                                    <button onclick="addComment('${post.id}')" class="px-3 py-1.5 church-primary text-white rounded-xl text-xs font-medium whitespace-nowrap shadow-xs">등록</button>
                                 </div>
                             </div>
                         </div>
@@ -667,18 +719,22 @@
                 });
             }, (error) => {
                 console.error("Feed snapshot error:", error);
+                setDbStatus('error');
             });
         }
 
         window.toggleLike = async function(postId, hasLiked) {
+            if (!db) return;
             const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts', postId);
+            setDbStatus('saving');
             try {
                 if (hasLiked) {
                     await updateDoc(postRef, { likes: increment(-1), likedUsers: arrayRemove(currentUser) });
                 } else {
                     await updateDoc(postRef, { likes: increment(1), likedUsers: arrayUnion(currentUser) });
                 }
-            } catch (error) { console.error("좋아요 오류:", error); }
+                setDbStatus('connected');
+            } catch (error) { console.error("좋아요 오류:", error); setDbStatus('error'); }
         };
 
         window.toggleCommentInput = function(postId) {
@@ -701,6 +757,37 @@
             const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
             const commentObj = { author: currentUser, text: text, time: timeStr };
 
+            if (!db) return;
+            const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts', postId);
+            setDbStatus('saving');
+            try {
+                await updateDoc(postRef, { comments: arrayUnion(commentObj) });
+                inputEl.value = '';
+                setDbStatus('connected');
+            } catch (error) { console.error("댓글 오류:", error); setDbStatus('error'); }
+        };
+
+        window.toggleCommentInput = function(postId) {
+            const section = document.getElementById(`comment-section-${postId}`);
+            if (section) {
+                section.classList.toggle('hidden');
+                if (!section.classList.contains('hidden')) {
+                    const input = document.getElementById(`comment-input-${postId}`);
+                    if (input) input.focus();
+                }
+            }
+        };
+
+        window.addComment = async function(postId) {
+            const inputEl = document.getElementById(`comment-input-${postId}`);
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            const now = new Date();
+            const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const commentObj = { author: currentUser, text: text, time: timeStr };
+
+            if (!db) return;
             const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts', postId);
             try {
                 await updateDoc(postRef, { comments: arrayUnion(commentObj) });
