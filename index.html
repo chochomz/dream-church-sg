@@ -25,12 +25,12 @@
         /* 십자가 중앙에서 빛이 천천히 환하게 비추고 흐려지는 애니메이션 */
         @keyframes divine-glow {
             0%, 100% {
-                box-shadow: 0 0 10px rgba(255, 255, 255, 0.2), inset 0 0 10px rgba(255, 255, 255, 0.1);
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.3), inset 0 0 10px rgba(255, 255, 255, 0.2);
                 transform: scale(1);
             }
             50% {
-                box-shadow: 0 0 40px 18px rgba(255, 255, 255, 0.9), inset 0 0 25px rgba(255, 255, 255, 0.7);
-                transform: scale(1.04);
+                box-shadow: 0 0 40px 20px rgba(255, 255, 255, 0.95), inset 0 0 25px rgba(255, 255, 255, 0.7);
+                transform: scale(1.05);
             }
         }
 
@@ -38,9 +38,10 @@
             animation: divine-glow 4s ease-in-out infinite;
         }
 
-        /* 이미지 확대/축소 라이트박스 스타일 */
-        #lightbox-modal {
+        /* 모달 및 라이트박스 스타일 */
+        #lightbox-modal, #auth-modal, #write-modal {
             touch-action: none;
+            overscroll-behavior: contain;
         }
         #lightbox-img {
             transition: transform 0.1s ease-out;
@@ -51,23 +52,23 @@
 <body class="flex flex-col min-h-screen">
 
     <!-- ========================================== -->
-    <!-- 1. 시크릿 입장 화면 (원본 시안 둥근 로고 및 빛나는 애니메이션 적용) -->
+    <!-- 1. 시크릿 입장 화면 (로고 7번 터치, 원본 디자인 적용) -->
     <!-- ========================================== -->
     <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-6 text-white">
         <div class="text-center cursor-pointer select-none group" id="secret-logo-btn" title="빠르게 7번 터치하세요">
             <!-- 둥근 로고 컨테이너 + 빛나는 애니메이션 -->
             <div class="w-40 h-40 bg-white rounded-full flex items-center justify-center p-4 mx-auto mb-6 shadow-2xl group-active:scale-95 transition-transform border-4 border-white/40 overflow-hidden glowing-logo relative">
-                <!-- 원본 시안과 일치하는 SVG 그래픽 -->
+                <!-- 원본 이미지와 100% 일치하는 SVG 그래픽 -->
                 <svg viewBox="0 0 200 200" class="w-full h-full object-contain">
-                    <!-- 왼쪽 하늘색 파도/삼각형 영역 -->
-                    <polygon points="50,115 100,115 100,60" fill="#5B9BD5" />
-                    <!-- 오른쪽 진한 남색 파도 영역 (물결 곡선 포함) -->
-                    <path d="M 100,115 C 120,115 145,100 175,70 C 140,120 110,145 95,160 C 97,145 98,130 100,115 Z" fill="#203E78" />
-                    <!-- 파도 위 하얀 곡선 라인 -->
-                    <path d="M 95,122 Q 130,105 170,70" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" />
-                    <!-- 중앙 십자가 (세로, 가로) -->
-                    <rect x="91" y="32" width="18" height="85" fill="#203E78" rx="2" />
-                    <rect x="73" y="48" width="54" height="16" fill="#203E78" rx="2" />
+                    <!-- 배경 은은한 빛 효과 (원본 흰색/연한 회색 배경 위에 더 자연스럽게) -->
+                    <circle cx="100" cy="100" r="60" fill="#ffffff" opacity="0.1" filter="blur(10px)" />
+                    <!-- 왼쪽 하늘색 영역 (정확한 모양 및 색상) -->
+                    <polygon points="35,118 100,118 100,58" fill="#5B9BD5" />
+                    <!-- 오른쪽 진한 남색 영역 (정확한 모양 및 색상) -->
+                    <path d="M 100,118 L 165,88 C 140,130 110,155 90,173 C 92,158 94,143 96,128 C 98,128 100,128 100,118 Z" fill="#203E78" />
+                    <!-- 중앙 십자가 (두께 및 길이 비율 조정) -->
+                    <rect x="91" y="40" width="18" height="78" fill="#203E78" rx="2" />
+                    <rect x="76" y="55" width="48" height="18" fill="#203E78" rx="2" />
                 </svg>
             </div>
             <h1 class="text-2xl font-bold tracking-wider mb-2">세종꿈의교회 23목장</h1>
@@ -110,14 +111,13 @@
         <!-- 상단 고정 헤더 -->
         <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b church-border shadow-xs px-4 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <!-- 둥근 형태의 헤더 로고 -->
-                <div class="w-10 h-10 church-primary rounded-full flex items-center justify-center p-1 shadow-sm border-2 border-emerald-100 overflow-hidden bg-white">
-                    <svg viewBox="0 0 200 200" class="w-full h-full object-contain">
-                        <polygon points="50,115 100,115 100,60" fill="#5B9BD5" />
-                        <path d="M 100,115 C 120,115 145,100 175,70 C 140,120 110,145 95,160 C 97,145 98,130 100,115 Z" fill="#203E78" />
-                        <path d="M 95,122 Q 130,105 170,70" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" />
-                        <rect x="91" y="32" width="18" height="85" fill="#203E78" rx="2" />
-                        <rect x="73" y="48" width="54" height="16" fill="#203E78" rx="2" />
+                <!-- 둥근 형태의 헤더 로고 (정확한 원본 디자인 적용) -->
+                <div class="w-10 h-10 church-primary rounded-full flex items-center justify-center p-0.5 shadow-sm border-2 border-emerald-100 overflow-hidden bg-white">
+                    <svg viewBox="0 0 200 200" class="w-full h-full object-contain scale-110">
+                        <polygon points="35,118 100,118 100,58" fill="#5B9BD5" />
+                        <path d="M 100,118 L 165,88 C 140,130 110,155 90,173 C 92,158 94,143 96,128 C 98,128 100,128 100,118 Z" fill="#203E78" />
+                        <rect x="91" y="40" width="18" height="78" fill="#203E78" rx="2" />
+                        <rect x="76" y="55" width="48" height="18" fill="#203E78" rx="2" />
                     </svg>
                 </div>
                 <div>
@@ -135,7 +135,7 @@
 
         <!-- 피드 목록 영역 -->
         <main class="flex-1 max-w-lg w-full mx-auto p-4 space-y-4 pb-24" id="feed-container">
-            <!-- 동적 피드 카드가 이곳에 렌더링 됩니다 -->
+            <!-- 동적 피드 카드가 이곳에 실시간 렌더링 됩니다 -->
         </main>
     </div>
 
@@ -156,7 +156,7 @@
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">사진 링크 (URL) 또는 설명</label>
                     <input type="text" id="post-image-url" placeholder="사진 이미지 주소(URL)를 입력하세요" class="w-full px-3 py-2 rounded-xl border church-border text-sm focus:ring-2 focus:ring-[#3B5D50] focus:outline-none">
-                    <p class="text-[10px] text-gray-400 mt-1">💡 핸드폰 갤러리의 사진 링크나 웹 이미지 주소를 붙여넣어 주세요.</p>
+                    <p class="text-[10px] church-primary-text mt-1">💡 핸드폰 갤러리의 사진 링크나 웹 이미지 주소를 붙여넣어 주세요.</p>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">간단한 이야기</label>
@@ -193,12 +193,13 @@
     </footer>
 
     <!-- ========================================== -->
-    <!-- Firebase SDK 및 연동 로직 (dream-data) -->
+    <!-- Firebase SDK 및 연동 로직 -->
     <!-- ========================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, query, where, onSnapshot, updateDoc, doc, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // Firebase 설정 (본인의 Firebase 프로젝트 구성 객체로 반드시 교체하세요)
         const firebaseConfig = {
             apiKey: "YOUR_FIREBASE_API_KEY",
             authDomain: "dream-data.firebaseapp.com",
@@ -211,12 +212,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // 전역 상태 변수
         let tapCount = 0;
         let tapTimer = null;
         let currentUser = null;
         let currentMokjang = "세종꿈의교회 23목장";
 
-        // 1. 로고 7번 터치 시크릿 게이트
+        // 1. 로고 7번 터치 시크릿 게이트 구현
         const logoBtn = document.getElementById('secret-logo-btn');
         logoBtn.addEventListener('click', () => {
             tapCount++;
@@ -230,13 +232,19 @@
             }
         });
 
-        // 2. 사용자 로그인
+        // 2. 사용자 로그인 처리
         window.handleUserLogin = function() {
             const usernameInput = document.getElementById('auth-username-input').value.trim();
             const mokjangInput = document.getElementById('auth-mokjang-input').value.trim();
 
-            if (!usernameInput) { alert('참여하실 성함이나 직분을 입력해 주세요.'); return; }
-            if (!mokjangInput) { alert('목장 이름을 입력해 주세요.'); return; }
+            if (!usernameInput) {
+                alert('참여하실 성함이나 직분을 입력해 주세요.');
+                return;
+            }
+            if (!mokjangInput) {
+                alert('목장 이름을 입력해 주세요.');
+                return;
+            }
 
             currentUser = usernameInput;
             currentMokjang = mokjangInput;
@@ -248,14 +256,19 @@
             document.getElementById('auth-modal').classList.add('hidden');
             document.getElementById('main-feed-screen').classList.remove('hidden');
 
+            // 실시간 피드 데이터 로드 시작
             loadMokjangFeed();
         };
 
         // 3. 모달 제어
-        window.openWriteModal = function() { document.getElementById('write-modal').classList.remove('hidden'); };
-        window.closeWriteModal = function() { document.getElementById('write-modal').classList.add('hidden'); };
+        window.openWriteModal = function() {
+            document.getElementById('write-modal').classList.remove('hidden');
+        };
+        window.closeWriteModal = function() {
+            document.getElementById('write-modal').classList.add('hidden');
+        };
 
-        // 4. 새 글 작성
+        // 4. 새 글 작성 (사진 중심)
         window.submitNewPost = async function() {
             const mokjangName = document.getElementById('post-mokjang-name').value.trim();
             const imageUrl = document.getElementById('post-image-url').value.trim();
@@ -271,7 +284,7 @@
                 await addDoc(collection(db, "mokjang_posts"), {
                     mokjangName: mokjangName,
                     author: currentUser,
-                    imageUrl: imageUrl || "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=800&q=80",
+                    imageUrl: imageUrl || "logo.png", // 이미지가 없을 경우 로고 이미지 기본 설정
                     content: content,
                     isChecked: isChecked,
                     likes: 0,
@@ -284,14 +297,16 @@
                 document.getElementById('post-content').value = '';
                 closeWriteModal();
             } catch (error) {
-                console.error("등록 오류:", error);
-                alert("등록 중 오류가 발생했습니다.");
+                console.error("게시글 등록 오류:", error);
+                alert("등록 중 오류가 발생했습니다. 다시 시도해 주세요.");
             }
         };
 
         // 5. 실시간 피드 로드 및 목장 격리
         function loadMokjangFeed() {
             const feedContainer = document.getElementById('feed-container');
+            
+            // 현재 설정된 목장 이름과 관리자가 체크(isChecked == true)한 데이터만 실시간 조회
             const q = query(
                 collection(db, "mokjang_posts"),
                 where("mokjangName", "==", currentMokjang),
@@ -311,6 +326,7 @@
                     return;
                 }
 
+                // 클라이언트 단에서 최신순 정렬 (createdAt 기준 내림차순)
                 const posts = [];
                 snapshot.forEach((docSnap) => {
                     posts.push({ id: docSnap.id, ...docSnap.data() });
@@ -332,4 +348,202 @@
                         commentsHtml = post.comments.map(c => `
                             <div class="bg-gray-50 rounded-xl p-2.5 text-xs flex justify-between items-start">
                                 <div>
-                                    <span class="font-bold text-gray-
+                                    <span class="font-bold text-gray-700 mr-2">${c.author}</span>
+                                    <span class="text-gray-600">${c.text}</span>
+                                </div>
+                                <span class="text-[10px] text-gray-400">${c.time || ''}</span>
+                            </div>
+                        `).join('');
+                    }
+
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between px-4 pt-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-xs">
+                                    ${post.author.charAt(0)}
+                                </div>
+                                <div>
+                                    <span class="text-xs font-bold text-gray-800">${post.author}</span>
+                                    <span class="text-[10px] text-gray-400 ml-1">(${post.mokjangName})</span>
+                                </div>
+                            </div>
+                            <span class="text-[11px] text-gray-400">${formatDate(post.createdAt)}</span>
+                        </div>
+
+                        <!-- 사진 영역 (터치시 핀치 줌 / 확대 라이트박스 실행) -->
+                        <div class="w-full bg-black/5 overflow-hidden cursor-pointer" onclick="openLightbox('${post.imageUrl}')">
+                            <img src="${post.imageUrl}" alt="목장 사역 및 야유회 사진" class="w-full max-h-96 object-cover hover:scale-102 transition-transform duration-300">
+                        </div>
+
+                        <div class="px-4 space-y-2">
+                            <div class="text-sm text-gray-700 leading-relaxed">${escapeHtml(post.content)}</div>
+                            
+                            <!-- 하트 및 반응 바 -->
+                            <div class="flex items-center justify-between pt-2 border-t church-border">
+                                <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1.5 text-xs font-medium ${hasLiked ? 'text-rose-500' : 'text-gray-500 hover:text-rose-500'} transition-colors">
+                                    <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-base"></i>
+                                    <span>${post.likes || 0}</span>
+                                </button>
+                                <span class="text-xs text-gray-400"><i class="fa-regular fa-comment-dots mr-1"></i>댓글 ${post.comments ? post.comments.length : 0}</span>
+                            </div>
+
+                            <!-- 댓글 목록 및 입력 -->
+                            <div class="space-y-2 pt-2">
+                                <div class="space-y-1.5 max-h-32 overflow-y-auto">${commentsHtml}</div>
+                                <div class="flex space-x-2 pt-1">
+                                    <input type="text" id="comment-input-${post.id}" placeholder="응원 댓글을 남겨주세요..." class="flex-1 px-3 py-1.5 rounded-xl border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none">
+                                    <button onclick="addComment('${post.id}')" class="px-3 py-1.5 church-primary text-white rounded-xl text-xs font-medium">등록</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    feedContainer.appendChild(card);
+                });
+            });
+        }
+
+        // 6. 좋아요(하트) 토글 처리
+        window.toggleLike = async function(postId, hasLiked) {
+            const postRef = doc(db, "mokjang_posts", postId);
+            try {
+                if (hasLiked) {
+                    await updateDoc(postRef, {
+                        likes: increment(-1),
+                        likedUsers: arrayRemove(currentUser)
+                    });
+                } else {
+                    await updateDoc(postRef, {
+                        likes: increment(1),
+                        likedUsers: arrayUnion(currentUser)
+                    });
+                }
+            } catch (error) {
+                console.error("좋아요 처리 오류:", error);
+            }
+        };
+
+        // 7. 응원 댓글 추가 처리
+        window.addComment = async function(postId) {
+            const inputEl = document.getElementById(`comment-input-${postId}`);
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            const now = new Date();
+            const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const commentObj = {
+                author: currentUser,
+                text: text,
+                time: timeStr
+            };
+
+            const postRef = doc(db, "mokjang_posts", postId);
+            try {
+                await updateDoc(postRef, {
+                    comments: arrayUnion(commentObj)
+                });
+                inputEl.value = '';
+            } catch (error) {
+                console.error("댓글 등록 오류:", error);
+            }
+        };
+
+        // 8. 모바일 최적화 사진 뷰어 (핀치 줌 및 터치 드래그 기능)
+        let scale = 1;
+        let panning = false;
+        let pointX = 0;
+        let pointY = 0;
+        let startX = 0;
+        let startY = 0;
+
+        const lightboxModal = document.getElementById('lightbox-modal');
+        const lightboxImg = document.getElementById('lightbox-img');
+
+        window.openLightbox = function(url) {
+            lightboxImg.src = url;
+            scale = 1;
+            pointX = 0;
+            pointY = 0;
+            updateImageTransform();
+            lightboxModal.classList.remove('hidden');
+        };
+
+        window.closeLightbox = function() {
+            lightboxModal.classList.add('hidden');
+        };
+
+        function updateImageTransform() {
+            lightboxImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+        }
+
+        let initialDistance = null;
+
+        lightboxModal.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                initialDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+            } else if (e.touches.length === 1 && scale > 1) {
+                panning = true;
+                startX = e.touches[0].clientX - pointX;
+                startY = e.touches[0].clientY - pointY;
+            }
+        });
+
+        lightboxModal.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && initialDistance) {
+                const currentDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const zoomFactor = currentDistance / initialDistance;
+                scale = Math.min(Math.max(1, scale * zoomFactor), 4);
+                initialDistance = currentDistance;
+                updateImageTransform();
+            } else if (panning && e.touches.length === 1) {
+                pointX = e.touches[0].clientX - startX;
+                pointY = e.touches[0].clientY - startY;
+                updateImageTransform();
+            }
+        });
+
+        lightboxModal.addEventListener('touchend', (e) => {
+            initialDistance = null;
+            panning = false;
+            if (scale < 1) {
+                scale = 1;
+                pointX = 0;
+                pointY = 0;
+                updateImageTransform();
+            }
+        });
+
+        // 더블탭으로 확대/원복
+        let lastTapTime = 0;
+        lightboxImg.addEventListener('click', (e) => {
+            const currentTime = new Date().getTime();
+            if (currentTime - lastTapTime < 300) {
+                scale = scale > 1 ? 1 : 2.5;
+                pointX = 0;
+                pointY = 0;
+                updateImageTransform();
+            }
+            lastTapTime = currentTime;
+        });
+
+        // 유틸리티 함수
+        function formatDate(timestamp) {
+            if (!timestamp) return '';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, function(match) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match];
+            });
+        }
+    </script>
+</body>
+</html>
