@@ -292,7 +292,7 @@
                     <input type="checkbox" id="post-display-check" checked class="w-3.5 h-3.5 text-[#3B5D50] rounded border-gray-300">
                     <label for="post-display-check" class="text-[11px] text-gray-700 font-medium whitespace-nowrap">피드에 즉시 노출</label>
                 </div>
-                <button onclick="requestSavePost()" class="w-full py-2 church-primary text-white rounded-lg font-medium text-xs shadow-xs whitespace-nowrap" id="submit-btn-text">
+                <button type="button" id="submit-btn" onclick="requestSavePost()" class="w-full py-2 church-primary text-white rounded-lg font-medium text-xs shadow-xs whitespace-nowrap">
                     등록하기
                 </button>
             </div>
@@ -356,6 +356,7 @@
         let selectedImagesList = [];
         let postToDeleteId = null;
         let isAuthReady = false;
+        let isProcessingFiles = false;
         let currentDbStatus = 'connecting';
         let currentActivePopupPostId = null;
         let cachedPosts = [];
@@ -380,12 +381,12 @@
             console.error("Firebase init error:", e);
         }
 
-        // 테니스 클럽 표준 컬렉션 참조 헬퍼
+        // Firestore 컬렉션 다이렉트 루트 참조 (권한 거부 및 경로 꼬임 원천 차단)
         function getPostsCollection() {
-            return collection(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts');
+            return collection(db, 'mokjang_posts');
         }
         function getPostDocRef(postId) {
-            return doc(db, 'artifacts', appId, 'public', 'data', 'mokjang_posts', postId);
+            return doc(db, 'mokjang_posts', postId);
         }
 
         function setDbStatus(status) {
@@ -523,63 +524,61 @@
         };
 
         // 스마트폰 사진을 확실하게 100% 읽어들이고 최적화하는 직관적 리더
-        function processImageFile(file, callback) {
-            if (!file) return callback(null);
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const rawDataUrl = e.target.result;
-                if (!rawDataUrl) return callback(null);
+        function processImageFileAsync(file) {
+            return new Promise((resolve) => {
+                if (!file) return resolve(null);
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const rawData = e.target.result;
+                    if (!rawData) return resolve(null);
 
-                const img = new Image();
-                img.onload = function() {
-                    try {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        const maxDim = 800; // 모바일 2x 최적 해상도
+                    const img = new Image();
+                    img.onload = function() {
+                        try {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
+                            const maxDim = 800;
 
-                        if (width > height) {
-                            if (width > maxDim) {
-                                height = Math.round((height * maxDim) / width);
-                                width = maxDim;
+                            if (width > height) {
+                                if (width > maxDim) {
+                                    height = Math.round((height * maxDim) / width);
+                                    width = maxDim;
+                                }
+                            } else {
+                                if (height > maxDim) {
+                                    width = Math.round((width * maxDim) / height);
+                                    height = maxDim;
+                                }
                             }
-                        } else {
-                            if (height > maxDim) {
-                                width = Math.round((width * maxDim) / height);
-                                height = maxDim;
-                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.imageSmoothingEnabled = true;
+                            ctx.imageSmoothingQuality = 'high';
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            const compressed = canvas.toDataURL('image/jpeg', 0.7);
+                            resolve(compressed);
+                        } catch (err) {
+                            console.warn("Canvas compress fallback:", err);
+                            resolve(rawData);
                         }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.imageSmoothingEnabled = true;
-                        ctx.imageSmoothingQuality = 'high';
-                        ctx.drawImage(img, 0, 0, width, height);
-
-                        const compressed = canvas.toDataURL('image/jpeg', 0.7);
-                        callback(compressed);
-                    } catch (err) {
-                        console.warn("캔버스 압축 대체:", err);
-                        // 캔버스 에러 시 원본 Base64로 즉시 fallback (절대 유실 방지)
-                        callback(rawDataUrl);
-                    }
+                    };
+                    img.onerror = function() {
+                        resolve(rawData);
+                    };
+                    img.src = rawData;
                 };
-                img.onerror = function() {
-                    // 이미지 로드 에러 시에도 raw 데이터 보존
-                    callback(rawDataUrl);
+                reader.onerror = function() {
+                    resolve(null);
                 };
-                img.src = rawDataUrl;
-            };
-            reader.onerror = function() {
-                console.error("FileReader 에러");
-                callback(null);
-            };
-            reader.readAsDataURL(file);
+                reader.readAsDataURL(file);
+            });
         }
 
-        window.handleFilesSelect = function(event) {
+        window.handleFilesSelect = async function(event) {
             const files = event.target.files;
             if (!files || files.length === 0) return;
 
@@ -590,23 +589,37 @@
             }
 
             const filesToProcess = Array.from(files).slice(0, remainingSlots);
-            let processed = 0;
+            isProcessingFiles = true;
             
-            showNotification(`${filesToProcess.length}장의 사진을 준비 중입니다...`);
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50');
+                submitBtn.innerText = "사진 처리 중...";
+            }
 
-            filesToProcess.forEach(file => {
-                processImageFile(file, function(resultDataUrl) {
-                    if (resultDataUrl) {
-                        selectedImagesList.push(resultDataUrl);
-                    }
-                    processed++;
-                    if (processed === filesToProcess.length) {
-                        renderImagePreviews();
-                        showNotification(`사진 ${selectedImagesList.length}장 준비 완료`);
-                    }
+            showNotification(`${filesToProcess.length}장의 사진을 변환 중입니다...`);
+
+            try {
+                const results = await Promise.all(filesToProcess.map(f => processImageFileAsync(f)));
+                results.forEach(res => {
+                    if (res) selectedImagesList.push(res);
                 });
-            });
-            event.target.value = '';
+                renderImagePreviews();
+                showNotification(`사진 ${selectedImagesList.length}장 준비 완료`);
+            } catch (e) {
+                console.error("사진 처리 오류:", e);
+                showNotification("사진 처리 중 오류가 발생했습니다.");
+            } finally {
+                isProcessingFiles = false;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50');
+                    const isEdit = document.getElementById('editing-post-id').value;
+                    submitBtn.innerText = isEdit ? "수정 완료" : "등록하기";
+                }
+                event.target.value = '';
+            }
         };
 
         window.scrollToContentInput = function() {
@@ -677,12 +690,13 @@
             selectedImagesList = Array.isArray(existingImages) ? [...existingImages] : (existingImages ? [existingImages] : []);
             renderImagePreviews();
 
+            const submitBtn = document.getElementById('submit-btn');
             if (postId) {
                 document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-pen-to-square church-primary-text mr-1"></i>목장 이야기 수정하기`;
-                document.getElementById('submit-btn-text').innerText = "수정 완료";
+                if (submitBtn) submitBtn.innerText = "수정 완료";
             } else {
                 document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-camera church-primary-text mr-1"></i>목장 이야기 올리기`;
-                document.getElementById('submit-btn-text').innerText = "등록하기";
+                if (submitBtn) submitBtn.innerText = "등록하기";
             }
 
             document.getElementById('write-modal').classList.remove('hidden');
@@ -693,9 +707,14 @@
             selectedImagesList = [];
             document.getElementById('post-content').value = '';
             document.getElementById('editing-post-id').value = '';
+            renderImagePreviews();
         };
 
         window.requestSavePost = function() {
+            if (isProcessingFiles) {
+                showNotification('사진 변환 작업 중입니다. 잠시만 기다려주세요.');
+                return;
+            }
             const content = document.getElementById('post-content').value.trim();
             if (!content) {
                 showNotification('이야기 내용을 입력해 주세요.');
@@ -710,13 +729,15 @@
 
         window.executeSubmitPost = async function() {
             closeSaveConfirmModal();
-            closeWriteModal();
             
             const postId = document.getElementById('editing-post-id').value;
             const mokjangName = currentMokjang;
             const content = document.getElementById('post-content').value.trim();
             const isChecked = document.getElementById('post-display-check').checked;
             const finalImages = [...selectedImagesList];
+
+            closeWriteModal();
+            showNotification("클라우드 서버에 저장 중입니다...");
 
             setDbStatus('saving');
             try {
@@ -730,7 +751,6 @@
                     await initAuth();
                 }
 
-                // 사진 데이터 단일/배열 양쪽 완벽 매핑
                 const primaryImage = finalImages.length > 0 ? finalImages[0] : "";
 
                 if (postId) {
@@ -757,10 +777,10 @@
                     });
                 }
                 setDbStatus('connected');
-                showNotification("게시글이 성공적으로 저장되었습니다.");
+                showNotification("🎉 게시글과 사진이 성공적으로 저장되었습니다!");
             } catch (error) {
-                console.error("저장 오류:", error);
-                showNotification("저장 실패: " + error.message);
+                console.error("저장 오류 발생:", error);
+                showNotification("⚠️ 저장 실패: " + (error.message || error));
                 setDbStatus('error');
             }
         };
