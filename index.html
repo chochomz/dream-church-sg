@@ -513,45 +513,54 @@
             loadMokjangFeed();
         };
 
-        // 안전한 2x 리사이징 및 Base64 변환
+        // [핵심 교정] 스마트폰 고화질 원본 사진(10MB+)을 Firestore 1MB 제한 안(100~200KB)으로 확실하게 압축
         function processImageFile(file, callback) {
+            if (!file) return callback(null);
+            
             const reader = new FileReader();
             reader.onload = function(e) {
-                const rawData = e.target.result;
                 const img = new Image();
                 img.onload = function() {
                     try {
                         const canvas = document.createElement('canvas');
-                        let w = img.width;
-                        let h = img.height;
-                        const maxDim = 840; // 모바일 2x 레티나 기준
+                        let width = img.width;
+                        let height = img.height;
+                        const maxDim = 960; // 모바일 화면에서 선명하게 꽉 차는 최적 규격
 
-                        if (w > h && w > maxDim) {
-                            h = Math.round((h * maxDim) / w);
-                            w = maxDim;
-                        } else if (h > maxDim) {
-                            w = Math.round((w * maxDim) / h);
-                            h = maxDim;
+                        if (width > height) {
+                            if (width > maxDim) {
+                                height = Math.round((height * maxDim) / width);
+                                width = maxDim;
+                            }
+                        } else {
+                            if (height > maxDim) {
+                                width = Math.round((width * maxDim) / height);
+                                height = maxDim;
+                            }
                         }
 
-                        canvas.width = w;
-                        canvas.height = h;
+                        canvas.width = width;
+                        canvas.height = height;
                         const ctx = canvas.getContext('2d');
+                        
+                        // 투명 배경 방지 (흰색 바탕 채움)
                         ctx.fillStyle = "#ffffff";
-                        ctx.fillRect(0, 0, w, h);
-                        ctx.drawImage(img, 0, 0, w, h);
+                        ctx.fillRect(0, 0, width, height);
+                        ctx.drawImage(img, 0, 0, width, height);
 
-                        const compressed = canvas.toDataURL('image/jpeg', 0.8);
-                        callback(compressed);
+                        // 용량을 10MB -> 100KB대로 확실히 축소하여 구글 1MB 저장 거부 방지
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.65);
+                        callback(compressedDataUrl);
                     } catch (err) {
-                        console.warn("리사이징 예외, 원본 데이터 사용:", err);
-                        callback(rawData);
+                        console.error("압축 중 오류 발생:", err);
+                        callback(e.target.result);
                     }
                 };
                 img.onerror = function() {
-                    callback(rawData);
+                    console.error("이미지 로드 실패");
+                    callback(null);
                 };
-                img.src = rawData;
+                img.src = e.target.result;
             };
             reader.onerror = function() {
                 callback(null);
@@ -733,7 +742,8 @@
                 showNotification("게시글이 성공적으로 저장되었습니다.");
             } catch (error) {
                 console.error("저장 오류:", error);
-                showNotification("저장 중 오류가 발생했습니다.");
+                // 1MB 초과 등 구글 DB 에러 발생 시 사용자에게 명확히 알림
+                showNotification("저장 실패: 사진 용량이나 데이터베이스 오류 (" + error.message + ")");
                 setDbStatus('error');
             }
         };
