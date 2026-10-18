@@ -281,12 +281,12 @@
                     </div>
                 </div>
 
-                <div class="w-full">
+                <div class="w-full" id="post-content-container">
                     <div class="flex justify-between items-center mb-0.5 text-[10px]">
                         <span class="font-medium text-gray-600 whitespace-nowrap">내용 입력</span>
                         <span id="char-count-indicator" class="text-gray-400 whitespace-nowrap">0 / 200자</span>
                     </div>
-                    <textarea id="post-content" rows="3" maxlength="200" oninput="updateCharCount(this)" placeholder="내용을 입력하세요..." class="w-full px-2 py-1.5 rounded-lg border church-border text-xs focus:ring-1 focus:ring-[#3B5D50] focus:outline-none resize-none bg-white block"></textarea>
+                    <textarea id="post-content" rows="3" maxlength="200" onfocus="scrollToContentInput()" oninput="updateCharCount(this)" placeholder="내용을 입력하세요..." class="w-full px-2 py-1.5 rounded-lg border border-[#E5E7EB] text-xs focus:ring-1 focus:ring-[#3B5D50] focus:border-[#3B5D50] focus:outline-none resize-none bg-white block"></textarea>
                 </div>
                 <div class="flex items-center space-x-1.5">
                     <input type="checkbox" id="post-display-check" checked class="w-3.5 h-3.5 text-[#3B5D50] rounded border-gray-300">
@@ -560,6 +560,15 @@
             event.target.value = '';
         };
 
+        window.scrollToContentInput = function() {
+            setTimeout(() => {
+                const target = document.getElementById('post-content-container');
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 250);
+        };
+
         window.addUrlImage = function() {
             const urlInput = document.getElementById('post-image-url');
             const url = urlInput.value.trim();
@@ -573,6 +582,7 @@
             selectedImagesList.push(url);
             urlInput.value = '';
             renderImagePreviews();
+            scrollToContentInput();
         };
 
         window.removeSelectedImage = function(index) {
@@ -624,6 +634,7 @@
                 `;
                 grid.appendChild(addBtn);
             }
+            scrollToContentInput();
         }
 
         window.openWriteModal = function(postId = null, existingContent = "", existingImages = []) {
