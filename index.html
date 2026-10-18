@@ -97,8 +97,8 @@
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
 
-    <!-- [비밀 게이트 인트로] -->
-    <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-4 text-white text-center w-full h-full">
+    <!-- [비밀 게이트 인트로] (개발 편의를 위해 임시 hidden 처리) -->
+    <div id="secret-gate-screen" class="fixed inset-0 z-50 church-primary flex flex-col items-center justify-center p-4 text-white text-center w-full h-full hidden">
         <div class="cursor-pointer select-none group relative inline-block" id="secret-login-area">
             <div class="w-32 h-32 bg-white rounded-full flex items-center justify-center p-2.5 mx-auto mb-5 shadow-2xl group-active:scale-95 transition-transform border-4 border-white/40 overflow-hidden glowing-logo relative z-10">
                 <svg viewBox="0 0 200 200" class="w-full h-full object-contain" id="secret-logo-img">
@@ -120,7 +120,7 @@
         </div>
     </div>
 
-    <!-- [목장원 인증 모달] -->
+    <!-- [목장원 인증 모달] (개발 편의를 위해 임시 hidden 유지) -->
     <div id="auth-modal" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
         <div class="bg-white rounded-xl w-full max-w-xs p-5 shadow-2xl border church-border">
             <div class="text-center mb-4">
@@ -146,8 +146,8 @@
         </div>
     </div>
 
-    <!-- [메인 화면] -->
-    <div id="main-feed-screen" class="flex flex-col h-full w-full max-w-full overflow-hidden hidden">
+    <!-- [메인 화면] (페이지 진입 시 즉시 노출되도록 hidden 해제) -->
+    <div id="main-feed-screen" class="flex flex-col h-full w-full max-w-full overflow-hidden">
         <header class="h-[46px] shrink-0 bg-white border-b church-border shadow-xs px-2.5 flex items-center justify-between w-full z-30">
             <div class="flex items-center space-x-1.5 overflow-hidden">
                 <div class="w-7 h-7 church-primary rounded-full flex items-center justify-center p-0.5 shadow-xs border border-emerald-100 overflow-hidden bg-white shrink-0">
@@ -344,7 +344,7 @@
 
         let tapCount = 0;
         let tapTimer = null;
-        let currentUser = null;
+        let currentUser = "테스트목자";
         let currentMokjang = "세종꿈의교회 23목장";
         let selectedImagesList = [];
         let postToDeleteId = null;
@@ -456,15 +456,22 @@
                 }
                 isAuthReady = true;
                 setDbStatus('connected');
+                // 로그인 화면 우회: 즉시 피드 로드 및 헤더 갱신
+                document.getElementById('header-user-display').innerText = `${currentUser} 님`;
+                document.getElementById('header-mokjang-title').innerText = currentMokjang;
+                loadMokjangFeed();
             } catch (e) {
                 console.warn("익명 인증 알림:", e);
                 isAuthReady = true;
                 setDbStatus('connected');
+                document.getElementById('header-user-display').innerText = `${currentUser} 님`;
+                document.getElementById('header-mokjang-title').innerText = currentMokjang;
+                loadMokjangFeed();
             }
         }
         initAuth();
 
-        // 7회 탭 잠금 해제
+        // 7회 탭 잠금 해제 (임시 비활성화 상태에서도 이벤트 유지)
         const tapOverlay = document.getElementById('secret-tap-overlay');
         tapOverlay.addEventListener('click', (e) => {
             e.preventDefault();
