@@ -153,7 +153,7 @@
         </div>
     </div>
 
-    <!-- [메인 화면] (페이지 진입 시 즉시 노출되도록 hidden 해제) -->
+    <!-- [메인 화면] -->
     <div id="main-feed-screen" class="flex flex-col h-full w-full max-w-full overflow-hidden">
         <header class="h-[46px] shrink-0 bg-white border-b church-border shadow-xs px-2.5 flex items-center justify-between w-full z-30">
             <div class="flex items-center space-x-1.5 overflow-hidden">
@@ -167,12 +167,12 @@
                 </div>
                 <div class="overflow-hidden leading-tight">
                     <h1 class="text-[11px] font-bold text-gray-800 truncate whitespace-nowrap" id="header-mokjang-title">세종꿈의교회 23목장</h1>
-                    <p class="text-[9px] text-gray-500 truncate whitespace-nowrap" id="header-user-display">로그인 정보 없음</p>
+                    <p class="text-[9px] text-gray-500 truncate whitespace-nowrap" id="header-user-display">테스트목자 님</p>
                 </div>
             </div>
             
             <div class="shrink-0 flex items-center space-x-2">
-                <!-- 상부 연동 램프 (설명 텍스트 없음, 연한 파스텔 톤) -->
+                <!-- 상부 연동 램프 -->
                 <button type="button" onclick="openDbStatusModal()" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors focus:outline-none">
                     <span id="db-status-lamp" class="w-2.5 h-2.5 rounded-full bg-sky-300 animate-pulse transition-all"></span>
                 </button>
@@ -189,7 +189,7 @@
         </main>
     </div>
 
-    <!-- 심플 연동 상태 팝업 모달 -->
+    <!-- 연동 상태 팝업 모달 -->
     <div id="db-status-modal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 hidden">
         <div class="bg-white rounded-xl w-full max-w-xs p-4 shadow-xl border church-border text-center space-y-3">
             <div class="flex items-center justify-between pb-1 border-b church-border">
@@ -218,7 +218,7 @@
 
             <!-- 사진 없는 비정상 이전 글 일괄 정리 도구 -->
             <button onclick="cleanupBrokenPosts()" class="w-full py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded text-[11px] font-medium border border-rose-200 transition-colors">
-                <i class="fa-solid fa-broom mr-1"></i>사진 없는 비정상 글 3개 자동 청소
+                <i class="fa-solid fa-broom mr-1"></i>사진 없는 비정상 글 자동 청소
             </button>
 
             <button onclick="closeDbStatusModal()" class="w-full py-1.5 church-primary text-white rounded text-xs font-medium">닫기</button>
@@ -641,7 +641,7 @@
                 grid.appendChild(thumb);
             });
 
-            // 5장 미만일 때 노출되는 '+' 사진 추가 버튼 (기능 통합 및 중앙 정렬)
+            // 5장 미만일 때 노출되는 '+' 사진 추가 버튼 (중앙 정렬)
             if (selectedImagesList.length < 5) {
                 const addBtn = document.createElement('button');
                 addBtn.type = "button";
@@ -829,6 +829,18 @@
                 const posts = [];
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
+                    
+                    // 외국인 더미 사진(unsplash) 감지 시 DB에서 즉시 영구 자동 삭제
+                    const rawImg = data.imageUrl || "";
+                    const rawImgs = Array.isArray(data.images) ? data.images.join(" ") : "";
+                    if (rawImg.includes("unsplash") || rawImg.includes("photo-1517486808906") ||
+                        rawImgs.includes("unsplash") || rawImgs.includes("photo-1517486808906")) {
+                        try {
+                            deleteDoc(getPostDocRef(docSnap.id));
+                        } catch(e) {}
+                        return;
+                    }
+
                     if (data.mokjangName === currentMokjang && data.isChecked !== false) {
                         posts.push({ id: docSnap.id, ...data });
                     }
