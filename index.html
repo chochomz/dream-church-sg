@@ -134,6 +134,22 @@
             pointer-events: auto;
         }
 
+        /* 하단 내보내기 왼쪽 슬라이드 메뉴 애니메이션 */
+        .export-slide-menu {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: right center;
+        }
+        .export-menu-closed {
+            opacity: 0;
+            transform: translateX(12px) scale(0.92);
+            pointer-events: none;
+        }
+        .export-menu-open {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+            pointer-events: auto;
+        }
+
         /* 인쇄 전용 스타일: 해당 포스트 외 숨김 처리 */
         @media print {
             body * {
@@ -254,7 +270,7 @@
                         <span id="char-count-indicator" class="text-gray-400">0 / 200자</span>
                     </div>
                     <textarea id="post-content" rows="3" maxlength="200" oninput="updateCharCount(this)" placeholder="목장 가족들과 나눌 따뜻한 이야기를 입력하세요..." 
-                              class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#3B5D50] focus:ring-1 focus:ring-[#3B5D50] focus:outline-none resize-none bg-white block transition-all shadow-2xs"></textarea>
+                              class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#3B5D50] focus:ring-1 focus:ring-[#3B5D50] focus:outline-none resize-none bg-white block transition-all shadow-2xs text-left"></textarea>
                 </div>
             </div>
 
@@ -269,18 +285,18 @@
     </div>
 
     <!-- [저장 확인 모달] -->
+    <!-- [저장 확인 모달: "게시글 저장" 문구 삭제, 사이즈 축소, 올리기 변경] -->
     <div id="save-confirm-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
-        <div class="bg-white rounded-xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3">
-            <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-base">
+        <div class="bg-white rounded-xl w-full max-w-xs p-3.5 shadow-2xl border church-border text-center space-y-2.5">
+            <div class="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-sm">
                 <i class="fa-solid fa-circle-question"></i>
             </div>
             <div>
-                <h3 class="text-sm font-bold text-gray-800">게시글 저장</h3>
-                <p class="text-[11px] text-gray-500 mt-0.5">이 이야기를 목장 피드에 올리시겠습니까?</p>
+                <p class="text-xs text-gray-700 font-medium">이 이야기를 목장 피드에 올리시겠습니까?</p>
             </div>
-            <div class="grid grid-cols-2 gap-2 pt-1">
-                <button onclick="closeSaveConfirmModal()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium">취소</button>
-                <button onclick="executeSubmitPost()" class="py-2 church-primary text-white rounded-lg text-xs font-semibold">저장하기</button>
+            <div class="grid grid-cols-2 gap-1.5 pt-1">
+                <button onclick="closeSaveConfirmModal()" class="py-1.5 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-[11px] font-medium active:scale-95 transition-all">취소</button>
+                <button onclick="executeSubmitPost()" class="py-1.5 px-3 church-primary text-white rounded-lg text-[11px] font-semibold active:scale-95 transition-all">올리기</button>
             </div>
         </div>
     </div>
@@ -325,6 +341,34 @@
             <div class="grid grid-cols-2 gap-2 pt-1">
                 <button onclick="closeConfirmModal()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium">취소</button>
                 <button id="confirm-yes-btn" class="py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-xs font-semibold">삭제하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- [내보내기/인쇄 사전 확인 및 비율 유지 축소 레이아웃 모달] -->
+    <div id="export-preview-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-sm max-h-[85vh] p-4 shadow-2xl border church-border flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between pb-2 border-b church-border shrink-0">
+                <h3 class="text-xs font-bold text-gray-800" id="export-modal-title">
+                    <i class="fa-regular fa-image church-primary-text mr-1.5"></i>미리보기 확인
+                </h3>
+                <button onclick="closeExportPreviewModal()" class="text-gray-400 hover:text-gray-600 p-0.5"><i class="fa-solid fa-xmark text-sm"></i></button>
+            </div>
+
+            <!-- 실제 사이즈 축소판 (종횡비 100% 원본 유지 영역) -->
+            <div class="flex-1 overflow-y-auto py-3 px-1 flex flex-col items-center justify-center bg-gray-100/70 rounded-xl my-2 border border-gray-200/80">
+                <div id="export-preview-content" class="w-full flex items-center justify-center overflow-hidden">
+                    <!-- 캔버스 이미지 또는 축소 클론이 원본 비율 그대로 삽입됩니다 -->
+                </div>
+            </div>
+
+            <div class="text-center pt-1 pb-2 shrink-0">
+                <p class="text-xs font-semibold text-gray-800">이대로 진행할까요?</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 shrink-0">
+                <button type="button" onclick="closeExportPreviewModal()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium active:scale-95 transition-all">아니오</button>
+                <button type="button" id="export-confirm-btn" class="py-2 church-primary text-white rounded-xl text-xs font-semibold shadow-xs active:scale-95 transition-all">예</button>
             </div>
         </div>
     </div>
@@ -405,6 +449,10 @@
         let isLightboxAutoFixed = false;
         let currentLightboxScale = 1.0;
         let currentLightboxImages = [];
+
+        // 내보내기 미리보기 확인 모달 상태 변수
+        let pendingExportType = null;
+        let pendingExportPostId = null;
 
         // 터치 및 드래그 제어 변수
         let isDraggingTrack = false;
@@ -714,7 +762,34 @@
             });
         }
 
-        // 스크롤 발생 시 열려 있던 모든 인라인 댓글창 자동 닫기 (입력 내용은 commentDrafts에 보존됨)
+        /* 하단 내보내기 아래화살표 클릭 시 왼쪽으로 슬라이드 열림/닫힘 제어 */
+        window.toggleExportMenu = function(postId, event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById(`export-menu-${postId}`);
+            const btn = document.getElementById(`export-btn-${postId}`);
+            if (!menu) return;
+
+            const isOpen = menu.classList.contains('export-menu-open');
+            closeAllExportMenus();
+
+            if (!isOpen) {
+                menu.classList.remove('export-menu-closed');
+                menu.classList.add('export-menu-open');
+                if (btn) btn.classList.add('rotate-180', 'text-emerald-700');
+            }
+        };
+
+        function closeAllExportMenus() {
+            document.querySelectorAll('[id^="export-menu-"]').forEach(m => {
+                m.classList.remove('export-menu-open');
+                m.classList.add('export-menu-closed');
+            });
+            document.querySelectorAll('[id^="export-btn-"]').forEach(b => {
+                b.classList.remove('rotate-180', 'text-emerald-700');
+            });
+        }
+
+        // 스크롤 발생 시 열려 있던 모든 인라인 댓글창 및 슬라이드 메뉴 자동 닫기
         function closeAllInlineCommentInputs() {
             document.querySelectorAll('[id^="inline-comment-row-"]').forEach(row => {
                 if (!row.classList.contains('hidden')) {
@@ -735,12 +810,16 @@
             if (!e.target.closest('[id^="action-menu-"]') && !e.target.closest('[id^="action-btn-"]')) {
                 closeAllActionMenus();
             }
+            if (!e.target.closest('[id^="export-menu-"]') && !e.target.closest('[id^="export-btn-"]')) {
+                closeAllExportMenus();
+            }
         });
 
         const feedScrollEl = document.getElementById('feed-container');
         if (feedScrollEl) {
             feedScrollEl.addEventListener('scroll', () => {
                 closeAllActionMenus();
+                closeAllExportMenus();
                 closeAllInlineCommentInputs();
             }, { passive: true });
         }
@@ -850,8 +929,80 @@
             }
         };
 
-        /* 1. 이미지 한 장 저장 (PNG 다운로드) - 댓글 포함 */
-        window.exportPostAsImage = async function(postId) {
+        /* 내보내기/인쇄 사전 확인 모달 열기 (비율 100% 유지 축소판 생성) */
+        window.requestExportPreview = async function(postId, type) {
+            closeAllExportMenus();
+            pendingExportPostId = postId;
+            pendingExportType = type;
+
+            const cardEl = document.getElementById(`post-card-${postId}`);
+            if (!cardEl) return;
+
+            const modal = document.getElementById('export-preview-modal');
+            const titleEl = document.getElementById('export-modal-title');
+            const previewContainer = document.getElementById('export-preview-content');
+
+            if (type === 'image') {
+                titleEl.innerHTML = `<i class="fa-regular fa-image church-primary-text mr-1.5"></i>이미지 저장 미리보기`;
+            } else if (type === 'pdf') {
+                titleEl.innerHTML = `<i class="fa-regular fa-file-pdf church-primary-text mr-1.5"></i>PDF 저장 미리보기`;
+            } else {
+                titleEl.innerHTML = `<i class="fa-solid fa-print church-primary-text mr-1.5"></i>인쇄 미리보기`;
+            }
+
+            previewContainer.innerHTML = `
+                <div class="py-12 flex flex-col items-center justify-center text-gray-400 space-y-2">
+                    <i class="fa-solid fa-spinner fa-spin text-xl text-emerald-700"></i>
+                    <span class="text-[11px]">미리보기를 구성하는 중...</span>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+
+            const noExportEls = cardEl.querySelectorAll('.no-export');
+            noExportEls.forEach(el => el.style.display = 'none');
+
+            try {
+                const canvas = await html2canvas(cardEl, {
+                    scale: 1.5,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+
+                previewContainer.innerHTML = '';
+                const previewImg = document.createElement('img');
+                previewImg.src = canvas.toDataURL('image/png');
+                previewImg.alt = "게시글 미리보기";
+                // 가로/세로 비율을 엄격히 유지하며 찌그러지지 않도록 스타일링
+                previewImg.className = "max-h-[50vh] w-auto max-w-full object-contain rounded-lg shadow-sm border border-gray-200 select-none block";
+                previewContainer.appendChild(previewImg);
+
+                const confirmBtn = document.getElementById('export-confirm-btn');
+                confirmBtn.onclick = function() {
+                    closeExportPreviewModal();
+                    if (type === 'image') {
+                        executeExportImage(postId);
+                    } else if (type === 'pdf') {
+                        executeExportPdf(postId);
+                    } else if (type === 'print') {
+                        executePrintPost(postId);
+                    }
+                };
+            } catch (err) {
+                console.error("미리보기 생성 실패:", err);
+                previewContainer.innerHTML = `<p class="text-xs text-rose-500 py-6">미리보기를 불러오지 못했습니다.</p>`;
+            } finally {
+                noExportEls.forEach(el => el.style.display = '');
+            }
+        };
+
+        window.closeExportPreviewModal = function() {
+            document.getElementById('export-preview-modal').classList.add('hidden');
+            pendingExportPostId = null;
+            pendingExportType = null;
+        };
+
+        /* 1. 이미지 한 장 저장 (PNG 다운로드) */
+        async function executeExportImage(postId) {
             const cardEl = document.getElementById(`post-card-${postId}`);
             if (!cardEl) return;
             showNotification("게시글과 댓글 이미지를 생성 중입니다...");
@@ -870,17 +1021,17 @@
                 link.download = `목장이야기_${postId.substring(0, 6)}_${formatFileDate(new Date())}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-                showNotification("게시글 이미지가 댓글과 함께 저장되었습니다!");
+                showNotification("게시글 이미지가 저장되었습니다!");
             } catch (e) {
                 console.error("이미지 저장 오류:", e);
                 showNotification("이미지 저장 중 오류가 발생했습니다.");
             } finally {
                 noExportEls.forEach(el => el.style.display = '');
             }
-        };
+        }
 
-        /* 2. PDF 한 장 저장 (PDF 다운로드) - 댓글 포함 */
-        window.exportPostAsPdf = async function(postId) {
+        /* 2. PDF 한 장 저장 (PDF 다운로드) */
+        async function executeExportPdf(postId) {
             const cardEl = document.getElementById(`post-card-${postId}`);
             if (!cardEl) return;
             showNotification("PDF 문서를 생성 중입니다...");
@@ -913,10 +1064,10 @@
             } finally {
                 noExportEls.forEach(el => el.style.display = '');
             }
-        };
+        }
 
-        /* 3. 게시글 단독 인쇄 - 댓글 포함 */
-        window.printSinglePost = function(postId) {
+        /* 3. 게시글 단독 인쇄 */
+        function executePrintPost(postId) {
             const cardEl = document.getElementById(`post-card-${postId}`);
             const printArea = document.getElementById('print-area');
             if (!cardEl || !printArea) return;
@@ -935,7 +1086,7 @@
                 printArea.classList.add('hidden');
                 printArea.innerHTML = '';
             }, 500);
-        };
+        }
 
         function formatFileDate(d) {
             return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}_${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`;
@@ -1109,18 +1260,9 @@
                                             <i class="fa-solid fa-trash-can text-[9px]"></i>
                                             <span>삭제</span>
                                         </button>
-                                    </div>
-
-                                    <button type="button" id="action-btn-${post.id}" onclick="toggleActionMenu('${post.id}', event)" 
-                                            class="w-6 h-6 rounded-full flex items-center justify-center text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 transition-all font-black text-sm" title="더보기">
-                                        <i class="fa-solid fa-plus transition-transform duration-200"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- 본문 텍스트: 상하 여백 극단적 밀착 -->
+                            <!-- 본문 텍스트: 상하 여백 극단적 밀착 및 기본 왼쪽 정렬 -->
                             ${post.content ? `
-                            <div class="pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight break-words overflow-wrap-anywhere whitespace-pre-wrap">
+                            <div class="pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight text-left break-words overflow-wrap-anywhere whitespace-pre-wrap">
                                 ${escapeHtml(post.content)}
                             </div>
                             ` : ''}
@@ -1128,7 +1270,7 @@
                             <!-- 사진 영역: 본문과 1px 마진으로 바짝 밀착 -->
                             ${mediaSectionHtml}
 
-                            <!-- 마지막 사진 바로 아래 배치된 반응 버튼들 & [맞은편 단색 선형 아이콘 버튼들] -->
+                            <!-- 마지막 사진 바로 아래 배치된 반응 버튼들 & [아래화살표 클릭 시 왼쪽으로 슬라이드되는 내보내기 메뉴] -->
                             <div class="pt-1 flex items-center justify-between no-export">
                                 <!-- 왼쪽: 손하트, 엄지, 댓글, + (단색 라인 스타일) -->
                                 <div class="flex items-center space-x-3">
@@ -1156,27 +1298,36 @@
                                     </button>
                                 </div>
 
-                                <!-- 오른쪽(반대편): 단색 선형(라인) 아이콘 버튼 3종 -->
-                                <div class="flex items-center space-x-2.5 text-gray-500">
-                                    <!-- 이미지 한 장 저장 (단색 라인 액자 아이콘) -->
-                                    <button type="button" onclick="exportPostAsImage('${post.id}')" 
-                                            class="flex items-center text-gray-500 hover:text-emerald-700 active:scale-90 transition-transform" 
-                                            title="게시글 이미지로 한 장 저장 (댓글 포함)">
-                                        <i class="fa-regular fa-image text-sm"></i>
-                                    </button>
+                                <!-- 오른쪽: 아래화살표 클릭 시 왼쪽으로 슬라이드되는 내보내기 3종 메뉴 -->
+                                <div class="relative flex items-center">
+                                    <div id="export-menu-${post.id}" class="export-slide-menu export-menu-closed absolute right-6 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-2.5 z-20 flex items-center space-x-2.5 whitespace-nowrap">
+                                        <!-- 이미지 한 장 저장 -->
+                                        <button type="button" onclick="requestExportPreview('${post.id}', 'image')" 
+                                                class="text-gray-600 hover:text-emerald-800 active:scale-90 transition-transform flex items-center" 
+                                                title="이미지 저장">
+                                            <i class="fa-regular fa-image text-xs"></i>
+                                        </button>
+                                        <span class="text-[#A7D1B7] text-[10px]">|</span>
+                                        <!-- PDF 한 장 저장 -->
+                                        <button type="button" onclick="requestExportPreview('${post.id}', 'pdf')" 
+                                                class="text-gray-600 hover:text-rose-700 active:scale-90 transition-transform flex items-center" 
+                                                title="PDF 저장">
+                                            <i class="fa-regular fa-file-pdf text-xs"></i>
+                                        </button>
+                                        <span class="text-[#A7D1B7] text-[10px]">|</span>
+                                        <!-- 인쇄하기 -->
+                                        <button type="button" onclick="requestExportPreview('${post.id}', 'print')" 
+                                                class="text-gray-600 hover:text-sky-700 active:scale-90 transition-transform flex items-center" 
+                                                title="인쇄">
+                                            <i class="fa-solid fa-print text-xs"></i>
+                                        </button>
+                                    </div>
 
-                                    <!-- PDF 한 장 저장 (단색 라인 PDF 파일 아이콘) -->
-                                    <button type="button" onclick="exportPostAsPdf('${post.id}')" 
-                                            class="flex items-center text-gray-500 hover:text-rose-600 active:scale-90 transition-transform" 
-                                            title="게시글 PDF로 한 장 저장 (댓글 포함)">
-                                        <i class="fa-regular fa-file-pdf text-sm"></i>
-                                    </button>
-
-                                    <!-- 인쇄하기 (단색 라인 프린터 아이콘) -->
-                                    <button type="button" onclick="printSinglePost('${post.id}')" 
-                                            class="flex items-center text-gray-500 hover:text-sky-700 active:scale-90 transition-transform" 
-                                            title="게시글 인쇄 (댓글 포함)">
-                                        <i class="fa-solid fa-print text-sm"></i>
+                                    <!-- 트리거: 아래화살표 아이콘 단일 버튼 -->
+                                    <button type="button" id="export-btn-${post.id}" onclick="toggleExportMenu('${post.id}', event)" 
+                                            class="w-6 h-6 rounded-full flex items-center justify-center text-gray-400 hover:text-emerald-800 hover:bg-emerald-50 transition-all text-xs" 
+                                            title="저장 및 인쇄 메뉴">
+                                        <i class="fa-solid fa-chevron-down transition-transform duration-200"></i>
                                     </button>
                                 </div>
                             </div>
