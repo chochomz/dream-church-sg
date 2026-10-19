@@ -1260,8 +1260,8 @@
             }, 500);
         }
 
-        // [피드 전체(모든 글, 사진, 댓글) 최신순 연속 레이아웃 PDF 생성 & 스크롤 연동 페이지 뷰어]
-        window.requestAllFeedPdfPreview = async function() {
+        // [피드 전체(모든 글, 사진, 댓글) 초고속 즉각 렌더링 & 부드러운 스크롤 뷰어]
+        window.requestAllFeedPdfPreview = function() {
             closeAllHeaderQuickMenu();
             if (!cachedPosts || cachedPosts.length === 0) {
                 showNotification("피드에 등록된 목장 이야기가 없습니다.");
@@ -1275,88 +1275,175 @@
             const downloadShareBox = document.getElementById('all-pdf-download-share-buttons');
             const statusDesc = document.getElementById('all-pdf-status-desc');
             const indicatorText = document.getElementById('all-pdf-page-indicator-text');
+            const approveBtn = document.getElementById('approve-generate-btn');
 
             actionBox.classList.remove('hidden');
             downloadShareBox.classList.add('hidden');
-            statusDesc.innerText = "스크롤하여 확인 후 최종 저장해 개인 파일로 보관하세요.";
-            indicatorText.innerText = "계산 중...";
+            downloadShareBox.classList.remove('grid');
+            statusDesc.innerText = "위아래로 스크롤하여 확인 후 최종 저장해 개인 파일로 보관하세요.";
+            if (approveBtn) {
+                approveBtn.disabled = false;
+                approveBtn.innerHTML = `<span>최종 저장 (승인)</span>`;
+            }
 
-            continuousContainer.innerHTML = `
-                <div class="py-16 flex flex-col items-center justify-center text-gray-400 space-y-2">
-                    <i class="fa-solid fa-spinner fa-spin text-2xl text-emerald-700"></i>
-                    <span class="text-xs font-semibold text-gray-700">최신순 전체 나눔과 사진, 댓글을 책자로 구성 중...</span>
-                    <span class="text-[10px] text-gray-400">데이터가 많아도 비율 깨짐 없이 정밀하게 생성됩니다</span>
-                </div>
+            // 1. 최신순(내림차순) 정렬
+            const sortedPosts = [...cachedPosts].sort((a, b) => {
+                const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+                const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+                return tB - tA;
+            });
+
+            // 2. 가볍고 빠른 DOM 카드 주입 (0.1초 만에 즉시 렌더링, 멈춤 전혀 없음)
+            continuousContainer.innerHTML = '';
+
+            // 상단 책자 헤더 카드
+            const headerCard = document.createElement('div');
+            headerCard.className = "text-center pb-2.5 pt-2 border-b-2 border-emerald-800 bg-emerald-50/70 p-2.5 rounded-xl shrink-0";
+            headerCard.innerHTML = `
+                <h2 class="text-sm font-bold text-gray-900">${currentMokjang} 이야기 모음</h2>
+                <p class="text-[10px] text-gray-500 mt-0.5">발행: ${new Date().toLocaleDateString('ko-KR')} | 총 ${sortedPosts.length}개의 나눔 (댓글 포함)</p>
             `;
+            continuousContainer.appendChild(headerCard);
+
+            // 각 게시글 카드 복제 주입 (불필요한 버튼/툴바 완전 제거)
+            sortedPosts.forEach((post, pIdx) => {
+                const card = document.createElement('div');
+                card.className = "w-full bg-white rounded-xl border border-gray-200 shadow-2xs p-2.5 box-border text-left";
+
+                let imgArray = [];
+                if (Array.isArray(post.images) && post.images.length > 0) {
+                    imgArray = post.images.filter(img => typeof img === 'string' && img.trim().length > 0);
+                } else if (post.imageUrl && typeof post.imageUrl === 'string' && post.imageUrl.trim().length > 0) {
+                    imgArray = [post.imageUrl];
+                }
+
+                const photoCaptions = post.photoCaptions || {};
+                let photosHtml = '';
+                if (imgArray.length > 0) {
+                    photosHtml = imgArray.map((url, i) => {
+                        const caption = photoCaptions[i] || '';
+                        return `
+                            <div class="w-full flex flex-col mb-1.5 last:mb-0 border border-gray-100 rounded-lg overflow-hidden">
+                                <img src="${url}" alt="사진 ${i+1}" class="w-full object-cover block">
+                                ${caption ? `<div class="p-1.5 bg-gray-50 text-[11px] text-gray-700 leading-snug border-t border-gray-100"><i class="fa-regular fa-comment-dots text-emerald-600 mr-1"></i>${escapeHtml(caption)}</div>` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                const postComments = post.comments || [];
+                let commentsHtml = '';
+                if (postComments.length > 0) {
+                    commentsHtml = `
+                        <div class="mt-2 pt-1.5 border-t border-gray-100 bg-gray-50/80 rounded-lg p-2 text-left">
+                            <div class="text-[10px] font-bold text-emerald-800 mb-1">
+                                <i class="fa-regular fa-comment-dots mr-1"></i>댓글 (${postComments.length})
+                            </div>
+                            <div class="space-y-1">
+                                ${postComments.map(c => `
+                                    <div class="text-[10.5px] leading-tight pb-1 border-b border-gray-200/50 last:border-0 last:pb-0">
+                                        <span class="font-bold text-gray-800">${escapeHtml(c.author)}:</span>
+                                        <span class="text-gray-700 ml-0.5">${escapeHtml(c.text)}</span>
+                                        <span class="text-[8.5px] text-gray-400 ml-1">(${c.time || ''})</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-center space-x-1.5 pb-1 mb-1 border-b border-gray-100">
+                        <div class="w-5 h-5 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-[10px]">
+                            ${escapeHtml((post.author || 'M').charAt(0))}
+                        </div>
+                        <span class="text-xs font-bold text-gray-800">${escapeHtml(post.author || '목장가족')}</span>
+                        <span class="text-[9px] text-gray-400 ml-auto">${formatDate(post.createdAt)}</span>
+                    </div>
+                    ${post.content ? `<p class="text-xs text-gray-800 leading-relaxed whitespace-pre-wrap mb-1.5 text-left">${escapeHtml(post.content)}</p>` : ''}
+                    ${photosHtml}
+                    ${commentsHtml}
+                `;
+                continuousContainer.appendChild(card);
+            });
+
+            // 3. 모달 띄우기 및 스크롤 높이/페이지 정밀 초기화
             modal.classList.remove('hidden');
+            if (scrollViewport) scrollViewport.scrollTop = 0;
+
+            setTimeout(() => {
+                recalculateViewportPages();
+            }, 100);
+        };
+
+        // 스크롤 뷰포트 내 A4 기준 전체 페이지 및 현재 페이지 계산
+        function recalculateViewportPages() {
+            const viewport = document.getElementById('all-pdf-scroll-viewport');
+            const continuousContainer = document.getElementById('all-pdf-continuous-container');
+            const indicatorText = document.getElementById('all-pdf-page-indicator-text');
+            if (!viewport || !continuousContainer) return;
+
+            // 모바일 뷰포트 폭 기준 A4 비율(1 : 1.414) 세로 1페이지 높이(px) 산정
+            const currentWidth = continuousContainer.clientWidth || 300;
+            pdfA4PageHeightPx = Math.round(currentWidth * 1.414);
+
+            const totalHeight = continuousContainer.scrollHeight;
+            pdfTotalPagesCalculated = Math.max(1, Math.ceil(totalHeight / pdfA4PageHeightPx));
+
+            if (indicatorText) {
+                indicatorText.innerText = `1 / ${pdfTotalPagesCalculated} 페이지`;
+            }
+        }
+
+        // 스크롤 시 실시간 현재 페이지 갱신
+        window.handlePdfViewerScroll = function(viewport) {
+            if (!viewport || !pdfA4PageHeightPx || pdfA4PageHeightPx <= 0) return;
+            const scrollTop = viewport.scrollTop;
+            const maxScroll = viewport.scrollHeight - viewport.clientHeight;
+
+            let currentPage = 1;
+            if (maxScroll > 0 && scrollTop >= maxScroll - 15) {
+                currentPage = pdfTotalPagesCalculated;
+            } else {
+                currentPage = Math.floor(scrollTop / pdfA4PageHeightPx) + 1;
+            }
+
+            if (currentPage > pdfTotalPagesCalculated) currentPage = pdfTotalPagesCalculated;
+            if (currentPage < 1) currentPage = 1;
+
+            const indicatorText = document.getElementById('all-pdf-page-indicator-text');
+            if (indicatorText) {
+                indicatorText.innerText = `${currentPage} / ${pdfTotalPagesCalculated} 페이지`;
+            }
+        };
+
+        window.closeAllPdfPreviewModal = function() {
+            document.getElementById('all-pdf-preview-modal').classList.add('hidden');
+            generatedAllPdfBlob = null;
+            generatedAllPdfFileName = "";
+        };
+
+        // [최종 승인 시에만 안정적으로 백그라운드 PDF 빌드]
+        window.approveAllPdfGeneration = async function() {
+            const approveBtn = document.getElementById('approve-generate-btn');
+            const statusDesc = document.getElementById('all-pdf-status-desc');
+            const continuousContainer = document.getElementById('all-pdf-continuous-container');
+            if (!continuousContainer) return;
+
+            if (approveBtn) {
+                approveBtn.disabled = true;
+                approveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>PDF 생성 중...</span>`;
+            }
+            statusDesc.innerText = "개인 파일용 고화질 PDF 문서를 생성하고 있습니다. 잠시만 기다려주세요...";
 
             try {
-                // 1. 최신 피드 순서로 정렬 (내림차순: 최신 글이 맨 위)
-                const sortedPosts = [...cachedPosts].sort((a, b) => {
-                    const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
-                    const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
-                    return tB - tA;
-                });
-
-                // 2. 가상 컴파일러 래퍼 (A4 96DPI 표준 폭 794px 기준, 가로 세로 비율 왜곡 방지)
-                const compileWrapper = document.createElement('div');
-                compileWrapper.style.width = '794px';
-                compileWrapper.style.background = '#ffffff';
-                compileWrapper.style.padding = '28px 24px';
-                compileWrapper.style.boxSizing = 'border-box';
-                compileWrapper.style.position = 'fixed';
-                compileWrapper.style.left = '-9999px';
-                compileWrapper.style.top = '0';
-                compileWrapper.className = 'flex flex-col space-y-3';
-
-                // 상단 타이틀 표지 헤더
-                const bookHeader = document.createElement('div');
-                bookHeader.className = "text-center pb-3 border-b-2 border-emerald-800 bg-emerald-50/40 p-3 rounded-xl";
-                bookHeader.innerHTML = `
-                    <h2 class="text-xl font-bold text-gray-900">${currentMokjang} 이야기 모음</h2>
-                    <p class="text-xs text-gray-500 mt-1">발행일시: ${new Date().toLocaleDateString('ko-KR')} | 총 ${sortedPosts.length}개의 은혜 나눔 (댓글 포함)</p>
-                `;
-                compileWrapper.appendChild(bookHeader);
-
-                // 최신순으로 모든 카드 복제 (비율 100% 유지, 텍스트 왼쪽 정렬 강제)
-                sortedPosts.forEach(post => {
-                    const original = document.getElementById(`post-card-${post.id}`);
-                    if (original) {
-                        const clone = original.cloneNode(true);
-                        clone.querySelectorAll('.no-export').forEach(el => el.remove());
-                        
-                        const body = clone.querySelector('.post-content-body');
-                        if (body) {
-                            body.style.textAlign = 'left';
-                            body.style.textIndent = '0px';
-                            body.style.direction = 'ltr';
-                            body.style.marginLeft = '0px';
-                            body.style.paddingLeft = '2px';
-                            body.style.width = '100%';
-                            body.style.display = 'block';
-                        }
-                        
-                        clone.style.marginBottom = '14px';
-                        clone.style.boxShadow = 'none';
-                        clone.style.border = '1px solid #E5E7EB';
-                        clone.style.borderRadius = '14px';
-                        clone.style.overflow = 'hidden';
-                        compileWrapper.appendChild(clone);
-                    }
-                });
-
-                document.body.appendChild(compileWrapper);
-
-                // 고해상도 캡처 캔버스 생성
-                const canvas = await html2canvas(compileWrapper, {
+                // 고해상도 캔버스 변환
+                const canvas = await html2canvas(continuousContainer, {
                     scale: 1.5,
                     useCORS: true,
                     backgroundColor: '#ffffff'
                 });
 
-                document.body.removeChild(compileWrapper);
-
-                // 3. A4 페이지 단위 치수 정밀 계산
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pageWidth = 210;
@@ -1369,9 +1456,6 @@
                 const pageHeightPx = Math.floor(contentHeight * pxPerMm);
                 const totalPages = Math.ceil(canvas.height / pageHeightPx);
 
-                pdfTotalPagesCalculated = Math.max(1, totalPages);
-
-                // 4. 다중 페이지 PDF 빌드 (자료 보관용)
                 for (let i = 0; i < totalPages; i++) {
                     const pageCanvas = document.createElement('canvas');
                     pageCanvas.width = canvas.width;
@@ -1386,7 +1470,7 @@
                         0, 0, pageCanvas.width, pageCanvas.height
                     );
 
-                    const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.92);
+                    const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.90);
 
                     if (i > 0) pdf.addPage();
                     const mmHeight = (pageCanvas.height * contentWidth) / canvas.width;
@@ -1396,73 +1480,24 @@
                 generatedAllPdfBlob = pdf.output('blob');
                 generatedAllPdfFileName = `목장이야기전체_${formatFileDate(new Date())}.pdf`;
 
-                // 5. 연속 스크롤 뷰어 구성 (페이지 구분선 없이 1장의 거대한 캔버스 이미지로 부드럽게 이어짐)
-                continuousContainer.innerHTML = '';
-                const continuousImg = document.createElement('img');
-                continuousImg.id = "all-pdf-continuous-img";
-                continuousImg.src = canvas.toDataURL('image/png');
-                continuousImg.alt = "목장 이야기 전체 연속 뷰";
-                continuousImg.className = "w-full h-auto block select-none rounded-lg shadow-sm bg-white border border-gray-200";
-                continuousContainer.appendChild(continuousImg);
+                // 승인 후 공유/저장 버튼 활성화
+                const actionBox = document.getElementById('all-pdf-action-buttons');
+                const downloadShareBox = document.getElementById('all-pdf-download-share-buttons');
 
-                // A4 1페이지에 해당하는 미리보기 화면 상의 높이(px) 계산
-                continuousImg.onload = function() {
-                    const renderedWidth = continuousImg.clientWidth;
-                    const scaleFactor = renderedWidth / canvas.width;
-                    pdfA4PageHeightPx = pageHeightPx * scaleFactor;
-
-                    if (scrollViewport) scrollViewport.scrollTop = 0;
-                    updatePageIndicator(1, pdfTotalPagesCalculated);
-                };
+                actionBox.classList.add('hidden');
+                downloadShareBox.classList.remove('hidden');
+                downloadShareBox.classList.add('grid');
+                statusDesc.innerText = "생성 완료! 아래 버튼을 눌러 개인 파일로 저장하거나 공유하세요.";
+                showNotification("PDF 생성이 완료되었습니다!");
             } catch (err) {
-                console.error("전체 PDF 생성 오류:", err);
-                continuousContainer.innerHTML = `<p class="text-xs text-rose-500 py-6 text-center font-medium">전체 PDF 미리보기를 구성하지 못했습니다.<br><span class="text-[10px] text-gray-400 mt-1 block">${escapeHtml(err.message)}</span></p>`;
-                if (indicatorText) indicatorText.innerText = "- / -";
+                console.error("PDF 생성 에러:", err);
+                statusDesc.innerText = "PDF 생성 중 오류가 발생했습니다. 다시 시도해 주세요.";
+                if (approveBtn) {
+                    approveBtn.disabled = false;
+                    approveBtn.innerHTML = `<span>다시 시도</span>`;
+                }
+                showNotification("PDF 생성 실패: " + err.message);
             }
-        };
-
-        // 스크롤 시 A4 기준 현재 페이지 / 전체 페이지 실시간 계산
-        window.handlePdfViewerScroll = function(viewport) {
-            if (!viewport || !pdfA4PageHeightPx || pdfA4PageHeightPx <= 0) return;
-            const scrollTop = viewport.scrollTop;
-            const totalScrollable = viewport.scrollHeight - viewport.clientHeight;
-            
-            let currentPage = 1;
-            if (totalScrollable > 0 && scrollTop >= totalScrollable - 5) {
-                // 맨 끝까지 스크롤 시 마지막 페이지로 확정
-                currentPage = pdfTotalPagesCalculated;
-            } else {
-                currentPage = Math.floor(scrollTop / pdfA4PageHeightPx) + 1;
-            }
-
-            if (currentPage > pdfTotalPagesCalculated) currentPage = pdfTotalPagesCalculated;
-            if (currentPage < 1) currentPage = 1;
-            updatePageIndicator(currentPage, pdfTotalPagesCalculated);
-        };
-
-        function updatePageIndicator(current, total) {
-            const indicatorText = document.getElementById('all-pdf-page-indicator-text');
-            if (indicatorText) {
-                indicatorText.innerText = `${current} / ${total} 페이지`;
-            }
-        }
-
-        window.closeAllPdfPreviewModal = function() {
-            document.getElementById('all-pdf-preview-modal').classList.add('hidden');
-            generatedAllPdfBlob = null;
-            generatedAllPdfFileName = "";
-        };
-
-        window.approveAllPdfGeneration = function() {
-            if (!generatedAllPdfBlob) return;
-            const actionBox = document.getElementById('all-pdf-action-buttons');
-            const downloadShareBox = document.getElementById('all-pdf-download-share-buttons');
-            const statusDesc = document.getElementById('all-pdf-status-desc');
-
-            actionBox.classList.add('hidden');
-            downloadShareBox.classList.remove('hidden');
-            downloadShareBox.classList.add('grid');
-            statusDesc.innerText = "승인되었습니다! 아래 버튼을 눌러 개인 파일로 저장하거나 공유하세요.";
         };
 
         window.downloadAllPdfFile = function() {
