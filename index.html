@@ -197,30 +197,24 @@
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
 
-    <!-- [상단 헤더: 절대 중앙 타이틀(폰트 2pt 확대) + 살살 흔들리는 환영문구 + 살아 움직이는 펜 트리거] -->
-    <header class="h-[52px] shrink-0 bg-white border-b church-border shadow-2xs px-3 flex items-center justify-between w-full z-30 relative">
-        <!-- 왼쪽 더미 영역 (중앙 밸런스 유지용) -->
-        <div class="w-8 shrink-0"></div>
+    <!-- [상단 헤더: 절대 중앙 타이틀 + 살살 흔들리는 환영문구 + 피드 '+' 버튼과 수직 정렬된 펜 버튼] -->
+    <header class="h-[52px] shrink-0 bg-white border-b church-border shadow-2xs px-4 flex items-center justify-between w-full z-30 relative max-w-md mx-auto">
+        <!-- 왼쪽 더미 영역 (향후 로고 앞단 배치 고려 및 중앙 밸런스 유지용) -->
+        <div class="w-8 shrink-0 flex items-center justify-start" id="header-logo-slot"></div>
 
-        <!-- 중앙 메인 타이틀 (화면 정중앙 절대 배치 + 폰트 2포인트 확대 + 살랑거리는 환영문구) -->
+        <!-- 중앙 메인 타이틀 (화면 정중앙 절대 배치 + '꿈' 중심 백색 빛 번짐 + 살랑거리는 환영문구) -->
         <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center pointer-events-auto max-w-[70vw]">
-            <div class="flex items-center space-x-1.5 justify-center">
-                <h1 class="text-[17.5px] font-black text-gray-800 tracking-tight leading-tight truncate whitespace-nowrap" id="header-mokjang-title">세종꿈의교회 23목장</h1>
-                <div class="w-5 h-5 church-primary rounded-full flex items-center justify-center p-0.5 shadow-xs border border-emerald-100 overflow-hidden bg-white shrink-0">
-                    <svg viewBox="0 0 200 200" class="w-full h-full object-contain scale-110">
-                        <polygon points="35,118 100,118 100,58" fill="#5B9BD5" />
-                        <path d="M 100,118 L 165,88 C 140,130 110,155 90,173 C 92,158 94,143 96,128 C 98,128 100,128 100,118 Z" fill="#203E78" />
-                        <rect x="91" y="40" width="18" height="78" fill="#203E78" rx="2" />
-                        <rect x="76" y="55" width="48" height="18" fill="#203E78" rx="2" />
-                    </svg>
-                </div>
+            <div class="flex items-center space-x-1.5 justify-center" id="header-mokjang-title-container">
+                <h1 class="text-[17.5px] font-black tracking-tight leading-tight truncate whitespace-nowrap dream-shimmer-text" id="header-mokjang-title">
+                    세종꿈의교회 23목장
+                </h1>
             </div>
-            <!-- 살살 흔들리는 다정한 서브 환영 문구 -->
-            <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none" id="header-user-display">목장가족 님 환영합니다</p>
+            <!-- 살살 흔들리는 다정한 서브 환영 문구 (접속자 한분, 두분 실시간 반영) -->
+            <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none" id="header-user-display">목장 가족님 한분 환영합니다</p>
         </div>
 
-        <!-- 오른쪽 살아 움직이는 펜 트리거 & 왼쪽 슬라이드 메뉴 -->
-        <div class="shrink-0 relative flex items-center">
+        <!-- 오른쪽 살아 움직이는 펜 트리거 (피드 카드의 우측 '+' 버튼과 수직 일직선 정렬) & 왼쪽 슬라이드 메뉴 -->
+        <div class="shrink-0 relative flex items-center justify-end w-8">
             <!-- 왼쪽으로 슬라이드되어 나타나는 헤더 퀵 메뉴 (글쓰기 강조, 연동+용량 및 전체PDF 여백 없이 밀착) -->
             <div id="header-quick-menu" class="menu-closed absolute right-8 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-2.5 z-40 flex items-center space-x-1.5 whitespace-nowrap">
                 <!-- 1. 글쓰기 버튼: 크기를 키우고 에메랄드 톤으로 약간 강조 -->
@@ -246,11 +240,11 @@
                 </div>
             </div>
 
-            <!-- 우측 끝 펜 선그림 흔적 이모지 버튼 (누르면 왼쪽으로 슬라이드 메뉴 열림) -->
+            <!-- 우측 끝 펜 선그림 버튼 (피드의 더보기 '+'와 상하 일직선 정렬) -->
             <button type="button" id="header-pen-btn" onclick="toggleHeaderQuickMenu(event)" 
-                    class="w-8 h-8 rounded-full flex items-center justify-center church-accent church-primary-text border border-emerald-200/80 shadow-2xs hover:bg-emerald-100 active:scale-95 transition-all animate-pen-live" 
+                    class="w-7 h-7 rounded-full flex items-center justify-center church-accent church-primary-text border border-emerald-200/80 shadow-2xs hover:bg-emerald-100 active:scale-95 transition-all animate-pen-live" 
                     title="목장 메뉴 열기">
-                <i class="fa-solid fa-pen-fancy text-sm transition-transform duration-200"></i>
+                <i class="fa-solid fa-pen-fancy text-xs transition-transform duration-200"></i>
             </button>
         </div>
     </header>
@@ -1532,7 +1526,7 @@
             generatedAllPdfFileName = "";
         };
 
-        // 스마트 페이지 브레이크(Smart Page-Break): 사진 및 카드가 중간에서 잘리지 않도록 안전 배치하는 PDF 빌더
+        // 지능형 세로사진 높이 자동 축소 및 여백 낭비 없는 스마트 PDF 빌더
         window.approveAllPdfGeneration = async function() {
             const approveBtn = document.getElementById('approve-generate-btn');
             const statusDesc = document.getElementById('all-pdf-status-desc');
@@ -1543,7 +1537,7 @@
                 approveBtn.disabled = true;
                 approveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>PDF 생성 중...</span>`;
             }
-            statusDesc.innerText = "사진이 잘리지 않도록 페이지를 정밀 맞춤 중입니다. 잠시만 기다려주세요...";
+            statusDesc.innerText = "세로 사진과 페이지 여백을 지능적으로 맞추는 중입니다. 잠시만 기다려주세요...";
 
             try {
                 const { jsPDF } = window.jspdf;
@@ -1562,7 +1556,7 @@
                 for (let i = 0; i < childCards.length; i++) {
                     const card = childCards[i];
 
-                    // 각 카드를 고해상도 캔버스로 변환
+                    // 각 카드를 캔버스로 변환
                     const canvas = await html2canvas(card, {
                         scale: 1.6,
                         useCORS: true,
@@ -1571,25 +1565,36 @@
 
                     let imgMmWidth = contentWidth;
                     let imgMmHeight = (canvas.height * contentWidth) / canvas.width;
+                    const cardAspect = canvas.height / canvas.width;
 
-                    // 단일 카드나 사진이 한 페이지 높이보다 큰 경우 비율 유지 축소
-                    if (imgMmHeight > contentHeight) {
-                        imgMmHeight = contentHeight;
-                        imgMmWidth = (canvas.width * imgMmHeight) / canvas.height;
-                    }
+                    // 현재 페이지의 남은 가용 세로 높이
+                    const remainingY = (pageHeight - margin) - currentY;
 
-                    // 현재 페이지의 남은 여백 초과 시 다음 페이지로 온전히 넘김 (사진 잘림 방지)
-                    if (currentY + imgMmHeight > pageHeight - margin) {
+                    // [스마트 맞춤 1]: 앞 페이지에 유의미한 공간(60mm 이상)이 남아있고, 카드가 세로로 길어 남은 공간을 약간 초과하는 경우
+                    // 무조건 다음 페이지로 넘겨 앞 페이지를 텅 비우지 않고, 현재 페이지 남은 공간에 쏙 들어가도록 비례 축소!
+                    if (remainingY >= 60 && imgMmHeight > remainingY && (imgMmHeight - remainingY) <= 85) {
+                        imgMmHeight = remainingY - 2;
+                        imgMmWidth = imgMmHeight / cardAspect;
+                    } 
+                    // [스마트 맞춤 2]: 남은 공간이 너무 협소하여(60mm 미만) 도저히 넣을 수 없거나 초과 폭이 큰 경우 다음 페이지로 이월
+                    else if (imgMmHeight > remainingY) {
                         pdf.addPage();
                         pageIndex++;
                         currentY = margin;
+
+                        // 새 페이지에서도 단일 세로사진/카드가 한 페이지 높이를 초과하면 A4 높이에 꼭 맞게 비례 축소
+                        if (imgMmHeight > contentHeight) {
+                            imgMmHeight = contentHeight;
+                            imgMmWidth = imgMmHeight / cardAspect;
+                        }
                     }
 
                     const pageImgData = canvas.toDataURL('image/jpeg', 0.90);
+                    // 중앙 정렬된 가로 위치 계산
                     const posX = margin + (contentWidth - imgMmWidth) / 2;
                     pdf.addImage(pageImgData, 'JPEG', posX, currentY, imgMmWidth, imgMmHeight);
 
-                    currentY += imgMmHeight + 4; // 카드 간격 4mm
+                    currentY += imgMmHeight + 3.5; // 카드 간격 3.5mm
                 }
 
                 generatedAllPdfBlob = pdf.output('blob');
@@ -1602,7 +1607,7 @@
                 downloadShareBox.classList.remove('hidden');
                 downloadShareBox.classList.add('grid');
                 statusDesc.innerText = `생성 완료 (총 ${pageIndex}페이지)! 휴대폰에 저장하거나 공유하세요.`;
-                showNotification("사진이 잘리지 않는 PDF 생성이 완료되었습니다!");
+                showNotification("여백 낭비 없는 깔끔한 PDF가 완성되었습니다!");
             } catch (err) {
                 console.error("PDF 생성 에러:", err);
                 statusDesc.innerText = "PDF 생성 중 오류가 발생했습니다. 다시 시도해 주세요.";
