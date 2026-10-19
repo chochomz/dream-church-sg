@@ -215,8 +215,8 @@
 
         <!-- 오른쪽 살아 움직이는 펜 트리거 (피드 카드의 우측 '+' 버튼과 수직 일직선 정렬) & 왼쪽 슬라이드 메뉴 -->
         <div class="shrink-0 relative flex items-center justify-end w-8">
-            <!-- 왼쪽으로 슬라이드되어 나타나는 헤더 퀵 메뉴 (글쓰기 강조, 연동+용량 및 전체PDF 여백 없이 밀착) -->
-            <div id="header-quick-menu" class="menu-closed absolute right-8 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-2.5 z-40 flex items-center space-x-1.5 whitespace-nowrap">
+            <!-- 왼쪽으로 슬라이드되어 나타나는 헤더 퀵 메뉴 (글쓰기 강조, 연동+용량 및 전체PDF 여백 없이 밀착, 바깥쪽 테두리 제거) -->
+            <div id="header-quick-menu" class="menu-closed absolute right-8 bg-[#EBF5EE]/95 text-[#244E3F] rounded-full shadow-md py-1 px-2 z-40 flex items-center space-x-1.5 whitespace-nowrap">
                 <!-- 1. 글쓰기 버튼: 크기를 키우고 에메랄드 톤으로 약간 강조 -->
                 <button onclick="handleHeaderWriteClick()" class="h-[30px] px-3 church-accent church-primary-text rounded-full text-xs font-bold flex items-center space-x-1.5 shadow-2xs hover:bg-emerald-100/90 active:scale-95 transition-all">
                     <i class="fa-solid fa-pen-nib text-[11px]"></i>
@@ -544,7 +544,7 @@
             const el = document.getElementById('header-user-display');
             if (!el) return;
             const countText = getKoreanCountWord(count);
-            el.innerText = `목장 가족님 ${countText} 환영합니다`;
+            el.innerText = `목장 가족님 ${countText} 입장 환영합니다`;
         }
 
         // 라이트박스 상태 관리
