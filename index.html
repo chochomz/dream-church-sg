@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- html2canvas & jsPDF CDN (이미지 및 PDF 한 장 저장/인쇄용) -->
+    <!-- html2canvas & jsPDF CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -47,12 +47,12 @@
         }
 
         /* 모달 터치 제어 */
-        #lightbox-modal, #write-modal, #confirm-modal, #save-confirm-modal, #edit-confirm-modal, #comments-popup-modal, #export-preview-modal {
+        #lightbox-modal, #write-modal, #confirm-modal, #save-confirm-modal, #edit-confirm-modal, #comments-popup-modal, #export-preview-modal, #all-pdf-preview-modal {
             touch-action: none;
             overscroll-behavior: contain;
         }
 
-        /* 사진 뷰어 트랙 및 슬라이드 아이템 */
+        /* 사진 뷰어 트랙 및 슬라이드 */
         #lightbox-track {
             display: flex;
             height: 100%;
@@ -73,7 +73,7 @@
             max-height: 75vh;
             object-fit: contain;
             border: 3.5px solid #E5E7EB;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
             border-radius: 8px;
             pointer-events: auto;
             transform-origin: center center;
@@ -104,12 +104,11 @@
             opacity: 0.92;
         }
         
-        /* 사진 사이 구분선 */
         .photo-block-item:not(:last-child) {
             border-bottom: 1px solid #E5E7EB;
         }
 
-        /* 게시글 본문 텍스트: 첫 글자 왼쪽 절대 정렬 */
+        /* 본문 텍스트: 첫 글자 완벽 왼쪽 밀착 */
         .post-content-body {
             text-align: left !important;
             text-indent: 0 !important;
@@ -123,7 +122,7 @@
             box-sizing: border-box !important;
         }
 
-        /* 사진별 연필 캡션 텍스트 */
+        /* 사진별 연필 이야기 텍스트 */
         .photo-caption-text {
             font-size: 13.5px;
             line-height: 1.4;
@@ -139,46 +138,25 @@
             display: block;
         }
 
-        /* 오른쪽 상단 연한 연두색 슬라이드 메뉴 애니메이션 */
-        .slide-menu-container {
+        /* 슬라이드 메뉴 애니메이션 공통 */
+        .slide-menu-container, .export-slide-menu, #header-quick-menu {
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             transform-origin: right center;
         }
-        .menu-closed {
+        .menu-closed, .export-menu-closed {
             opacity: 0;
             transform: translateX(12px) scale(0.92);
             pointer-events: none;
         }
-        .menu-open {
+        .menu-open, .export-menu-open {
             opacity: 1;
             transform: translateX(0) scale(1);
             pointer-events: auto;
         }
 
-        /* 하단 내보내기 왼쪽 슬라이드 메뉴 애니메이션 */
-        .export-slide-menu {
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: right center;
-        }
-        .export-menu-closed {
-            opacity: 0;
-            transform: translateX(12px) scale(0.92);
-            pointer-events: none;
-        }
-        .export-menu-open {
-            opacity: 1;
-            transform: translateX(0) scale(1);
-            pointer-events: auto;
-        }
-
-        /* 인쇄 전용 스타일: 해당 포스트 외 숨김 처리 */
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            #print-area, #print-area * {
-                visibility: visible;
-            }
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
             #print-area {
                 position: absolute;
                 left: 0;
@@ -188,17 +166,22 @@
                 padding: 10px;
                 background: white;
             }
-            .no-print, .no-export {
-                display: none !important;
-            }
+            .no-print, .no-export { display: none !important; }
         }
     </style>
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
 
-    <header class="h-[48px] shrink-0 bg-white border-b church-border shadow-2xs px-3 flex items-center justify-between w-full z-30">
-        <div class="flex items-center space-x-2 overflow-hidden">
-            <div class="w-7 h-7 church-primary rounded-full flex items-center justify-center p-0.5 shadow-xs border border-emerald-100 overflow-hidden bg-white shrink-0">
+    <!-- [상단 헤더: 로고 우측 밀착 + 펜 선그림 트리거 + 왼쪽 슬라이드 메뉴] -->
+    <header class="h-[48px] shrink-0 bg-white border-b church-border shadow-2xs px-3 flex items-center justify-between w-full z-30 relative">
+        <!-- 왼쪽 타이틀 & 로고 오른쪽 밀착 -->
+        <div class="flex items-center space-x-1.5 overflow-hidden">
+            <div class="overflow-hidden leading-tight">
+                <h1 class="text-xs font-bold text-gray-800 truncate whitespace-nowrap" id="header-mokjang-title">세종꿈의교회 23목장</h1>
+                <p class="text-[10px] text-gray-500 truncate whitespace-nowrap" id="header-user-display">목장가족 님 환영합니다</p>
+            </div>
+            <!-- 로고 아이콘을 타이틀 오른쪽에 가깝게 밀착 -->
+            <div class="w-6 h-6 church-primary rounded-full flex items-center justify-center p-0.5 shadow-xs border border-emerald-100 overflow-hidden bg-white shrink-0 ml-0.5">
                 <svg viewBox="0 0 200 200" class="w-full h-full object-contain scale-110">
                     <polygon points="35,118 100,118 100,58" fill="#5B9BD5" />
                     <path d="M 100,118 L 165,88 C 140,130 110,155 90,173 C 92,158 94,143 96,128 C 98,128 100,128 100,118 Z" fill="#203E78" />
@@ -206,28 +189,41 @@
                     <rect x="76" y="55" width="48" height="18" fill="#203E78" rx="2" />
                 </svg>
             </div>
-            <div class="overflow-hidden leading-tight">
-                <h1 class="text-xs font-bold text-gray-800 truncate whitespace-nowrap" id="header-mokjang-title">세종꿈의교회 23목장</h1>
-                <p class="text-[10px] text-gray-500 truncate whitespace-nowrap" id="header-user-display">목장가족 님 환영합니다</p>
-            </div>
         </div>
         
-        <div class="shrink-0 flex items-center space-x-1.5">
-            <!-- 클라우드 연동 램프 -->
-            <button type="button" class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors focus:outline-none" title="서버 연동 상태">
-                <span id="db-status-lamp" class="w-2.5 h-2.5 rounded-full bg-emerald-400 transition-all inline-block"></span>
-            </button>
+        <!-- 오른쪽 펜 선그림 트리거 & 왼쪽 슬라이드 메뉴 -->
+        <div class="shrink-0 relative flex items-center">
+            <!-- 왼쪽으로 슬라이드되어 나타나는 헤더 퀵 메뉴 (글쓰기, 연동+용량 통합배지, 전체 PDF) -->
+            <div id="header-quick-menu" class="menu-closed absolute right-8 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-2.5 z-40 flex items-center space-x-2 whitespace-nowrap">
+                <!-- 1. 글쓰기 버튼 -->
+                <button onclick="handleHeaderWriteClick()" class="h-[27px] px-2.5 church-accent church-primary-text rounded-full text-[11px] font-semibold flex items-center space-x-1 shadow-2xs hover:bg-emerald-100/80 active:scale-95 transition-all">
+                    <i class="fa-solid fa-pen-nib text-[10px]"></i>
+                    <span>글쓰기</span>
+                </button>
 
-            <!-- 저장 용량 확인 세로형 배지 (글쓰기 버튼 높이 31px 일치) -->
-            <div id="storage-quota-badge" class="h-[31px] px-2 flex flex-col items-center justify-center rounded-lg bg-gray-50 border border-gray-200 text-gray-600 select-none shadow-2xs" title="Firebase 무료 용량 사용량 (1일 1회 갱신)">
-                <i id="storage-quota-icon" class="fa-solid fa-battery-quarter text-emerald-600 text-[10px] leading-none mb-0.5"></i>
-                <span id="storage-quota-text" class="font-mono font-bold text-[8.5px] leading-none text-gray-700">0%</span>
+                <span class="text-[#A7D1B7] text-[10px]">|</span>
+
+                <!-- 2. 연동 램프 + 저장용량(%) 통합 배지 -->
+                <div id="combined-cloud-badge" class="h-[27px] px-2 flex items-center space-x-1.5 rounded-full bg-white/90 border border-emerald-200 text-gray-700 select-none shadow-2xs" title="클라우드 실시간 연동 및 1GB 무료 용량 사용 현황">
+                    <span id="db-status-lamp" class="w-2 h-2 rounded-full bg-emerald-400 inline-block shrink-0"></span>
+                    <i id="storage-quota-icon" class="fa-solid fa-battery-quarter text-emerald-600 text-[10px]"></i>
+                    <span id="storage-quota-text" class="font-mono font-bold text-[9px] text-gray-700">0%</span>
+                </div>
+
+                <span class="text-[#A7D1B7] text-[10px]">|</span>
+
+                <!-- 3. 피드 전체 이야기 PDF 생성 버튼 -->
+                <button onclick="requestAllFeedPdfPreview()" class="h-[27px] px-2.5 bg-white/90 hover:bg-rose-50 text-rose-700 rounded-full text-[11px] font-semibold flex items-center space-x-1 border border-rose-200 shadow-2xs active:scale-95 transition-all" title="피드 전체 사진과 글(댓글 포함) PDF로 저장/공유">
+                    <i class="fa-solid fa-book-open text-[10px]"></i>
+                    <span>전체PDF</span>
+                </button>
             </div>
 
-            <!-- 상단 글쓰기 버튼 -->
-            <button onclick="openWriteModal()" class="h-[31px] px-3 church-accent church-primary-text rounded-lg text-xs font-semibold flex items-center space-x-1.5 shadow-2xs hover:bg-emerald-100/70 active:scale-95 transition-all">
-                <i class="fa-solid fa-pen-nib text-[11px]"></i>
-                <span>글쓰기</span>
+            <!-- 우측 끝 펜 선그림 흔적 이모지 버튼 (누르면 왼쪽으로 슬라이드 메뉴 열림) -->
+            <button type="button" id="header-pen-btn" onclick="toggleHeaderQuickMenu(event)" 
+                    class="w-8 h-8 rounded-full flex items-center justify-center church-accent church-primary-text border border-emerald-200/80 shadow-2xs hover:bg-emerald-100 active:scale-95 transition-all" 
+                    title="목장 메뉴 열기">
+                <i class="fa-solid fa-pen-fancy text-sm transition-transform duration-200"></i>
             </button>
         </div>
     </header>
@@ -239,6 +235,47 @@
 
     <!-- [인쇄 전용 숨김 컨테이너] -->
     <div id="print-area" class="hidden"></div>
+
+    <!-- [전체 PDF 다중 페이지 미리보기 & 저장/공유 모달] -->
+    <div id="all-pdf-preview-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-sm max-h-[90vh] p-4 shadow-2xl border church-border flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between pb-2 border-b church-border shrink-0">
+                <div class="flex items-center space-x-1.5">
+                    <i class="fa-solid fa-book-open church-primary-text text-sm"></i>
+                    <h3 class="text-xs font-bold text-gray-800">목장 이야기 전체 PDF 미리보기</h3>
+                </div>
+                <button onclick="closeAllPdfPreviewModal()" class="text-gray-400 hover:text-gray-600 p-0.5"><i class="fa-solid fa-xmark text-sm"></i></button>
+            </div>
+
+            <!-- 다중 페이지 갤러리/리스트 뷰어 (비율 100% 유지, 찌그러짐 방지) -->
+            <div class="flex-1 overflow-y-auto py-3 px-1 bg-gray-100/70 rounded-xl my-2 border border-gray-200/80 flex flex-col items-center space-y-3" id="all-pdf-pages-container">
+                <!-- 생성된 페이지 캔버스 이미지들이 동적으로 나열됩니다 -->
+            </div>
+
+            <div class="text-center pt-0.5 pb-2 shrink-0">
+                <p id="all-pdf-status-desc" class="text-xs font-semibold text-gray-800">모든 사진과 글, 댓글이 포함되었습니다. 이대로 진행할까요?</p>
+                <span id="all-pdf-page-count-badge" class="text-[10px] text-emerald-700 font-medium"></span>
+            </div>
+
+            <!-- 승인 전/후 액션 버튼 영역 -->
+            <div id="all-pdf-action-buttons" class="grid grid-cols-2 gap-2 shrink-0">
+                <button type="button" onclick="closeAllPdfPreviewModal()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium active:scale-95 transition-all">아니오</button>
+                <button type="button" onclick="approveAllPdfGeneration()" class="py-2 church-primary text-white rounded-xl text-xs font-semibold shadow-xs active:scale-95 transition-all">예 (진행)</button>
+            </div>
+
+            <!-- 승인 후 나타나는 공유 및 파일 저장 버튼 영역 (처음엔 숨김) -->
+            <div id="all-pdf-download-share-buttons" class="hidden grid-cols-2 gap-2 shrink-0">
+                <button type="button" onclick="downloadAllPdfFile()" class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center space-x-1.5 active:scale-95 transition-all">
+                    <i class="fa-solid fa-floppy-disk text-xs"></i>
+                    <span>휴대폰에 저장</span>
+                </button>
+                <button type="button" onclick="shareAllPdfFile()" class="py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center space-x-1.5 active:scale-95 transition-all">
+                    <i class="fa-solid fa-share-nodes text-xs"></i>
+                    <span>공유하기</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- [댓글 전용 팝업 스크린 모달] -->
     <div id="comments-popup-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex flex-col justify-end hidden">
@@ -253,10 +290,8 @@
                 </button>
             </div>
 
-            <!-- 댓글 목록 스크롤 -->
             <div id="comments-modal-list" class="flex-1 overflow-y-auto p-3 space-y-2.5 text-xs"></div>
 
-            <!-- 하단 작성 인풋 -->
             <div class="p-2.5 border-t church-border bg-white shrink-0 flex items-center space-x-1.5">
                 <input type="text" id="comments-modal-input" maxlength="200" placeholder="댓글을 입력하세요..." 
                        onkeydown="if(event.key==='Enter') addCommentFromModal()" 
@@ -279,20 +314,15 @@
             <div class="space-y-2.5 flex-1 overflow-y-auto pt-2 px-0.5">
                 <input type="hidden" id="editing-post-id" value="">
                 
-                <!-- 사진 첨부 영역 -->
                 <div class="space-y-1">
                     <div class="flex justify-end items-center text-[11px] leading-none pt-0.5">
                         <span id="image-count-indicator" class="text-gray-400 font-medium">0 / 5장</span>
                     </div>
 
-                    <!-- 숨김 파일 인풋 -->
                     <input type="file" id="post-multi-file-input" accept="image/*" multiple class="hidden" onchange="handleFilesSelect(event)">
-
-                    <!-- 사진 썸네일 & '+' 추가 버튼 -->
                     <div id="selected-images-grid" class="flex flex-wrap items-center justify-center gap-2 py-1.5 bg-gray-50/60 rounded-xl border-0 min-h-[76px]"></div>
                 </div>
 
-                <!-- 내용 입력 영역 -->
                 <div class="w-full pt-1" id="post-content-container">
                     <div class="flex justify-between items-center mb-1 text-[11px]">
                         <span class="font-medium text-gray-700">내용 입력</span>
@@ -304,7 +334,6 @@
                 </div>
             </div>
 
-            <!-- 하단 고정 등록/수정 버튼 -->
             <div class="pt-2 border-t church-border shrink-0 flex justify-center">
                 <button type="button" onclick="requestSavePost()" class="px-6 py-2.5 church-primary text-white rounded-xl font-semibold text-xs shadow-md active:scale-95 transition-all inline-flex items-center space-x-1.5" id="submit-btn-text">
                     <i class="fa-solid fa-check"></i>
@@ -372,7 +401,7 @@
         </div>
     </div>
 
-    <!-- [내보내기/인쇄 사전 확인 모달] -->
+    <!-- [단일 게시글 내보내기/인쇄 사전 확인 모달] -->
     <div id="export-preview-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden">
         <div class="bg-white rounded-2xl w-full max-w-sm max-h-[85vh] p-4 shadow-2xl border church-border flex flex-col overflow-hidden">
             <div class="flex items-center justify-between pb-2 border-b church-border shrink-0">
@@ -420,7 +449,6 @@
             </div>
         </div>
 
-        <!-- 이미지 뷰포트 (캐러셀 트랙) -->
         <div id="lightbox-viewport" class="overflow-hidden w-full flex-1 flex items-center justify-center relative touch-none my-1 bg-white">
             <button type="button" id="lightbox-prev-btn" onclick="slideLightboxPrev(event)" class="absolute left-2 z-40 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-gray-700 shadow-md border border-gray-200 flex items-center justify-center transition-all opacity-80 hover:opacity-100 hidden">
                 <i class="fa-solid fa-chevron-left text-sm"></i>
@@ -433,7 +461,6 @@
             </button>
         </div>
 
-        <!-- 하단 확대/축소 도구바 -->
         <div class="w-full py-1.5 px-3 flex items-center justify-center z-50 bg-white/95 border-t border-gray-200 shadow-xs rounded-xl">
             <div class="flex items-center space-x-3">
                 <button type="button" onclick="zoomLightbox(-0.25)" class="w-7 h-7 rounded bg-gray-100 hover:bg-gray-200 active:scale-90 text-gray-700 flex items-center justify-center transition-all border border-gray-200" title="축소">
@@ -462,7 +489,7 @@
         let currentActivePopupPostId = null;
         let cachedPosts = [];
 
-        // 라이트박스 상태 관리 변수
+        // 라이트박스 상태 관리
         let currentLightboxPostId = null;
         let currentLightboxPhotoIdx = 0;
         let currentLightboxRotationAngle = 0;
@@ -470,11 +497,15 @@
         let currentLightboxScale = 1.0;
         let currentLightboxImages = [];
 
-        // 내보내기 상태 변수
+        // 단일 내보내기 상태
         let pendingExportType = null;
         let pendingExportPostId = null;
 
-        // 터치 및 드래그 제어 변수
+        // 전체 PDF 상태 변수
+        let generatedAllPdfBlob = null;
+        let generatedAllPdfFileName = "";
+
+        // 터치 및 드래그 제어
         let isDraggingTrack = false;
         let dragStartX = 0;
         let dragCurrentX = 0;
@@ -482,7 +513,7 @@
         let lightboxInitialPinchDist = 0;
         let lightboxInitialScale = 1.0;
 
-        // 사진 밑 댓글(+버튼) 작성 중 내용 보관 및 5분 자동 만료 캐시
+        // 인라인 댓글 임시보관 캐시 (5분)
         const commentDrafts = {};
         const DRAFT_EXPIRE_MS = 5 * 60 * 1000;
 
@@ -516,7 +547,7 @@
             currentDbStatus = status;
             const lamp = document.getElementById('db-status-lamp');
             if (lamp) {
-                lamp.className = "w-2.5 h-2.5 rounded-full inline-block transition-all";
+                lamp.className = "w-2 h-2 rounded-full inline-block transition-all";
                 if (status === 'connecting') lamp.classList.add('bg-sky-400', 'animate-pulse');
                 else if (status === 'connected') lamp.classList.add('bg-emerald-400');
                 else if (status === 'saving') lamp.classList.add('bg-emerald-300', 'animate-ping');
@@ -539,10 +570,47 @@
             }, 2500);
         }
 
+        // 상단 헤더 펜 선그림 슬라이드 메뉴 토글
+        window.toggleHeaderQuickMenu = function(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('header-quick-menu');
+            const btn = document.getElementById('header-pen-btn');
+            if (!menu) return;
+
+            const isOpen = menu.classList.contains('menu-open');
+            closeAllHeaderQuickMenu();
+            closeAllActionMenus();
+            closeAllExportMenus();
+
+            if (!isOpen) {
+                menu.classList.remove('menu-closed');
+                menu.classList.add('menu-open');
+                if (btn) btn.classList.add('rotate-45', 'bg-emerald-200');
+            }
+        };
+
+        function closeAllHeaderQuickMenu() {
+            const menu = document.getElementById('header-quick-menu');
+            const btn = document.getElementById('header-pen-btn');
+            if (menu) {
+                menu.classList.remove('menu-open');
+                menu.classList.add('menu-closed');
+            }
+            if (btn) {
+                btn.classList.remove('rotate-45', 'bg-emerald-200');
+            }
+        }
+
+        window.handleHeaderWriteClick = function() {
+            closeAllHeaderQuickMenu();
+            openWriteModal();
+        };
+
+        // Firebase 무료 용량(1GB) 1일 1회 로컬 캐시 계산
         function updateStorageQuotaDisplay(posts) {
             const STORAGE_QUOTA_KEY = "firebase_daily_quota_cache";
             const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-            const FREE_QUOTA_BYTES = 1024 * 1024 * 1024;
+            const FREE_QUOTA_BYTES = 1024 * 1024 * 1024; // 1GB 무료 한도
 
             let cached = null;
             try {
@@ -582,13 +650,13 @@
             if (textEl && iconEl) {
                 textEl.innerText = `${percentage}%`;
                 if (percentage < 25) {
-                    iconEl.className = "fa-solid fa-battery-quarter text-emerald-600 text-[10px] leading-none mb-0.5";
+                    iconEl.className = "fa-solid fa-battery-quarter text-emerald-600 text-[10px]";
                 } else if (percentage < 55) {
-                    iconEl.className = "fa-solid fa-battery-half text-emerald-600 text-[10px] leading-none mb-0.5";
+                    iconEl.className = "fa-solid fa-battery-half text-emerald-600 text-[10px]";
                 } else if (percentage < 85) {
-                    iconEl.className = "fa-solid fa-battery-three-quarters text-amber-500 text-[10px] leading-none mb-0.5";
+                    iconEl.className = "fa-solid fa-battery-three-quarters text-amber-500 text-[10px]";
                 } else {
-                    iconEl.className = "fa-solid fa-battery-full text-rose-500 text-[10px] leading-none mb-0.5";
+                    iconEl.className = "fa-solid fa-battery-full text-rose-500 text-[10px]";
                 }
             }
         }
@@ -818,6 +886,8 @@
 
             const isOpen = menu.classList.contains('menu-open');
             closeAllActionMenus();
+            closeAllHeaderQuickMenu();
+            closeAllExportMenus();
 
             if (!isOpen) {
                 menu.classList.remove('menu-closed');
@@ -844,6 +914,8 @@
 
             const isOpen = menu.classList.contains('export-menu-open');
             closeAllExportMenus();
+            closeAllHeaderQuickMenu();
+            closeAllActionMenus();
 
             if (!isOpen) {
                 menu.classList.remove('export-menu-closed');
@@ -879,6 +951,9 @@
         }
 
         document.addEventListener('click', function(e) {
+            if (!e.target.closest('#header-quick-menu') && !e.target.closest('#header-pen-btn')) {
+                closeAllHeaderQuickMenu();
+            }
             if (!e.target.closest('[id^="action-menu-"]') && !e.target.closest('[id^="action-btn-"]')) {
                 closeAllActionMenus();
             }
@@ -890,6 +965,7 @@
         const feedScrollEl = document.getElementById('feed-container');
         if (feedScrollEl) {
             feedScrollEl.addEventListener('scroll', () => {
+                closeAllHeaderQuickMenu();
                 closeAllActionMenus();
                 closeAllExportMenus();
                 closeAllInlineCommentInputs();
@@ -1097,22 +1173,7 @@
                 const canvas = await html2canvas(cardEl, {
                     scale: 2,
                     useCORS: true,
-                    backgroundColor: '#ffffff',
-                    onclone: (clonedDoc) => {
-                        const target = clonedDoc.getElementById(`post-card-${postId}`);
-                        if (target) {
-                            const body = target.querySelector('.post-content-body');
-                            if (body) {
-                                body.style.textAlign = 'left';
-                                body.style.textIndent = '0px';
-                                body.style.direction = 'ltr';
-                                body.style.marginLeft = '0px';
-                                body.style.paddingLeft = '2px';
-                                body.style.width = '100%';
-                                body.style.display = 'block';
-                            }
-                        }
-                    }
+                    backgroundColor: '#ffffff'
                 });
 
                 const link = document.createElement('a');
@@ -1140,22 +1201,7 @@
                 const canvas = await html2canvas(cardEl, {
                     scale: 2,
                     useCORS: true,
-                    backgroundColor: '#ffffff',
-                    onclone: (clonedDoc) => {
-                        const target = clonedDoc.getElementById(`post-card-${postId}`);
-                        if (target) {
-                            const body = target.querySelector('.post-content-body');
-                            if (body) {
-                                body.style.textAlign = 'left';
-                                body.style.textIndent = '0px';
-                                body.style.direction = 'ltr';
-                                body.style.marginLeft = '0px';
-                                body.style.paddingLeft = '2px';
-                                body.style.width = '100%';
-                                body.style.display = 'block';
-                            }
-                        }
-                    }
+                    backgroundColor: '#ffffff'
                 });
 
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
@@ -1199,9 +1245,205 @@
             }, 500);
         }
 
-        function formatFileDate(d) {
-            return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}_${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`;
-        }
+        // [피드 전체(모든 글, 사진, 댓글) 다중 페이지 PDF 생성 & 레이아웃 미리보기 & 저장/공유]
+        window.requestAllFeedPdfPreview = async function() {
+            closeAllHeaderQuickMenu();
+            if (!cachedPosts || cachedPosts.length === 0) {
+                showNotification("피드에 등록된 목장 이야기가 없습니다.");
+                return;
+            }
+
+            const modal = document.getElementById('all-pdf-preview-modal');
+            const pagesContainer = document.getElementById('all-pdf-pages-container');
+            const actionBox = document.getElementById('all-pdf-action-buttons');
+            const downloadShareBox = document.getElementById('all-pdf-download-share-buttons');
+            const statusDesc = document.getElementById('all-pdf-status-desc');
+            const badge = document.getElementById('all-pdf-page-count-badge');
+
+            actionBox.classList.remove('hidden');
+            downloadShareBox.classList.add('hidden');
+            statusDesc.innerText = "모든 사진과 글, 댓글이 포함되었습니다. 이대로 진행할까요?";
+            badge.innerText = "";
+
+            pagesContainer.innerHTML = `
+                <div class="py-16 flex flex-col items-center justify-center text-gray-400 space-y-2">
+                    <i class="fa-solid fa-spinner fa-spin text-2xl text-emerald-700"></i>
+                    <span class="text-xs font-semibold text-gray-700">전체 피드와 댓글을 책 형태로 구성 중...</span>
+                    <span class="text-[10px] text-gray-400">사진 수에 따라 수 초 정도 걸릴 수 있습니다</span>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+
+            try {
+                // 임시 전체 컴파일 컨테이너 생성
+                const compileWrapper = document.createElement('div');
+                compileWrapper.style.width = '794px'; // A4 96DPI 기준 폭
+                compileWrapper.style.background = '#ffffff';
+                compileWrapper.style.padding = '24px 20px';
+                compileWrapper.style.boxSizing = 'border-box';
+                compileWrapper.style.position = 'fixed';
+                compileWrapper.style.left = '-9999px';
+                compileWrapper.style.top = '0';
+                compileWrapper.className = 'flex flex-col space-y-4';
+
+                // 헤더 타이틀 표지 블록
+                const bookHeader = document.createElement('div');
+                bookHeader.className = "text-center pb-3 border-b-2 border-emerald-800";
+                bookHeader.innerHTML = `
+                    <h2 class="text-xl font-bold text-gray-900">${currentMokjang} 이야기 모음집</h2>
+                    <p class="text-xs text-gray-500 mt-1">발행일시: ${new Date().toLocaleDateString('ko-KR')} | 총 ${cachedPosts.length}개의 은혜 나눔</p>
+                `;
+                compileWrapper.appendChild(bookHeader);
+
+                // 모든 포스트 복제 및 no-export 제거
+                cachedPosts.forEach(post => {
+                    const original = document.getElementById(`post-card-${post.id}`);
+                    if (original) {
+                        const clone = original.cloneNode(true);
+                        clone.querySelectorAll('.no-export').forEach(el => el.remove());
+                        const body = clone.querySelector('.post-content-body');
+                        if (body) {
+                            body.style.textAlign = 'left';
+                            body.style.textIndent = '0px';
+                            body.style.direction = 'ltr';
+                            body.style.marginLeft = '0px';
+                            body.style.paddingLeft = '2px';
+                            body.style.width = '100%';
+                        }
+                        clone.style.marginBottom = '12px';
+                        clone.style.boxShadow = 'none';
+                        clone.style.border = '1px solid #E5E7EB';
+                        compileWrapper.appendChild(clone);
+                    }
+                });
+
+                document.body.appendChild(compileWrapper);
+
+                const canvas = await html2canvas(compileWrapper, {
+                    scale: 1.5,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+
+                document.body.removeChild(compileWrapper);
+
+                // A4 비율에 맞춰 다중 페이지 분할
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = 210;
+                const pageHeight = 297;
+                const margin = 10;
+                const contentWidth = pageWidth - (margin * 2);
+                const contentHeight = pageHeight - (margin * 2);
+
+                const pxPerMm = canvas.width / contentWidth;
+                const pageHeightPx = Math.floor(contentHeight * pxPerMm);
+                const totalPages = Math.ceil(canvas.height / pageHeightPx);
+
+                pagesContainer.innerHTML = '';
+                const pageBlobs = [];
+
+                for (let i = 0; i < totalPages; i++) {
+                    const pageCanvas = document.createElement('canvas');
+                    pageCanvas.width = canvas.width;
+                    pageCanvas.height = Math.min(pageHeightPx, canvas.height - i * pageHeightPx);
+
+                    const pCtx = pageCanvas.getContext('2d');
+                    pCtx.fillStyle = '#ffffff';
+                    pCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+                    pCtx.drawImage(
+                        canvas,
+                        0, i * pageHeightPx, canvas.width, pageCanvas.height,
+                        0, 0, pageCanvas.width, pageCanvas.height
+                    );
+
+                    const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.92);
+
+                    if (i > 0) pdf.addPage();
+                    const mmHeight = (pageCanvas.height * contentWidth) / canvas.width;
+                    pdf.addImage(pageImgData, 'JPEG', margin, margin, contentWidth, mmHeight);
+
+                    // 미리보기 화면에 개별 페이지 축소판 표시
+                    const previewWrapper = document.createElement('div');
+                    previewWrapper.className = "w-full max-w-[280px] bg-white rounded-lg shadow border border-gray-200 overflow-hidden flex flex-col items-center p-1.5";
+                    previewWrapper.innerHTML = `
+                        <div class="w-full flex justify-between items-center text-[9px] text-gray-500 font-bold pb-1 px-1 border-b border-gray-100">
+                            <span>페이지 ${i + 1} / ${totalPages}</span>
+                            <span>${currentMokjang}</span>
+                        </div>
+                        <img src="${pageImgData}" alt="페이지 ${i + 1}" class="w-full h-auto object-contain block mt-1">
+                    `;
+                    pagesContainer.appendChild(previewWrapper);
+                }
+
+                generatedAllPdfBlob = pdf.output('blob');
+                generatedAllPdfFileName = `목장전체이야기_${formatFileDate(new Date())}.pdf`;
+
+                badge.innerText = `(총 ${totalPages}페이지 구성 완료)`;
+            } catch (err) {
+                console.error("전체 PDF 생성 오류:", err);
+                pagesContainer.innerHTML = `<p class="text-xs text-rose-500 py-6 text-center">전체 PDF 미리보기를 구성하지 못했습니다.<br><span class="text-[10px] text-gray-400">${err.message}</span></p>`;
+            }
+        };
+
+        window.closeAllPdfPreviewModal = function() {
+            document.getElementById('all-pdf-preview-modal').classList.add('hidden');
+            generatedAllPdfBlob = null;
+            generatedAllPdfFileName = "";
+        };
+
+        window.approveAllPdfGeneration = function() {
+            if (!generatedAllPdfBlob) return;
+            const actionBox = document.getElementById('all-pdf-action-buttons');
+            const downloadShareBox = document.getElementById('all-pdf-download-share-buttons');
+            const statusDesc = document.getElementById('all-pdf-status-desc');
+
+            actionBox.classList.add('hidden');
+            downloadShareBox.classList.remove('hidden');
+            downloadShareBox.classList.add('grid');
+            statusDesc.innerText = "승인되었습니다! 아래 버튼을 눌러 저장하거나 공유하세요.";
+        };
+
+        window.downloadAllPdfFile = function() {
+            if (!generatedAllPdfBlob) return;
+            const url = URL.createObjectURL(generatedAllPdfBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = generatedAllPdfFileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showNotification("전체 PDF 파일이 기기에 저장되었습니다!");
+        };
+
+        window.shareAllPdfFile = async function() {
+            if (!generatedAllPdfBlob) return;
+            try {
+                const file = new File([generatedAllPdfBlob], generatedAllPdfFileName, { type: 'application/pdf' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: `${currentMokjang} 이야기 모음`,
+                        text: `${currentMokjang}의 모든 사진과 글이 담긴 이야기 모음집입니다.`
+                    });
+                    showNotification("공유창이 호출되었습니다.");
+                } else if (navigator.share) {
+                    await navigator.share({
+                        title: `${currentMokjang} 이야기 모음`,
+                        text: `${currentMokjang}의 모든 나눔과 사진이 담긴 PDF입니다.`
+                    });
+                } else {
+                    downloadAllPdfFile();
+                    showNotification("공유를 지원하지 않는 브라우저여서 파일 다운로드로 전환했습니다.");
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.warn("공유 오류:", err);
+                    downloadAllPdfFile();
+                }
+            }
+        };
 
         async function loadMokjangFeed() {
             const feedContainer = document.getElementById('feed-container');
@@ -1216,7 +1458,6 @@
                     const rawImg = data.imageUrl || "";
                     const rawImgs = Array.isArray(data.images) ? data.images.join(" ") : "";
                     
-                    // 유령/더미 데이터(내용과 사진이 모두 없거나 비정상 데이터) 자동 삭제 정리
                     const hasValidContent = data.content && data.content.trim().length > 0;
                     const hasValidImages = (Array.isArray(data.images) && data.images.some(img => img && img.trim().length > 0)) || (rawImg && rawImg.trim().length > 0);
                     
@@ -1241,7 +1482,7 @@
                                 <i class="fa-solid fa-pen-nib text-xl opacity-60"></i>
                             </div>
                             <h3 class="text-xs font-bold text-gray-700">등록된 목장 이야기가 없습니다</h3>
-                            <p class="text-[10px] text-gray-400 mt-1">상단의 글쓰기 버튼을 눌러 첫 소식을 나눠주세요.</p>
+                            <p class="text-[10px] text-gray-400 mt-1">상단의 펜 아이콘을 눌러 첫 소식을 나눠주세요.</p>
                         </div>
                     `;
                     return;
@@ -1384,40 +1625,31 @@
                                 </div>
                             </div>
 
-                            <!-- 첫 글자 완벽 왼쪽 밀착 본문 -->
                             ${formattedContent}
-
-                            <!-- 사진 영역 -->
                             ${mediaSectionHtml}
 
-                            <!-- 반응 버튼들 & 내보내기 메뉴 -->
                             <div class="pt-1 flex items-center justify-between no-export">
                                 <div class="flex items-center space-x-3">
-                                    <!-- 손하트 / 하트 -->
                                     <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-300 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform">
                                         <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i>
                                         <span class="text-xs">${post.likes || 0}</span>
                                     </button>
 
-                                    <!-- 엄지척 -->
                                     <button onclick="toggleThumbsUp('${post.id}', ${hasThumbed})" class="flex items-center space-x-1 ${hasThumbed ? 'text-sky-300 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform">
                                         <i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i>
                                         <span class="text-xs">${thumbsCount}</span>
                                     </button>
 
-                                    <!-- 댓글 팝업 열기 -->
                                     <button type="button" onclick="openCommentsModal('${post.id}')" class="flex items-center space-x-1 text-gray-500 hover:text-emerald-700 active:scale-90 transition-transform" title="댓글 열기">
                                         <i class="fa-regular fa-comment-dots text-sm"></i>
                                         <span class="text-xs">${commentCount}</span>
                                     </button>
 
-                                    <!-- 댓글 바로 쓰기 토글 '+' -->
                                     <button type="button" onclick="toggleInlineCommentInput('${post.id}')" class="w-5 h-5 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-500 hover:text-emerald-700 flex items-center justify-center text-xs font-bold active:scale-90 transition-transform" title="댓글 바로 달기">
                                         <i class="fa-solid fa-plus text-[10px]"></i>
                                     </button>
                                 </div>
 
-                                <!-- 오른쪽 내보내기 3종 슬라이드 메뉴 -->
                                 <div class="relative flex items-center">
                                     <div id="export-menu-${post.id}" class="export-slide-menu export-menu-closed absolute right-6 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-2.5 z-20 flex items-center space-x-2.5 whitespace-nowrap">
                                         <button type="button" onclick="requestExportPreview('${post.id}', 'image')" 
@@ -1447,7 +1679,6 @@
                                 </div>
                             </div>
 
-                            <!-- 인라인 댓글 입력창 -->
                             <div id="inline-comment-row-${post.id}" class="no-export mt-1 pt-0.5 hidden">
                                 <div class="flex space-x-1.5 items-center">
                                     <input type="text" id="inline-comment-input-${post.id}" maxlength="200" placeholder="따뜻한 댓글을 남겨보세요..." 
@@ -1460,7 +1691,6 @@
                                 </div>
                             </div>
 
-                            <!-- 댓글 목록 블록 -->
                             ${commentsDisplayHtml}
                         </div>
                     `;
@@ -1854,7 +2084,6 @@
             try {
                 const finalDataUrl = await getProcessedDataUrl(activeImg.src, currentLightboxRotationAngle, isLightboxAutoFixed);
                 
-                // 파일 다운로드/위치 저장 다이얼로그 호출 (휴대폰 갤러리/다운로드 폴더 저장)
                 const link = document.createElement('a');
                 link.download = `목장사진_${currentLightboxPostId.substring(0, 5)}_${currentLightboxPhotoIdx + 1}_${Date.now()}.jpg`;
                 link.href = finalDataUrl;
@@ -1896,6 +2125,10 @@
                 img.onerror = reject;
                 img.src = src;
             });
+        }
+
+        function formatFileDate(d) {
+            return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}_${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}`;
         }
 
         function formatDate(timestamp) {
