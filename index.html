@@ -32,6 +32,31 @@
         .church-accent { background-color: #E8F0EC; }
         .church-border { border-color: #E5E7EB; }
 
+        /* 살랑살랑 흔들리는 다정한 서브 환영 문구 애니메이션 */
+        @keyframes swayWelcome {
+            0%, 100% { transform: rotate(0deg) translateY(0); }
+            25% { transform: rotate(-2deg) translateY(-0.5px); }
+            75% { transform: rotate(2deg) translateY(0.5px); }
+        }
+        .animate-sway-welcome {
+            display: inline-block;
+            animation: swayWelcome 3.5s ease-in-out infinite;
+            transform-origin: center center;
+        }
+
+        /* 살아 움직이며 글씨를 쓰는 듯 통통 튀는 펜 애니메이션 */
+        @keyframes penLiveMotion {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            15% { transform: rotate(-14deg) translateY(-2px) scale(1.08); }
+            30% { transform: rotate(8deg) translateY(1px) scale(0.96); }
+            45% { transform: rotate(-6deg) translateY(-1px) scale(1.03); }
+            60% { transform: rotate(0deg) scale(1); }
+        }
+        .animate-pen-live {
+            animation: penLiveMotion 4s ease-in-out infinite;
+            transform-origin: bottom right;
+        }
+
         /* 피드 스크롤 최적화 */
         #feed-container {
             -webkit-overflow-scrolling: touch;
@@ -223,7 +248,7 @@
 
             <!-- 우측 끝 펜 선그림 흔적 이모지 버튼 (누르면 왼쪽으로 슬라이드 메뉴 열림) -->
             <button type="button" id="header-pen-btn" onclick="toggleHeaderQuickMenu(event)" 
-                    class="w-8 h-8 rounded-full flex items-center justify-center church-accent church-primary-text border border-emerald-200/80 shadow-2xs hover:bg-emerald-100 active:scale-95 transition-all" 
+                    class="w-8 h-8 rounded-full flex items-center justify-center church-accent church-primary-text border border-emerald-200/80 shadow-2xs hover:bg-emerald-100 active:scale-95 transition-all animate-pen-live" 
                     title="목장 메뉴 열기">
                 <i class="fa-solid fa-pen-fancy text-sm transition-transform duration-200"></i>
             </button>
@@ -240,7 +265,7 @@
 
     <!-- [전체 PDF 다중 페이지 미리보기 & 저장/공유 모달] -->
     <div id="all-pdf-preview-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden" style="touch-action: auto !important;">
-        <div class="bg-white rounded-2xl w-full max-w-sm max-h-[92vh] p-4 shadow-2xl border church-border flex flex-col overflow-hidden">
+        <div class="bg-white rounded-2xl w-full max-w-sm max-h-[86vh] p-4 shadow-2xl border church-border flex flex-col overflow-hidden">
             <div class="flex items-center justify-between pb-2 border-b church-border shrink-0">
                 <div class="flex items-center space-x-1.5">
                     <i class="fa-solid fa-book-open church-primary-text text-sm"></i>
@@ -249,11 +274,11 @@
                 <button onclick="closeAllPdfPreviewModal()" class="text-gray-400 hover:text-gray-600 p-0.5"><i class="fa-solid fa-xmark text-sm"></i></button>
             </div>
 
-            <!-- 스크롤 뷰포트: 명시적 높이(55vh) 및 강제 스크롤 스타일 적용 -->
+            <!-- 스크롤 뷰포트: 피드처럼 부드럽게 위아래로 손가락 스크롤되는 영역 -->
             <div id="all-pdf-scroll-viewport" 
                  onscroll="handlePdfViewerScroll(this)" 
                  class="relative my-2 bg-gray-100/80 rounded-xl border border-gray-200/80 p-1.5"
-                 style="height: 55vh; min-height: 280px; max-height: 55vh; overflow-y: scroll !important; -webkit-overflow-scrolling: touch !important; touch-action: pan-y !important; overscroll-behavior: contain;">
+                 style="height: 48vh; min-height: 250px; max-height: 48vh; overflow-y: scroll !important; -webkit-overflow-scrolling: touch !important; touch-action: pan-y !important; overscroll-behavior: contain;">
                 
                 <!-- 상단 플로팅 고정: 실시간 현재 / 전체 페이지 표시기 -->
                 <div class="sticky top-1 z-30 flex justify-end px-1 pointer-events-none mb-1">
@@ -262,9 +287,9 @@
                     </span>
                 </div>
 
-                <!-- 최신순 전체 연속 뷰 컨테이너 -->
-                <div id="all-pdf-continuous-container" class="w-full flex flex-col items-center select-none" style="touch-action: pan-y !important;">
-                    <!-- 생성된 최신순 연속 캔버스 이미지가 1장으로 주입됩니다 -->
+                <!-- 최신순 전체 연속 뷰 컨테이너 (실제 DOM 카드들이 0.1초 만에 즉각 렌더링됨) -->
+                <div id="all-pdf-continuous-container" class="w-full flex flex-col items-center select-none space-y-2" style="touch-action: pan-y !important;">
+                    <!-- 생성된 최신순 연속 카드가 주입됩니다 -->
                 </div>
             </div>
 
@@ -272,14 +297,14 @@
                 <p id="all-pdf-status-desc" class="text-xs font-semibold text-gray-800">스크롤하여 확인 후 최종 저장해 개인 파일로 보관하세요.</p>
             </div>
 
-            <!-- 승인 전 액션 버튼 영역 -->
-            <div id="all-pdf-action-buttons" class="grid grid-cols-2 gap-2 shrink-0">
-                <button type="button" onclick="closeAllPdfPreviewModal()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium active:scale-95 transition-all">취소</button>
-                <button type="button" onclick="approveAllPdfGeneration()" class="py-2 church-primary text-white rounded-xl text-xs font-semibold shadow-xs active:scale-95 transition-all">최종 저장 (승인)</button>
+            <!-- 승인 전 액션 버튼 영역 (하단 겹침 방지 여백 확보) -->
+            <div id="all-pdf-action-buttons" class="grid grid-cols-2 gap-2 shrink-0 pb-1">
+                <button type="button" onclick="closeAllPdfPreviewModal()" class="py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium active:scale-95 transition-all">취소</button>
+                <button type="button" id="approve-generate-btn" onclick="approveAllPdfGeneration()" class="py-2.5 church-primary text-white rounded-xl text-xs font-semibold shadow-xs active:scale-95 transition-all">최종 저장</button>
             </div>
 
             <!-- 승인 후 나타나는 공유 및 파일 저장 버튼 영역 (처음엔 숨김) -->
-            <div id="all-pdf-download-share-buttons" class="hidden grid-cols-2 gap-2 shrink-0">
+            <div id="all-pdf-download-share-buttons" class="hidden grid-cols-2 gap-2 shrink-0 pb-1">
                 <button type="button" onclick="downloadAllPdfFile()" class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center space-x-1.5 active:scale-95 transition-all">
                     <i class="fa-solid fa-floppy-disk text-xs"></i>
                     <span>휴대폰에 저장</span>
@@ -604,7 +629,7 @@
                 menu.classList.add('menu-open');
                 if (btn) {
                     btn.classList.remove('animate-pen-live');
-                    btn.classList.add('rotate-45', 'bg-emerald-200', 'pen-opened');
+                    btn.classList.add('rotate-45', 'bg-emerald-200');
                 }
             }
         };
@@ -617,7 +642,7 @@
                 menu.classList.add('menu-closed');
             }
             if (btn) {
-                btn.classList.remove('rotate-45', 'bg-emerald-200', 'pen-opened');
+                btn.classList.remove('rotate-45', 'bg-emerald-200');
                 btn.classList.add('animate-pen-live');
             }
         }
@@ -671,13 +696,13 @@
             if (textEl && iconEl) {
                 textEl.innerText = `${percentage}%`;
                 if (percentage < 25) {
-                    iconEl.className = "fa-solid fa-battery-quarter text-emerald-600 text-[10px]";
+                    iconEl.className = "fa-solid fa-battery-quarter text-emerald-600 text-[9px]";
                 } else if (percentage < 55) {
-                    iconEl.className = "fa-solid fa-battery-half text-emerald-600 text-[10px]";
+                    iconEl.className = "fa-solid fa-battery-half text-emerald-600 text-[9px]";
                 } else if (percentage < 85) {
-                    iconEl.className = "fa-solid fa-battery-three-quarters text-amber-500 text-[10px]";
+                    iconEl.className = "fa-solid fa-battery-three-quarters text-amber-500 text-[9px]";
                 } else {
-                    iconEl.className = "fa-solid fa-battery-full text-rose-500 text-[10px]";
+                    iconEl.className = "fa-solid fa-battery-full text-rose-500 text-[9px]";
                 }
             }
         }
@@ -1266,7 +1291,6 @@
             }, 500);
         }
 
-        // [피드 전체(모든 글, 사진, 댓글) 초고속 즉각 렌더링 & 부드러운 스크롤 뷰어]
         window.requestAllFeedPdfPreview = function() {
             closeAllHeaderQuickMenu();
             if (!cachedPosts || cachedPosts.length === 0) {
@@ -1280,31 +1304,29 @@
             const actionBox = document.getElementById('all-pdf-action-buttons');
             const downloadShareBox = document.getElementById('all-pdf-download-share-buttons');
             const statusDesc = document.getElementById('all-pdf-status-desc');
-            const indicatorText = document.getElementById('all-pdf-page-indicator-text');
             const approveBtn = document.getElementById('approve-generate-btn');
 
             actionBox.classList.remove('hidden');
             downloadShareBox.classList.add('hidden');
             downloadShareBox.classList.remove('grid');
-            statusDesc.innerText = "위아래로 스크롤하여 확인 후 최종 저장해 개인 파일로 보관하세요.";
+            statusDesc.innerText = "스크롤하여 확인 후 최종 저장해 개인 파일로 보관하세요.";
             if (approveBtn) {
                 approveBtn.disabled = false;
-                approveBtn.innerHTML = `<span>최종 저장 (승인)</span>`;
+                approveBtn.innerHTML = `<span>최종 저장</span>`;
             }
 
-            // 1. 최신순(내림차순) 정렬
+            // 최신순(내림차순) 정렬
             const sortedPosts = [...cachedPosts].sort((a, b) => {
                 const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
                 const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
                 return tB - tA;
             });
 
-            // 2. 가볍고 빠른 DOM 카드 주입 (0.1초 만에 즉시 렌더링, 멈춤 전혀 없음)
             continuousContainer.innerHTML = '';
 
             // 상단 책자 헤더 카드
             const headerCard = document.createElement('div');
-            headerCard.className = "text-center pb-2.5 pt-2 border-b-2 border-emerald-800 bg-emerald-50/70 p-2.5 rounded-xl shrink-0";
+            headerCard.className = "w-full text-center pb-2.5 pt-2 border-b-2 border-emerald-800 bg-emerald-50/70 p-2.5 rounded-xl shrink-0";
             headerCard.innerHTML = `
                 <h2 class="text-sm font-bold text-gray-900">${currentMokjang} 이야기 모음</h2>
                 <p class="text-[10px] text-gray-500 mt-0.5">발행: ${new Date().toLocaleDateString('ko-KR')} | 총 ${sortedPosts.length}개의 나눔 (댓글 포함)</p>
@@ -1312,9 +1334,9 @@
             continuousContainer.appendChild(headerCard);
 
             // 각 게시글 카드 복제 주입 (불필요한 버튼/툴바 완전 제거)
-            sortedPosts.forEach((post, pIdx) => {
+            sortedPosts.forEach((post) => {
                 const card = document.createElement('div');
-                card.className = "w-full bg-white rounded-xl border border-gray-200 shadow-2xs p-2.5 box-border text-left";
+                card.className = "w-full bg-white rounded-xl border border-gray-200 shadow-2xs p-2.5 box-border text-left pdf-render-card";
 
                 let imgArray = [];
                 if (Array.isArray(post.images) && post.images.length > 0) {
@@ -1373,7 +1395,6 @@
                 continuousContainer.appendChild(card);
             });
 
-            // 3. 모달 띄우기 및 스크롤 높이/페이지 정밀 초기화
             modal.classList.remove('hidden');
             if (scrollViewport) scrollViewport.scrollTop = 0;
 
@@ -1382,14 +1403,12 @@
             }, 100);
         };
 
-        // 스크롤 뷰포트 내 A4 기준 전체 페이지 및 현재 페이지 계산
         function recalculateViewportPages() {
             const viewport = document.getElementById('all-pdf-scroll-viewport');
             const continuousContainer = document.getElementById('all-pdf-continuous-container');
             const indicatorText = document.getElementById('all-pdf-page-indicator-text');
             if (!viewport || !continuousContainer) return;
 
-            // 모바일 뷰포트 폭 기준 A4 비율(1 : 1.414) 세로 1페이지 높이(px) 산정
             const currentWidth = continuousContainer.clientWidth || 300;
             pdfA4PageHeightPx = Math.round(currentWidth * 1.414);
 
@@ -1401,7 +1420,6 @@
             }
         }
 
-        // 스크롤 시 실시간 현재 페이지 갱신
         window.handlePdfViewerScroll = function(viewport) {
             if (!viewport || !pdfA4PageHeightPx || pdfA4PageHeightPx <= 0) return;
             const scrollTop = viewport.scrollTop;
@@ -1429,7 +1447,7 @@
             generatedAllPdfFileName = "";
         };
 
-        // [최종 승인 시에만 안정적으로 백그라운드 PDF 빌드]
+        // 스마트 페이지 브레이크(Smart Page-Break): 사진 및 카드가 중간에서 잘리지 않도록 안전 배치하는 PDF 빌더
         window.approveAllPdfGeneration = async function() {
             const approveBtn = document.getElementById('approve-generate-btn');
             const statusDesc = document.getElementById('all-pdf-status-desc');
@@ -1440,61 +1458,66 @@
                 approveBtn.disabled = true;
                 approveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>PDF 생성 중...</span>`;
             }
-            statusDesc.innerText = "개인 파일용 고화질 PDF 문서를 생성하고 있습니다. 잠시만 기다려주세요...";
+            statusDesc.innerText = "사진이 잘리지 않도록 페이지를 정밀 맞춤 중입니다. 잠시만 기다려주세요...";
 
             try {
-                // 고해상도 캔버스 변환
-                const canvas = await html2canvas(continuousContainer, {
-                    scale: 1.5,
-                    useCORS: true,
-                    backgroundColor: '#ffffff'
-                });
-
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pageWidth = 210;
                 const pageHeight = 297;
                 const margin = 10;
-                const contentWidth = pageWidth - (margin * 2);
-                const contentHeight = pageHeight - (margin * 2);
+                const contentWidth = pageWidth - (margin * 2); // 190mm
+                const contentHeight = pageHeight - (margin * 2); // 277mm
 
-                const pxPerMm = canvas.width / contentWidth;
-                const pageHeightPx = Math.floor(contentHeight * pxPerMm);
-                const totalPages = Math.ceil(canvas.height / pageHeightPx);
+                let currentY = margin;
+                let pageIndex = 1;
 
-                for (let i = 0; i < totalPages; i++) {
-                    const pageCanvas = document.createElement('canvas');
-                    pageCanvas.width = canvas.width;
-                    pageCanvas.height = Math.min(pageHeightPx, canvas.height - i * pageHeightPx);
+                const childCards = Array.from(continuousContainer.children);
 
-                    const pCtx = pageCanvas.getContext('2d');
-                    pCtx.fillStyle = '#ffffff';
-                    pCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-                    pCtx.drawImage(
-                        canvas,
-                        0, i * pageHeightPx, canvas.width, pageCanvas.height,
-                        0, 0, pageCanvas.width, pageCanvas.height
-                    );
+                for (let i = 0; i < childCards.length; i++) {
+                    const card = childCards[i];
 
-                    const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.90);
+                    // 각 카드를 고해상도 캔버스로 변환
+                    const canvas = await html2canvas(card, {
+                        scale: 1.6,
+                        useCORS: true,
+                        backgroundColor: '#ffffff'
+                    });
 
-                    if (i > 0) pdf.addPage();
-                    const mmHeight = (pageCanvas.height * contentWidth) / canvas.width;
-                    pdf.addImage(pageImgData, 'JPEG', margin, margin, contentWidth, mmHeight);
+                    let imgMmWidth = contentWidth;
+                    let imgMmHeight = (canvas.height * contentWidth) / canvas.width;
+
+                    // 단일 카드나 사진이 한 페이지 높이보다 큰 경우 비율 유지 축소
+                    if (imgMmHeight > contentHeight) {
+                        imgMmHeight = contentHeight;
+                        imgMmWidth = (canvas.width * imgMmHeight) / canvas.height;
+                    }
+
+                    // 현재 페이지의 남은 여백 초과 시 다음 페이지로 온전히 넘김 (사진 잘림 방지)
+                    if (currentY + imgMmHeight > pageHeight - margin) {
+                        pdf.addPage();
+                        pageIndex++;
+                        currentY = margin;
+                    }
+
+                    const pageImgData = canvas.toDataURL('image/jpeg', 0.90);
+                    const posX = margin + (contentWidth - imgMmWidth) / 2;
+                    pdf.addImage(pageImgData, 'JPEG', posX, currentY, imgMmWidth, imgMmHeight);
+
+                    currentY += imgMmHeight + 4; // 카드 간격 4mm
                 }
 
                 generatedAllPdfBlob = pdf.output('blob');
                 generatedAllPdfFileName = `목장이야기전체_${formatFileDate(new Date())}.pdf`;
 
-                // 승인 후 공유/저장 버튼 활성화
                 const actionBox = document.getElementById('all-pdf-action-buttons');
                 const downloadShareBox = document.getElementById('all-pdf-download-share-buttons');
 
                 actionBox.classList.add('hidden');
                 downloadShareBox.classList.remove('hidden');
                 downloadShareBox.classList.add('grid');
-                statusDesc.innerText = "생성 완료! 아래 버튼을 눌러 개인 파일로 저장하거나 공유하세요.";
-                showNotification("PDF 생성이 완료되었습니다!");
+                statusDesc.innerText = `생성 완료 (총 ${pageIndex}페이지)! 휴대폰에 저장하거나 공유하세요.`;
+                showNotification("사진이 잘리지 않는 PDF 생성이 완료되었습니다!");
             } catch (err) {
                 console.error("PDF 생성 에러:", err);
                 statusDesc.innerText = "PDF 생성 중 오류가 발생했습니다. 다시 시도해 주세요.";
