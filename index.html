@@ -1403,7 +1403,8 @@
                 };
             } catch (err) {
                 console.error("전체 PDF 생성 오류:", err);
-                continuousContainer.innerHTML = `<p class="text-xs text-rose-500 py-6 text-center">전체 PDF 미리보기를 구성하지 못했습니다.<br><span class="text-[10px] text-gray-400">${escapeHtml(err.message)}</span></p>`;
+                continuousContainer.innerHTML = `<p class="text-xs text-rose-500 py-6 text-center font-medium">전체 PDF 미리보기를 구성하지 못했습니다.<br><span class="text-[10px] text-gray-400 mt-1 block">${escapeHtml(err.message)}</span></p>`;
+                if (indicatorText) indicatorText.innerText = "- / -";
             }
         };
 
