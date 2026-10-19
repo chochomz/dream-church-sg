@@ -504,6 +504,8 @@
         // 전체 PDF 상태 변수
         let generatedAllPdfBlob = null;
         let generatedAllPdfFileName = "";
+        let pdfTotalPagesCalculated = 1;
+        let pdfA4PageHeightPx = 1;
 
         // 터치 및 드래그 제어
         let isDraggingTrack = false;
@@ -1245,7 +1247,7 @@
             }, 500);
         }
 
-        // [피드 전체(모든 글, 사진, 댓글) 다중 페이지 PDF 생성 & 레이아웃 미리보기 & 저장/공유]
+        // [피드 전체(모든 글, 사진, 댓글) 최신순 연속 레이아웃 PDF 생성 & 스크롤 연동 페이지 뷰어]
         window.requestAllFeedPdfPreview = async function() {
             closeAllHeaderQuickMenu();
             if (!cachedPosts || cachedPosts.length === 0) {
@@ -1254,53 +1256,62 @@
             }
 
             const modal = document.getElementById('all-pdf-preview-modal');
-            const pagesContainer = document.getElementById('all-pdf-pages-container');
+            const continuousContainer = document.getElementById('all-pdf-continuous-container');
+            const scrollViewport = document.getElementById('all-pdf-scroll-viewport');
             const actionBox = document.getElementById('all-pdf-action-buttons');
             const downloadShareBox = document.getElementById('all-pdf-download-share-buttons');
             const statusDesc = document.getElementById('all-pdf-status-desc');
-            const badge = document.getElementById('all-pdf-page-count-badge');
+            const indicatorText = document.getElementById('all-pdf-page-indicator-text');
 
             actionBox.classList.remove('hidden');
             downloadShareBox.classList.add('hidden');
-            statusDesc.innerText = "모든 사진과 글, 댓글이 포함되었습니다. 이대로 진행할까요?";
-            badge.innerText = "";
+            statusDesc.innerText = "스크롤하여 확인 후 최종 저장해 개인 파일로 보관하세요.";
+            indicatorText.innerText = "계산 중...";
 
-            pagesContainer.innerHTML = `
+            continuousContainer.innerHTML = `
                 <div class="py-16 flex flex-col items-center justify-center text-gray-400 space-y-2">
                     <i class="fa-solid fa-spinner fa-spin text-2xl text-emerald-700"></i>
-                    <span class="text-xs font-semibold text-gray-700">전체 피드와 댓글을 책 형태로 구성 중...</span>
-                    <span class="text-[10px] text-gray-400">사진 수에 따라 수 초 정도 걸릴 수 있습니다</span>
+                    <span class="text-xs font-semibold text-gray-700">최신순 전체 나눔과 사진, 댓글을 책자로 구성 중...</span>
+                    <span class="text-[10px] text-gray-400">데이터가 많아도 비율 깨짐 없이 정밀하게 생성됩니다</span>
                 </div>
             `;
             modal.classList.remove('hidden');
 
             try {
-                // 임시 전체 컴파일 컨테이너 생성
+                // 1. 최신 피드 순서로 정렬 (내림차순: 최신 글이 맨 위)
+                const sortedPosts = [...cachedPosts].sort((a, b) => {
+                    const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+                    const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+                    return tB - tA;
+                });
+
+                // 2. 가상 컴파일러 래퍼 (A4 96DPI 표준 폭 794px 기준, 가로 세로 비율 왜곡 방지)
                 const compileWrapper = document.createElement('div');
-                compileWrapper.style.width = '794px'; // A4 96DPI 기준 폭
+                compileWrapper.style.width = '794px';
                 compileWrapper.style.background = '#ffffff';
-                compileWrapper.style.padding = '24px 20px';
+                compileWrapper.style.padding = '28px 24px';
                 compileWrapper.style.boxSizing = 'border-box';
                 compileWrapper.style.position = 'fixed';
                 compileWrapper.style.left = '-9999px';
                 compileWrapper.style.top = '0';
-                compileWrapper.className = 'flex flex-col space-y-4';
+                compileWrapper.className = 'flex flex-col space-y-3';
 
-                // 헤더 타이틀 표지 블록
+                // 상단 타이틀 표지 헤더
                 const bookHeader = document.createElement('div');
-                bookHeader.className = "text-center pb-3 border-b-2 border-emerald-800";
+                bookHeader.className = "text-center pb-3 border-b-2 border-emerald-800 bg-emerald-50/40 p-3 rounded-xl";
                 bookHeader.innerHTML = `
-                    <h2 class="text-xl font-bold text-gray-900">${currentMokjang} 이야기 모음집</h2>
-                    <p class="text-xs text-gray-500 mt-1">발행일시: ${new Date().toLocaleDateString('ko-KR')} | 총 ${cachedPosts.length}개의 은혜 나눔</p>
+                    <h2 class="text-xl font-bold text-gray-900">${currentMokjang} 이야기 모음</h2>
+                    <p class="text-xs text-gray-500 mt-1">발행일시: ${new Date().toLocaleDateString('ko-KR')} | 총 ${sortedPosts.length}개의 은혜 나눔 (댓글 포함)</p>
                 `;
                 compileWrapper.appendChild(bookHeader);
 
-                // 모든 포스트 복제 및 no-export 제거
-                cachedPosts.forEach(post => {
+                // 최신순으로 모든 카드 복제 (비율 100% 유지, 텍스트 왼쪽 정렬 강제)
+                sortedPosts.forEach(post => {
                     const original = document.getElementById(`post-card-${post.id}`);
                     if (original) {
                         const clone = original.cloneNode(true);
                         clone.querySelectorAll('.no-export').forEach(el => el.remove());
+                        
                         const body = clone.querySelector('.post-content-body');
                         if (body) {
                             body.style.textAlign = 'left';
@@ -1309,16 +1320,21 @@
                             body.style.marginLeft = '0px';
                             body.style.paddingLeft = '2px';
                             body.style.width = '100%';
+                            body.style.display = 'block';
                         }
-                        clone.style.marginBottom = '12px';
+                        
+                        clone.style.marginBottom = '14px';
                         clone.style.boxShadow = 'none';
                         clone.style.border = '1px solid #E5E7EB';
+                        clone.style.borderRadius = '14px';
+                        clone.style.overflow = 'hidden';
                         compileWrapper.appendChild(clone);
                     }
                 });
 
                 document.body.appendChild(compileWrapper);
 
+                // 고해상도 캡처 캔버스 생성
                 const canvas = await html2canvas(compileWrapper, {
                     scale: 1.5,
                     useCORS: true,
@@ -1327,7 +1343,7 @@
 
                 document.body.removeChild(compileWrapper);
 
-                // A4 비율에 맞춰 다중 페이지 분할
+                // 3. A4 페이지 단위 치수 정밀 계산
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pageWidth = 210;
@@ -1340,9 +1356,9 @@
                 const pageHeightPx = Math.floor(contentHeight * pxPerMm);
                 const totalPages = Math.ceil(canvas.height / pageHeightPx);
 
-                pagesContainer.innerHTML = '';
-                const pageBlobs = [];
+                pdfTotalPagesCalculated = Math.max(1, totalPages);
 
+                // 4. 다중 페이지 PDF 빌드 (자료 보관용)
                 for (let i = 0; i < totalPages; i++) {
                     const pageCanvas = document.createElement('canvas');
                     pageCanvas.width = canvas.width;
@@ -1362,29 +1378,51 @@
                     if (i > 0) pdf.addPage();
                     const mmHeight = (pageCanvas.height * contentWidth) / canvas.width;
                     pdf.addImage(pageImgData, 'JPEG', margin, margin, contentWidth, mmHeight);
-
-                    // 미리보기 화면에 개별 페이지 축소판 표시
-                    const previewWrapper = document.createElement('div');
-                    previewWrapper.className = "w-full max-w-[280px] bg-white rounded-lg shadow border border-gray-200 overflow-hidden flex flex-col items-center p-1.5";
-                    previewWrapper.innerHTML = `
-                        <div class="w-full flex justify-between items-center text-[9px] text-gray-500 font-bold pb-1 px-1 border-b border-gray-100">
-                            <span>페이지 ${i + 1} / ${totalPages}</span>
-                            <span>${currentMokjang}</span>
-                        </div>
-                        <img src="${pageImgData}" alt="페이지 ${i + 1}" class="w-full h-auto object-contain block mt-1">
-                    `;
-                    pagesContainer.appendChild(previewWrapper);
                 }
 
                 generatedAllPdfBlob = pdf.output('blob');
-                generatedAllPdfFileName = `목장전체이야기_${formatFileDate(new Date())}.pdf`;
+                generatedAllPdfFileName = `목장이야기전체_${formatFileDate(new Date())}.pdf`;
 
-                badge.innerText = `(총 ${totalPages}페이지 구성 완료)`;
+                // 5. 연속 스크롤 뷰어 구성 (페이지 구분선 없이 1장의 거대한 캔버스 이미지로 부드럽게 이어짐)
+                continuousContainer.innerHTML = '';
+                const continuousImg = document.createElement('img');
+                continuousImg.id = "all-pdf-continuous-img";
+                continuousImg.src = canvas.toDataURL('image/png');
+                continuousImg.alt = "목장 이야기 전체 연속 뷰";
+                continuousImg.className = "w-full h-auto block select-none rounded-lg shadow-sm bg-white border border-gray-200";
+                continuousContainer.appendChild(continuousImg);
+
+                // A4 1페이지에 해당하는 미리보기 화면 상의 높이(px) 계산
+                continuousImg.onload = function() {
+                    const renderedWidth = continuousImg.clientWidth;
+                    const scaleFactor = renderedWidth / canvas.width;
+                    pdfA4PageHeightPx = pageHeightPx * scaleFactor;
+
+                    if (scrollViewport) scrollViewport.scrollTop = 0;
+                    updatePageIndicator(1, pdfTotalPagesCalculated);
+                };
             } catch (err) {
                 console.error("전체 PDF 생성 오류:", err);
-                pagesContainer.innerHTML = `<p class="text-xs text-rose-500 py-6 text-center">전체 PDF 미리보기를 구성하지 못했습니다.<br><span class="text-[10px] text-gray-400">${err.message}</span></p>`;
+                continuousContainer.innerHTML = `<p class="text-xs text-rose-500 py-6 text-center">전체 PDF 미리보기를 구성하지 못했습니다.<br><span class="text-[10px] text-gray-400">${escapeHtml(err.message)}</span></p>`;
             }
         };
+
+        // 스크롤 시 A4 기준 현재 페이지 / 전체 페이지 실시간 계산
+        window.handlePdfViewerScroll = function(viewport) {
+            if (!viewport || !pdfA4PageHeightPx || pdfA4PageHeightPx <= 0) return;
+            const scrollTop = viewport.scrollTop;
+            let currentPage = Math.floor(scrollTop / pdfA4PageHeightPx) + 1;
+            if (currentPage > pdfTotalPagesCalculated) currentPage = pdfTotalPagesCalculated;
+            if (currentPage < 1) currentPage = 1;
+            updatePageIndicator(currentPage, pdfTotalPagesCalculated);
+        };
+
+        function updatePageIndicator(current, total) {
+            const indicatorText = document.getElementById('all-pdf-page-indicator-text');
+            if (indicatorText) {
+                indicatorText.innerText = `${current} / ${total} 페이지`;
+            }
+        }
 
         window.closeAllPdfPreviewModal = function() {
             document.getElementById('all-pdf-preview-modal').classList.add('hidden');
@@ -1401,7 +1439,7 @@
             actionBox.classList.add('hidden');
             downloadShareBox.classList.remove('hidden');
             downloadShareBox.classList.add('grid');
-            statusDesc.innerText = "승인되었습니다! 아래 버튼을 눌러 저장하거나 공유하세요.";
+            statusDesc.innerText = "승인되었습니다! 아래 버튼을 눌러 개인 파일로 저장하거나 공유하세요.";
         };
 
         window.downloadAllPdfFile = function() {
@@ -1414,7 +1452,7 @@
             a.click();
             document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 1000);
-            showNotification("전체 PDF 파일이 기기에 저장되었습니다!");
+            showNotification("전체 목장 이야기가 휴대폰 파일로 저장되었습니다!");
         };
 
         window.shareAllPdfFile = async function() {
@@ -1425,7 +1463,7 @@
                     await navigator.share({
                         files: [file],
                         title: `${currentMokjang} 이야기 모음`,
-                        text: `${currentMokjang}의 모든 사진과 글이 담긴 이야기 모음집입니다.`
+                        text: `${currentMokjang}의 모든 사진과 글, 댓글이 담긴 나눔 모음집입니다.`
                     });
                     showNotification("공유창이 호출되었습니다.");
                 } else if (navigator.share) {
