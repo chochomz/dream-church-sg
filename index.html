@@ -518,7 +518,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         let currentUser = "목장가족";
         let currentMokjang = "세종꿈의교회 23목장";
@@ -528,6 +528,30 @@
         let currentDbStatus = 'connecting';
         let currentActivePopupPostId = null;
         let cachedPosts = [];
+
+        // 실시간 접속자 세션 및 한국어 카운트 관리
+        const sessionId = "sess_" + Math.random().toString(36).substring(2, 11) + "_" + Date.now();
+        let onlineHeartbeatTimer = null;
+        const KOREAN_COUNT_WORDS = [
+            "", "한분", "두분", "세분", "네분", "다섯분",
+            "여섯분", "일곱분", "여덟분", "아홉분", "열분",
+            "열한분", "열두분", "열세분", "열네분", "열다섯분"
+        ];
+
+        function getKoreanCountWord(count) {
+            const num = Math.max(1, count || 1);
+            if (num <= 15) {
+                return KOREAN_COUNT_WORDS[num];
+            }
+            return `${num}분`;
+        }
+
+        function updateWelcomeUserDisplay(count = 1) {
+            const el = document.getElementById('header-user-display');
+            if (!el) return;
+            const countText = getKoreanCountWord(count);
+            el.innerText = `목장 가족님 ${countText} 환영합니다`;
+        }
 
         // 라이트박스 상태 관리
         let currentLightboxPostId = null;
@@ -583,6 +607,9 @@
         }
         function getPostDocRef(postId) {
             return doc(db, 'mokjang_posts', postId);
+        }
+        function getPresenceDocRef(id) {
+            return doc(db, 'mokjang_presence', id);
         }
 
         function setDbStatus(status) {
@@ -710,23 +737,81 @@
         async function initAuth() {
             setDbStatus('connecting');
             updateStorageQuotaDisplay();
+            updateWelcomeUserDisplay(1);
             if (!auth) { setDbStatus('error'); return; }
             try {
                 await signInAnonymously(auth);
                 isAuthReady = true;
                 setDbStatus('connected');
-                document.getElementById('header-user-display').innerText = `${currentUser} 님 환영합니다`;
-                document.getElementById('header-mokjang-title').innerText = currentMokjang;
                 loadMokjangFeed();
+                initPresenceSystem();
             } catch (e) {
                 console.warn("익명 인증 경고:", e);
                 isAuthReady = true;
                 setDbStatus('connected');
-                document.getElementById('header-user-display').innerText = `${currentUser} 님 환영합니다`;
                 loadMokjangFeed();
+                initPresenceSystem();
             }
         }
         initAuth();
+
+        // 실시간 동시 접속자 감지 및 하트비트 전송
+        function initPresenceSystem() {
+            if (!db) return;
+
+            const myRef = getPresenceDocRef(sessionId);
+
+            // 1. 내 접속 정보 기록 및 주기적 하트비트 (15초마다 갱신)
+            const sendHeartbeat = async () => {
+                try {
+                    await setDoc(myRef, {
+                        sessionId: sessionId,
+                        user: currentUser,
+                        lastSeen: Date.now()
+                    });
+                } catch (e) {
+                    // 무시 (오프라인 등)
+                }
+            };
+
+            sendHeartbeat();
+            if (onlineHeartbeatTimer) clearInterval(onlineHeartbeatTimer);
+            onlineHeartbeatTimer = setInterval(sendHeartbeat, 15000);
+
+            // 2. 창 닫거나 나갈 때 즉시 세션 제거 시도
+            window.addEventListener('beforeunload', () => {
+                try {
+                    deleteDoc(myRef);
+                } catch (e) {}
+            });
+
+            // 3. 실시간 접속자 목록 감시 (45초 이상 응답 없으면 제외)
+            const presenceCol = collection(db, 'mokjang_presence');
+            onSnapshot(presenceCol, (snapshot) => {
+                const now = Date.now();
+                const timeoutWindow = 45000; // 45초 초과 세션은 만료 처리
+                let activeCount = 0;
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data && typeof data.lastSeen === 'number') {
+                        if (now - data.lastSeen < timeoutWindow) {
+                            activeCount++;
+                        } else {
+                            // 오래된 세션 발견 시 정리
+                            try { deleteDoc(docSnap.ref); } catch (e) {}
+                        }
+                    }
+                });
+
+                // 내 자신이 포함되도록 최소 1명 보장
+                activeCount = Math.max(1, activeCount);
+                updateWelcomeUserDisplay(activeCount);
+            }, (err) => {
+                console.warn("접속자 집계 스냅샷 경고:", err);
+                updateWelcomeUserDisplay(1);
+            });
+        }
 
         function processImageFile(file, callback) {
             if (!file) return callback(null);
