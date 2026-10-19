@@ -52,10 +52,13 @@
             overscroll-behavior: contain;
         }
 
-        /* 사진 뷰어 이미지 변환 */
+        /* 사진 뷰어 이미지 변환 및 두꺼운 흰색 테두리 */
         #lightbox-img {
-            transition: transform 0.15s ease-out;
+            transition: transform 0.15s ease-out, filter 0.25s ease-in-out;
             transform-origin: center center;
+            border: 3.5px solid #ffffff;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
         }
 
         /* 사진 통합 컨테이너: 상하 여백 극단적 밀착 */
@@ -201,7 +204,7 @@
         </div>
     </div>
 
-    <!-- [글쓰기 / 수정 모달: 고정 축소 레이아웃] -->
+    <!-- [글쓰기 / 수정 모달: 사진등록 문구 제거, 0/5장 상단 밀착, 바깥 실선 제거, +버튼 확대, 내용 테두리 단일화] -->
     <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
         <div class="bg-white rounded-2xl w-full max-w-sm p-4 shadow-2xl border church-border max-h-[88vh] flex flex-col overflow-hidden">
             <div class="flex items-center justify-between pb-2 border-b church-border shrink-0">
@@ -209,31 +212,30 @@
                 <button onclick="closeWriteModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             
-            <div class="space-y-3 flex-1 overflow-y-auto pt-3 px-0.5">
+            <div class="space-y-2.5 flex-1 overflow-y-auto pt-2 px-0.5">
                 <input type="hidden" id="editing-post-id" value="">
                 
-                <!-- 사진 첨부 영역 -->
-                <div class="space-y-1.5">
-                    <div class="flex justify-between items-center text-[11px]">
-                        <label class="font-medium text-gray-700">사진 등록 (최대 5장)</label>
-                        <span id="image-count-indicator" class="text-gray-400">0 / 5장</span>
+                <!-- 사진 첨부 영역: "사진 등록 (최대 5장)" 문구 삭제, 0/5장은 위로 바짝 밀착 -->
+                <div class="space-y-1">
+                    <div class="flex justify-end items-center text-[11px] leading-none pt-0.5">
+                        <span id="image-count-indicator" class="text-gray-400 font-medium">0 / 5장</span>
                     </div>
 
                     <!-- 숨김 파일 인풋 -->
                     <input type="file" id="post-multi-file-input" accept="image/*" multiple class="hidden" onchange="handleFilesSelect(event)">
 
-                    <!-- 사진 썸네일 & '+' 추가 버튼 중앙 정렬 -->
-                    <div id="selected-images-grid" class="flex flex-wrap items-center justify-center gap-2 py-1 bg-gray-50/60 rounded-xl border border-gray-100 min-h-[72px]"></div>
+                    <!-- 사진 썸네일 & '+' 추가 버튼: 배경 바깥쪽 실선 제거, + 버튼 크기 확대 -->
+                    <div id="selected-images-grid" class="flex flex-wrap items-center justify-center gap-2 py-1.5 bg-gray-50/60 rounded-xl border-0 min-h-[76px]"></div>
                 </div>
 
-                <!-- 내용 입력 영역 -->
-                <div class="w-full" id="post-content-container">
+                <!-- 내용 입력 영역: 테두리 밑에 겹치는 실선 제거 -->
+                <div class="w-full pt-1" id="post-content-container">
                     <div class="flex justify-between items-center mb-1 text-[11px]">
                         <span class="font-medium text-gray-700">내용 입력</span>
                         <span id="char-count-indicator" class="text-gray-400">0 / 200자</span>
                     </div>
                     <textarea id="post-content" rows="3" maxlength="200" oninput="updateCharCount(this)" placeholder="목장 가족들과 나눌 따뜻한 이야기를 입력하세요..." 
-                              class="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] text-sm focus:border-2 focus:border-dashed focus:border-[#3B5D50] focus:outline-none resize-none bg-white block transition-all"></textarea>
+                              class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#3B5D50] focus:ring-1 focus:ring-[#3B5D50] focus:outline-none resize-none bg-white block transition-all shadow-2xs"></textarea>
                 </div>
             </div>
 
@@ -308,31 +310,61 @@
         </div>
     </div>
 
-    <!-- [라이트박스 모달: 사진 확대 및 90도 회전 영구 저장] -->
-    <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-between hidden p-2">
-        <div class="w-full flex items-center justify-between p-2 z-50">
-            <span class="text-white/70 text-xs px-2" id="lightbox-counter"></span>
-            <div class="flex items-center space-x-2">
-                <button type="button" onclick="rotateLightboxImage()" class="px-3 py-1.5 bg-white/20 hover:bg-white/30 active:scale-95 text-white rounded-lg text-xs font-medium flex items-center space-x-1 transition-all">
+    <!-- [라이트박스 모달: 자동조정(밝기/명도), 90도 회전, 각도/보정 저장, 흰색 테두리, 안전 줌, 좌우 사진 슬라이드] -->
+    <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-between hidden p-2 select-none">
+        <!-- 상단 고정 헤더 & 도구 모음 (상부 닫기 X 버튼이 이미지에 가려지지 않음) -->
+        <div class="w-full flex items-center justify-between p-2 z-50 bg-black/40 backdrop-blur-xs rounded-xl">
+            <span class="text-white/80 text-xs px-2 font-medium" id="lightbox-counter">1 / 1</span>
+            <div class="flex items-center space-x-1.5">
+                <!-- 자동 조정 버튼 (아이폰 스타일) -->
+                <button type="button" id="lightbox-autofix-btn" onclick="toggleLightboxAutoFix()" class="px-2.5 py-1.5 bg-white/20 hover:bg-white/30 active:scale-95 text-white rounded-lg text-xs font-medium flex items-center space-x-1 transition-all" title="밝기/명도/대비 자동 최적화">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+                    <span>자동 조정</span>
+                </button>
+                <!-- 90도 회전 버튼 -->
+                <button type="button" onclick="rotateLightboxImage()" class="px-2.5 py-1.5 bg-white/20 hover:bg-white/30 active:scale-95 text-white rounded-lg text-xs font-medium flex items-center space-x-1 transition-all">
                     <i class="fa-solid fa-rotate-right"></i>
                     <span>90° 회전</span>
                 </button>
-                <button type="button" onclick="saveRotatedImagePermanent()" class="px-3 py-1.5 church-primary active:scale-95 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-md transition-all">
+                <!-- 각도 및 보정 저장 버튼 -->
+                <button type="button" onclick="saveRotatedImagePermanent()" class="px-2.5 py-1.5 church-primary active:scale-95 text-white rounded-lg text-xs font-semibold flex items-center space-x-1 shadow-md transition-all">
                     <i class="fa-solid fa-floppy-disk"></i>
-                    <span>각도 저장</span>
+                    <span>저장</span>
                 </button>
-                <button onclick="closeLightbox()" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white text-sm hover:bg-white/30 transition-all">
+                <!-- 상부 닫기 X 버튼 -->
+                <button onclick="closeLightbox()" class="w-7 h-7 flex items-center justify-center rounded-full bg-white/20 text-white text-sm hover:bg-white/30 transition-all ml-1">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
         </div>
 
-        <div class="overflow-hidden w-full flex-1 flex items-center justify-center relative">
-            <img id="lightbox-img" src="" alt="확대 사진" class="max-w-full max-h-full object-contain select-none">
+        <!-- 이미지 뷰포트 (확대 시 화면을 벗어나지 않도록 overflow-hidden 적용, 좌우 스와이프 제어) -->
+        <div id="lightbox-viewport" class="overflow-hidden w-full flex-1 flex items-center justify-center relative touch-none my-1">
+            <!-- 좌측 슬라이드 버튼 (사진 2장 이상 시) -->
+            <button type="button" id="lightbox-prev-btn" onclick="slideLightboxPrev(event)" class="absolute left-2 z-40 w-9 h-9 rounded-full bg-black/50 hover:bg-black/75 text-white flex items-center justify-center transition-all opacity-80 hover:opacity-100 hidden">
+                <i class="fa-solid fa-chevron-left text-sm"></i>
+            </button>
+
+            <!-- 사진 엘리먼트 (약간 두꺼운 흰색 테두리 적용) -->
+            <div id="lightbox-img-wrapper" class="relative max-w-[92vw] max-h-[75vh] flex items-center justify-center">
+                <img id="lightbox-img" src="" alt="확대 사진" class="max-w-full max-h-[75vh] object-contain select-none pointer-events-auto">
+            </div>
+
+            <!-- 우측 슬라이드 버튼 (사진 2장 이상 시) -->
+            <button type="button" id="lightbox-next-btn" onclick="slideLightboxNext(event)" class="absolute right-2 z-40 w-9 h-9 rounded-full bg-black/50 hover:bg-black/75 text-white flex items-center justify-center transition-all opacity-80 hover:opacity-100 hidden">
+                <i class="fa-solid fa-chevron-right text-sm"></i>
+            </button>
         </div>
 
-        <div class="w-full py-2 text-center text-white/50 text-[10px]">
-            회전 후 [각도 저장]을 누르면 사진 방향이 영구 저장됩니다.
+        <!-- 하단 확대/축소 및 슬라이드 안내 가이드바 -->
+        <div class="w-full py-1.5 px-2 flex items-center justify-between text-white/60 text-[10.5px] z-50 bg-black/40 backdrop-blur-xs rounded-xl">
+            <div class="flex items-center space-x-2">
+                <button type="button" onclick="zoomLightbox(-0.25)" class="w-6 h-6 rounded bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"><i class="fa-solid fa-minus text-[10px]"></i></button>
+                <span id="lightbox-zoom-level" class="text-white/80 font-mono text-[11px]">100%</span>
+                <button type="button" onclick="zoomLightbox(0.25)" class="w-6 h-6 rounded bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"><i class="fa-solid fa-plus text-[10px]"></i></button>
+                <button type="button" onclick="resetLightboxZoom()" class="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-white text-[10px]">초기화</button>
+            </div>
+            <span class="truncate ml-2 text-right">좌우 슬라이드로 사진 넘김 • 핀치/버튼 확대</span>
         </div>
     </div>
 
@@ -350,10 +382,16 @@
         let currentActivePopupPostId = null;
         let cachedPosts = [];
 
-        // 라이트박스 회전 변수
+        // 라이트박스 상태 관리 변수 (회전, 확대, 자동보정, 피드 내 사진 좌우 슬라이드)
         let currentLightboxPostId = null;
         let currentLightboxPhotoIdx = null;
         let currentLightboxRotationAngle = 0;
+        let isLightboxAutoFixed = false;
+        let currentLightboxScale = 1.0;
+        let lightboxTouchStartX = 0;
+        let lightboxTouchStartY = 0;
+        let lightboxInitialPinchDist = 0;
+        let lightboxInitialScale = 1.0;
 
         // 사진 밑 댓글(+버튼) 작성 중 내용 보관 및 5분 자동 만료 캐시
         const commentDrafts = {};
@@ -521,7 +559,7 @@
 
             selectedImagesList.forEach((src, idx) => {
                 const thumb = document.createElement('div');
-                thumb.className = "relative bg-gray-100 rounded-xl w-14 h-14 overflow-hidden border church-border flex items-center justify-center shrink-0 shadow-2xs";
+                thumb.className = "relative bg-gray-100 rounded-xl w-16 h-16 overflow-hidden border border-gray-200 flex items-center justify-center shrink-0 shadow-2xs";
                 thumb.innerHTML = `
                     <img src="${src}" class="w-full h-full object-cover">
                     <button type="button" onclick="removeSelectedImage(${idx})" class="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center hover:bg-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
@@ -529,14 +567,15 @@
                 grid.appendChild(thumb);
             });
 
+            // '+' 추가 버튼 크기를 조금 더 크게 (w-16 h-16) 시인성 강화
             if (selectedImagesList.length < 5) {
                 const addBtn = document.createElement('button');
                 addBtn.type = "button";
                 addBtn.onclick = triggerFilePicker;
-                addBtn.className = "w-14 h-14 border-2 border-dashed church-border rounded-xl flex flex-col items-center justify-center text-gray-500 hover:bg-emerald-50 active:scale-95 transition-all bg-white shrink-0";
+                addBtn.className = "w-16 h-16 border-2 border-dashed border-[#3B5D50]/50 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:bg-emerald-50 active:scale-95 transition-all bg-white shrink-0 shadow-2xs";
                 addBtn.innerHTML = `
-                    <i class="fa-solid fa-plus text-base mb-0.5 church-primary-text"></i>
-                    <span class="text-[9px] font-medium text-gray-600">추가</span>
+                    <i class="fa-solid fa-plus text-lg mb-0.5 church-primary-text"></i>
+                    <span class="text-[10px] font-semibold text-gray-700">추가</span>
                 `;
                 grid.appendChild(addBtn);
             }
@@ -949,7 +988,7 @@
                             return `
                                 <div class="w-full flex flex-col photo-block-item relative">
                                     <div class="w-full relative flex items-center justify-center bg-black/5">
-                                        <img src="${url}" alt="목장 사진 ${i+1}" onclick="openLightbox('${post.id}', ${i}, '${url}')" class="w-full max-h-[480px] object-contain select-none continuous-photo-item block">
+                                        <img src="${url}" alt="목장 사진 ${i+1}" onclick="openLightbox('${post.id}', ${i})" class="w-full max-h-[480px] object-contain select-none continuous-photo-item block">
                                         
                                         <!-- 오른쪽 하단 모서리 반투명 연필 버튼 -->
                                         <button type="button" onclick="event.stopPropagation(); togglePhotoCaptionEditor('${post.id}', ${i})" 
@@ -1314,33 +1353,190 @@
 
         const lightboxModal = document.getElementById('lightbox-modal');
         const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxCounter = document.getElementById('lightbox-counter');
+        const autoFixBtn = document.getElementById('lightbox-autofix-btn');
+        const prevBtn = document.getElementById('lightbox-prev-btn');
+        const nextBtn = document.getElementById('lightbox-next-btn');
+        const zoomLevelText = document.getElementById('lightbox-zoom-level');
 
-        window.openLightbox = function(postId, photoIdx, url) {
+        function getPostImages(postId) {
+            const post = cachedPosts.find(p => p.id === postId);
+            if (!post) return [];
+            if (Array.isArray(post.images) && post.images.length > 0) {
+                return post.images.filter(img => typeof img === 'string' && img.trim().length > 0);
+            }
+            if (post.imageUrl) return [post.imageUrl];
+            return [];
+        }
+
+        window.openLightbox = function(postId, photoIdx) {
             currentLightboxPostId = postId;
             currentLightboxPhotoIdx = photoIdx;
             currentLightboxRotationAngle = 0;
+            isLightboxAutoFixed = false;
+            currentLightboxScale = 1.0;
 
-            lightboxImg.src = url;
-            lightboxImg.style.transform = `rotate(${currentLightboxRotationAngle}deg)`;
+            loadCurrentLightboxPhoto();
             lightboxModal.classList.remove('hidden');
         };
+
+        function loadCurrentLightboxPhoto() {
+            const images = getPostImages(currentLightboxPostId);
+            if (images.length === 0) return;
+
+            if (currentLightboxPhotoIdx < 0) currentLightboxPhotoIdx = 0;
+            if (currentLightboxPhotoIdx >= images.length) currentLightboxPhotoIdx = images.length - 1;
+
+            lightboxImg.src = images[currentLightboxPhotoIdx];
+            currentLightboxRotationAngle = 0;
+            isLightboxAutoFixed = false;
+            currentLightboxScale = 1.0;
+
+            updateLightboxTransform();
+
+            // 상단 카운터 업데이트
+            lightboxCounter.innerText = `${currentLightboxPhotoIdx + 1} / ${images.length}`;
+
+            // 좌우 이동 버튼 표시 여부
+            if (images.length > 1) {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+                prevBtn.style.opacity = currentLightboxPhotoIdx === 0 ? '0.3' : '1';
+                nextBtn.style.opacity = currentLightboxPhotoIdx === images.length - 1 ? '0.3' : '1';
+            } else {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            }
+        }
+
+        function updateLightboxTransform() {
+            lightboxImg.style.transform = `scale(${currentLightboxScale}) rotate(${currentLightboxRotationAngle}deg)`;
+            
+            // 아이폰 자동 보정 필터: 명암 대비(108%), 밝기(106%), 채도(112%) 최적화
+            if (isLightboxAutoFixed) {
+                lightboxImg.style.filter = "contrast(1.08) brightness(1.06) saturate(1.12)";
+                autoFixBtn.classList.remove('bg-white/20');
+                autoFixBtn.classList.add('bg-amber-400', 'text-gray-900', 'font-bold');
+            } else {
+                lightboxImg.style.filter = "none";
+                autoFixBtn.classList.add('bg-white/20');
+                autoFixBtn.classList.remove('bg-amber-400', 'text-gray-900', 'font-bold');
+            }
+
+            zoomLevelText.innerText = `${Math.round(currentLightboxScale * 100)}%`;
+        }
+
+        window.toggleLightboxAutoFix = function() {
+            isLightboxAutoFixed = !isLightboxAutoFixed;
+            updateLightboxTransform();
+            showNotification(isLightboxAutoFixed ? "자동 보정(밝기/선명도)이 적용되었습니다." : "자동 보정이 해제되었습니다.");
+        };
+
+        window.rotateLightboxImage = function() {
+            currentLightboxRotationAngle = (currentLightboxRotationAngle + 90) % 360;
+            updateLightboxTransform();
+        };
+
+        // 상부 닫기 X 버튼 및 화면 밖을 벗어나지 않도록 안전 배율(0.8 ~ 2.5) 범위 내 확대/축소
+        window.zoomLightbox = function(delta) {
+            let nextScale = currentLightboxScale + delta;
+            if (nextScale < 0.8) nextScale = 0.8;
+            if (nextScale > 2.5) nextScale = 2.5;
+            currentLightboxScale = parseFloat(nextScale.toFixed(2));
+            updateLightboxTransform();
+        };
+
+        window.resetLightboxZoom = function() {
+            currentLightboxScale = 1.0;
+            updateLightboxTransform();
+        };
+
+        // 피드 내 좌우 사진 슬라이드 기능
+        window.slideLightboxPrev = function(e) {
+            if (e) e.stopPropagation();
+            const images = getPostImages(currentLightboxPostId);
+            if (currentLightboxPhotoIdx > 0) {
+                currentLightboxPhotoIdx--;
+                loadCurrentLightboxPhoto();
+            } else {
+                showNotification("첫 번째 사진입니다.");
+            }
+        };
+
+        window.slideLightboxNext = function(e) {
+            if (e) e.stopPropagation();
+            const images = getPostImages(currentLightboxPostId);
+            if (currentLightboxPhotoIdx < images.length - 1) {
+                currentLightboxPhotoIdx++;
+                loadCurrentLightboxPhoto();
+            } else {
+                showNotification("마지막 사진입니다.");
+            }
+        };
+
+        // 모바일 터치 스와이프(좌우 넘김) 및 핀치 줌(확대/축소) 터치 이벤트 제어
+        const viewport = document.getElementById('lightbox-viewport');
+        if (viewport) {
+            viewport.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    lightboxTouchStartX = e.touches[0].clientX;
+                    lightboxTouchStartY = e.touches[0].clientY;
+                } else if (e.touches.length === 2) {
+                    // 핀치 줌 감지
+                    lightboxInitialPinchDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    lightboxInitialScale = currentLightboxScale;
+                }
+            }, { passive: true });
+
+            viewport.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2 && lightboxInitialPinchDist > 0) {
+                    const currentDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    const factor = currentDist / lightboxInitialPinchDist;
+                    let nextScale = lightboxInitialScale * factor;
+                    if (nextScale < 0.8) nextScale = 0.8;
+                    if (nextScale > 2.5) nextScale = 2.5;
+                    currentLightboxScale = parseFloat(nextScale.toFixed(2));
+                    updateLightboxTransform();
+                }
+            }, { passive: true });
+
+            viewport.addEventListener('touchend', (e) => {
+                if (e.changedTouches.length === 1 && currentLightboxScale === 1.0) {
+                    const diffX = e.changedTouches[0].clientX - lightboxTouchStartX;
+                    const diffY = e.changedTouches[0].clientY - lightboxTouchStartY;
+                    // 좌우 스와이프 판정 (수평 이동폭이 45px 이상이고 수직 이동폭보다 클 때)
+                    if (Math.abs(diffX) > 45 && Math.abs(diffX) > Math.abs(diffY)) {
+                        if (diffX > 0) {
+                            window.slideLightboxPrev();
+                        } else {
+                            window.slideLightboxNext();
+                        }
+                    }
+                }
+                lightboxInitialPinchDist = 0;
+            }, { passive: true });
+        }
 
         window.closeLightbox = function() {
             lightboxModal.classList.add('hidden');
             currentLightboxPostId = null;
             currentLightboxPhotoIdx = null;
             currentLightboxRotationAngle = 0;
+            isLightboxAutoFixed = false;
+            currentLightboxScale = 1.0;
         };
 
-        window.rotateLightboxImage = function() {
-            currentLightboxRotationAngle = (currentLightboxRotationAngle + 90) % 360;
-            lightboxImg.style.transform = `rotate(${currentLightboxRotationAngle}deg)`;
-        };
-
+        // 회전 각도 및 자동 보정(밝기/대비) 상태를 캔버스에 구워 영구 저장
         window.saveRotatedImagePermanent = async function() {
             if (!currentLightboxPostId || currentLightboxPhotoIdx === null) return;
-            if (currentLightboxRotationAngle === 0) {
-                showNotification("회전 각도를 변경한 후 저장해 주세요.");
+            if (currentLightboxRotationAngle === 0 && !isLightboxAutoFixed) {
+                showNotification("회전 각도나 자동 조정을 변경한 후 저장해 주세요.");
                 return;
             }
 
@@ -1348,12 +1544,12 @@
             if (!post) return;
 
             setDbStatus('saving');
-            showNotification("사진 회전 각도를 저장 중입니다...");
+            showNotification("사진 변경 사항을 저장 중입니다...");
 
             try {
-                const rotatedDataUrl = await getRotatedDataUrl(lightboxImg.src, currentLightboxRotationAngle);
+                const finalDataUrl = await getProcessedDataUrl(lightboxImg.src, currentLightboxRotationAngle, isLightboxAutoFixed);
                 const updatedImages = [...(post.images || [post.imageUrl])];
-                updatedImages[currentLightboxPhotoIdx] = rotatedDataUrl;
+                updatedImages[currentLightboxPhotoIdx] = finalDataUrl;
 
                 await updateDoc(getPostDocRef(currentLightboxPostId), {
                     images: updatedImages,
@@ -1361,16 +1557,16 @@
                 });
 
                 setDbStatus('connected');
-                showNotification("사진 회전 각도가 영구 저장되었습니다!");
+                showNotification("사진이 성공적으로 영구 저장되었습니다!");
                 closeLightbox();
             } catch (err) {
-                console.error("회전 각도 영구 저장 실패:", err);
-                showNotification("회전 저장 실패: " + err.message);
+                console.error("사진 영구 저장 실패:", err);
+                showNotification("저장 실패: " + err.message);
                 setDbStatus('error');
             }
         };
 
-        function getRotatedDataUrl(src, angle) {
+        function getProcessedDataUrl(src, angle, autoFix) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.crossOrigin = "anonymous";
@@ -1384,6 +1580,11 @@
                         canvas.width = img.width;
                         canvas.height = img.height;
                     }
+
+                    if (autoFix) {
+                        ctx.filter = "contrast(1.08) brightness(1.06) saturate(1.12)";
+                    }
+
                     ctx.translate(canvas.width / 2, canvas.height / 2);
                     ctx.rotate((angle * Math.PI) / 180);
                     ctx.drawImage(img, -img.width / 2, -img.height / 2);
