@@ -106,7 +106,15 @@
             border-bottom: 1px solid #E5E7EB;
         }
 
-        /* 사진별 연필 캡션 텍스트: 위 사진에 바짝 밀착 */
+        /* 게시글 본문 텍스트: 완벽한 좌측 정렬 보장 */
+        .post-content-body {
+            text-align: left !important;
+            direction: ltr !important;
+            justify-content: flex-start !important;
+            width: 100% !important;
+        }
+
+        /* 사진별 연필 캡션 텍스트: 위 사진에 바짝 밀착 및 좌측 정렬 */
         .photo-caption-text {
             font-size: 13.5px;
             line-height: 1.4;
@@ -116,6 +124,8 @@
             background: transparent;
             word-break: break-word;
             overflow-wrap: anywhere;
+            text-align: left !important;
+            width: 100%;
         }
 
         /* 오른쪽 상단 연한 연두색 슬라이드 메뉴 애니메이션 */
@@ -270,6 +280,7 @@
                         <span id="char-count-indicator" class="text-gray-400">0 / 200자</span>
                     </div>
                     <textarea id="post-content" rows="3" maxlength="200" oninput="updateCharCount(this)" placeholder="목장 가족들과 나눌 따뜻한 이야기를 입력하세요..." 
+                              dir="ltr"
                               class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#3B5D50] focus:ring-1 focus:ring-[#3B5D50] focus:outline-none resize-none bg-white block transition-all shadow-2xs text-left"></textarea>
                 </div>
             </div>
@@ -1260,9 +1271,18 @@
                                             <i class="fa-solid fa-trash-can text-[9px]"></i>
                                             <span>삭제</span>
                                         </button>
-                            <!-- 본문 텍스트: 상하 여백 극단적 밀착 및 기본 왼쪽 정렬 -->
+                                    </div>
+
+                                    <button type="button" id="action-btn-${post.id}" onclick="toggleActionMenu('${post.id}', event)" 
+                                            class="w-6 h-6 rounded-full flex items-center justify-center text-gray-500 hover:text-emerald-800 hover:bg-emerald-50 transition-all font-black text-sm" title="더보기">
+                                        <i class="fa-solid fa-plus transition-transform duration-200"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 본문 텍스트: 완벽한 왼쪽 정렬 및 상하 여백 극단적 밀착 -->
                             ${post.content ? `
-                            <div class="pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight text-left break-words overflow-wrap-anywhere whitespace-pre-wrap">
+                            <div class="post-content-body pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight text-left break-words overflow-wrap-anywhere whitespace-pre-wrap">
                                 ${escapeHtml(post.content)}
                             </div>
                             ` : ''}
