@@ -172,26 +172,29 @@
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
 
-    <!-- [상단 헤더: 로고 우측 밀착 + 펜 선그림 트리거 + 왼쪽 슬라이드 메뉴] -->
-    <header class="h-[48px] shrink-0 bg-white border-b church-border shadow-2xs px-3 flex items-center justify-between w-full z-30 relative">
-        <!-- 왼쪽 타이틀 & 로고 오른쪽 밀착 -->
-        <div class="flex items-center space-x-1.5 overflow-hidden">
-            <div class="overflow-hidden leading-tight">
-                <h1 class="text-xs font-bold text-gray-800 truncate whitespace-nowrap" id="header-mokjang-title">세종꿈의교회 23목장</h1>
-                <p class="text-[10px] text-gray-500 truncate whitespace-nowrap" id="header-user-display">목장가족 님 환영합니다</p>
+    <!-- [상단 헤더: 절대 중앙 타이틀(폰트 2pt 확대) + 살살 흔들리는 환영문구 + 살아 움직이는 펜 트리거] -->
+    <header class="h-[52px] shrink-0 bg-white border-b church-border shadow-2xs px-3 flex items-center justify-between w-full z-30 relative">
+        <!-- 왼쪽 더미 영역 (중앙 밸런스 유지용) -->
+        <div class="w-8 shrink-0"></div>
+
+        <!-- 중앙 메인 타이틀 (화면 정중앙 절대 배치 + 폰트 2포인트 확대 + 살랑거리는 환영문구) -->
+        <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center pointer-events-auto max-w-[70vw]">
+            <div class="flex items-center space-x-1.5 justify-center">
+                <h1 class="text-[17.5px] font-black text-gray-800 tracking-tight leading-tight truncate whitespace-nowrap" id="header-mokjang-title">세종꿈의교회 23목장</h1>
+                <div class="w-5 h-5 church-primary rounded-full flex items-center justify-center p-0.5 shadow-xs border border-emerald-100 overflow-hidden bg-white shrink-0">
+                    <svg viewBox="0 0 200 200" class="w-full h-full object-contain scale-110">
+                        <polygon points="35,118 100,118 100,58" fill="#5B9BD5" />
+                        <path d="M 100,118 L 165,88 C 140,130 110,155 90,173 C 92,158 94,143 96,128 C 98,128 100,128 100,118 Z" fill="#203E78" />
+                        <rect x="91" y="40" width="18" height="78" fill="#203E78" rx="2" />
+                        <rect x="76" y="55" width="48" height="18" fill="#203E78" rx="2" />
+                    </svg>
+                </div>
             </div>
-            <!-- 로고 아이콘을 타이틀 오른쪽에 가깝게 밀착 -->
-            <div class="w-6 h-6 church-primary rounded-full flex items-center justify-center p-0.5 shadow-xs border border-emerald-100 overflow-hidden bg-white shrink-0 ml-0.5">
-                <svg viewBox="0 0 200 200" class="w-full h-full object-contain scale-110">
-                    <polygon points="35,118 100,118 100,58" fill="#5B9BD5" />
-                    <path d="M 100,118 L 165,88 C 140,130 110,155 90,173 C 92,158 94,143 96,128 C 98,128 100,128 100,118 Z" fill="#203E78" />
-                    <rect x="91" y="40" width="18" height="78" fill="#203E78" rx="2" />
-                    <rect x="76" y="55" width="48" height="18" fill="#203E78" rx="2" />
-                </svg>
-            </div>
+            <!-- 살살 흔들리는 다정한 서브 환영 문구 -->
+            <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none" id="header-user-display">목장가족 님 환영합니다</p>
         </div>
-        
-        <!-- 오른쪽 펜 선그림 트리거 & 왼쪽 슬라이드 메뉴 -->
+
+        <!-- 오른쪽 살아 움직이는 펜 트리거 & 왼쪽 슬라이드 메뉴 -->
         <div class="shrink-0 relative flex items-center">
             <!-- 왼쪽으로 슬라이드되어 나타나는 헤더 퀵 메뉴 (글쓰기 강조, 연동+용량 및 전체PDF 여백 없이 밀착) -->
             <div id="header-quick-menu" class="menu-closed absolute right-8 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-2.5 z-40 flex items-center space-x-1.5 whitespace-nowrap">
