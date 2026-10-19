@@ -193,30 +193,29 @@
         
         <!-- 오른쪽 펜 선그림 트리거 & 왼쪽 슬라이드 메뉴 -->
         <div class="shrink-0 relative flex items-center">
-            <!-- 왼쪽으로 슬라이드되어 나타나는 헤더 퀵 메뉴 (글쓰기, 연동+용량 통합배지, 전체 PDF) -->
-            <div id="header-quick-menu" class="menu-closed absolute right-8 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-2.5 z-40 flex items-center space-x-2 whitespace-nowrap">
-                <!-- 1. 글쓰기 버튼 -->
-                <button onclick="handleHeaderWriteClick()" class="h-[27px] px-2.5 church-accent church-primary-text rounded-full text-[11px] font-semibold flex items-center space-x-1 shadow-2xs hover:bg-emerald-100/80 active:scale-95 transition-all">
-                    <i class="fa-solid fa-pen-nib text-[10px]"></i>
+            <!-- 왼쪽으로 슬라이드되어 나타나는 헤더 퀵 메뉴 (글쓰기 강조, 연동+용량 및 전체PDF 여백 없이 밀착) -->
+            <div id="header-quick-menu" class="menu-closed absolute right-8 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-2.5 z-40 flex items-center space-x-1.5 whitespace-nowrap">
+                <!-- 1. 글쓰기 버튼: 크기를 키우고 에메랄드 톤으로 약간 강조 -->
+                <button onclick="handleHeaderWriteClick()" class="h-[30px] px-3 church-accent church-primary-text rounded-full text-xs font-bold flex items-center space-x-1.5 shadow-2xs hover:bg-emerald-100/90 active:scale-95 transition-all">
+                    <i class="fa-solid fa-pen-nib text-[11px]"></i>
                     <span>글쓰기</span>
                 </button>
 
-                <span class="text-[#A7D1B7] text-[10px]">|</span>
+                <!-- 2 & 3: 여백 없이 딱 붙인 일체형 캡슐 (연동+용량 배지 + 전체PDF) -->
+                <div class="flex items-center rounded-full bg-white/90 border border-emerald-200/80 shadow-2xs overflow-hidden">
+                    <!-- 연동 램프 + 저장용량(%) 통합 배지 -->
+                    <div id="combined-cloud-badge" class="h-[27px] px-2 flex items-center space-x-1 text-gray-700 select-none border-r border-emerald-100/80" title="클라우드 실시간 연동 및 1GB 무료 용량 사용 현황">
+                        <span id="db-status-lamp" class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block shrink-0"></span>
+                        <i id="storage-quota-icon" class="fa-solid fa-battery-quarter text-emerald-600 text-[9px]"></i>
+                        <span id="storage-quota-text" class="font-mono font-bold text-[9px] text-gray-700">0%</span>
+                    </div>
 
-                <!-- 2. 연동 램프 + 저장용량(%) 통합 배지 -->
-                <div id="combined-cloud-badge" class="h-[27px] px-2 flex items-center space-x-1.5 rounded-full bg-white/90 border border-emerald-200 text-gray-700 select-none shadow-2xs" title="클라우드 실시간 연동 및 1GB 무료 용량 사용 현황">
-                    <span id="db-status-lamp" class="w-2 h-2 rounded-full bg-emerald-400 inline-block shrink-0"></span>
-                    <i id="storage-quota-icon" class="fa-solid fa-battery-quarter text-emerald-600 text-[10px]"></i>
-                    <span id="storage-quota-text" class="font-mono font-bold text-[9px] text-gray-700">0%</span>
+                    <!-- 전체 PDF 생성 버튼: 붉은색 제거, 은은하고 연한 톤 적용 -->
+                    <button onclick="requestAllFeedPdfPreview()" class="h-[27px] px-2.5 hover:bg-emerald-50/80 text-gray-700 hover:text-emerald-900 text-[11px] font-medium flex items-center space-x-1 active:scale-95 transition-all" title="피드 전체 사진과 글(댓글 포함) PDF로 저장/공유">
+                        <i class="fa-solid fa-book-open text-[10px] text-gray-500"></i>
+                        <span>전체PDF</span>
+                    </button>
                 </div>
-
-                <span class="text-[#A7D1B7] text-[10px]">|</span>
-
-                <!-- 3. 피드 전체 이야기 PDF 생성 버튼 -->
-                <button onclick="requestAllFeedPdfPreview()" class="h-[27px] px-2.5 bg-white/90 hover:bg-rose-50 text-rose-700 rounded-full text-[11px] font-semibold flex items-center space-x-1 border border-rose-200 shadow-2xs active:scale-95 transition-all" title="피드 전체 사진과 글(댓글 포함) PDF로 저장/공유">
-                    <i class="fa-solid fa-book-open text-[10px]"></i>
-                    <span>전체PDF</span>
-                </button>
             </div>
 
             <!-- 우측 끝 펜 선그림 흔적 이모지 버튼 (누르면 왼쪽으로 슬라이드 메뉴 열림) -->
@@ -600,7 +599,10 @@
             if (!isOpen) {
                 menu.classList.remove('menu-closed');
                 menu.classList.add('menu-open');
-                if (btn) btn.classList.add('rotate-45', 'bg-emerald-200');
+                if (btn) {
+                    btn.classList.remove('animate-pen-live');
+                    btn.classList.add('rotate-45', 'bg-emerald-200', 'pen-opened');
+                }
             }
         };
 
@@ -612,7 +614,8 @@
                 menu.classList.add('menu-closed');
             }
             if (btn) {
-                btn.classList.remove('rotate-45', 'bg-emerald-200');
+                btn.classList.remove('rotate-45', 'bg-emerald-200', 'pen-opened');
+                btn.classList.add('animate-pen-live');
             }
         }
 
