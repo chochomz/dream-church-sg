@@ -46,8 +46,8 @@
             border-radius: 4px;
         }
 
-        /* 모달 터치 제어 */
-        #lightbox-modal, #write-modal, #confirm-modal, #save-confirm-modal, #edit-confirm-modal, #comments-popup-modal, #export-preview-modal, #all-pdf-preview-modal {
+        /* 모달 터치 제어: all-pdf-preview-modal은 자유로운 상하 스크롤을 위해 제외 */
+        #lightbox-modal, #write-modal, #confirm-modal, #save-confirm-modal, #edit-confirm-modal, #comments-popup-modal, #export-preview-modal {
             touch-action: none;
             overscroll-behavior: contain;
         }
@@ -237,8 +237,8 @@
     <div id="print-area" class="hidden"></div>
 
     <!-- [전체 PDF 다중 페이지 미리보기 & 저장/공유 모달] -->
-    <div id="all-pdf-preview-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden">
-        <div class="bg-white rounded-2xl w-full max-w-sm max-h-[90vh] p-4 shadow-2xl border church-border flex flex-col overflow-hidden">
+    <div id="all-pdf-preview-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden" style="touch-action: auto !important;">
+        <div class="bg-white rounded-2xl w-full max-w-sm max-h-[92vh] p-4 shadow-2xl border church-border flex flex-col overflow-hidden">
             <div class="flex items-center justify-between pb-2 border-b church-border shrink-0">
                 <div class="flex items-center space-x-1.5">
                     <i class="fa-solid fa-book-open church-primary-text text-sm"></i>
@@ -247,20 +247,33 @@
                 <button onclick="closeAllPdfPreviewModal()" class="text-gray-400 hover:text-gray-600 p-0.5"><i class="fa-solid fa-xmark text-sm"></i></button>
             </div>
 
-            <!-- 다중 페이지 갤러리/리스트 뷰어 (비율 100% 유지, 찌그러짐 방지) -->
-            <div class="flex-1 overflow-y-auto py-3 px-1 bg-gray-100/70 rounded-xl my-2 border border-gray-200/80 flex flex-col items-center space-y-3" id="all-pdf-pages-container">
-                <!-- 생성된 페이지 캔버스 이미지들이 동적으로 나열됩니다 -->
+            <!-- 스크롤 뷰포트: 명시적 높이(55vh) 및 강제 스크롤 스타일 적용 -->
+            <div id="all-pdf-scroll-viewport" 
+                 onscroll="handlePdfViewerScroll(this)" 
+                 class="relative my-2 bg-gray-100/80 rounded-xl border border-gray-200/80 p-1.5"
+                 style="height: 55vh; min-height: 280px; max-height: 55vh; overflow-y: scroll !important; -webkit-overflow-scrolling: touch !important; touch-action: pan-y !important; overscroll-behavior: contain;">
+                
+                <!-- 상단 플로팅 고정: 실시간 현재 / 전체 페이지 표시기 -->
+                <div class="sticky top-1 z-30 flex justify-end px-1 pointer-events-none mb-1">
+                    <span id="all-pdf-page-indicator-text" class="px-2.5 py-0.5 rounded-full bg-slate-900/80 text-white text-[10px] font-mono font-bold shadow-md tracking-wide">
+                        1 / 1 페이지
+                    </span>
+                </div>
+
+                <!-- 최신순 전체 연속 뷰 컨테이너 -->
+                <div id="all-pdf-continuous-container" class="w-full flex flex-col items-center select-none" style="touch-action: pan-y !important;">
+                    <!-- 생성된 최신순 연속 캔버스 이미지가 1장으로 주입됩니다 -->
+                </div>
             </div>
 
             <div class="text-center pt-0.5 pb-2 shrink-0">
-                <p id="all-pdf-status-desc" class="text-xs font-semibold text-gray-800">모든 사진과 글, 댓글이 포함되었습니다. 이대로 진행할까요?</p>
-                <span id="all-pdf-page-count-badge" class="text-[10px] text-emerald-700 font-medium"></span>
+                <p id="all-pdf-status-desc" class="text-xs font-semibold text-gray-800">스크롤하여 확인 후 최종 저장해 개인 파일로 보관하세요.</p>
             </div>
 
-            <!-- 승인 전/후 액션 버튼 영역 -->
+            <!-- 승인 전 액션 버튼 영역 -->
             <div id="all-pdf-action-buttons" class="grid grid-cols-2 gap-2 shrink-0">
-                <button type="button" onclick="closeAllPdfPreviewModal()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium active:scale-95 transition-all">아니오</button>
-                <button type="button" onclick="approveAllPdfGeneration()" class="py-2 church-primary text-white rounded-xl text-xs font-semibold shadow-xs active:scale-95 transition-all">예 (진행)</button>
+                <button type="button" onclick="closeAllPdfPreviewModal()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium active:scale-95 transition-all">취소</button>
+                <button type="button" onclick="approveAllPdfGeneration()" class="py-2 church-primary text-white rounded-xl text-xs font-semibold shadow-xs active:scale-95 transition-all">최종 저장 (승인)</button>
             </div>
 
             <!-- 승인 후 나타나는 공유 및 파일 저장 버튼 영역 (처음엔 숨김) -->
