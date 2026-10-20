@@ -60,6 +60,20 @@
         .church-primary-text { color: #3B5D50; }
         .church-accent { background-color: #E8F0EC; }
         .church-border { border-color: #E5E7EB; }
+        /* [메인 타이틀 '꿈' 중심 은은한 빛 쉬머 애니메이션 - 속도 1/2로 감속(7s)] */
+        @keyframes dreamShimmerSlow {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .dream-shimmer-text {
+            background: linear-gradient(90deg, #111827 0%, #1f2937 32%, #ffffff 50%, #1f2937 68%, #111827 100%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: dreamShimmerSlow 7s ease-in-out infinite;
+            display: inline-block;
+        }
+
 
         /* 살랑살랑 흔들리는 다정한 서브 환영 문구 애니메이션 */
         @keyframes swayWelcome {
@@ -581,15 +595,15 @@
         </div>
     </div>
 
-    <!-- [글쓰기 / 수정 모달] -->
+    <!-- [글쓰기 / 수정 모달: 등록 버튼 상시 고정 + 내용 독립 스크롤] -->
     <div id="write-modal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 hidden">
-        <div class="bg-white rounded-2xl w-full max-w-sm p-4 shadow-2xl border church-border max-h-[88vh] flex flex-col overflow-hidden">
-            <div class="flex items-center justify-between pb-2 border-b church-border shrink-0">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl border church-border max-h-[85vh] flex flex-col overflow-hidden" style="max-height: calc(100dvh - 28px);">
+            <div class="flex items-center justify-between px-4 py-3 border-b church-border shrink-0 bg-white">
                 <h3 class="text-sm font-bold text-gray-800" id="modal-title-text"><i class="fa-solid fa-pen-nib church-primary-text mr-1.5"></i>목장 이야기 올리기</h3>
                 <button onclick="closeWriteModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-base"></i></button>
             </div>
             
-            <div class="space-y-2.5 flex-1 overflow-y-auto pt-2 px-0.5">
+            <div class="space-y-2.5 flex-1 min-h-0 overflow-y-auto pt-2 px-3.5 pb-2">
                 <input type="hidden" id="editing-post-id" value="">
                 
                 <div class="space-y-1">
@@ -598,7 +612,7 @@
                     </div>
 
                     <input type="file" id="post-multi-file-input" accept="image/*" multiple class="hidden" onchange="handleFilesSelect(event)">
-                    <div id="selected-images-grid" class="flex flex-wrap items-center justify-center gap-2 py-1.5 bg-gray-50/60 rounded-xl border-0 min-h-[76px]"></div>
+                    <div id="selected-images-grid" class="flex flex-nowrap items-center space-x-1.5 overflow-x-auto py-1 px-1.5 bg-gray-50/70 rounded-xl border border-gray-100 min-h-[62px] scrollbar-none"></div>
                 </div>
 
                 <div class="w-full pt-1" id="post-content-container">
@@ -666,8 +680,8 @@
                 </div>
             </div>
 
-            <div class="pt-2 border-t church-border shrink-0 flex justify-center">
-                <button type="button" onclick="requestSavePost()" class="px-6 py-2.5 church-primary text-white rounded-xl font-semibold text-xs shadow-md active:scale-95 transition-all inline-flex items-center space-x-1.5" id="submit-btn-text">
+            <div class="p-2.5 border-t church-border shrink-0 bg-white sticky bottom-0 z-10 flex justify-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.03)]">
+                <button type="button" onclick="requestSavePost()" class="w-full py-2.5 church-primary text-white rounded-xl font-semibold text-xs shadow-md active:scale-95 transition-all inline-flex items-center justify-center space-x-1.5" id="submit-btn-text">
                     <i class="fa-solid fa-check"></i>
                     <span>등록하기</span>
                 </button>
@@ -863,7 +877,7 @@
                     <span>적용</span>
                 </button>
                 <!-- 상부 닫기 버튼 -->
-                <button type="button" onclick="closeLightbox()" class="h-8 px-2.5 flex items-center justify-center rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all ml-1 border border-gray-200 text-xs font-medium" title="닫기">
+                <button type="button" onclick="closeLightbox(true)" class="h-8 px-2.5 flex items-center justify-center rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all ml-1 border border-gray-200 text-xs font-medium" title="닫기">
                     <span>닫기</span>
                 </button>
             </div>
@@ -1866,6 +1880,7 @@
             renderImagePreviews();
         };
 
+        // [글쓰기 모달 썸네일: 5장 선택 시에도 줄바꿈 없이 가로 1열(한 줄) 슬림 정렬]
         function renderImagePreviews() {
             const grid = document.getElementById('selected-images-grid');
             const ind = document.getElementById('image-count-indicator');
@@ -1874,10 +1889,10 @@
 
             selectedImagesList.forEach((src, idx) => {
                 const thumb = document.createElement('div');
-                thumb.className = "relative bg-gray-100 rounded-xl w-16 h-16 overflow-hidden border border-gray-200 flex items-center justify-center shrink-0 shadow-2xs";
+                thumb.className = "relative bg-gray-100 rounded-lg w-[52px] h-[52px] overflow-hidden border border-gray-200 flex items-center justify-center shrink-0 shadow-2xs";
                 thumb.innerHTML = `
                     <img src="${src}" class="w-full h-full object-cover">
-                    <button type="button" onclick="removeSelectedImage(${idx})" class="absolute top-0.5 right-0.5 bg-black/60 text-white rounded-full w-4 h-4 text-[9px] flex items-center justify-center hover:bg-red-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
+                    <button type="button" onclick="removeSelectedImage(${idx})" class="absolute top-0.5 right-0.5 bg-black/65 text-white rounded-full w-4 h-4 text-[8.5px] flex items-center justify-center hover:bg-rose-500 transition-colors"><i class="fa-solid fa-xmark"></i></button>
                 `;
                 grid.appendChild(thumb);
             });
@@ -1886,10 +1901,10 @@
                 const addBtn = document.createElement('button');
                 addBtn.type = "button";
                 addBtn.onclick = triggerFilePicker;
-                addBtn.className = "w-16 h-16 border-2 border-dashed border-[#3B5D50]/50 rounded-xl flex flex-col items-center justify-center text-gray-500 hover:bg-emerald-50 active:scale-95 transition-all bg-white shrink-0 shadow-2xs";
+                addBtn.className = "w-[52px] h-[52px] border-2 border-dashed border-[#3B5D50]/50 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:bg-emerald-50 active:scale-95 transition-all bg-white shrink-0 shadow-2xs";
                 addBtn.innerHTML = `
-                    <i class="fa-solid fa-plus text-lg mb-0.5 church-primary-text"></i>
-                    <span class="text-[10px] font-semibold text-gray-700">추가</span>
+                    <i class="fa-solid fa-plus text-base mb-0.5 church-primary-text"></i>
+                    <span class="text-[9.5px] font-semibold text-gray-700 leading-none">추가</span>
                 `;
                 grid.appendChild(addBtn);
             }
@@ -2245,14 +2260,15 @@
         let isNavigatingToPost = false;
         let navigationTimer = null;
 
+        // [지능형 내부 상대 스크롤: 윈도우 스크롤을 0으로 잠그고 검색창이 모바일 URL 바에 가려지지 않게 정밀 이동]
         window.scrollToPost = function(postId, highlight = true) {
+            const feedContainer = document.getElementById('feed-container');
             if (!postId) {
-                const feedContainer = document.getElementById('feed-container');
                 if (feedContainer) feedContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                window.scrollTo(0, 0);
                 return;
             }
 
-            // 피드 렌더러가 스크롤 위치를 이전 위치로 강제 복원하지 않도록 플래그 활성화
             isNavigatingToPost = true;
             if (navigationTimer) clearTimeout(navigationTimer);
             navigationTimer = setTimeout(() => { isNavigatingToPost = false; }, 2000);
@@ -2265,14 +2281,19 @@
                 }
 
                 const targetCard = document.getElementById(`post-card-${postId}`);
-                const feedContainer = document.getElementById('feed-container');
-
                 if (targetCard && feedContainer) {
-                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // 윈도우 전체 스크롤을 0으로 유지하여 브라우저 주소창/헤더 위치 고정보호
+                    window.scrollTo(0, 0);
+
+                    const cardRect = targetCard.getBoundingClientRect();
+                    const containerRect = feedContainer.getBoundingClientRect();
+                    // 헤더와 검색창 바로 아래 적절한 여백(8px)을 두고 부드럽게 내부 스크롤
+                    const targetScrollTop = feedContainer.scrollTop + (cardRect.top - containerRect.top) - 8;
+                    feedContainer.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
 
                     if (highlight) {
                         targetCard.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2');
-                        void targetCard.offsetWidth; // 리플로우 강제 트리거
+                        void targetCard.offsetWidth; // 리플로우 트리거
                         targetCard.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-2', 'transition-all', 'duration-500');
                         setTimeout(() => {
                             targetCard.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2');
@@ -4362,6 +4383,7 @@
 
             const card = document.createElement('article');
             card.className = "w-full px-2 pt-0.5 pb-1 box-border";
+            card.setAttribute('data-post-id', post.id);
 
             let imgArray = [];
             if (Array.isArray(post.images) && post.images.length > 0) {
@@ -4374,39 +4396,64 @@
 
             let mediaSectionHtml = '';
             if (imgArray.length > 0) {
+                const count = imgArray.length;
+                let gridClass = 'grid gap-1.5 w-full';
+                if (count === 1) {
+                    gridClass += ' grid-cols-1';
+                } else {
+                    gridClass += ' grid-cols-2';
+                }
+
                 const photosHtml = imgArray.map((url, i) => {
                     const caption = photoCaptions[i] || '';
+                    
+                    // 사진 수에 따른 격자 컬럼 및 높이 스타일
+                    let itemColSpan = 'col-span-1';
+                    let imgHeightClass = 'h-36 sm:h-40';
+                    if (count === 1) {
+                        itemColSpan = 'col-span-1';
+                        imgHeightClass = 'h-auto max-h-[500px]';
+                    } else if (count === 3 && i === 2) {
+                        // 3장 중 마지막: 아랫줄 가로 2열 전체 차지
+                        itemColSpan = 'col-span-2';
+                        imgHeightClass = 'h-36';
+                    } else if (count === 5 && i === 4) {
+                        // 5장 중 마지막: 2열*2열 밑 1장 전체 차지
+                        itemColSpan = 'col-span-2';
+                        imgHeightClass = 'h-36';
+                    }
+
                     return `
-                        <div class="w-full flex flex-col photo-block-item relative">
-                            <div class="w-full relative flex items-center justify-center bg-gray-50 overflow-hidden">
-                                <img src="${url}" alt="목장 사진 ${i+1}" loading="lazy" onclick="handlePhotoDoubleTap('${post.id}', ${i}, event)" class="w-full h-auto max-h-[600px] object-cover select-none continuous-photo-item block">
+                        <div class="${itemColSpan} flex flex-col photo-block-item rounded-xl overflow-hidden border border-gray-200/80 bg-gray-50/70 shadow-2xs relative">
+                            <div class="w-full relative flex items-center justify-center bg-gray-100 overflow-hidden">
+                                <img id="feed-photo-img-${post.id}-${i}" src="${url}" alt="목장 사진 ${i+1}" loading="lazy" onclick="handlePhotoDoubleTap('${post.id}', ${i}, event)" class="w-full ${imgHeightClass} object-cover select-none continuous-photo-item block">
                                 
                                 <button type="button" onclick="event.stopPropagation(); togglePhotoCaptionEditor('${post.id}', ${i})" 
-                                        class="no-export absolute bottom-2 right-2 w-7 h-7 rounded-full bg-black/35 hover:bg-black/50 text-white backdrop-blur-[2px] shadow-sm flex items-center justify-center text-xs active:scale-90 transition-all border border-white/20 z-10" 
+                                        class="no-export absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-black/45 hover:bg-black/60 text-white backdrop-blur-[2px] shadow-sm flex items-center justify-center text-[10px] active:scale-90 transition-all border border-white/20 z-10" 
                                         title="이 사진 이야기 작성">
-                                    <i class="fa-solid fa-pencil text-[10.5px]"></i>
+                                    <i class="fa-solid fa-pencil text-[9.5px]"></i>
                                 </button>
                             </div>
 
-                            <div id="caption-display-${post.id}-${i}" class="photo-caption-text ${caption ? '' : 'hidden'}">
-                                <div class="flex items-start space-x-1.5">
-                                    <i class="fa-regular fa-comment-dots text-emerald-600 text-xs mt-0.5 shrink-0"></i>
+                            <div id="caption-display-${post.id}-${i}" class="photo-caption-text ${caption ? '' : 'hidden'} text-left px-2 py-1 bg-white/95 border-t border-gray-100 text-[11px] leading-snug">
+                                <div class="flex items-start space-x-1">
+                                    <i class="fa-regular fa-comment-dots text-emerald-600 text-[10px] mt-0.5 shrink-0"></i>
                                     <span class="flex-1 whitespace-pre-wrap">${escapeHtml(caption)}</span>
                                 </div>
                             </div>
 
-                            <div id="caption-editor-${post.id}-${i}" class="no-export hidden p-1.5 bg-emerald-50/50 rounded-b-xl m-0.5">
-                                <div class="flex justify-between items-center mb-0.5 text-[11px] text-emerald-900 font-semibold px-0.5">
-                                    <span><i class="fa-solid fa-pencil mr-1 text-[10px]"></i>이 사진 이야기 쓰기</span>
+                            <div id="caption-editor-${post.id}-${i}" class="no-export hidden p-1.5 bg-emerald-50/90 border-t border-emerald-100">
+                                <div class="flex justify-between items-center mb-0.5 text-[10px] text-emerald-900 font-semibold px-0.5">
+                                    <span><i class="fa-solid fa-pencil mr-1 text-[9px]"></i>사진 이야기</span>
                                     <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="text-gray-400 hover:text-gray-600">
                                         <i class="fa-solid fa-xmark text-xs"></i>
                                     </button>
                                 </div>
                                 <textarea id="caption-input-${post.id}-${i}" rows="2" maxlength="150" placeholder="이 사진에 담긴 이야기를 입력해 보세요..." 
-                                          class="w-full p-1.5 bg-white rounded-lg border-0 text-xs focus:outline-none focus:ring-0 resize-none shadow-2xs">${escapeHtml(caption)}</textarea>
-                                <div class="flex justify-end mt-1 space-x-1.5">
-                                    <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="px-2.5 py-1 text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-600 rounded">취소</button>
-                                    <button type="button" onclick="savePhotoCaption('${post.id}', ${i})" class="px-3 py-1 text-[11px] church-primary text-white font-medium rounded shadow-2xs">저장</button>
+                                          class="w-full p-1.5 bg-white rounded-lg border border-emerald-200 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none shadow-2xs">${escapeHtml(caption)}</textarea>
+                                <div class="flex justify-end mt-1 space-x-1">
+                                    <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="px-2 py-0.5 text-[10.5px] bg-gray-100 hover:bg-gray-200 text-gray-600 rounded">취소</button>
+                                    <button type="button" onclick="savePhotoCaption('${post.id}', ${i})" class="px-2.5 py-0.5 text-[10.5px] church-primary text-white font-medium rounded shadow-2xs">저장</button>
                                 </div>
                             </div>
                         </div>
@@ -4414,7 +4461,7 @@
                 }).join('');
 
                 mediaSectionHtml = `
-                    <div class="w-full continuous-photo-container shadow-2xs">
+                    <div class="${gridClass} mt-1.5 mb-1">
                         ${photosHtml}
                     </div>
                 `;
@@ -4510,24 +4557,24 @@
 
                     <div class="pt-1 flex items-center justify-between no-export">
                         <div class="flex items-center space-x-3">
-                            <button type="button" onclick="event.stopPropagation(); toggleLike('${post.id}', ${hasLiked}, event)" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-400 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform" title="좋아요">
+                            <button type="button" data-reaction-btn="like" onclick="event.stopPropagation(); toggleLike('${post.id}', ${hasLiked}, event)" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-400 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform" title="좋아요">
                                 <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i>
                                 <span class="text-xs">${post.likes || 0}</span>
                             </button>
 
-                            <button type="button" onclick="event.stopPropagation(); toggleThumbsUp('${post.id}', ${hasThumbed}, event)" class="flex items-center space-x-1 ${hasThumbed ? 'text-sky-400 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform" title="엄지척">
+                            <button type="button" data-reaction-btn="thumbsUp" onclick="event.stopPropagation(); toggleThumbsUp('${post.id}', ${hasThumbed}, event)" class="flex items-center space-x-1 ${hasThumbed ? 'text-sky-400 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform" title="엄지척">
                                 <i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i>
                                 <span class="text-xs">${thumbsCount}</span>
                             </button>
 
-                            <button type="button" onclick="event.stopPropagation(); togglePray('${post.id}', ${hasPrayed}, event)" class="flex items-center space-x-1 ${hasPrayed ? 'text-amber-400 font-medium' : 'text-gray-400 hover:text-amber-300'} active:scale-90 transition-transform" title="기도손">
+                            <button type="button" data-reaction-btn="pray" onclick="event.stopPropagation(); togglePray('${post.id}', ${hasPrayed}, event)" class="flex items-center space-x-1 ${hasPrayed ? 'text-amber-400 font-medium' : 'text-gray-400 hover:text-amber-300'} active:scale-90 transition-transform" title="기도손">
                                 <i class="fa-solid fa-hands-praying text-sm inline-block" style="transform: rotate(20deg) translateY(1.5px);"></i>
                                 <span class="text-xs">${prayersCount}</span>
                             </button>
 
                             <button type="button" onclick="event.stopPropagation(); openCommentsModal('${post.id}')" class="flex items-center space-x-1 text-gray-500 hover:text-emerald-700 active:scale-90 transition-transform" title="댓글 열기">
                                 <i class="fa-regular fa-comment-dots text-sm"></i>
-                                <span class="text-xs">${commentCount}</span>
+                                <span class="text-xs" data-comment-count>${commentCount}</span>
                             </button>
 
                             <button type="button" onclick="event.stopPropagation(); toggleInlineCommentInput('${post.id}', event)" class="w-5 h-5 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-500 hover:text-emerald-700 flex items-center justify-center text-xs font-bold active:scale-90 transition-transform" title="댓글 바로 달기">
@@ -4582,14 +4629,48 @@
             return card;
         }
 
+        // [리액션 DOM 부분 갱신: 사진 재렌더링 및 깜빡임 100% 원천 차단]
+        function updatePostReactionDOM(postId, post) {
+            const cardEl = document.getElementById(`post-card-${postId}`);
+            if (!cardEl || !post) return false;
+
+            // 좋아요
+            const likeBtn = cardEl.querySelector('[data-reaction-btn="like"]');
+            const hasLiked = post.likedUsers && post.likedUsers.includes(currentUser);
+            if (likeBtn) {
+                likeBtn.className = `flex items-center space-x-1 ${hasLiked ? 'text-rose-400 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform`;
+                likeBtn.innerHTML = `<i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i><span class="text-xs">${post.likes || 0}</span>`;
+            }
+
+            // 엄지척
+            const thumbBtn = cardEl.querySelector('[data-reaction-btn="thumbsUp"]');
+            const hasThumbed = post.thumbedUsers && post.thumbedUsers.includes(currentUser);
+            if (thumbBtn) {
+                thumbBtn.className = `flex items-center space-x-1 ${hasThumbed ? 'text-sky-400 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform`;
+                thumbBtn.innerHTML = `<i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i><span class="text-xs">${post.thumbsUp || 0}</span>`;
+            }
+
+            // 기도손
+            const prayBtn = cardEl.querySelector('[data-reaction-btn="pray"]');
+            const hasPrayed = post.prayedUsers && post.prayedUsers.includes(currentUser);
+            if (prayBtn) {
+                prayBtn.className = `flex items-center space-x-1 ${hasPrayed ? 'text-amber-400 font-medium' : 'text-gray-400 hover:text-amber-300'} active:scale-90 transition-transform`;
+                prayBtn.innerHTML = `<i class="fa-solid fa-hands-praying text-sm inline-block" style="transform: rotate(20deg) translateY(1.5px);"></i><span class="text-xs">${post.prayers || 0}</span>`;
+            }
+
+            // 댓글 수
+            const commentCountEl = cardEl.querySelector('[data-comment-count]');
+            if (commentCountEl) {
+                commentCountEl.innerText = post.comments ? post.comments.length : 0;
+            }
+
+            return true;
+        }
         function renderFeedList() {
             const feedContainer = document.getElementById('feed-container');
             if (!feedContainer) return;
 
-            // 기존 스크롤 위치 완벽 보존 (이모지 클릭/피드 동기화 시 화면 튐 원천 차단)
             const previousScroll = feedContainer.scrollTop;
-
-            feedContainer.innerHTML = "";
 
             if (!cachedPosts || cachedPosts.length === 0) {
                 feedContainer.innerHTML = `
@@ -4605,6 +4686,23 @@
             }
 
             const visiblePosts = cachedPosts.slice(0, displayedFeedCount);
+
+            // [사진 번쩍임 원천 차단]: 화면에 이미 표시된 카드 목록 ID가 같으면 전체 DOM을 재생성하지 않고 리액션 수치/상태만 부분 갱신!
+            const existingArticles = Array.from(feedContainer.querySelectorAll('article[data-post-id]'));
+            const existingIds = existingArticles.map(a => a.getAttribute('data-post-id'));
+            const visibleIds = visiblePosts.map(p => p.id);
+
+            const isSameListStructure = (existingIds.length === visibleIds.length) && existingIds.every((id, idx) => id === visibleIds[idx]);
+
+            if (isSameListStructure && existingArticles.length > 0) {
+                visiblePosts.forEach(post => {
+                    updatePostReactionDOM(post.id, post);
+                });
+                return;
+            }
+
+            // 글이 새로 추가되거나 삭제된 경우에만 전체 렌더링
+            feedContainer.innerHTML = "";
             visiblePosts.forEach(post => {
                 feedContainer.appendChild(buildPostCardElement(post));
             });
@@ -4915,6 +5013,7 @@
                 }
             }
 
+            if (post) updatePostReactionDOM(postId, post);
             setDbStatus('saving');
             try {
                 if (hasLiked) {
@@ -4945,6 +5044,7 @@
                 }
             }
 
+            if (post) updatePostReactionDOM(postId, post);
             setDbStatus('saving');
             try {
                 if (hasThumbed) {
@@ -4975,6 +5075,7 @@
                 }
             }
 
+            if (post) updatePostReactionDOM(postId, post);
             setDbStatus('saving');
             try {
                 if (hasPrayed) {
@@ -5248,7 +5349,21 @@
             });
         }
 
-        window.closeLightbox = function() {
+        // [라이트박스 닫기: 마법봉/회전 등 수정 사항이 있을 때 닫기를 누르면 피드에 자동 저장]
+        window.closeLightbox = function(isAutoSaveAllowed = false) {
+            const isModified = (currentLightboxRotationAngle !== 0) ||
+                               (currentLightboxBrightness !== 100) ||
+                               (currentLightboxContrast !== 100) ||
+                               (currentLightboxScale !== 1.0) ||
+                               (currentLightboxPanX !== 0) ||
+                               (currentLightboxPanY !== 0);
+
+            if (isAutoSaveAllowed && isModified && currentLightboxPostId !== null) {
+                // 수정된 사항이 있다면 피드에 자동 저장 후 닫기
+                cropAndSaveLightboxImage();
+                return;
+            }
+
             lightboxModal.classList.add('hidden');
             lightboxTrack.innerHTML = '';
             currentLightboxPostId = null;
@@ -5264,16 +5379,14 @@
             resetBrightnessContrast();
         };
 
-        // 교정박스 영역 그대로 피드에 저장 ("이대로 저장" 및 편집창 닫기 + 피드 이동)
+        // [교정 사진 피드에 즉시 저장: 0.1초 즉각 닫기 + 피드 이미지 즉시 교체 + 쏜살 이동]
         window.cropAndSaveLightboxImage = async function() {
             if (!currentLightboxPostId || currentLightboxPhotoIdx === null) return;
             const targetPostId = currentLightboxPostId;
+            const targetPhotoIdx = currentLightboxPhotoIdx;
             const activeImg = getActiveImageEl();
             const cropBoxEl = document.getElementById('lightbox-crop-box');
             if (!activeImg || !cropBoxEl) return;
-
-            showNotification("교정 박스 안의 사진을 피드에 저장 중입니다...");
-            setDbStatus('saving');
 
             try {
                 const finalDataUrl = await getCroppedDataUrl(
@@ -5287,45 +5400,57 @@
                     currentLightboxContrast
                 );
 
-                // 교정된 사진을 Firebase Storage에 업로드하여 다운로드 URL 확보
-                const uploadedUrl = await uploadPhotoToStorage(finalDataUrl);
-
-                const post = cachedPosts.find(p => p.id === targetPostId);
-                if (!post) throw new Error("게시글을 찾을 수 없습니다.");
-
-                let updatedImages = [];
-                if (Array.isArray(post.images) && post.images.length > 0) {
-                    updatedImages = [...post.images];
-                } else if (post.imageUrl) {
-                    updatedImages = [post.imageUrl];
-                }
-
-                if (currentLightboxPhotoIdx < updatedImages.length) {
-                    updatedImages[currentLightboxPhotoIdx] = uploadedUrl;
-                } else {
-                    updatedImages.push(uploadedUrl);
-                }
-
-                const updatePayload = {
-                    images: updatedImages,
-                    imageUrl: updatedImages[0] || "",
-                    updatedAt: new Date()
-                };
-
-                await updateDoc(getPostDocRef(targetPostId), updatePayload);
-
                 // 1. 편집창 즉시 닫기
-                closeLightbox();
+                closeLightbox(false);
 
-                setDbStatus('connected');
+                // 2. 피드 화면의 해당 사진 src를 finalDataUrl로 즉시 교체 (사용자 체감 반응 0ms)
+                const feedImgEl = document.getElementById(`feed-photo-img-${targetPostId}-${targetPhotoIdx}`);
+                if (feedImgEl) {
+                    feedImgEl.src = finalDataUrl;
+                }
+
+                // 3. 피드의 해당 게시글 위치로 부드럽게 쏜살 이동 및 하이라이트
+                scrollToPost(targetPostId, true);
                 showNotification("교정된 사진이 피드에 '이대로 저장'되었습니다!");
 
-                // 2. 피드된 메인 화면의 해당 게시글로 부드럽게 이동 및 하이라이트
-                scrollToPost(targetPostId, true);
+                // 4. 백그라운드에서 Firebase Storage 업로드 및 Firestore updateDoc 수행
+                (async () => {
+                    setDbStatus('saving');
+                    try {
+                        const uploadedUrl = await uploadPhotoToStorage(finalDataUrl);
+                        const post = cachedPosts.find(p => p.id === targetPostId);
+                        if (post) {
+                            let updatedImages = [];
+                            if (Array.isArray(post.images) && post.images.length > 0) {
+                                updatedImages = [...post.images];
+                            } else if (post.imageUrl) {
+                                updatedImages = [post.imageUrl];
+                            }
+
+                            if (targetPhotoIdx < updatedImages.length) {
+                                updatedImages[targetPhotoIdx] = uploadedUrl;
+                            } else {
+                                updatedImages.push(uploadedUrl);
+                            }
+
+                            post.images = updatedImages;
+                            post.imageUrl = updatedImages[0] || "";
+
+                            await updateDoc(getPostDocRef(targetPostId), {
+                                images: updatedImages,
+                                imageUrl: updatedImages[0] || "",
+                                updatedAt: new Date()
+                            });
+                        }
+                        setDbStatus('connected');
+                    } catch (err) {
+                        console.error("백그라운드 사진 저장 오류:", err);
+                        setDbStatus('error');
+                    }
+                })();
             } catch (err) {
                 console.error("사진 교정 저장 실패:", err);
                 showNotification("피드 저장 실패: " + err.message);
-                setDbStatus('error');
             }
         };
 
