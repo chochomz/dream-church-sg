@@ -100,20 +100,22 @@
             border-radius: 4px;
         }
 
-        /* 플로팅 스마트 피드 책갈피 (왼손잡이/오른손잡이 드래그 앤 드롭 & 세로 직사각형 고투명) */
+        /* 플로팅 스마트 피드 책갈피 (왼손잡이/오른손잡이 드래그 앤 드롭 & 세로 직사각형 고투명 & 사파리/모바일 최적화) */
         #feed-bookmark-indicator {
-            transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.32s ease;
-            will-change: transform, top, left, right;
+            position: fixed;
+            z-index: 40;
             user-select: none;
             -webkit-user-select: none;
+            touch-action: none;
+            transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.28s ease;
         }
         #feed-bookmark-indicator.bookmark-side-right {
             right: max(0px, calc(50% - 224px));
-            left: auto !important;
+            left: auto;
         }
         #feed-bookmark-indicator.bookmark-side-left {
             left: max(0px, calc(50% - 224px));
-            right: auto !important;
+            right: auto;
         }
         #feed-bookmark-indicator.bookmark-side-right.bookmark-hidden {
             transform: translateX(110%);
@@ -132,16 +134,18 @@
         }
         #feed-bookmark-indicator.bookmark-dragging {
             transition: none !important;
-            filter: drop-shadow(0 6px 16px rgba(0,0,0,0.20));
         }
-        #feed-bookmark-indicator.bookmark-longpressed {
-            transform: scale(1.14) !important;
-            filter: drop-shadow(0 10px 22px rgba(0,0,0,0.30)) !important;
+        #feed-bookmark-indicator.bookmark-dragging #feed-bookmark-ribbon {
+            box-shadow: 0 4px 14px rgba(0,0,0,0.18) !important;
+        }
+        #feed-bookmark-indicator.bookmark-longpressed #feed-bookmark-ribbon {
+            transform: scale(1.08) !important;
+            box-shadow: 0 8px 22px rgba(0,0,0,0.25) !important;
         }
         #feed-bookmark-ribbon {
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.2s ease, border-radius 0.25s ease;
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.2s ease, border-radius 0.25s ease, transform 0.2s ease;
         }
 
         /* 모달 터치 제어: all-pdf-preview-modal은 자유로운 상하 스크롤을 위해 제외 */
@@ -1243,10 +1247,7 @@
                 }
             }
 
-            // 2. 모바일 브라우저 또는 showSaveFilePicker 미지원 시 사용자 확인 후 다운로드
-            const userConfirmed = confirm(`'${fileName}' 파일을 다운로드하시겠습니까?\n(확인을 누르면 기기의 다운로드 폴더에 저장됩니다.)`);
-            if (!userConfirmed) return;
-
+            // 2. 모바일/사파리 등 showSaveFilePicker 미지원 환경 (confirm창 호출로 인한 사파리 팝업 차단 방지)
             downloadBlobFallback(blob, fileName);
             showNotification(`'${fileName}' 다운로드를 완료했습니다.`);
         };
@@ -1967,12 +1968,20 @@
         };
 
                 // [게시글 지정 위치 부드러운 스크롤 및 하이라이트 펄스 공통 함수]
+        let isNavigatingToPost = false;
+        let navigationTimer = null;
+
         window.scrollToPost = function(postId, highlight = true) {
             if (!postId) {
                 const feedContainer = document.getElementById('feed-container');
                 if (feedContainer) feedContainer.scrollTo({ top: 0, behavior: 'smooth' });
                 return;
             }
+
+            // 피드 렌더러가 스크롤 위치를 이전 위치로 강제 복원하지 않도록 플래그 활성화
+            isNavigatingToPost = true;
+            if (navigationTimer) clearTimeout(navigationTimer);
+            navigationTimer = setTimeout(() => { isNavigatingToPost = false; }, 2000);
 
             const checkAndScroll = (attempts = 0) => {
                 const targetIdx = cachedPosts.findIndex(p => p.id === postId);
@@ -2291,11 +2300,13 @@
 
             bookmarkSide = side === 'left' ? 'left' : 'right';
 
+            // 인라인 좌표를 비워 CSS 클래스 반응형 규칙(모바일/태블릿)이 완벽히 작동하도록 함
+            bookmarkEl.style.left = '';
+            bookmarkEl.style.right = '';
+
             if (bookmarkSide === 'left') {
                 bookmarkEl.classList.remove('bookmark-side-right');
                 bookmarkEl.classList.add('bookmark-side-left');
-                bookmarkEl.style.left = 'max(0px, calc(50% - 224px))';
-                bookmarkEl.style.right = 'auto';
 
                 ribbonEl.classList.remove('rounded-l-xl', 'border-l');
                 ribbonEl.classList.add('rounded-r-xl', 'border-r');
@@ -2306,8 +2317,6 @@
             } else {
                 bookmarkEl.classList.remove('bookmark-side-left');
                 bookmarkEl.classList.add('bookmark-side-right');
-                bookmarkEl.style.right = 'max(0px, calc(50% - 224px))';
-                bookmarkEl.style.left = 'auto';
 
                 ribbonEl.classList.remove('rounded-r-xl', 'border-r');
                 ribbonEl.classList.add('rounded-l-xl', 'border-l');
@@ -2621,22 +2630,8 @@
             // 저장된 사용자 위치(왼손/오른손) 복원 적용
             applyBookmarkSide(bookmarkSide);
 
-            // 책갈피 더블 터치 감지 변수
-            let bookmarkTapCount = 0;
-            let bookmarkTapTimer = null;
-
-            const onBookmarkTapDetected = (e) => {
-                bookmarkTapCount++;
-                if (bookmarkTapCount === 1) {
-                    bookmarkTapTimer = setTimeout(() => {
-                        bookmarkTapCount = 0;
-                    }, 360);
-                } else if (bookmarkTapCount >= 2) {
-                    clearTimeout(bookmarkTapTimer);
-                    bookmarkTapCount = 0;
-                    toggleBookmarkCalendar(e);
-                }
-            };
+            let bookmarkRafId = null;
+            let lastTapTime = 0;
 
             const onDragStart = (clientX, clientY) => {
                 isBookmarkDragging = true;
@@ -2645,44 +2640,43 @@
 
                 if (bookmarkHideTimer) clearTimeout(bookmarkHideTimer);
 
-                bookmarkEl.classList.remove('bookmark-hidden');
-                bookmarkEl.classList.add('bookmark-visible', 'bookmark-dragging');
-
+                const rect = bookmarkEl.getBoundingClientRect();
                 bookmarkDragStartX = clientX;
                 bookmarkDragStartY = clientY;
                 bookmarkLastClientX = clientX;
                 bookmarkLastClientY = clientY;
-                bookmarkInitialTop = parseFloat(bookmarkEl.style.top) || bookmarkEl.getBoundingClientRect().top;
+                bookmarkInitialTop = rect.top;
 
-                // 350ms 꾹 누르면 '좌우 이동 모드' 활성화 (시각적 피드백 & 햅틱 진동)
+                bookmarkEl.classList.remove('bookmark-hidden');
+                bookmarkEl.classList.add('bookmark-visible', 'bookmark-dragging');
+
+                // 280ms 꾹 누르면 '좌우 이동 모드' 활성화 (사파리 햅틱 진동)
                 if (bookmarkLongPressTimer) clearTimeout(bookmarkLongPressTimer);
                 bookmarkLongPressTimer = setTimeout(() => {
                     if (isBookmarkDragging) {
                         isBookmarkLongPressed = true;
                         bookmarkEl.classList.add('bookmark-longpressed');
                         if (navigator.vibrate) {
-                            try { navigator.vibrate(35); } catch(e) {}
+                            try { navigator.vibrate(25); } catch(e) {}
                         }
                         showNotification('좌우 이동 모드: 원하는 쪽(왼쪽/오른쪽)으로 옮겨보세요');
                     }
-                }, 350);
+                }, 280);
             };
 
-            const onDragMove = (clientX, clientY) => {
+            const updateDragVisuals = (clientX, clientY) => {
                 if (!isBookmarkDragging || !cachedPosts || cachedPosts.length === 0) return;
-
-                bookmarkLastClientX = clientX;
-                bookmarkLastClientY = clientY;
 
                 const deltaX = clientX - bookmarkDragStartX;
                 const deltaY = clientY - bookmarkDragStartY;
 
-                // 수평 이동 거리가 25px 이상이거나 꾹 누른 상태인 경우 좌우 드래그 모드로 전환
-                if (isBookmarkLongPressed || Math.abs(deltaX) > 25) {
-                    isBookmarkHorizontalMoved = true;
-                    if (bookmarkLongPressTimer) clearTimeout(bookmarkLongPressTimer);
-
-                    // 손가락의 X 좌표를 따라 부드럽게 이동
+                // 수평 이동: 꾹 누른 상태이거나 20px 이상 밀었을 때 좌우 드래그 모드 활성화
+                if (isBookmarkLongPressed || Math.abs(deltaX) > 20) {
+                    if (!isBookmarkHorizontalMoved) {
+                        isBookmarkHorizontalMoved = true;
+                        if (bookmarkLongPressTimer) clearTimeout(bookmarkLongPressTimer);
+                        bookmarkEl.classList.remove('bookmark-side-left', 'bookmark-side-right');
+                    }
                     const bookmarkWidth = bookmarkEl.offsetWidth || 36;
                     const halfW = bookmarkWidth / 2;
                     const clampedX = Math.max(4, Math.min(window.innerWidth - bookmarkWidth - 4, clientX - halfW));
@@ -2717,10 +2711,9 @@
                     applyMonthlyBookmarkTheme(dateInfo.month);
                 }
 
-                // 만약 해당 위치의 게시글이 아직 로딩되지 않았다면 즉시 확장 렌더링
+                // 드래그 중에는 DOM을 초기화(renderFeedList)하지 않고 뒤쪽 카드만 안전하게 점진 추가(loadMorePosts)
                 if (targetIndex >= displayedFeedCount) {
-                    displayedFeedCount = Math.min(cachedPosts.length, targetIndex + FEED_BATCH_SIZE);
-                    renderFeedList();
+                    loadMorePosts();
                 }
 
                 // 피드 스크롤을 쾌속 이동
@@ -2730,17 +2723,41 @@
                 }
             };
 
-            const onDragEnd = (e) => {
+            const onDragMove = (clientX, clientY) => {
+                if (!isBookmarkDragging) return;
+                bookmarkLastClientX = clientX;
+                bookmarkLastClientY = clientY;
+
+                // 사파리 / 모바일 60~120fps 부드러운 rAF 스로틀링
+                if (bookmarkRafId) return;
+                bookmarkRafId = requestAnimationFrame(() => {
+                    bookmarkRafId = null;
+                    updateDragVisuals(bookmarkLastClientX, bookmarkLastClientY);
+                });
+            };
+
+            const onDragEnd = (e, isCancelled = false) => {
                 if (!isBookmarkDragging) return;
                 isBookmarkDragging = false;
                 if (bookmarkLongPressTimer) clearTimeout(bookmarkLongPressTimer);
+                if (bookmarkRafId) {
+                    cancelAnimationFrame(bookmarkRafId);
+                    bookmarkRafId = null;
+                }
 
                 bookmarkEl.classList.remove('bookmark-dragging', 'bookmark-longpressed');
 
-                const moveDist = Math.hypot(bookmarkLastClientX - bookmarkDragStartX, bookmarkLastClientY - bookmarkDragStartY);
+                if (isCancelled) {
+                    applyBookmarkSide(bookmarkSide);
+                    return;
+                }
 
-                // 좌우로 옮기거나 꾹 눌러 이동한 경우 손을 뗀 위치에 따라 왼쪽/오른쪽으로 스냅 도킹
-                if (isBookmarkHorizontalMoved || (isBookmarkLongPressed && moveDist > 25)) {
+                const deltaX = bookmarkLastClientX - bookmarkDragStartX;
+                const deltaY = bookmarkLastClientY - bookmarkDragStartY;
+                const moveDist = Math.hypot(deltaX, deltaY);
+
+                // 좌우로 옮겼거나 꾹 눌러 이동한 경우
+                if (isBookmarkHorizontalMoved || (isBookmarkLongPressed && moveDist > 20)) {
                     const screenMid = window.innerWidth / 2;
                     const targetSide = bookmarkLastClientX < screenMid ? 'left' : 'right';
 
@@ -2751,9 +2768,15 @@
                         } catch(e) {}
                         showNotification(bookmarkSide === 'left' ? '책갈피가 왼쪽(왼손잡이 모드)으로 이동되었습니다.' : '책갈피가 오른쪽(오른손잡이 모드)으로 이동되었습니다.');
                     }
-                } else if (moveDist < 6 && !isBookmarkLongPressed) {
-                    // 드래그가 아닌 순수 탭 동작인 경우 -> 더블 탭 판정
-                    onBookmarkTapDetected(e);
+                } else if (moveDist < 8 && !isBookmarkLongPressed) {
+                    // 순수 탭 동작인 경우 -> 더블 탭 판정 (월 달력 호출)
+                    const now = Date.now();
+                    if (now - lastTapTime < 360) {
+                        lastTapTime = 0;
+                        toggleBookmarkCalendar(e);
+                    } else {
+                        lastTapTime = now;
+                    }
                 }
 
                 // 좌우 위치 및 스타일 확정 복원
@@ -2770,43 +2793,41 @@
                 }
             };
 
-            // 터치 이벤트 바인딩 (모바일)
-            bookmarkEl.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1) {
-                    onDragStart(e.touches[0].clientX, e.touches[0].clientY);
-                }
-            }, { passive: false });
-
-            window.addEventListener('touchmove', (e) => {
-                if (isBookmarkDragging && e.touches.length === 1) {
-                    e.preventDefault(); // 스크러빙 중 화면 기본 스크롤 방지
-                    onDragMove(e.touches[0].clientX, e.touches[0].clientY);
-                }
-            }, { passive: false });
-
-            window.addEventListener('touchend', (e) => {
-                if (isBookmarkDragging) onDragEnd(e);
-            }, { passive: true });
-
-            // 마우스 이벤트 바인딩 (PC 데스크톱)
-            bookmarkEl.addEventListener('mousedown', (e) => {
-                if (e.button === 0) {
-                    e.preventDefault();
-                    onDragStart(e.clientX, e.clientY);
-                }
+            // Pointer Events API (사파리, 아이폰, 아이패드, 갤럭시, PC 완벽 호환 및 시스템 제스처 충돌 방지)
+            bookmarkEl.addEventListener('pointerdown', (e) => {
+                if (!e.isPrimary) return;
+                if (e.button !== undefined && e.button !== 0) return;
+                try {
+                    bookmarkEl.setPointerCapture(e.pointerId);
+                } catch(err) {}
+                onDragStart(e.clientX, e.clientY);
             });
 
-            window.addEventListener('mousemove', (e) => {
+            bookmarkEl.addEventListener('pointermove', (e) => {
                 if (isBookmarkDragging) {
                     onDragMove(e.clientX, e.clientY);
                 }
             });
 
-            window.addEventListener('mouseup', (e) => {
-                if (isBookmarkDragging) onDragEnd(e);
+            bookmarkEl.addEventListener('pointerup', (e) => {
+                if (isBookmarkDragging) {
+                    try {
+                        bookmarkEl.releasePointerCapture(e.pointerId);
+                    } catch(err) {}
+                    onDragEnd(e, false);
+                }
             });
 
-            // 데스크톱 더블클릭 이벤트 지원
+            bookmarkEl.addEventListener('pointercancel', (e) => {
+                if (isBookmarkDragging) {
+                    try {
+                        bookmarkEl.releasePointerCapture(e.pointerId);
+                    } catch(err) {}
+                    onDragEnd(e, true);
+                }
+            });
+
+            // 데스크톱 더블클릭 이벤트 보조
             bookmarkEl.addEventListener('dblclick', (e) => {
                 e.stopPropagation();
                 toggleBookmarkCalendar(e);
@@ -2848,6 +2869,7 @@
         const feedScrollEl = document.getElementById('feed-container');
         if (feedScrollEl) {
             feedScrollEl.addEventListener('scroll', () => {
+                if (isBookmarkDragging) return; // 책갈피 드래그 중 스크롤 상호 간섭 차단
                 closeAllHeaderQuickMenu();
                 closeAllActionMenus();
                 closeAllExportMenus();
@@ -3997,11 +4019,13 @@
                 feedContainer.appendChild(endNotice);
             }
 
-            // 스크롤 위치 원상태로 즉각 고정 복원
-            if (previousScroll > 0) {
+            // 스크롤 위치 원상태로 즉각 고정 복원 (이모지 클릭/피드 동기화 시 화면 튐 차단, 단 글 등록/수정/삭제/달력 이동 중에는 방해 금지)
+            if (!isNavigatingToPost && previousScroll > 0) {
                 feedContainer.scrollTop = previousScroll;
                 requestAnimationFrame(() => {
-                    feedContainer.scrollTop = previousScroll;
+                    if (!isNavigatingToPost) {
+                        feedContainer.scrollTop = previousScroll;
+                    }
                 });
             }
         }
