@@ -341,10 +341,11 @@
     <!-- [플로팅 스마트 피드 책갈피 (왼손/오른손 이동 드래그 앤 드롭 & 세로 직사각형 고투명)] -->
     <div id="feed-bookmark-indicator" 
          class="fixed z-40 select-none pointer-events-auto flex items-center cursor-grab active:cursor-grabbing touch-none bookmark-side-right bookmark-hidden"
-         style="top: 140px; touch-action: none;">
+         style="top: 140px; touch-action: none;"
+         title="더블 터치: 월 달력 열기">
         <div id="feed-bookmark-ribbon" 
-             class="relative w-[36px] py-2.5 px-0.5 rounded-l-xl shadow-xs border-y border-l flex flex-col items-center justify-between min-h-[82px] space-y-1 text-center"
-             style="background-color: rgba(254, 243, 199, 0.38); border-color: rgba(245, 158, 11, 0.30); color: #5B2506;">
+             class="relative w-[36px] py-2.5 px-0.5 rounded-l-xl border-y border-l flex flex-col items-center justify-between min-h-[82px] space-y-1 text-center"
+             style="background-color: rgba(254, 243, 199, 0.22); border-color: rgba(245, 158, 11, 0.24); color: #5B2506; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
             <!-- 상단 그립 바 & 계절 아이콘 -->
             <div class="flex flex-col items-center space-y-1 pointer-events-none shrink-0">
                 <div id="feed-bookmark-grip" class="w-2.5 h-0.5 rounded-full bg-current opacity-45"></div>
@@ -362,6 +363,58 @@
             
             <!-- 리본 끝단 쐐기 핀 -->
             <div id="feed-bookmark-wedge" class="absolute -left-0.5 top-1/2 -translate-y-1/2 w-0.5 h-3 rounded-r-xs opacity-60 pointer-events-none" style="background-color: #D97706;"></div>
+        </div>
+    </div>
+
+    <!-- [책갈피 연동 센스 미니 월 달력 팝업 (월요일 한눈에 확인)] -->
+    <div id="bookmark-calendar-popup" 
+         class="fixed z-50 pointer-events-auto hidden select-none shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md border border-gray-200/90 p-3 w-[252px] transition-all duration-300 transform opacity-0 scale-90"
+         style="touch-action: auto;">
+        <!-- 상단 헤더: 이전달 / 연월 / 다음달 / 닫기 -->
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-gray-100">
+            <div class="flex items-center space-x-1">
+                <button type="button" onclick="prevBookmarkCalendarMonth(event)" class="w-6 h-6 rounded-full hover:bg-gray-100 active:scale-90 text-gray-500 flex items-center justify-center transition-all text-xs" title="이전 달">
+                    <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                </button>
+                <h4 id="bookmark-calendar-title" class="text-xs font-black text-gray-800 tracking-tight min-w-[72px] text-center">2026년 10월</h4>
+                <button type="button" onclick="nextBookmarkCalendarMonth(event)" class="w-6 h-6 rounded-full hover:bg-gray-100 active:scale-90 text-gray-500 flex items-center justify-center transition-all text-xs" title="다음 달">
+                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+            </div>
+            
+            <div class="flex items-center space-x-1">
+                <button type="button" onclick="goBookmarkCalendarToday(event)" class="px-1.5 py-0.5 rounded text-[10px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 active:scale-95 border border-emerald-200/60 shadow-2xs transition-all">
+                    오늘
+                </button>
+                <button type="button" onclick="closeBookmarkCalendar(event)" class="w-6 h-6 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 flex items-center justify-center active:scale-90 transition-all text-xs">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 요일 헤더: 월요일을 돋보이게 강조 ("잠깐 월요일을 확인하는 센스 기능") -->
+        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold mb-1.5 py-1 bg-gray-50/80 rounded-lg">
+            <span class="text-rose-500">일</span>
+            <span class="text-emerald-800 font-extrabold bg-emerald-200/60 rounded py-0.5 shadow-2xs" title="월요일">월</span>
+            <span class="text-gray-600">화</span>
+            <span class="text-gray-600">수</span>
+            <span class="text-gray-600">목</span>
+            <span class="text-gray-600">금</span>
+            <span class="text-sky-500">토</span>
+        </div>
+
+        <!-- 날짜 그리드 -->
+        <div id="bookmark-calendar-grid" class="grid grid-cols-7 gap-1 text-center text-xs">
+            <!-- renderBookmarkCalendar()로 일자 동적 주입 -->
+        </div>
+
+        <!-- 하단 센스 안내 팁 -->
+        <div class="mt-2 pt-1.5 border-t border-gray-100/80 flex items-center justify-between text-[9.5px] text-gray-400 leading-none">
+            <span class="flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-300 inline-block"></span>
+                <span class="text-emerald-800 font-semibold">월요일 강조</span>
+            </span>
+            <span>바깥 터치 시 닫힘</span>
         </div>
     </div>
 
@@ -1829,9 +1882,29 @@
 
             selectedImagesList = Array.isArray(existingImages) ? [...existingImages] : (existingImages ? [existingImages] : []);
             renderImagePreviews();
+            
+            // 기존 첨부파일 복원
             currentAttachedFile = null;
             const fileTitleInput = document.getElementById('post-file-title');
             if (fileTitleInput) fileTitleInput.value = '';
+
+            if (postId) {
+                const editTargetPost = cachedPosts.find(p => p.id === postId);
+                if (editTargetPost && (editTargetPost.fileName || editTargetPost.fileId)) {
+                    const matchedFile = cachedMokjangFiles.find(f => f.id === editTargetPost.fileId || f.fileName === editTargetPost.fileName);
+                    if (matchedFile) {
+                        currentAttachedFile = { ...matchedFile };
+                    } else {
+                        currentAttachedFile = {
+                            fileName: editTargetPost.fileName,
+                            fileSize: editTargetPost.fileSize,
+                            fileType: editTargetPost.fileType || 'application/octet-stream',
+                            dataUrl: editTargetPost.fileDataUrl || ''
+                        };
+                    }
+                    if (fileTitleInput) fileTitleInput.value = editTargetPost.fileTitle || '';
+                }
+            }
             renderAttachedFileUI();
 
             if (postId) {
@@ -2063,7 +2136,7 @@
             }
         });
 
-        // [스마트 피드 책갈피: 왼손/오른손 이동 드래그 앤 드롭 & 세로 직사각형 고투명 상태 관리]
+        // [스마트 피드 책갈피: 왼손/오른손 이동 드래그 앤 드롭, 초고투명 & 더블터치 월 달력 팝업]
         let bookmarkHideTimer = null;
         let isBookmarkDragging = false;
         let bookmarkDragStartX = 0;
@@ -2074,26 +2147,31 @@
         let bookmarkLongPressTimer = null;
         let isBookmarkLongPressed = false;
         let isBookmarkHorizontalMoved = false;
+        let currentBookmarkTargetIndex = 0;
+
+        // 월 달력 상태 관리
+        let calendarCurrentYear = new Date().getFullYear();
+        let calendarCurrentMonth = new Date().getMonth();
 
         // 사용자 환경설정: 왼손잡이(left) / 오른손잡이(right) 저장 및 복원
         let bookmarkSide = localStorage.getItem('feed_bookmark_side') || 'right';
 
         const KOREAN_DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
-        // 12개월 및 4계절 맞춤 은은한 파스텔 테마 (배경 투명도를 대폭 높여 뒤쪽 피드 글/사진이 은은히 비침)
+        // 12개월 및 4계절 맞춤 초고투명 은은한 파스텔 테마 (투명도를 더욱 높여 피드 내용이 훤히 비침)
         const MONTHLY_PASTEL_THEMES = {
-            1:  { bg: 'rgba(238, 234, 254, 0.36)', border: 'rgba(167, 139, 250, 0.30)', text: '#3B1875', subText: '#4C1D95', badge: '#7C3AED', icon: '❄️', season: '겨울' }, // 1월: 스노우 라일락
-            2:  { bg: 'rgba(241, 245, 249, 0.38)', border: 'rgba(148, 163, 184, 0.32)', text: '#0F172A', subText: '#1E293B', badge: '#475569', icon: '🌱', season: '겨울' }, // 2월: 실버미스트
-            3:  { bg: 'rgba(254, 252, 215, 0.38)', border: 'rgba(250, 204, 21, 0.32)',  text: '#582D06', subText: '#713F12', badge: '#CA8A04', icon: '🌼', season: '봄' },   // 3월: 개나리 햇살
-            4:  { bg: 'rgba(253, 232, 241, 0.38)', border: 'rgba(244, 114, 182, 0.30)', text: '#700B36', subText: '#831843', badge: '#DB2777', icon: '🌸', season: '봄' },   // 4월: 벚꽃핑크
-            5:  { bg: 'rgba(220, 252, 231, 0.38)', border: 'rgba(52, 211, 153, 0.30)',  text: '#043A2C', subText: '#064E3B', badge: '#059669', icon: '🌿', season: '봄' },   // 5월: 신록연두
-            6:  { bg: 'rgba(204, 251, 241, 0.38)', border: 'rgba(45, 212, 191, 0.30)',  text: '#0D3835', subText: '#134E4A', badge: '#0D9488', icon: '🍃', season: '여름' }, // 6월: 쿨민트
-            7:  { bg: 'rgba(224, 242, 254, 0.38)', border: 'rgba(56, 189, 248, 0.30)',  text: '#083344', subText: '#0C4A6E', badge: '#0284C7', icon: '🌊', season: '여름' }, // 7월: 스카이블루
-            8:  { bg: 'rgba(219, 234, 254, 0.38)', border: 'rgba(96, 165, 250, 0.30)',  text: '#172554', subText: '#1E3A8A', badge: '#2563EB', icon: '🐬', season: '여름' }, // 8월: 마린블루
-            9:  { bg: 'rgba(255, 237, 213, 0.38)', border: 'rgba(251, 146, 60, 0.30)',  text: '#60210A', subText: '#7C2D12', badge: '#EA580C', icon: '🌾', season: '가을' }, // 9월: 살구피치
-            10: { bg: 'rgba(254, 243, 199, 0.40)', border: 'rgba(245, 158, 11, 0.32)',  text: '#5B2506', subText: '#78350F', badge: '#D97706', icon: '🍁', season: '가을' }, // 10월: 앰버단풍
-            11: { bg: 'rgba(245, 237, 232, 0.40)', border: 'rgba(194, 152, 131, 0.32)', text: '#361C0F', subText: '#452615', badge: '#84533C', icon: '🍂', season: '가을' }, // 11월: 모카베이지
-            12: { bg: 'rgba(254, 226, 226, 0.40)', border: 'rgba(239, 68, 68, 0.28)',   text: '#5F1212', subText: '#7F1D1D', badge: '#DC2626', icon: '🎄', season: '겨울' }  // 12월: 홀리데이레드
+            1:  { bg: 'rgba(238, 234, 254, 0.20)', border: 'rgba(167, 139, 250, 0.22)', text: '#3B1875', subText: '#4C1D95', badge: '#7C3AED', icon: '❄️', season: '겨울' }, // 1월: 스노우 라일락
+            2:  { bg: 'rgba(241, 245, 249, 0.22)', border: 'rgba(148, 163, 184, 0.24)', text: '#0F172A', subText: '#1E293B', badge: '#475569', icon: '🌱', season: '겨울' }, // 2월: 실버미스트
+            3:  { bg: 'rgba(254, 252, 215, 0.22)', border: 'rgba(250, 204, 21, 0.24)',  text: '#582D06', subText: '#713F12', badge: '#CA8A04', icon: '🌼', season: '봄' },   // 3월: 개나리 햇살
+            4:  { bg: 'rgba(253, 232, 241, 0.22)', border: 'rgba(244, 114, 182, 0.22)', text: '#700B36', subText: '#831843', badge: '#DB2777', icon: '🌸', season: '봄' },   // 4월: 벚꽃핑크
+            5:  { bg: 'rgba(220, 252, 231, 0.22)', border: 'rgba(52, 211, 153, 0.22)',  text: '#043A2C', subText: '#064E3B', badge: '#059669', icon: '🌿', season: '봄' },   // 5월: 신록연두
+            6:  { bg: 'rgba(204, 251, 241, 0.22)', border: 'rgba(45, 212, 191, 0.22)',  text: '#0D3835', subText: '#134E4A', badge: '#0D9488', icon: '🍃', season: '여름' }, // 6월: 쿨민트
+            7:  { bg: 'rgba(224, 242, 254, 0.22)', border: 'rgba(56, 189, 248, 0.22)',  text: '#083344', subText: '#0C4A6E', badge: '#0284C7', icon: '🌊', season: '여름' }, // 7월: 스카이블루
+            8:  { bg: 'rgba(219, 234, 254, 0.22)', border: 'rgba(96, 165, 250, 0.22)',  text: '#172554', subText: '#1E3A8A', badge: '#2563EB', icon: '🐬', season: '여름' }, // 8월: 마린블루
+            9:  { bg: 'rgba(255, 237, 213, 0.22)', border: 'rgba(251, 146, 60, 0.22)',  text: '#60210A', subText: '#7C2D12', badge: '#EA580C', icon: '🌾', season: '가을' }, // 9월: 살구피치
+            10: { bg: 'rgba(254, 243, 199, 0.24)', border: 'rgba(245, 158, 11, 0.24)',  text: '#5B2506', subText: '#78350F', badge: '#D97706', icon: '🍁', season: '가을' }, // 10월: 앰버단풍
+            11: { bg: 'rgba(245, 237, 232, 0.24)', border: 'rgba(194, 152, 131, 0.24)', text: '#361C0F', subText: '#452615', badge: '#84533C', icon: '🍂', season: '가을' }, // 11월: 모카베이지
+            12: { bg: 'rgba(254, 226, 226, 0.24)', border: 'rgba(239, 68, 68, 0.20)',   text: '#5F1212', subText: '#7F1D1D', badge: '#DC2626', icon: '🎄', season: '겨울' }  // 12월: 홀리데이레드
         };
 
         function parseBookmarkDateInfo(timestamp) {
@@ -2108,8 +2186,10 @@
             const dateNum = d.getDate();
             const dayName = KOREAN_DAY_NAMES[d.getDay()] || '화';
             return {
+                year: d.getFullYear(),
                 month: month,
                 dayName: dayName,
+                dateNum: dateNum,
                 shortDate: `${month}.${dateNum}`,
                 dayText: `(${dayName})`,
                 fullText: `${month}월 ${dateNum}일(${dayName})`
@@ -2188,6 +2268,160 @@
             }
         }
 
+        // [센스 월 달력 렌더링 & 슬라이드 팝업 제어]
+        function renderBookmarkCalendar(year, month) {
+            const container = document.getElementById('bookmark-calendar-grid');
+            const titleEl = document.getElementById('bookmark-calendar-title');
+            if (!container || !titleEl) return;
+
+            titleEl.innerText = `${year}년 ${month + 1}월`;
+
+            const firstDayIndex = new Date(year, month, 1).getDay(); // 0:일, 1:월, ...
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const today = new Date();
+            const isThisMonth = (today.getFullYear() === year && today.getMonth() === month);
+            const todayDate = today.getDate();
+
+            let html = '';
+            // 첫날 이전 빈칸
+            for (let i = 0; i < firstDayIndex; i++) {
+                html += '<div class="h-6 flex items-center justify-center text-gray-300 text-[10px]"></div>';
+            }
+
+            // 날짜 렌더링 (월요일 강조)
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayOfWeek = (firstDayIndex + d - 1) % 7;
+                const isToday = isThisMonth && d === todayDate;
+                const isMonday = dayOfWeek === 1; // 월요일!
+                const isSunday = dayOfWeek === 0; // 일요일
+                const isSaturday = dayOfWeek === 6; // 토요일
+
+                let textClass = 'text-gray-700';
+                if (isSunday) textClass = 'text-rose-500 font-semibold';
+                else if (isSaturday) textClass = 'text-sky-500 font-semibold';
+                else if (isMonday) textClass = 'text-emerald-800 font-extrabold'; // 월요일 돋보이게 강조
+
+                let bgClass = '';
+                if (isToday) {
+                    bgClass = 'bg-[#3B5D50] text-white rounded-full font-black shadow-xs';
+                    textClass = 'text-white';
+                } else if (isMonday) {
+                    bgClass = 'bg-emerald-100/70 rounded-full shadow-2xs'; // 월요일 연한 에메랄드 배경
+                }
+
+                html += `
+                    <div class="h-6 flex items-center justify-center">
+                        <span class="w-5 h-5 flex items-center justify-center text-[10.5px] ${textClass} ${bgClass}">
+                            ${d}
+                        </span>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        window.toggleBookmarkCalendar = function(event) {
+            if (event) event.stopPropagation();
+            const popup = document.getElementById('bookmark-calendar-popup');
+            const bookmarkEl = document.getElementById('feed-bookmark-indicator');
+            if (!popup || !bookmarkEl) return;
+
+            const isHidden = popup.classList.contains('hidden');
+            if (isHidden) {
+                // 현재 보고 있는 게시글의 날짜를 우선 참고, 없으면 오늘 기준
+                const currentPost = (cachedPosts && cachedPosts.length > 0) ? cachedPosts[currentBookmarkTargetIndex || 0] : null;
+                if (currentPost && currentPost.createdAt) {
+                    const dateInfo = parseBookmarkDateInfo(currentPost.createdAt);
+                    calendarCurrentYear = dateInfo.year;
+                    calendarCurrentMonth = dateInfo.month - 1;
+                } else {
+                    const now = new Date();
+                    calendarCurrentYear = now.getFullYear();
+                    calendarCurrentMonth = now.getMonth();
+                }
+
+                renderBookmarkCalendar(calendarCurrentYear, calendarCurrentMonth);
+
+                // 책갈피의 세로 위치에 맞춰 달력 팝업 위치 정렬
+                const bookmarkTop = parseFloat(bookmarkEl.style.top) || 140;
+                const popupHeight = 220;
+                const targetTop = Math.max(68, Math.min(window.innerHeight - popupHeight - 16, bookmarkTop - 40));
+                popup.style.top = `${targetTop}px`;
+
+                // 좌우 측면에 맞게 튀어나오는 방향 설정
+                if (bookmarkSide === 'left') {
+                    popup.style.left = 'max(8px, calc(50% - 224px + 42px))';
+                    popup.style.right = 'auto';
+                    popup.classList.remove('origin-top-right');
+                    popup.classList.add('origin-top-left');
+                } else {
+                    popup.style.right = 'max(8px, calc(50% - 224px + 42px))';
+                    popup.style.left = 'auto';
+                    popup.classList.remove('origin-top-left');
+                    popup.classList.add('origin-top-right');
+                }
+
+                popup.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    popup.classList.remove('opacity-0', 'scale-90');
+                    popup.classList.add('opacity-100', 'scale-100');
+                });
+
+                // 달력이 열려있는 동안은 책갈피 자동 숨김 해제
+                if (bookmarkHideTimer) clearTimeout(bookmarkHideTimer);
+            } else {
+                closeBookmarkCalendar();
+            }
+        };
+
+        window.closeBookmarkCalendar = function(event) {
+            if (event) event.stopPropagation();
+            const popup = document.getElementById('bookmark-calendar-popup');
+            if (!popup || popup.classList.contains('hidden')) return;
+
+            popup.classList.remove('opacity-100', 'scale-100');
+            popup.classList.add('opacity-0', 'scale-90');
+            setTimeout(() => {
+                popup.classList.add('hidden');
+            }, 200);
+
+            // 달력 닫은 후 1.6초 후 책갈피 자연스럽게 닫힘
+            if (bookmarkHideTimer) clearTimeout(bookmarkHideTimer);
+            bookmarkHideTimer = setTimeout(() => {
+                hideBookmark();
+            }, 1600);
+        };
+
+        window.prevBookmarkCalendarMonth = function(event) {
+            if (event) event.stopPropagation();
+            calendarCurrentMonth--;
+            if (calendarCurrentMonth < 0) {
+                calendarCurrentMonth = 11;
+                calendarCurrentYear--;
+            }
+            renderBookmarkCalendar(calendarCurrentYear, calendarCurrentMonth);
+        };
+
+        window.nextBookmarkCalendarMonth = function(event) {
+            if (event) event.stopPropagation();
+            calendarCurrentMonth++;
+            if (calendarCurrentMonth > 11) {
+                calendarCurrentMonth = 0;
+                calendarCurrentYear++;
+            }
+            renderBookmarkCalendar(calendarCurrentYear, calendarCurrentMonth);
+        };
+
+        window.goBookmarkCalendarToday = function(event) {
+            if (event) event.stopPropagation();
+            const now = new Date();
+            calendarCurrentYear = now.getFullYear();
+            calendarCurrentMonth = now.getMonth();
+            renderBookmarkCalendar(calendarCurrentYear, calendarCurrentMonth);
+        };
+
         window.showBookmark = function() {
             const bookmarkEl = document.getElementById('feed-bookmark-indicator');
             if (!bookmarkEl || !cachedPosts || cachedPosts.length === 0) return;
@@ -2198,7 +2432,10 @@
             updateBookmarkInfoFromScroll();
 
             if (bookmarkHideTimer) clearTimeout(bookmarkHideTimer);
-            if (!isBookmarkDragging) {
+            const calPopup = document.getElementById('bookmark-calendar-popup');
+            const isCalOpen = calPopup && !calPopup.classList.contains('hidden');
+
+            if (!isBookmarkDragging && !isCalOpen) {
                 bookmarkHideTimer = setTimeout(() => {
                     hideBookmark();
                 }, 1600);
@@ -2207,6 +2444,9 @@
 
         window.hideBookmark = function() {
             if (isBookmarkDragging) return;
+            const calPopup = document.getElementById('bookmark-calendar-popup');
+            if (calPopup && !calPopup.classList.contains('hidden')) return;
+
             const bookmarkEl = document.getElementById('feed-bookmark-indicator');
             if (bookmarkEl) {
                 bookmarkEl.classList.remove('bookmark-visible');
@@ -2224,6 +2464,7 @@
             const clampedRatio = Math.max(0, Math.min(1, scrollRatio));
 
             const targetIndex = Math.min(cachedPosts.length - 1, Math.round(clampedRatio * (cachedPosts.length - 1)));
+            currentBookmarkTargetIndex = targetIndex;
             const currentPost = cachedPosts[targetIndex];
 
             const posEl = document.getElementById('feed-bookmark-pos');
@@ -2257,6 +2498,23 @@
 
             // 저장된 사용자 위치(왼손/오른손) 복원 적용
             applyBookmarkSide(bookmarkSide);
+
+            // 책갈피 더블 터치 감지 변수
+            let bookmarkTapCount = 0;
+            let bookmarkTapTimer = null;
+
+            const onBookmarkTapDetected = (e) => {
+                bookmarkTapCount++;
+                if (bookmarkTapCount === 1) {
+                    bookmarkTapTimer = setTimeout(() => {
+                        bookmarkTapCount = 0;
+                    }, 360);
+                } else if (bookmarkTapCount >= 2) {
+                    clearTimeout(bookmarkTapTimer);
+                    bookmarkTapCount = 0;
+                    toggleBookmarkCalendar(e);
+                }
+            };
 
             const onDragStart = (clientX, clientY) => {
                 isBookmarkDragging = true;
@@ -2323,6 +2581,7 @@
 
                 // 쾌속 내비게이션: 해당 위치의 게시글 인덱스 및 날짜 계산
                 const targetIndex = Math.min(cachedPosts.length - 1, Math.round(clampedProgress * (cachedPosts.length - 1)));
+                currentBookmarkTargetIndex = targetIndex;
                 const currentPost = cachedPosts[targetIndex];
 
                 const posEl = document.getElementById('feed-bookmark-pos');
@@ -2349,15 +2608,17 @@
                 }
             };
 
-            const onDragEnd = () => {
+            const onDragEnd = (e) => {
                 if (!isBookmarkDragging) return;
                 isBookmarkDragging = false;
                 if (bookmarkLongPressTimer) clearTimeout(bookmarkLongPressTimer);
 
                 bookmarkEl.classList.remove('bookmark-dragging', 'bookmark-longpressed');
 
+                const moveDist = Math.hypot(bookmarkLastClientX - bookmarkDragStartX, bookmarkLastClientY - bookmarkDragStartY);
+
                 // 좌우로 옮기거나 꾹 눌러 이동한 경우 손을 뗀 위치에 따라 왼쪽/오른쪽으로 스냅 도킹
-                if (isBookmarkHorizontalMoved || isBookmarkLongPressed) {
+                if (isBookmarkHorizontalMoved || (isBookmarkLongPressed && moveDist > 25)) {
                     const screenMid = window.innerWidth / 2;
                     const targetSide = bookmarkLastClientX < screenMid ? 'left' : 'right';
 
@@ -2368,16 +2629,23 @@
                         } catch(e) {}
                         showNotification(bookmarkSide === 'left' ? '책갈피가 왼쪽(왼손잡이 모드)으로 이동되었습니다.' : '책갈피가 오른쪽(오른손잡이 모드)으로 이동되었습니다.');
                     }
+                } else if (moveDist < 6 && !isBookmarkLongPressed) {
+                    // 드래그가 아닌 순수 탭 동작인 경우 -> 더블 탭 판정
+                    onBookmarkTapDetected(e);
                 }
 
                 // 좌우 위치 및 스타일 확정 복원
                 applyBookmarkSide(bookmarkSide);
 
-                // 손을 떼면 1.6초 후 자연스럽게 스르르 슬라이드 닫힘
-                if (bookmarkHideTimer) clearTimeout(bookmarkHideTimer);
-                bookmarkHideTimer = setTimeout(() => {
-                    hideBookmark();
-                }, 1600);
+                // 달력이 열려있지 않을 때만 1.6초 후 자연스럽게 스르르 슬라이드 닫힘
+                const calPopup = document.getElementById('bookmark-calendar-popup');
+                const isCalOpen = calPopup && !calPopup.classList.contains('hidden');
+                if (!isCalOpen) {
+                    if (bookmarkHideTimer) clearTimeout(bookmarkHideTimer);
+                    bookmarkHideTimer = setTimeout(() => {
+                        hideBookmark();
+                    }, 1600);
+                }
             };
 
             // 터치 이벤트 바인딩 (모바일)
@@ -2394,8 +2662,8 @@
                 }
             }, { passive: false });
 
-            window.addEventListener('touchend', () => {
-                if (isBookmarkDragging) onDragEnd();
+            window.addEventListener('touchend', (e) => {
+                if (isBookmarkDragging) onDragEnd(e);
             }, { passive: true });
 
             // 마우스 이벤트 바인딩 (PC 데스크톱)
@@ -2412,10 +2680,27 @@
                 }
             });
 
-            window.addEventListener('mouseup', () => {
-                if (isBookmarkDragging) onDragEnd();
+            window.addEventListener('mouseup', (e) => {
+                if (isBookmarkDragging) onDragEnd(e);
+            });
+
+            // 데스크톱 더블클릭 이벤트 지원
+            bookmarkEl.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                toggleBookmarkCalendar(e);
             });
         }
+
+        // 바깥 영역 클릭 시 달력 닫기
+        document.addEventListener('click', (e) => {
+            const calPopup = document.getElementById('bookmark-calendar-popup');
+            const bookmarkEl = document.getElementById('feed-bookmark-indicator');
+            if (calPopup && !calPopup.classList.contains('hidden')) {
+                if (!calPopup.contains(e.target) && !bookmarkEl.contains(e.target)) {
+                    closeBookmarkCalendar();
+                }
+            }
+        });
 
         // [메인 피드 사진 두 번 연속 빠른 터치(더블 탭) 시에만 수정 화면(라이트박스) 호출]
         const photoTapRecord = {};
@@ -2462,26 +2747,11 @@
             const post = cachedPosts.find(p => p.id === postId);
             if (!post) return;
 
-            const previewText = document.getElementById('edit-preview-text');
-            const previewThumbs = document.getElementById('edit-preview-thumbs');
-            previewText.innerHTML = renderPostContentHtml(post.content || "내용 없음");
-            previewThumbs.innerHTML = "";
-            
             const imgs = Array.isArray(post.images) ? post.images : (post.imageUrl ? [post.imageUrl] : []);
-            imgs.slice(0, 4).forEach(src => {
-                const img = document.createElement('img');
-                img.src = src;
-                img.className = "w-8 h-8 rounded object-cover border border-gray-200 shrink-0";
-                previewThumbs.appendChild(img);
-            });
-
             const postFont = post.fontFamily || 'pretendard';
-            const yesBtn = document.getElementById('edit-confirm-yes-btn');
-            yesBtn.onclick = function() {
-                closeEditConfirmModal();
-                openWriteModal(postId, post.content, imgs, postFont);
-            };
-            document.getElementById('edit-confirm-modal').classList.remove('hidden');
+            
+            // 피드글 쓰기 수정 화면 바로 오픈
+            openWriteModal(postId, post.content, imgs, postFont);
         };
 
         window.closeEditConfirmModal = function() {
@@ -3428,12 +3698,12 @@
                             `}
 
                             <div id="action-menu-${post.id}" class="slide-menu-container menu-closed absolute right-7 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-3 z-20 flex items-center space-x-2.5 whitespace-nowrap">
-                                <button onclick="requestEditPost('${post.id}')}\`, ${imagesParam})" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform">
+                                <button onclick="requestEditPost('${post.id}')" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform">
                                     <i class="fa-solid fa-pen text-[9px]"></i>
                                     <span>수정</span>
                                 </button>
                                 <span class="text-[#A7D1B7] text-[10px]">|</span>
-                                <button onclick="confirmDeletePost('${post.id}')}\`, ${imagesParam})" class="text-[11px] font-semibold text-rose-600 hover:text-rose-700 flex items-center space-x-1 active:scale-95 transition-transform">
+                                <button onclick="confirmDeletePost('${post.id}')" class="text-[11px] font-semibold text-rose-600 hover:text-rose-700 flex items-center space-x-1 active:scale-95 transition-transform">
                                     <i class="fa-solid fa-trash-can text-[9px]"></i>
                                     <span>삭제</span>
                                 </button>
