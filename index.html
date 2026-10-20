@@ -313,25 +313,32 @@
         <!-- 오른쪽 살아 움직이는 펜 트리거 (피드 카드의 우측 '+' 버튼과 수직 일직선 정렬) & 왼쪽 슬라이드 메뉴 -->
         <div class="shrink-0 relative flex items-center justify-end w-8">
             <!-- 왼쪽으로 슬라이드되어 나타나는 헤더 퀵 메뉴 (글쓰기 강조, 연동+용량 및 전체PDF 여백 없이 밀착, 바깥쪽 테두리 제거) -->
-            <div id="header-quick-menu" class="menu-closed absolute right-8 bg-[#EBF5EE]/95 text-[#244E3F] rounded-full shadow-md py-1 px-2 z-40 flex items-center space-x-1.5 whitespace-nowrap">
+            <div id="header-quick-menu" class="menu-closed absolute right-8 bg-[#EBF5EE]/95 text-[#244E3F] rounded-full shadow-md py-1 px-1.5 z-40 flex items-center space-x-1 whitespace-nowrap">
                 <!-- 1. 글쓰기 버튼: 크기를 키우고 에메랄드 톤으로 약간 강조 -->
-                <button onclick="handleHeaderWriteClick()" class="h-[30px] px-3 church-accent church-primary-text rounded-full text-xs font-bold flex items-center space-x-1.5 shadow-2xs hover:bg-emerald-100/90 active:scale-95 transition-all">
-                    <i class="fa-solid fa-pen-nib text-[11px]"></i>
+                <button onclick="handleHeaderWriteClick()" class="h-[28px] px-2.5 church-accent church-primary-text rounded-full text-xs font-bold flex items-center space-x-1 shadow-2xs hover:bg-emerald-100/90 active:scale-95 transition-all">
+                    <i class="fa-solid fa-pen-nib text-[10px]"></i>
                     <span>글쓰기</span>
                 </button>
 
-                <!-- 2 & 3: 여백 없이 딱 붙인 일체형 캡슐 (연동+용량 배지 + 전체PDF) -->
+                <!-- 검색 돋보기 버튼: 글쓰기 바로 뒤 -->
+                <button type="button" id="header-search-btn" onclick="toggleHeaderSearch(event)" 
+                        class="h-[28px] w-7 rounded-full bg-white/90 hover:bg-emerald-100/90 text-emerald-800 border border-emerald-200/80 shadow-2xs flex items-center justify-center active:scale-95 transition-all" 
+                        title="피드 실시간 검색">
+                    <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+                </button>
+
+                <!-- 2 & 3: 여백 없이 딱 붙인 일체형 캡슐 (연동+용량 배지 + 전체PDF) - 사이 간격 컴팩트하게 정돈 -->
                 <div class="flex items-center rounded-full bg-white/90 border border-emerald-200/80 shadow-2xs overflow-hidden">
                     <!-- 연동 램프 + 저장용량(%) 통합 배지 -->
-                    <div id="combined-cloud-badge" class="h-[27px] px-2 flex items-center space-x-1 text-gray-700 select-none border-r border-emerald-100/80" title="클라우드 실시간 연동 및 1GB 무료 용량 사용 현황">
+                    <div id="combined-cloud-badge" class="h-[26px] px-1.5 flex items-center space-x-0.5 text-gray-700 select-none border-r border-emerald-100/80" title="클라우드 실시간 연동 및 1GB 무료 용량 사용 현황">
                         <span id="db-status-lamp" class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block shrink-0"></span>
                         <i id="storage-quota-icon" class="fa-solid fa-battery-quarter text-emerald-600 text-[9px]"></i>
-                        <span id="storage-quota-text" class="font-mono font-bold text-[9px] text-gray-700">0%</span>
+                        <span id="storage-quota-text" class="font-mono font-bold text-[8.5px] text-gray-700">0%</span>
                     </div>
 
                     <!-- 전체 PDF 생성 버튼: 붉은색 제거, 은은하고 연한 톤 적용 -->
-                    <button onclick="requestAllFeedPdfPreview()" class="h-[27px] px-2.5 hover:bg-emerald-50/80 text-gray-700 hover:text-emerald-900 text-[11px] font-medium flex items-center space-x-1 active:scale-95 transition-all" title="피드 전체 사진과 글(댓글 포함) PDF로 저장/공유">
-                        <i class="fa-solid fa-book-open text-[10px] text-gray-500"></i>
+                    <button onclick="requestAllFeedPdfPreview()" class="h-[26px] px-2 hover:bg-emerald-50/80 text-gray-700 hover:text-emerald-900 text-[10.5px] font-medium flex items-center space-x-1 active:scale-95 transition-all" title="피드 전체 사진과 글(댓글 포함) PDF로 저장/공유">
+                        <i class="fa-solid fa-book-open text-[9.5px] text-gray-500"></i>
                         <span>전체PDF</span>
                     </button>
                 </div>
@@ -345,6 +352,38 @@
             </button>
         </div>
     </header>
+
+    <!-- [상단 플로팅 실시간 피드 검색 바 (한 글자 이상 실시간 배경 피드 연동 & 꺾쇠 다음/이전 내비게이션)] -->
+    <div id="header-search-bar" 
+         class="hidden fixed top-[56px] left-1/2 -translate-x-1/2 w-[calc(100%-1.25rem)] max-w-md z-45 bg-white/95 backdrop-blur-md rounded-2xl border border-emerald-300 shadow-xl px-2.5 py-1.5 items-center space-x-1.5 transition-all select-none">
+        <i class="fa-solid fa-magnifying-glass text-emerald-700 text-xs shrink-0 pl-0.5"></i>
+        <input type="text" id="feed-search-input" maxlength="50"
+               placeholder="목장 이야기 검색 (한 글자 이상)..." 
+               oninput="handleFeedSearchInput(this.value)"
+               onkeydown="handleFeedSearchKeyDown(event)"
+               class="flex-1 bg-transparent text-xs text-gray-800 placeholder-gray-400 focus:outline-none py-0.5 min-w-0">
+        
+        <!-- 검색 결과 카운트 배지 (예: 1/3 또는 0건) -->
+        <span id="feed-search-count-badge" class="hidden text-[10px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-1.5 py-0.5 rounded-full whitespace-nowrap shrink-0">
+            0/0
+        </span>
+
+        <!-- 꺽쇠 화살표 (이전 / 다음 검색 결과 순회) -->
+        <div id="feed-search-nav-btns" class="hidden items-center space-x-0.5 shrink-0">
+            <button type="button" onclick="navigateSearchResult(-1, event)" class="w-6 h-6 rounded-full hover:bg-emerald-100 active:scale-90 text-gray-600 hover:text-emerald-800 flex items-center justify-center transition-all text-xs" title="이전 결과 (위로)">
+                <i class="fa-solid fa-chevron-up text-[10px]"></i>
+            </button>
+            <button type="button" onclick="navigateSearchResult(1, event)" class="w-6 h-6 rounded-full hover:bg-emerald-100 active:scale-90 text-gray-600 hover:text-emerald-800 flex items-center justify-center transition-all text-xs" title="다음 결과 (아래로)">
+                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+            </button>
+        </div>
+
+        <!-- 검색창 닫기 버튼 -->
+        <button type="button" onclick="closeHeaderSearch(event)" class="w-6 h-6 rounded-full hover:bg-gray-100 active:scale-90 text-gray-400 hover:text-gray-700 flex items-center justify-center transition-all text-xs shrink-0" title="검색 닫기">
+            <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+    </div>
+
 
     <!-- [피드 메인 컨테이너] -->
     <main class="w-full max-w-md mx-auto flex-1 overflow-y-auto px-1 py-0.5" id="feed-container">
@@ -1054,6 +1093,175 @@
             }
         }
 
+        
+        // [헤더 실시간 검색 및 꺾쇠 내비게이션 상태]
+        let matchedSearchPostIds = [];
+        let currentSearchMatchIndex = 0;
+        let lastSearchQuery = "";
+
+        window.toggleHeaderSearch = function(event) {
+            if (event) event.stopPropagation();
+            const bar = document.getElementById('header-search-bar');
+            if (!bar) return;
+
+            const isHidden = bar.classList.contains('hidden');
+            closeAllHeaderQuickMenu();
+            closeAllActionMenus();
+            closeAllExportMenus();
+
+            if (isHidden) {
+                bar.classList.remove('hidden');
+                bar.classList.add('flex');
+                const input = document.getElementById('feed-search-input');
+                if (input) {
+                    setTimeout(() => {
+                        input.focus();
+                        if (input.value.trim().length >= 1) {
+                            handleFeedSearchInput(input.value);
+                        }
+                    }, 50);
+                }
+            } else {
+                closeHeaderSearch();
+            }
+        };
+
+        window.closeHeaderSearch = function(event) {
+            if (event) event.stopPropagation();
+            const bar = document.getElementById('header-search-bar');
+            if (bar) {
+                bar.classList.add('hidden');
+                bar.classList.remove('flex');
+            }
+            const input = document.getElementById('feed-search-input');
+            if (input) input.value = '';
+            matchedSearchPostIds = [];
+            currentSearchMatchIndex = 0;
+            lastSearchQuery = '';
+            const countBadge = document.getElementById('feed-search-count-badge');
+            if (countBadge) countBadge.classList.add('hidden');
+            const navBtns = document.getElementById('feed-search-nav-btns');
+            if (navBtns) {
+                navBtns.classList.add('hidden');
+                navBtns.classList.remove('inline-flex');
+            }
+        };
+
+        function getPostSearchableText(post) {
+            const parts = [];
+            if (post.content) {
+                parts.push(post.content.replace(/<[^>]+>/g, ' '));
+            }
+            if (post.author) parts.push(post.author);
+            if (post.mokjangName) parts.push(post.mokjangName);
+            if (post.fileName) parts.push(post.fileName);
+            if (post.fileTitle) parts.push(post.fileTitle);
+            if (post.photoCaptions && typeof post.photoCaptions === 'object') {
+                parts.push(Object.values(post.photoCaptions).join(' '));
+            }
+            if (Array.isArray(post.comments)) {
+                post.comments.forEach(c => {
+                    if (c.author) parts.push(c.author);
+                    if (c.text) parts.push(c.text);
+                });
+            }
+            return parts.join(' ').toLowerCase();
+        }
+
+        window.handleFeedSearchInput = function(rawQuery) {
+            const query = (rawQuery || '').trim();
+            lastSearchQuery = query;
+
+            const countBadge = document.getElementById('feed-search-count-badge');
+            const navBtns = document.getElementById('feed-search-nav-btns');
+
+            if (query.length < 1) {
+                matchedSearchPostIds = [];
+                currentSearchMatchIndex = 0;
+                if (countBadge) countBadge.classList.add('hidden');
+                if (navBtns) navBtns.classList.add('hidden');
+                return;
+            }
+
+            if (!cachedPosts || cachedPosts.length === 0) {
+                matchedSearchPostIds = [];
+                currentSearchMatchIndex = 0;
+                if (countBadge) {
+                    countBadge.innerText = '0건';
+                    countBadge.classList.remove('hidden');
+                }
+                if (navBtns) navBtns.classList.add('hidden');
+                return;
+            }
+
+            const lowerQuery = query.toLowerCase();
+            const matched = [];
+
+            // 피드 순서(최신순 cachedPosts)대로 검색 매칭
+            cachedPosts.forEach(post => {
+                const text = getPostSearchableText(post);
+                if (text.includes(lowerQuery)) {
+                    matched.push(post.id);
+                }
+            });
+
+            matchedSearchPostIds = matched;
+
+            if (matched.length > 0) {
+                currentSearchMatchIndex = 0;
+                if (countBadge) {
+                    countBadge.innerText = `1/${matched.length}`;
+                    countBadge.classList.remove('hidden');
+                }
+                if (navBtns) {
+                    navBtns.classList.remove('hidden');
+                    navBtns.classList.add('inline-flex');
+                }
+                // [핵심 요구사항]: 한 글자 이상 입력 즉시 버튼 클릭 없이 배경에서 해당 피드로 자동 스크롤 및 하이라이트!
+                scrollToPost(matched[0], true);
+            } else {
+                currentSearchMatchIndex = 0;
+                if (countBadge) {
+                    countBadge.innerText = '0건';
+                    countBadge.classList.remove('hidden');
+                }
+                if (navBtns) {
+                    navBtns.classList.add('hidden');
+                    navBtns.classList.remove('inline-flex');
+                }
+            }
+        };
+
+        window.navigateSearchResult = function(direction, event) {
+            if (event) event.stopPropagation();
+            if (!matchedSearchPostIds || matchedSearchPostIds.length === 0) return;
+
+            const total = matchedSearchPostIds.length;
+            currentSearchMatchIndex = (currentSearchMatchIndex + direction + total) % total;
+
+            const countBadge = document.getElementById('feed-search-count-badge');
+            if (countBadge) {
+                countBadge.innerText = `${currentSearchMatchIndex + 1}/${total}`;
+            }
+
+            const targetPostId = matchedSearchPostIds[currentSearchMatchIndex];
+            scrollToPost(targetPostId, true);
+        };
+
+        window.handleFeedSearchKeyDown = function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                if (event.shiftKey) {
+                    navigateSearchResult(-1, event);
+                } else {
+                    navigateSearchResult(1, event);
+                }
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                closeHeaderSearch(event);
+            }
+        };
+
         window.handleHeaderWriteClick = function() {
             closeAllHeaderQuickMenu();
             openWriteModal();
@@ -1168,6 +1376,7 @@
         }
 
         window.openFileManagerModal = function() {
+            closeHeaderSearch();
             closeAllActionMenus();
             renderFileManagerList();
             document.getElementById('file-manager-modal').classList.remove('hidden');
@@ -1908,6 +2117,7 @@
         }
 
         window.openWriteModal = function(postId = null, existingContent = "", existingImages = [], existingFont = 'pretendard') {
+            closeHeaderSearch();
             document.getElementById('editing-post-id').value = postId || "";
             const contentEl = document.getElementById('post-content');
             if (contentEl) {
@@ -3586,6 +3796,7 @@
         };
 
         window.requestAllFeedPdfPreview = function() {
+            closeHeaderSearch();
             closeAllHeaderQuickMenu();
             if (!cachedPosts || cachedPosts.length === 0) {
                 showNotification("피드에 등록된 목장 이야기가 없습니다.");
@@ -4489,6 +4700,12 @@
                 cachedPosts = posts;
                 updateStorageQuotaDisplay(posts);
 
+                const searchInput = document.getElementById('feed-search-input');
+                const searchBar = document.getElementById('header-search-bar');
+                if (searchBar && !searchBar.classList.contains('hidden') && searchInput && searchInput.value.trim().length >= 1) {
+                    handleFeedSearchInput(searchInput.value);
+                }
+
                 if (currentActivePopupPostId) {
                     renderCommentsModalList(currentActivePopupPostId);
                 }
@@ -4508,6 +4725,7 @@
         }
         
         window.openCommentsModal = function(postId) {
+            closeHeaderSearch();
             currentActivePopupPostId = postId;
             renderCommentsModalList(postId);
             document.getElementById('comments-popup-modal').classList.remove('hidden');
@@ -4758,6 +4976,7 @@
         }
 
         window.openLightbox = function(postId, photoIdx) {
+            closeHeaderSearch();
             currentLightboxPostId = postId;
             currentLightboxPhotoIdx = photoIdx;
             currentLightboxRotationAngle = 0;
