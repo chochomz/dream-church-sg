@@ -185,6 +185,15 @@
             border-bottom: 1px solid #E5E7EB;
         }
 
+        /* 본문 글쓰기 다중 폰트 지원 contenteditable 플레이스홀더 */
+        #post-content:empty:before,
+        #post-content[data-empty="true"]:before {
+            content: attr(data-placeholder);
+            color: #9CA3AF;
+            pointer-events: none;
+            display: block;
+        }
+
         /* 본문 텍스트: 첫 글자 완벽 왼쪽 밀착 */
         .post-content-body {
             text-align: left !important;
@@ -460,9 +469,11 @@
                         </div>
                     </div>
 
-                    <textarea id="post-content" rows="3" maxlength="200" oninput="updateCharCount(this)" placeholder="목장 가족들과 나눌 따뜻한 이야기를 입력하세요..." 
-                              dir="ltr"
-                              class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#3B5D50] focus:ring-1 focus:ring-[#3B5D50] focus:outline-none resize-none bg-white block transition-all shadow-2xs text-left font-pretendard"></textarea>
+                    <div id="post-content" contenteditable="true" role="textbox" aria-multiline="true"
+                         data-placeholder="목장 가족들과 나눌 따뜻한 이야기를 입력하세요..."
+                         dir="ltr"
+                         class="w-full min-h-[84px] max-h-[140px] overflow-y-auto px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#3B5D50] focus:ring-1 focus:ring-[#3B5D50] focus:outline-none bg-white block transition-all shadow-2xs text-left font-pretendard select-text"
+                         style="white-space: pre-wrap; word-break: break-word;"></div>
                 </div>
 
                 <div class="w-full pt-1.5 border-t border-gray-100 space-y-1.5" id="post-file-attach-container">
@@ -1339,6 +1350,30 @@
             }
         };
 
+        // 본문 에디터 실시간 글자수 및 빈상태 제어
+        const editorEl = document.getElementById('post-content');
+        if (editorEl) {
+            editorEl.addEventListener('input', () => {
+                const text = (editorEl.innerText || '').replace(/\u200B/g, '').trim();
+                if (!text) {
+                    editorEl.setAttribute('data-empty', 'true');
+                } else {
+                    editorEl.removeAttribute('data-empty');
+                }
+                updateCharCount(editorEl);
+            });
+            editorEl.addEventListener('beforeinput', (e) => {
+                const text = (editorEl.innerText || '').replace(/\u200B/g, '');
+                if (text.length >= 200 && e.inputType && e.inputType.startsWith('insert')) {
+                    const sel = window.getSelection();
+                    if (sel && sel.rangeCount > 0 && sel.getRangeAt(0).collapsed) {
+                        e.preventDefault();
+                        showNotification('이야기는 최대 200자까지 입력 가능합니다.');
+                    }
+                }
+            });
+        }
+
         // Call loadMokjangFiles on init
         initAuth();
 
@@ -1510,8 +1545,26 @@
             }
         }
 
-        window.updateCharCount = function(textarea) {
-            document.getElementById('char-count-indicator').innerText = `${textarea.value.length} / 200자`;
+        // [다중 폰트 안전 렌더링 헬퍼]
+        function renderPostContentHtml(contentStr) {
+            if (!contentStr) return '';
+            const str = String(contentStr).trim();
+            if (str.includes('<span') || str.includes('<br')) {
+                return str
+                    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+                    .replace(/\son\w+="[^"]*"/gi, '')
+                    .replace(/\son\w+='[^']*'/gi, '')
+                    .replace(/javascript:/gi, '');
+            }
+            return escapeHtml(str);
+        }
+
+        window.updateCharCount = function(el) {
+            const text = (el.innerText || el.textContent || '').replace(/\u200B/g, '');
+            const charLen = text.length;
+            const ind = document.getElementById('char-count-indicator');
+            if (ind) ind.innerText = `${charLen} / 200자`;
         };
 
                 // [폰트 20종 (한글 10종 + 영문 인기 10종) 상태 및 다국어 지원 관리]
@@ -1560,6 +1613,56 @@
             if (ind) ind.innerText = `${input.value.length} / 15자`;
         };
 
+        function applyFontToCaretOrSelection(fontObj) {
+            const editor = document.getElementById('post-content');
+            if (!editor) return;
+            editor.focus();
+
+            const sel = window.getSelection();
+            if (!sel) return;
+
+            // 에디터 내부에 커서/선택영역이 없으면 에디터 끝에 커서 배치
+            if (sel.rangeCount === 0 || !editor.contains(sel.anchorNode)) {
+                const range = document.createRange();
+                range.selectNodeContents(editor);
+                range.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+
+            const range = sel.getRangeAt(0);
+
+            // 1. 블록 지정(드래그 선택)된 글자가 있는 경우: 선택된 글자만 해당 폰트로 변경
+            if (!range.collapsed) {
+                const selectedContent = range.extractContents();
+                const span = document.createElement('span');
+                span.className = fontObj.className;
+                span.style.fontFamily = fontObj.fontFamily;
+                span.appendChild(selectedContent);
+                range.insertNode(span);
+
+                sel.removeAllRanges();
+                const newRange = document.createRange();
+                newRange.selectNodeContents(span);
+                sel.addRange(newRange);
+            } else {
+                // 2. 글을 쓰다가 폰트를 바꾼 경우: 쓰던 글은 이전 폰트 그대로 두고, 새로 입력할 위치에 새 폰트 스팬 배치
+                const span = document.createElement('span');
+                span.className = fontObj.className;
+                span.style.fontFamily = fontObj.fontFamily;
+                const zwsp = document.createTextNode('\u200B'); // 제로 너비 공백으로 커서 안착 보장
+                span.appendChild(zwsp);
+
+                range.insertNode(span);
+
+                sel.removeAllRanges();
+                const newRange = document.createRange();
+                newRange.setStart(span.firstChild, 1);
+                newRange.collapse(true);
+                sel.addRange(newRange);
+            }
+        }
+
         window.switchFontLanguage = function(lang) {
             currentFontLang = lang;
             const koBtn = document.getElementById('font-lang-ko-btn');
@@ -1597,13 +1700,10 @@
                 }
             }
 
-            const textarea = document.getElementById('post-content');
-            if (textarea) {
-                ALL_FONTS.forEach(f => textarea.classList.remove(f.className));
-                const target = ALL_FONTS.find(f => f.id === currentSelectedFont) || ALL_FONTS[0];
-                textarea.classList.add(target.className);
-                // 인라인 스타일로도 즉각 적용하여 브라우저 상관없이 100% 실시간 변경
-                textarea.style.fontFamily = target.fontFamily;
+            const editor = document.getElementById('post-content');
+            const target = ALL_FONTS.find(f => f.id === currentSelectedFont) || ALL_FONTS[0];
+            if (editor) {
+                applyFontToCaretOrSelection(target);
             }
             renderFontSelectorUI();
         };
@@ -1691,8 +1791,16 @@
         window.openWriteModal = function(postId = null, existingContent = "", existingImages = [], existingFont = 'pretendard') {
             document.getElementById('editing-post-id').value = postId || "";
             const contentEl = document.getElementById('post-content');
-            contentEl.value = existingContent || "";
-            updateCharCount(contentEl);
+            if (contentEl) {
+                contentEl.innerHTML = existingContent || "";
+                const plain = (contentEl.innerText || '').replace(/\u200B/g, '').trim();
+                if (!plain) {
+                    contentEl.setAttribute('data-empty', 'true');
+                } else {
+                    contentEl.removeAttribute('data-empty');
+                }
+                updateCharCount(contentEl);
+            }
 
             selectPostFont(existingFont || 'pretendard');
 
@@ -1718,25 +1826,30 @@
             selectedImagesList = [];
             currentAttachedFile = null;
             renderAttachedFileUI();
+            const contentEl = document.getElementById('post-content');
+            if (contentEl) {
+                contentEl.innerHTML = '';
+                contentEl.setAttribute('data-empty', 'true');
+            }
             selectPostFont('pretendard');
             const fileTitleInput = document.getElementById('post-file-title');
             if (fileTitleInput) fileTitleInput.value = '';
-            document.getElementById('post-content').value = '';
             document.getElementById('editing-post-id').value = '';
         };
 
         window.requestSavePost = function() {
-            const content = document.getElementById('post-content').value.trim();
+            const contentEl = document.getElementById('post-content');
+            const plainText = (contentEl ? contentEl.innerText : '').replace(/\u200B/g, '').trim();
             const fileTitleInput = document.getElementById('post-file-title');
             const fileTitle = fileTitleInput ? fileTitleInput.value.trim() : '';
 
-            if (!content && selectedImagesList.length === 0 && !currentAttachedFile) {
+            if (!plainText && selectedImagesList.length === 0 && !currentAttachedFile) {
                 showNotification('이야기 내용, 사진, 또는 첨부파일을 등록해 주세요.');
                 return;
             }
 
             // 파일만 첨부할 때는 15자 이내 제목 필수 확인
-            if (!content && selectedImagesList.length === 0 && currentAttachedFile) {
+            if (!plainText && selectedImagesList.length === 0 && currentAttachedFile) {
                 if (!fileTitle) {
                     showNotification('파일만 첨부할 때는 파일 제목(15자 이내)을 입력해 주세요.');
                     if (fileTitleInput) fileTitleInput.focus();
@@ -1754,7 +1867,9 @@
         window.executeSubmitPost = async function() {
             closeSaveConfirmModal();
             const postId = document.getElementById('editing-post-id').value;
-            const content = document.getElementById('post-content').value.trim();
+            const contentEl = document.getElementById('post-content');
+            let content = contentEl ? contentEl.innerHTML.replace(/\u200B/g, '').trim() : '';
+            if (content === '<br>' || content === '<div><br></div>') content = '';
             const finalImages = [...selectedImagesList];
             const fileToSave = currentAttachedFile;
 
@@ -2116,14 +2231,17 @@
             }, { passive: true });
         }
 
-        window.requestEditPost = function(postId, content, imagesJson) {
+        window.requestEditPost = function(postId) {
             closeAllActionMenus();
+            const post = cachedPosts.find(p => p.id === postId);
+            if (!post) return;
+
             const previewText = document.getElementById('edit-preview-text');
             const previewThumbs = document.getElementById('edit-preview-thumbs');
-            previewText.innerText = content || "내용 없음";
+            previewText.innerHTML = renderPostContentHtml(post.content || "내용 없음");
             previewThumbs.innerHTML = "";
             
-            const imgs = Array.isArray(imagesJson) ? imagesJson : [];
+            const imgs = Array.isArray(post.images) ? post.images : (post.imageUrl ? [post.imageUrl] : []);
             imgs.slice(0, 4).forEach(src => {
                 const img = document.createElement('img');
                 img.src = src;
@@ -2131,12 +2249,11 @@
                 previewThumbs.appendChild(img);
             });
 
-            const post = cachedPosts.find(p => p.id === postId);
-            const postFont = post ? (post.fontFamily || 'pretendard') : 'pretendard';
+            const postFont = post.fontFamily || 'pretendard';
             const yesBtn = document.getElementById('edit-confirm-yes-btn');
             yesBtn.onclick = function() {
                 closeEditConfirmModal();
-                openWriteModal(postId, content, imagesJson, postFont);
+                openWriteModal(postId, post.content, imgs, postFont);
             };
             document.getElementById('edit-confirm-modal').classList.remove('hidden');
         };
@@ -2145,16 +2262,18 @@
             document.getElementById('edit-confirm-modal').classList.add('hidden');
         };
 
-        window.confirmDeletePost = function(postId, content, imagesJson) {
+        window.confirmDeletePost = function(postId) {
             closeAllActionMenus();
             postToDeleteId = postId;
+            const post = cachedPosts.find(p => p.id === postId);
+            if (!post) return;
 
             const previewText = document.getElementById('delete-preview-text');
             const previewThumbs = document.getElementById('delete-preview-thumbs');
-            previewText.innerText = content || "내용 없음";
+            previewText.innerHTML = renderPostContentHtml(post.content || "내용 없음");
             previewThumbs.innerHTML = "";
             
-            const imgs = Array.isArray(imagesJson) ? imagesJson : [];
+            const imgs = Array.isArray(post.images) ? post.images : (post.imageUrl ? [post.imageUrl] : []);
             imgs.slice(0, 4).forEach(src => {
                 const img = document.createElement('img');
                 img.src = src;
@@ -2369,7 +2488,7 @@
                         <span class="text-[10px] text-emerald-800 font-semibold px-2 py-0.5 bg-emerald-50 rounded-full border border-emerald-100">${currentMokjang}</span>
                     </div>
 
-                    ${post.content ? `<div class="text-[14px] ${getFontClass(post.fontFamily)} text-gray-800 leading-relaxed whitespace-pre-wrap mb-2 text-left">${escapeHtml(post.content.trim())}</div>` : ''}
+                    ${post.content ? `<div class="text-[14px] ${getFontClass(post.fontFamily)} text-gray-800 leading-relaxed whitespace-pre-wrap mb-2 text-left">${renderPostContentHtml(post.content.trim())}</div>` : ''}
                     ${attachedFileHtml}
                     ${commentsHtml}
                 </div>
@@ -2754,7 +2873,7 @@
                         <span class="text-xs font-bold text-gray-800">${escapeHtml(post.author || '목장가족')}</span>
                         <span class="text-[9px] text-gray-400 ml-auto">${formatDate(post.createdAt)}</span>
                     </div>
-                    ${post.content ? `<p class="text-xs ${getFontClass(post.fontFamily)} text-gray-800 leading-relaxed whitespace-pre-wrap mb-1.5 text-left">${escapeHtml(post.content)}</p>` : ''}
+                    ${post.content ? `<div class="text-xs ${getFontClass(post.fontFamily)} text-gray-800 leading-relaxed whitespace-pre-wrap mb-1.5 text-left">${renderPostContentHtml(post.content)}</div>` : ''}
                     ${photosHtml}
                     ${commentsHtml}
                 `;
@@ -3052,7 +3171,7 @@
 
             const postFontClass = getFontClass(post.fontFamily);
             const formattedContent = (post.content && post.content.trim()) 
-                ? `<div class="post-content-body ${postFontClass} pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight text-left break-words overflow-wrap-anywhere whitespace-pre-wrap" style="text-align: left !important; text-indent: 0 !important; margin: 0 !important; padding-left: 2px !important; direction: ltr !important; width: 100% !important; display: block !important;">${escapeHtml(post.content.trim())}</div>` 
+                ? `<div class="post-content-body ${postFontClass} pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight text-left break-words overflow-wrap-anywhere whitespace-pre-wrap" style="text-align: left !important; text-indent: 0 !important; margin: 0 !important; padding-left: 2px !important; direction: ltr !important; width: 100% !important; display: block !important;">${renderPostContentHtml(post.content.trim())}</div>` 
                 : '';
 
             card.innerHTML = `
@@ -3083,12 +3202,12 @@
                             `}
 
                             <div id="action-menu-${post.id}" class="slide-menu-container menu-closed absolute right-7 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-3 z-20 flex items-center space-x-2.5 whitespace-nowrap">
-                                <button onclick="requestEditPost('${post.id}', \`${escapeHtml(post.content || '')}\`, ${imagesParam})" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform">
+                                <button onclick="requestEditPost('${post.id}')}\`, ${imagesParam})" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform">
                                     <i class="fa-solid fa-pen text-[9px]"></i>
                                     <span>수정</span>
                                 </button>
                                 <span class="text-[#A7D1B7] text-[10px]">|</span>
-                                <button onclick="confirmDeletePost('${post.id}', \`${escapeHtml(post.content || '')}\`, ${imagesParam})" class="text-[11px] font-semibold text-rose-600 hover:text-rose-700 flex items-center space-x-1 active:scale-95 transition-transform">
+                                <button onclick="confirmDeletePost('${post.id}')}\`, ${imagesParam})" class="text-[11px] font-semibold text-rose-600 hover:text-rose-700 flex items-center space-x-1 active:scale-95 transition-transform">
                                     <i class="fa-solid fa-trash-can text-[9px]"></i>
                                     <span>삭제</span>
                                 </button>
