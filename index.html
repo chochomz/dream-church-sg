@@ -4,18 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>우리들의 목장 이야기 - 세종꿈의교회 23목장</title>
-        <!-- Google Fonts for Korean & English typography (한글 10종 + 영문 인기 10종) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Cinzel:wght@500;700&family=Dancing+Script:wght@500;700&family=Do+Hyeon&family=Dongle:wght@400;700&family=Gamja+Flower&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Great+Vibes&family=Jua&family=Montserrat:wght@400;600&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Pen+Script&family=Oswald:wght@500;700&family=Pacifico&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Poppins:wght@400;600&family=Roboto:wght@400;500;700&family=Song+Myung&display=swap" rel="stylesheet">
-
+    <!-- Pretendard 기본 웹폰트 (초기 렌더링 최적화 병렬 로드) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- html2canvas & jsPDF CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
                 /* 폰트 20종 (한글 10종 + 영문 인기 10종) 클래스 */
         .font-pretendard { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif !important; }
@@ -41,8 +35,7 @@
         .font-pacifico { font-family: 'Pacifico', cursive !important; }
         .font-greatvibes { font-family: 'Great Vibes', cursive !important; font-size: 1.25em !important; }
 
-        /* Pretendard 웹폰트 */
-        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        /* Pretendard 웹폰트는 <head>에서 병렬 로드 */
         
         html, body {
             width: 100%;
@@ -423,7 +416,33 @@
 
     <!-- [피드 메인 컨테이너] -->
     <main class="w-full max-w-md mx-auto flex-1 overflow-y-auto px-1 py-0.5" id="feed-container">
-        <!-- 게시글 목록이 실시간으로 동적 렌더링됩니다 -->
+        <!-- 초기 로딩 스켈레톤 (첫 화면 체감 대기시간 단축) -->
+        <div id="feed-initial-skeleton" class="w-full px-2 pt-1 pb-2 space-y-3 animate-pulse select-none">
+            <div class="w-full bg-white rounded-2xl border church-border p-3 space-y-2.5 shadow-2xs">
+                <div class="flex items-center space-x-2">
+                    <div class="w-7 h-7 rounded-full bg-emerald-100/70"></div>
+                    <div class="space-y-1 flex-1">
+                        <div class="h-3 bg-gray-200 rounded w-24"></div>
+                        <div class="h-2 bg-gray-100 rounded w-16"></div>
+                    </div>
+                </div>
+                <div class="space-y-1.5 py-0.5">
+                    <div class="h-3.5 bg-gray-200 rounded w-4/5"></div>
+                    <div class="h-3 bg-gray-100 rounded w-3/5"></div>
+                </div>
+                <div class="w-full h-36 bg-gray-100 rounded-xl"></div>
+            </div>
+            <div class="w-full bg-white rounded-2xl border church-border p-3 space-y-2.5 shadow-2xs opacity-60">
+                <div class="flex items-center space-x-2">
+                    <div class="w-7 h-7 rounded-full bg-emerald-100/70"></div>
+                    <div class="space-y-1 flex-1">
+                        <div class="h-3 bg-gray-200 rounded w-20"></div>
+                        <div class="h-2 bg-gray-100 rounded w-14"></div>
+                    </div>
+                </div>
+                <div class="h-3.5 bg-gray-100 rounded w-2/3"></div>
+            </div>
+        </div>
     </main>
 
     <!-- [플로팅 스마트 피드 책갈피 (왼손/오른손 이동 드래그 앤 드롭 & 세로 직사각형 고투명)] -->
@@ -971,7 +990,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         let currentUser = "목장가족";
@@ -1069,7 +1088,17 @@
         try {
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
-            db = getFirestore(app);
+            try {
+                // [IndexedDB 오프라인 영구 캐시: 재방문 시 0.1초 만에 피드 즉시 렌더링]
+                db = initializeFirestore(app, {
+                    localCache: persistentLocalCache({
+                        tabManager: persistentMultipleTabManager()
+                    })
+                });
+            } catch (dbErr) {
+                console.warn("Firestore persistentLocalCache fallback:", dbErr);
+                db = getFirestore(app);
+            }
             storage = getStorage(app);
         } catch (e) {
             console.error("Firebase 초기화 에러:", e);
@@ -1136,6 +1165,39 @@
         }
 
         // 상단 헤더 펜 선그림 슬라이드 메뉴 토글
+                // [내보내기 라이브러리(html2canvas, jsPDF) 온디맨드 동적 로딩: 초기 로딩 500KB+ 제거]
+        let exportLibsLoadedPromise = null;
+        window.ensureExportLibraries = async function() {
+            if (window.html2canvas && window.jspdf) return true;
+            if (exportLibsLoadedPromise) return exportLibsLoadedPromise;
+
+            const loadScript = (src) => new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = src;
+                s.async = true;
+                s.onload = () => resolve();
+                s.onerror = (e) => reject(new Error('라이브러리 로드 실패: ' + src));
+                document.head.appendChild(s);
+            });
+
+            exportLibsLoadedPromise = Promise.all([
+                window.html2canvas ? Promise.resolve() : loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"),
+                window.jspdf ? Promise.resolve() : loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js")
+            ]);
+            return exportLibsLoadedPromise;
+        };
+
+        // [20종 서체 온디맨드 로딩: 글쓰기 모달 또는 유휴 시간 로드하여 초기 화면 블로킹 차단]
+        let specialFontsLoaded = false;
+        window.loadSpecialFonts = function() {
+            if (specialFontsLoaded) return;
+            specialFontsLoaded = true;
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Cinzel:wght@500;700&family=Dancing+Script:wght@500;700&family=Do+Hyeon&family=Dongle:wght@400;700&family=Gamja+Flower&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Great+Vibes&family=Jua&family=Montserrat:wght@400;600&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Pen+Script&family=Oswald:wght@500;700&family=Pacifico&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Poppins:wght@400;600&family=Roboto:wght@400;500;700&family=Song+Myung&display=swap';
+            document.head.appendChild(link);
+        };
+
         window.toggleHeaderQuickMenu = function(event) {
             if (event) event.stopPropagation();
             const menu = document.getElementById('header-quick-menu');
@@ -1481,7 +1543,11 @@
                 isAuthReady = true;
                 setDbStatus('connected');
                 loadMokjangFeed();
-                loadMokjangFiles();
+                // [초기 로딩 가속]: 파일보관함 및 20종 폰트는 메인 피드 렌더링 후 유휴 시간에 백그라운드 지연 로드
+                setTimeout(() => {
+                    ensureMokjangFilesLoaded();
+                    loadSpecialFonts();
+                }, 2500);
                 initPresenceSystem();
                 initFeedBookmark();
                 initPostLayoutObserver();
@@ -1490,11 +1556,21 @@
                 isAuthReady = true;
                 setDbStatus('connected');
                 loadMokjangFeed();
-                loadMokjangFiles();
+                setTimeout(() => {
+                    ensureMokjangFilesLoaded();
+                    loadSpecialFonts();
+                }, 2500);
                 initPresenceSystem();
             }
         }
         let cachedMokjangFiles = [];
+        let isMokjangFilesListenerActive = false;
+
+        function ensureMokjangFilesLoaded() {
+            if (isMokjangFilesListenerActive) return;
+            isMokjangFilesListenerActive = true;
+            loadMokjangFiles();
+        }
 
         function formatFileSize(bytes) {
             if (!bytes || bytes <= 0) return '0 B';
@@ -1528,6 +1604,7 @@
         window.openFileManagerModal = function() {
             closeHeaderSearch();
             closeAllActionMenus();
+            ensureMokjangFilesLoaded();
             renderFileManagerList();
             document.getElementById('file-manager-modal').classList.remove('hidden');
         };
@@ -1649,6 +1726,7 @@
 
         // 피드 상부 📁 1 클릭 시 파일 받기(보기/다운로드) 모달 열기
         window.openPostFileActionModal = function(postId) {
+            ensureMokjangFilesLoaded();
             const post = cachedPosts.find(p => p.id === postId);
             if (!post || (!post.fileName && !post.fileId)) {
                 showNotification("이 게시글에는 첨부파일이 없습니다.");
@@ -2268,6 +2346,7 @@
         }
 
         window.openWriteModal = function(postId = null, existingContent = "", existingImages = [], existingFont = 'pretendard') {
+            loadSpecialFonts();
             closeHeaderSearch();
             document.getElementById('editing-post-id').value = postId || "";
             const contentEl = document.getElementById('post-content');
@@ -3858,6 +3937,7 @@
             closeAllExportMenus();
             pendingExportPostId = postId;
             pendingExportType = type;
+            try { await ensureExportLibraries(); } catch(e) { console.warn(e); }
 
             const post = cachedPosts.find(p => p.id === postId);
             const cardEl = document.getElementById(`post-card-${postId}`);
@@ -3943,6 +4023,7 @@
         };
 
         async function executeExportImage(postId) {
+            await ensureExportLibraries();
             const cardEl = document.getElementById(`post-card-${postId}`);
             if (!cardEl) return;
             showNotification("게시글 이미지를 생성 중입니다...");
@@ -4018,6 +4099,7 @@
         }
 
         async function executeExportPdf(postId) {
+            await ensureExportLibraries();
             const post = cachedPosts.find(p => p.id === postId);
             if (!post) return;
             showNotification("PDF 문서를 생성 중입니다...");
@@ -4167,6 +4249,7 @@
         };
 
         window.requestAllFeedPdfPreview = function() {
+            ensureExportLibraries(); // 백그라운드 사전 준비
             closeHeaderSearch();
             closeAllHeaderQuickMenu();
             if (!cachedPosts || cachedPosts.length === 0) {
@@ -4474,6 +4557,7 @@
         };
 
         window.ensureAllPdfGenerated = async function(callingBtn, progressText = "PDF 생성 중...") {
+            await ensureExportLibraries();
             if (generatedAllPdfBlob) return generatedAllPdfBlob;
 
             const saveBtn = document.getElementById('all-pdf-save-btn');
@@ -5216,6 +5300,10 @@
                 // 피드 렌더링 (초기 5개 로딩 및 스크롤 누적 수치 유지)
                 displayedFeedCount = Math.max(INITIAL_FEED_LIMIT, Math.min(displayedFeedCount, posts.length || INITIAL_FEED_LIMIT));
                 renderFeedList();
+
+                if (posts.some(p => p.fontFamily && p.fontFamily !== 'pretendard')) {
+                    loadSpecialFonts();
+                }
             }, (err) => {
                 console.error("피드 스냅샷 오류:", err);
                 setDbStatus('error');
