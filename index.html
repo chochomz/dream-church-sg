@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>우리들의 목장 이야기 - 세종꿈의교회 23목장</title>
-        <!-- Google Fonts for Korean typography -->
+        <!-- Google Fonts for Korean typography (10 Popular Fonts) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Dongle:wght@400;700&family=Gamja+Flower&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Jua&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Pen+Script&family=Song+Myung&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,12 +17,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-                /* 폰트 5종 클래스 */
+                /* 폰트 10종 클래스 */
         .font-pretendard { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif !important; }
         .font-myeongjo { font-family: 'Nanum Myeongjo', serif !important; }
-        .font-pen { font-family: 'Nanum Pen Script', cursive !important; font-size: 1.15em; line-height: 1.4 !important; }
-        .font-gowun { font-family: 'Gowun Dodum', sans-serif !important; }
+        .font-pen { font-family: 'Nanum Pen Script', cursive !important; font-size: 1.15em; line-height: 1.35 !important; }
+        .font-gowun-dodum { font-family: 'Gowun Dodum', sans-serif !important; }
+        .font-gowun-batang { font-family: 'Gowun Batang', serif !important; }
         .font-jua { font-family: 'Jua', sans-serif !important; }
+        .font-dongle { font-family: 'Dongle', sans-serif !important; font-size: 1.25em; line-height: 1.25 !important; }
+        .font-songmyung { font-family: 'Song Myung', serif !important; }
+        .font-dohyeon { font-family: 'Do Hyeon', sans-serif !important; }
+        .font-gamja { font-family: 'Gamja Flower', cursive !important; font-size: 1.1em; !important; }
 
         /* Pretendard 웹폰트 */
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -375,23 +380,40 @@
                         <span id="char-count-indicator" class="text-gray-400">0 / 200자</span>
                     </div>
 
-                    <!-- [글씨체 5종 선택 칩] -->
-                    <div class="flex items-center space-x-1.5 overflow-x-auto pb-1.5 mb-1.5 scrollbar-none select-none text-[11px]">
-                        <button type="button" onclick="selectPostFont('pretendard')" id="font-btn-pretendard" class="px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-emerald-600 bg-emerald-50 text-emerald-800 shadow-2xs shrink-0 font-pretendard">
-                            기본고딕
-                        </button>
-                        <button type="button" onclick="selectPostFont('myeongjo')" id="font-btn-myeongjo" class="px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-myeongjo">
-                            나눔명조
-                        </button>
-                        <button type="button" onclick="selectPostFont('pen')" id="font-btn-pen" class="px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-pen">
-                            손글씨
-                        </button>
-                        <button type="button" onclick="selectPostFont('gowun')" id="font-btn-gowun" class="px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-gowun">
-                            고운돋움
-                        </button>
-                        <button type="button" onclick="selectPostFont('jua')" id="font-btn-jua" class="px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-jua">
-                            주아체
-                        </button>
+                    <!-- [글씨체 10종 선택 칩 (스크롤 사이즈 최적화)] -->
+                    <div class="w-full overflow-hidden mb-1">
+                        <div class="flex items-center space-x-1 overflow-x-auto py-1 px-0.5 scrollbar-none select-none text-[10.5px]">
+                            <button type="button" onclick="selectPostFont('pretendard')" id="font-btn-pretendard" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-emerald-600 bg-emerald-50 text-emerald-800 shadow-2xs shrink-0 font-pretendard">
+                                기본고딕
+                            </button>
+                            <button type="button" onclick="selectPostFont('myeongjo')" id="font-btn-myeongjo" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-myeongjo">
+                                나눔명조
+                            </button>
+                            <button type="button" onclick="selectPostFont('pen')" id="font-btn-pen" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-pen">
+                                손글씨
+                            </button>
+                            <button type="button" onclick="selectPostFont('gowun-dodum')" id="font-btn-gowun-dodum" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-gowun-dodum">
+                                고운돋움
+                            </button>
+                            <button type="button" onclick="selectPostFont('gowun-batang')" id="font-btn-gowun-batang" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-gowun-batang">
+                                고운바탕
+                            </button>
+                            <button type="button" onclick="selectPostFont('jua')" id="font-btn-jua" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-jua">
+                                주아체
+                            </button>
+                            <button type="button" onclick="selectPostFont('dongle')" id="font-btn-dongle" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-dongle">
+                                동글체
+                            </button>
+                            <button type="button" onclick="selectPostFont('songmyung')" id="font-btn-songmyung" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-songmyung">
+                                송명체
+                            </button>
+                            <button type="button" onclick="selectPostFont('dohyeon')" id="font-btn-dohyeon" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-dohyeon">
+                                도현체
+                            </button>
+                            <button type="button" onclick="selectPostFont('gamja')" id="font-btn-gamja" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-gamja">
+                                감자꽃
+                            </button>
+                        </div>
                     </div>
 
                     <textarea id="post-content" rows="3" maxlength="200" oninput="updateCharCount(this)" placeholder="목장 가족들과 나눌 따뜻한 이야기를 입력하세요..." 
@@ -406,13 +428,24 @@
                     </div>
                     <input type="file" id="post-file-attachment-input" class="hidden" onchange="handleSingleFileAttachment(event)">
                     
-                    <div id="attached-file-display" class="hidden items-center justify-between p-2 bg-gray-50 rounded-xl border border-gray-200 text-xs">
-                        <div class="flex items-center space-x-2 truncate">
-                            <span class="text-sm shrink-0">📁</span>
-                            <span id="attached-file-name" class="font-medium text-gray-700 truncate">파일명</span>
-                            <span id="attached-file-size" class="text-[10px] text-gray-400 shrink-0">0 KB</span>
+                    <div id="attached-file-display" class="hidden flex-col space-y-1.5 p-2 bg-gray-50 rounded-xl border border-gray-200 text-xs">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-2 truncate mr-2">
+                                <span class="text-sm shrink-0">📁</span>
+                                <span id="attached-file-name" class="font-medium text-gray-700 truncate">파일명</span>
+                                <span id="attached-file-size" class="text-[10px] text-gray-400 shrink-0">0 KB</span>
+                            </div>
+                            <button type="button" onclick="removeAttachedFile()" class="text-gray-400 hover:text-rose-500 p-1 shrink-0"><i class="fa-solid fa-xmark"></i></button>
                         </div>
-                        <button type="button" onclick="removeAttachedFile()" class="text-gray-400 hover:text-rose-500 p-1 shrink-0"><i class="fa-solid fa-xmark"></i></button>
+                        <!-- 파일 제목 입력창 (15자 이내) -->
+                        <div class="w-full pt-1 border-t border-gray-200/70">
+                            <div class="flex justify-between items-center text-[10px] text-gray-500 mb-0.5">
+                                <span class="font-semibold text-emerald-800"><i class="fa-solid fa-tag mr-1 text-[9px]"></i>파일 제목 (15자 이내)</span>
+                                <span id="file-title-char-indicator" class="text-gray-400 font-mono">0 / 15자</span>
+                            </div>
+                            <input type="text" id="post-file-title" maxlength="15" oninput="updateFileTitleCharCount(this)" placeholder="파일 목록에 보일 제목을 입력하세요..." 
+                                   class="w-full px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-white text-xs text-gray-800 focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-500 transition-all">
+                        </div>
                     </div>
 
                     <button type="button" id="trigger-file-attach-btn" onclick="triggerFileAttachmentPicker()" class="w-full py-2 border border-dashed border-gray-300 rounded-xl flex items-center justify-center space-x-1.5 text-xs text-gray-600 hover:bg-emerald-50 hover:border-emerald-300 active:scale-98 transition-all bg-white shadow-2xs">
@@ -640,15 +673,17 @@
                 <i class="fa-solid fa-chevron-left text-sm"></i>
             </button>
 
-            <!-- 교정 및 사진 프레이밍 박스 (가운데 + 십자선 가이드) -->
-            <div id="lightbox-crop-box" class="absolute pointer-events-none z-30 rounded-xl border-2 border-dashed border-[#3B5D50]/80" style="width: min(84vw, 360px); height: min(58vh, 440px); box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.22);">
-                <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
-                    <i class="fa-solid fa-plus text-[#3B5D50] text-2xl"></i>
+            <!-- 교정 및 사진 프레이밍 박스 (가운데 큰 흰색 반투명 + 가이드, 상하좌우 여백 확보, 두꺼운 초록 긴점선) -->
+            <div id="lightbox-crop-box" class="absolute pointer-events-none z-30 rounded-2xl" style="width: min(76vw, 320px); height: min(50vh, 380px); border: 3.5px dashed #244E3F; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.28);">
+                <!-- 더 크고 선명한 흰색 반투명 십자선 (+) 안내선 -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <i class="fa-solid fa-plus text-white/70 text-4xl drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"></i>
                 </div>
-                <div class="absolute -top-1 -left-1 w-3.5 h-3.5 border-t-2 border-l-2 border-[#3B5D50]"></div>
-                <div class="absolute -top-1 -right-1 w-3.5 h-3.5 border-t-2 border-r-2 border-[#3B5D50]"></div>
-                <div class="absolute -bottom-1 -left-1 w-3.5 h-3.5 border-b-2 border-l-2 border-[#3B5D50]"></div>
-                <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 border-b-2 border-r-2 border-[#3B5D50]"></div>
+                <!-- 4개 코너 앵커 가이드 -->
+                <div class="absolute -top-1 -left-1 w-4 h-4 border-t-3 border-l-3 border-[#244E3F]"></div>
+                <div class="absolute -top-1 -right-1 w-4 h-4 border-t-3 border-r-3 border-[#244E3F]"></div>
+                <div class="absolute -bottom-1 -left-1 w-4 h-4 border-b-3 border-l-3 border-[#244E3F]"></div>
+                <div class="absolute -bottom-1 -right-1 w-4 h-4 border-b-3 border-r-3 border-[#244E3F]"></div>
             </div>
 
             <div id="lightbox-track"></div>
@@ -979,7 +1014,10 @@
                     <div class="flex items-center space-x-2 truncate mr-2">
                         <span class="text-base shrink-0">📄</span>
                         <div class="truncate">
-                            <h4 class="font-bold text-gray-800 text-xs truncate">${escapeHtml(f.fileName || '첨부파일')}</h4>
+                            <h4 class="font-bold text-gray-800 text-xs truncate flex items-center space-x-1">
+                                <span class="truncate">${escapeHtml(f.title || f.fileName || '첨부파일')}</span>
+                                ${f.title && f.title !== f.fileName ? `<span class="text-[9.5px] font-normal text-gray-400 shrink-0">(${escapeHtml(f.fileName)})</span>` : ''}
+                            </h4>
                             <p class="text-[10px] text-gray-400 leading-tight mt-0.5">
                                 ${formatFileSize(f.fileSize)} | ${escapeHtml(f.author || '목장가족')} | ${formatDate(f.createdAt)}
                             </p>
@@ -1094,7 +1132,14 @@
             const viewBtn = document.getElementById('post-file-action-view-btn');
             const downloadBtn = document.getElementById('post-file-action-download-btn');
 
-            if (nameEl) nameEl.innerText = fileObj.fileName || '첨부파일';
+            const displayTitle = fileObj.title || fileObj.fileName || '첨부파일';
+            if (nameEl) {
+                if (fileObj.title && fileObj.title !== fileObj.fileName) {
+                    nameEl.innerHTML = `<span class="font-bold text-gray-800">${escapeHtml(fileObj.title)}</span> <span class="text-[10px] font-normal text-gray-400">(${escapeHtml(fileObj.fileName)})</span>`;
+                } else {
+                    nameEl.innerText = displayTitle;
+                }
+            }
             if (sizeEl) sizeEl.innerText = formatFileSize(fileObj.fileSize);
             if (authorEl) authorEl.innerText = `등록: ${fileObj.author || post.author || '목장가족'}`;
 
@@ -1419,17 +1464,28 @@
             { id: 'pretendard', name: '기본고딕', className: 'font-pretendard' },
             { id: 'myeongjo', name: '나눔명조', className: 'font-myeongjo' },
             { id: 'pen', name: '손글씨', className: 'font-pen' },
-            { id: 'gowun', name: '고운돋움', className: 'font-gowun' },
-            { id: 'jua', name: '주아체', className: 'font-jua' }
+            { id: 'gowun-dodum', name: '고운돋움', className: 'font-gowun-dodum' },
+            { id: 'gowun-batang', name: '고운바탕', className: 'font-gowun-batang' },
+            { id: 'jua', name: '주아체', className: 'font-jua' },
+            { id: 'dongle', name: '동글체', className: 'font-dongle' },
+            { id: 'songmyung', name: '송명체', className: 'font-songmyung' },
+            { id: 'dohyeon', name: '도현체', className: 'font-dohyeon' },
+            { id: 'gamja', name: '감자꽃', className: 'font-gamja' }
         ];
 
         function getFontClass(fontId) {
-            if (fontId === 'myeongjo' || fontId === 'nanum-myeongjo') return 'font-myeongjo';
-            if (fontId === 'pen' || fontId === 'nanum-pen') return 'font-pen';
-            if (fontId === 'gowun' || fontId === 'gowun-dodum') return 'font-gowun';
-            if (fontId === 'jua') return 'font-jua';
+            const found = AVAILABLE_FONTS.find(f => f.id === fontId);
+            if (found) return found.className;
+            if (fontId === 'gowun') return 'font-gowun-dodum';
+            if (fontId === 'nanum-myeongjo') return 'font-myeongjo';
+            if (fontId === 'nanum-pen') return 'font-pen';
             return 'font-pretendard';
         }
+
+        window.updateFileTitleCharCount = function(input) {
+            const ind = document.getElementById('file-title-char-indicator');
+            if (ind) ind.innerText = `${input.value.length} / 15자`;
+        };
 
         window.selectPostFont = function(fontId) {
             currentSelectedFont = fontId || 'pretendard';
@@ -1447,9 +1503,9 @@
                 const btn = document.getElementById(`font-btn-${f.id}`);
                 if (btn) {
                     if (f.id === currentSelectedFont) {
-                        btn.className = `px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-emerald-600 bg-emerald-50 text-emerald-800 shadow-2xs shrink-0 ${f.className}`;
+                        btn.className = `px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-emerald-600 bg-emerald-50 text-emerald-800 shadow-2xs shrink-0 ${f.className}`;
                     } else {
-                        btn.className = `px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 ${f.className}`;
+                        btn.className = `px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 ${f.className}`;
                     }
                 }
             });
@@ -1532,6 +1588,8 @@
             selectedImagesList = Array.isArray(existingImages) ? [...existingImages] : (existingImages ? [existingImages] : []);
             renderImagePreviews();
             currentAttachedFile = null;
+            const fileTitleInput = document.getElementById('post-file-title');
+            if (fileTitleInput) fileTitleInput.value = '';
             renderAttachedFileUI();
 
             if (postId) {
@@ -1550,16 +1608,31 @@
             currentAttachedFile = null;
             renderAttachedFileUI();
             selectPostFont('pretendard');
+            const fileTitleInput = document.getElementById('post-file-title');
+            if (fileTitleInput) fileTitleInput.value = '';
             document.getElementById('post-content').value = '';
             document.getElementById('editing-post-id').value = '';
         };
 
         window.requestSavePost = function() {
             const content = document.getElementById('post-content').value.trim();
+            const fileTitleInput = document.getElementById('post-file-title');
+            const fileTitle = fileTitleInput ? fileTitleInput.value.trim() : '';
+
             if (!content && selectedImagesList.length === 0 && !currentAttachedFile) {
                 showNotification('이야기 내용, 사진, 또는 첨부파일을 등록해 주세요.');
                 return;
             }
+
+            // 파일만 첨부할 때는 15자 이내 제목 필수 확인
+            if (!content && selectedImagesList.length === 0 && currentAttachedFile) {
+                if (!fileTitle) {
+                    showNotification('파일만 첨부할 때는 파일 제목(15자 이내)을 입력해 주세요.');
+                    if (fileTitleInput) fileTitleInput.focus();
+                    return;
+                }
+            }
+
             document.getElementById('save-confirm-modal').classList.remove('hidden');
         };
 
@@ -1582,8 +1655,12 @@
                 let savedFileName = null;
                 let savedFileSize = null;
 
+                const fileTitleInput = document.getElementById('post-file-title');
+                const fileTitle = fileTitleInput ? fileTitleInput.value.trim().substring(0, 15) : '';
+
                 if (fileToSave) {
                     const fileDocRef = await addDoc(collection(db, 'mokjang_files'), {
+                        title: fileTitle || fileToSave.fileName,
                         fileName: fileToSave.fileName,
                         fileSize: fileToSave.fileSize,
                         fileType: fileToSave.fileType,
@@ -1609,6 +1686,7 @@
                         updatePayload.fileId = savedFileId;
                         updatePayload.fileName = savedFileName;
                         updatePayload.fileSize = savedFileSize;
+                        updatePayload.fileTitle = fileTitle || '';
                     }
                     await updateDoc(getPostDocRef(postId), updatePayload);
                     showNotification("게시글이 수정되었습니다.");
@@ -1634,6 +1712,7 @@
                         postPayload.fileId = savedFileId;
                         postPayload.fileName = savedFileName;
                         postPayload.fileSize = savedFileSize;
+                        postPayload.fileTitle = fileTitle || '';
                     }
                     await addDoc(getPostsCollection(), postPayload);
                     showNotification("새로운 목장 이야기가 등록되었습니다!");
@@ -2810,7 +2889,7 @@
                                     </button>
 
                                     <button onclick="togglePray('${post.id}', ${hasPrayed})" class="flex items-center space-x-1 ${hasPrayed ? 'text-amber-400 font-medium' : 'text-gray-400 hover:text-amber-300'} active:scale-90 transition-transform" title="기도손">
-                                        <i class="fa-solid fa-hands-praying text-sm"></i>
+                                        <i class="fa-solid fa-hands-praying text-sm inline-block" style="transform: rotate(20deg) translateY(1.5px);"></i>
                                         <span class="text-xs">${prayersCount}</span>
                                     </button>
 
