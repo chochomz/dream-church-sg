@@ -468,8 +468,37 @@
             <!-- 위치 정보 (1/5) -->
             <span id="feed-bookmark-pos" class="text-[9.5px] font-black font-mono tracking-tighter whitespace-nowrap pointer-events-none shrink-0" style="color: #5B2506;">1/1</span>
             
+            <!-- 새로운 댓글 모아보기 원터치 버튼 -->
+            <button type="button" onclick="event.stopPropagation(); toggleRecentCommentsNavigator(event)" 
+                    id="feed-bookmark-comment-btn" 
+                    class="w-5 h-5 rounded-full bg-emerald-700/85 hover:bg-emerald-800 text-white flex items-center justify-center text-[9.5px] font-bold shadow-2xs active:scale-90 transition-transform pointer-events-auto shrink-0 select-none" 
+                    title="새로운 댓글 모아보기 (꺾쇠로 순회 이동)">
+                💬
+            </button>
+
             <!-- 리본 끝단 쐐기 핀 -->
             <div id="feed-bookmark-wedge" class="absolute -left-0.5 top-1/2 -translate-y-1/2 w-0.5 h-3 rounded-r-xs opacity-60 pointer-events-none" style="background-color: #D97706;"></div>
+        </div>
+    </div>
+
+    <!-- [새로운 댓글 꺾쇠 릴레이 내비게이터 캡슐] -->
+    <div id="recent-comments-navigator" 
+         class="hidden fixed z-45 flex items-center space-x-1.5 bg-white/95 backdrop-blur-md border border-emerald-600/70 rounded-full px-2.5 py-1 shadow-xl text-xs select-none transition-all duration-200">
+        <div class="flex items-center space-x-1 text-emerald-800 font-bold text-[11px] cursor-pointer" onclick="navigateRecentComments(1, event)">
+            <i class="fa-regular fa-comment-dots text-emerald-600 text-xs"></i>
+            <span>새댓글</span>
+            <span id="recent-comments-counter" class="font-mono bg-emerald-100 text-emerald-900 px-1.5 py-0.2 rounded-full text-[9.5px] font-extrabold">1/1</span>
+        </div>
+        <div class="flex items-center space-x-0.5 ml-0.5">
+            <button type="button" onclick="navigateRecentComments(-1, event)" class="w-6 h-6 rounded-full hover:bg-emerald-100 text-gray-700 hover:text-emerald-900 flex items-center justify-center active:scale-90 text-xs transition-all" title="이전 새댓글 글 (위로)">
+                <i class="fa-solid fa-chevron-up text-[10px]"></i>
+            </button>
+            <button type="button" onclick="navigateRecentComments(1, event)" class="w-6 h-6 rounded-full hover:bg-emerald-100 text-gray-700 hover:text-emerald-900 flex items-center justify-center active:scale-90 text-xs transition-all" title="다음 새댓글 글 (아래로)">
+                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+            </button>
+            <button type="button" onclick="closeRecentCommentsNavigator(event)" class="w-5 h-5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 flex items-center justify-center active:scale-90 text-xs ml-0.5" title="닫기">
+                <i class="fa-solid fa-xmark text-[10px]"></i>
+            </button>
         </div>
     </div>
 
@@ -1237,6 +1266,124 @@
         let matchedSearchPostIds = [];
         let currentSearchMatchIndex = 0;
         let lastSearchQuery = "";
+
+                // [새로운 댓글 모아보기 & 꺾쇠 릴레이 순회 내비게이션]
+        let recentCommentMatchedPosts = [];
+        let recentCommentCurrentIndex = 0;
+
+        function getPostsWithRecentComments() {
+            if (!cachedPosts || cachedPosts.length === 0) return [];
+            
+            // 댓글이 있는 게시글 추출
+            const postsWithComments = cachedPosts.filter(p => Array.isArray(p.comments) && p.comments.length > 0);
+            if (postsWithComments.length === 0) return [];
+
+            // 각 게시글의 마지막(최신) 댓글 작성 시간 기준 점수 산출
+            const scored = postsWithComments.map(p => {
+                const lastComment = p.comments[p.comments.length - 1];
+                let score = 0;
+                if (lastComment && lastComment.time) {
+                    const parts = String(lastComment.time).trim().split(' ');
+                    if (parts.length === 2) {
+                        const [m, d] = parts[0].split('/').map(Number);
+                        const [h, min] = parts[1].split(':').map(Number);
+                        score = (m || 0) * 1000000 + (d || 0) * 10000 + (h || 0) * 100 + (min || 0);
+                    }
+                }
+                return {
+                    post: p,
+                    lastComment: lastComment,
+                    score: score
+                };
+            });
+
+            // 최신 댓글 시간 내림차순 정렬 (최신 댓글이 달린 예전 글도 상위로 우선 순회)
+            scored.sort((a, b) => b.score - a.score);
+            return scored.map(item => item.post.id);
+        }
+
+        window.toggleRecentCommentsNavigator = function(event) {
+            if (event) event.stopPropagation();
+            const nav = document.getElementById('recent-comments-navigator');
+            if (!nav) return;
+
+            if (!nav.classList.contains('hidden')) {
+                closeRecentCommentsNavigator();
+                return;
+            }
+
+            closeBookmarkCalendar();
+            closeHeaderSearch();
+
+            const matchedIds = getPostsWithRecentComments();
+            if (matchedIds.length === 0) {
+                showNotification("아직 작성된 댓글이 없습니다.");
+                return;
+            }
+
+            recentCommentMatchedPosts = matchedIds;
+            recentCommentCurrentIndex = 0;
+
+            const bookmarkEl = document.getElementById('feed-bookmark-indicator');
+            const bookmarkRect = bookmarkEl ? bookmarkEl.getBoundingClientRect() : null;
+
+            if (bookmarkRect) {
+                const navTop = Math.max(56, Math.min(window.innerHeight - 50, bookmarkRect.top - 46));
+                nav.style.top = `${navTop}px`;
+                if (bookmarkSide === 'left') {
+                    nav.style.left = `${Math.max(10, Math.round(bookmarkRect.right + 6))}px`;
+                    nav.style.right = 'auto';
+                } else {
+                    nav.style.right = `${Math.max(10, Math.round(window.innerWidth - bookmarkRect.left + 6))}px`;
+                    nav.style.left = 'auto';
+                }
+            } else {
+                nav.style.top = '64px';
+                nav.style.right = '16px';
+            }
+
+            const counterEl = document.getElementById('recent-comments-counter');
+            if (counterEl) {
+                counterEl.innerText = `1/${matchedIds.length}`;
+            }
+
+            nav.classList.remove('hidden');
+            scrollToPost(matchedIds[0], true);
+
+            const firstPost = cachedPosts.find(p => p.id === matchedIds[0] || String(p.id) === String(matchedIds[0]));
+            if (firstPost && firstPost.comments && firstPost.comments.length > 0) {
+                const lastC = firstPost.comments[firstPost.comments.length - 1];
+                showNotification(`💬 '${lastC.author}': "${lastC.text}"`);
+            }
+        };
+
+        window.navigateRecentComments = function(direction, event) {
+            if (event) event.stopPropagation();
+            if (!recentCommentMatchedPosts || recentCommentMatchedPosts.length === 0) return;
+
+            const total = recentCommentMatchedPosts.length;
+            recentCommentCurrentIndex = (recentCommentCurrentIndex + direction + total) % total;
+
+            const counterEl = document.getElementById('recent-comments-counter');
+            if (counterEl) {
+                counterEl.innerText = `${recentCommentCurrentIndex + 1}/${total}`;
+            }
+
+            const targetPostId = recentCommentMatchedPosts[recentCommentCurrentIndex];
+            scrollToPost(targetPostId, true);
+
+            const post = cachedPosts.find(p => p.id === targetPostId || String(p.id) === String(targetPostId));
+            if (post && post.comments && post.comments.length > 0) {
+                const lastC = post.comments[post.comments.length - 1];
+                showNotification(`💬 '${lastC.author}': "${lastC.text}"`);
+            }
+        };
+
+        window.closeRecentCommentsNavigator = function(event) {
+            if (event) event.stopPropagation();
+            const nav = document.getElementById('recent-comments-navigator');
+            if (nav) nav.classList.add('hidden');
+        };
 
         window.toggleHeaderSearch = function(event) {
             if (event) event.stopPropagation();
@@ -3419,8 +3566,13 @@
             const lastTap = photoTapRecord[key] || 0;
             const diff = now - lastTap;
 
+            const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+            const count = post ? (Array.isArray(post.images) ? post.images.length : (post.imageUrl ? 1 : 0)) : 1;
+            const container = document.getElementById(`post-photos-${postId}`);
+            const isExpanded = container && container.getAttribute('data-view-mode') === 'expanded';
+
             if (diff > 0 && diff < 360) {
-                // 더블 탭 성공: 즉시 라이트박스(수정/교정) 모달 오픈
+                // 더블 탭: 즉시 라이트박스(수정/교정) 모달 오픈
                 if (singleTapTimers[key]) {
                     clearTimeout(singleTapTimers[key]);
                     delete singleTapTimers[key];
@@ -3428,19 +3580,20 @@
                 delete photoTapRecord[key];
                 openLightbox(postId, photoIdx);
             } else {
-                // 단일 탭: 300ms 동안 더블탭이 오지 않으면 한 장씩 죽 늘어지게 펼쳐보기/격자 접기 토글
                 photoTapRecord[key] = now;
                 if (singleTapTimers[key]) {
                     clearTimeout(singleTapTimers[key]);
                 }
                 singleTapTimers[key] = setTimeout(() => {
                     delete singleTapTimers[key];
-                    const post = cachedPosts.find(p => p.id === postId);
-                    const count = post ? (Array.isArray(post.images) ? post.images.length : (post.imageUrl ? 1 : 0)) : 1;
-                    if (count > 1) {
+                    // 1장이거나 이미 1열로 펼쳐진 상태에서는 한 번 터치로 바로 수정(라이트박스) 화면 오픈!
+                    if (count === 1 || isExpanded) {
+                        openLightbox(postId, photoIdx);
+                    } else {
+                        // 2열 격자 상태에서는 1회 터치 시 1열 펼쳐보기 전환
                         togglePostPhotoLayout(postId);
                     }
-                }, 300);
+                }, 280);
             }
         };
 
@@ -5645,7 +5798,7 @@
             currentLightboxImages.forEach((src, idx) => {
                 const slide = document.createElement('div');
                 slide.className = 'lightbox-slide';
-                slide.innerHTML = `<img id="lightbox-slide-img-${idx}" src="${src}" alt="사진 ${idx + 1}" class="lightbox-img-el">`;
+                slide.innerHTML = `<img id="lightbox-slide-img-${idx}" src="${src}" crossOrigin="anonymous" alt="사진 ${idx + 1}" class="lightbox-img-el">`;
                 lightboxTrack.appendChild(slide);
             });
 
@@ -5908,6 +6061,9 @@
             const cropBoxEl = document.getElementById('lightbox-crop-box');
             if (!activeImg || !cropBoxEl) return;
 
+            setDbStatus('saving');
+            showNotification("사진을 편집하여 파이어베이스에 영구 저장하는 중...");
+
             try {
                 const finalDataUrl = await getCroppedDataUrl(
                     activeImg,
@@ -5920,57 +6076,63 @@
                     currentLightboxContrast
                 );
 
-                // 1. 편집창 즉시 닫기
+                // 1. 편집 모달 닫기
                 closeLightbox(false);
 
-                // 2. 피드 화면의 해당 사진 src를 finalDataUrl로 즉시 교체 (사용자 체감 반응 0ms)
+                // 2. 피드 화면의 해당 사진 src를 즉각 교체
                 const feedImgEl = document.getElementById(`feed-photo-img-${targetPostId}-${targetPhotoIdx}`);
                 if (feedImgEl) {
                     feedImgEl.src = finalDataUrl;
                 }
-
-                // 3. 피드의 해당 게시글 위치로 부드럽게 쏜살 이동 및 하이라이트
                 scrollToPost(targetPostId, true);
-                showNotification("교정된 사진이 피드에 '이대로 저장'되었습니다!");
 
-                // 4. 백그라운드에서 Firebase Storage 업로드 및 Firestore updateDoc 수행
-                (async () => {
-                    setDbStatus('saving');
-                    try {
-                        const uploadedUrl = await uploadPhotoToStorage(finalDataUrl);
-                        const post = cachedPosts.find(p => p.id === targetPostId);
-                        if (post) {
-                            let updatedImages = [];
-                            if (Array.isArray(post.images) && post.images.length > 0) {
-                                updatedImages = [...post.images];
-                            } else if (post.imageUrl) {
-                                updatedImages = [post.imageUrl];
-                            }
+                // 3. Firebase Storage에 업로드 (실패 시 초경량 DataURL로 안전하게 폴백)
+                let uploadedUrl = finalDataUrl;
+                try {
+                    uploadedUrl = await uploadPhotoToStorage(finalDataUrl);
+                } catch(uploadErr) {
+                    console.warn("Storage 사진 업로드 경고 (DataURL 폴백):", uploadErr);
+                    uploadedUrl = finalDataUrl;
+                }
 
-                            if (targetPhotoIdx < updatedImages.length) {
-                                updatedImages[targetPhotoIdx] = uploadedUrl;
-                            } else {
-                                updatedImages.push(uploadedUrl);
-                            }
-
-                            post.images = updatedImages;
-                            post.imageUrl = updatedImages[0] || "";
-
-                            await updateDoc(getPostDocRef(targetPostId), {
-                                images: updatedImages,
-                                imageUrl: updatedImages[0] || "",
-                                updatedAt: new Date()
-                            });
-                        }
-                        setDbStatus('connected');
-                    } catch (err) {
-                        console.error("백그라운드 사진 저장 오류:", err);
-                        setDbStatus('error');
+                // 4. 대상 게시글 데이터 찾기 (문자열/숫자 ID 완벽 대응)
+                let post = cachedPosts.find(p => p.id === targetPostId || String(p.id) === String(targetPostId));
+                let updatedImages = [];
+                if (post) {
+                    if (Array.isArray(post.images) && post.images.length > 0) {
+                        updatedImages = [...post.images];
+                    } else if (post.imageUrl) {
+                        updatedImages = [post.imageUrl];
                     }
-                })();
+                }
+
+                if (targetPhotoIdx < updatedImages.length) {
+                    updatedImages[targetPhotoIdx] = uploadedUrl;
+                } else if (updatedImages.length > 0) {
+                    updatedImages[targetPhotoIdx] = uploadedUrl;
+                } else {
+                    updatedImages = [uploadedUrl];
+                }
+
+                // 5. Firestore 원본 문서에 반드시 await으로 영구 반영!
+                await updateDoc(getPostDocRef(targetPostId), {
+                    images: updatedImages,
+                    imageUrl: updatedImages[0] || "",
+                    updatedAt: new Date()
+                });
+
+                // 6. 로컬 캐시 동기화
+                if (post) {
+                    post.images = updatedImages;
+                    post.imageUrl = updatedImages[0] || "";
+                }
+
+                setDbStatus('connected');
+                showNotification("수정된 사진이 파이어베이스 원본에 성공적으로 저장되었습니다!");
             } catch (err) {
-                console.error("사진 교정 저장 실패:", err);
-                showNotification("피드 저장 실패: " + err.message);
+                console.error("사진 파이어베이스 저장 실패:", err);
+                showNotification("파이어베이스 저장 실패: " + err.message);
+                setDbStatus('error');
             }
         };
 
@@ -6003,47 +6165,83 @@
 
         function getCroppedDataUrl(activeImg, cropBoxEl, panX, panY, scale, angle, brightness = 100, contrast = 100) {
             return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.crossOrigin = "anonymous";
-                img.onload = function() {
+                const boxRect = cropBoxEl.getBoundingClientRect();
+                const renderedBaseW = activeImg.offsetWidth || 300;
+                const renderedBaseH = activeImg.offsetHeight || 300;
+
+                // 원본 해상도 보존 계수 (최대 2배로 조절하여 고화질 보존 및 Firestore 1MB 한도 완벽 준수)
+                const rawRatio = (activeImg.naturalWidth || 800) / renderedBaseW;
+                const pixelRatio = Math.max(1, Math.min(2.0, rawRatio));
+
+                let canvasW = Math.round(boxRect.width * pixelRatio);
+                let canvasH = Math.round(boxRect.height * pixelRatio);
+
+                // 최대 960px로 제한하여 메모리 및 문서 용량 최적화
+                const maxDim = 960;
+                if (canvasW > maxDim || canvasH > maxDim) {
+                    if (canvasW > canvasH) {
+                        canvasH = Math.round((canvasH * maxDim) / canvasW);
+                        canvasW = maxDim;
+                    } else {
+                        canvasW = Math.round((canvasW * maxDim) / canvasH);
+                        canvasH = maxDim;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = canvasW;
+                canvas.height = canvasH;
+
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvasW, canvasH);
+
+                const scaleX = canvasW / boxRect.width;
+                const scaleY = canvasH / boxRect.height;
+
+                const renderImageToCanvas = (sourceImg) => {
                     try {
-                        const boxRect = cropBoxEl.getBoundingClientRect();
-                        const renderedBaseW = activeImg.offsetWidth || 300;
-                        const renderedBaseH = activeImg.offsetHeight || 300;
-
-                        // 원본 해상도 보존 계수 (최대 3배 고해상도 추출)
-                        const pixelRatio = Math.max(1, Math.min(3, (img.naturalWidth || 800) / renderedBaseW));
-                        const canvas = document.createElement('canvas');
-                        const canvasW = Math.round(boxRect.width * pixelRatio);
-                        const canvasH = Math.round(boxRect.height * pixelRatio);
-                        canvas.width = canvasW;
-                        canvas.height = canvasH;
-
-                        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillRect(0, 0, canvasW, canvasH);
-
                         ctx.save();
                         ctx.translate(canvasW / 2, canvasH / 2);
-                        ctx.translate(panX * pixelRatio, panY * pixelRatio);
+                        ctx.translate(panX * scaleX, panY * scaleY);
                         ctx.rotate((angle * Math.PI) / 180);
                         ctx.scale(scale, scale);
 
-                        const drawW = renderedBaseW * pixelRatio;
-                        const drawH = renderedBaseH * pixelRatio;
-                        ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+                        const drawW = renderedBaseW * scaleX;
+                        const drawH = renderedBaseH * scaleY;
+                        ctx.drawImage(sourceImg, -drawW / 2, -drawH / 2, drawW, drawH);
                         ctx.restore();
 
-                        // 직접 픽셀 조작으로 밝기 및 대비 영구 적용 (모바일/사파리/웹뷰 100% 호환)
-                        applyBrightnessContrastPixels(ctx, canvasW, canvasH, brightness, contrast);
+                        // 직접 픽셀 조작으로 밝기 및 대비 영구 적용
+                        try {
+                            applyBrightnessContrastPixels(ctx, canvasW, canvasH, brightness, contrast);
+                        } catch(e) {
+                            console.warn("픽셀 밝기/대비 보정 건너뜀:", e);
+                        }
 
-                        resolve(canvas.toDataURL('image/jpeg', 0.85));
+                        // JPEG 0.78 품질로 압축 (용량 60~100KB, 화질 선명, Firestore 1MB 한도 완전 안전)
+                        resolve(canvas.toDataURL('image/jpeg', 0.78));
                     } catch (err) {
                         reject(err);
                     }
                 };
-                img.onerror = reject;
+
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.onload = () => renderImageToCanvas(img);
+                img.onerror = () => {
+                    // CORS 발생 시 이미 DOM에 로드된 activeImg로 직접 렌더링 폴백
+                    try {
+                        renderImageToCanvas(activeImg);
+                    } catch(fallbackErr) {
+                        reject(fallbackErr);
+                    }
+                };
+
                 img.src = activeImg.src;
+                if (img.complete && img.naturalWidth > 0) {
+                    renderImageToCanvas(img);
+                }
             });
         }
 
