@@ -100,30 +100,48 @@
             border-radius: 4px;
         }
 
-        /* 플로팅 스마트 피드 책갈피 (인터랙티브 쾌속 내비게이터) */
+        /* 플로팅 스마트 피드 책갈피 (왼손잡이/오른손잡이 드래그 앤 드롭 & 세로 직사각형 고투명) */
         #feed-bookmark-indicator {
-            right: max(0px, calc(50% - 224px));
             transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.32s ease;
-            will-change: transform, top;
+            will-change: transform, top, left, right;
+            user-select: none;
+            -webkit-user-select: none;
         }
-        #feed-bookmark-indicator.bookmark-hidden {
-            transform: translateX(100%);
+        #feed-bookmark-indicator.bookmark-side-right {
+            right: max(0px, calc(50% - 224px));
+            left: auto !important;
+        }
+        #feed-bookmark-indicator.bookmark-side-left {
+            left: max(0px, calc(50% - 224px));
+            right: auto !important;
+        }
+        #feed-bookmark-indicator.bookmark-side-right.bookmark-hidden {
+            transform: translateX(110%);
+            opacity: 0;
+            pointer-events: none;
+        }
+        #feed-bookmark-indicator.bookmark-side-left.bookmark-hidden {
+            transform: translateX(-110%);
             opacity: 0;
             pointer-events: none;
         }
         #feed-bookmark-indicator.bookmark-visible {
-            transform: translateX(0);
+            transform: translateX(0) scale(1);
             opacity: 1;
             pointer-events: auto;
         }
         #feed-bookmark-indicator.bookmark-dragging {
             transition: none !important;
-            filter: drop-shadow(0 6px 14px rgba(0,0,0,0.18));
+            filter: drop-shadow(0 6px 16px rgba(0,0,0,0.20));
+        }
+        #feed-bookmark-indicator.bookmark-longpressed {
+            transform: scale(1.14) !important;
+            filter: drop-shadow(0 10px 22px rgba(0,0,0,0.30)) !important;
         }
         #feed-bookmark-ribbon {
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.2s ease;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.2s ease, border-radius 0.25s ease;
         }
 
         /* 모달 터치 제어: all-pdf-preview-modal은 자유로운 상하 스크롤을 위해 제외 */
@@ -320,31 +338,30 @@
         <!-- 게시글 목록이 실시간으로 동적 렌더링됩니다 -->
     </main>
 
-    <!-- [플로팅 스마트 피드 책갈피 (인터랙티브 쾌속 내비게이터)] -->
+    <!-- [플로팅 스마트 피드 책갈피 (왼손/오른손 이동 드래그 앤 드롭 & 세로 직사각형 고투명)] -->
     <div id="feed-bookmark-indicator" 
-         class="fixed z-40 select-none pointer-events-auto flex items-center cursor-grab active:cursor-grabbing touch-none bookmark-hidden"
+         class="fixed z-40 select-none pointer-events-auto flex items-center cursor-grab active:cursor-grabbing touch-none bookmark-side-right bookmark-hidden"
          style="top: 140px; touch-action: none;">
         <div id="feed-bookmark-ribbon" 
-             class="relative pl-2 pr-1.5 py-2 rounded-l-2xl shadow-md border-y border-l flex items-center space-x-1.5"
-             style="background-color: rgba(254, 243, 199, 0.78); border-color: rgba(245, 158, 11, 0.48); color: #78350F;">
-            <!-- 상하 이동 직관성 3점 핸들 -->
-            <div id="feed-bookmark-dots" class="flex flex-col space-y-0.5 shrink-0 opacity-60 pointer-events-none pr-0.5" style="color: #F59E0B;">
-                <span class="w-1 h-1 rounded-full bg-current"></span>
-                <span class="w-1 h-1 rounded-full bg-current"></span>
-                <span class="w-1 h-1 rounded-full bg-current"></span>
+             class="relative w-[36px] py-2.5 px-0.5 rounded-l-xl shadow-xs border-y border-l flex flex-col items-center justify-between min-h-[82px] space-y-1 text-center"
+             style="background-color: rgba(254, 243, 199, 0.38); border-color: rgba(245, 158, 11, 0.30); color: #5B2506;">
+            <!-- 상단 그립 바 & 계절 아이콘 -->
+            <div class="flex flex-col items-center space-y-1 pointer-events-none shrink-0">
+                <div id="feed-bookmark-grip" class="w-2.5 h-0.5 rounded-full bg-current opacity-45"></div>
+                <span id="feed-bookmark-icon" class="text-xs leading-none filter drop-shadow-xs">🍁</span>
             </div>
 
-            <!-- 계절/월별 아이콘 -->
-            <span id="feed-bookmark-icon" class="text-xs shrink-0 leading-none filter drop-shadow-xs pointer-events-none">🍁</span>
-
-            <!-- 날짜(요일 포함) 및 피드 위치 정보 -->
-            <div class="flex flex-col text-left leading-tight shrink-0 pointer-events-none">
-                <span id="feed-bookmark-date" class="text-[10px] font-bold tracking-tight whitespace-nowrap" style="color: #92400E;">오늘</span>
-                <span id="feed-bookmark-pos" class="text-[11px] font-black font-mono tracking-wide whitespace-nowrap" style="color: #78350F;">1 / 1</span>
+            <!-- 날짜(월.일) 및 요일 -->
+            <div class="flex flex-col items-center leading-none text-center pointer-events-none shrink-0">
+                <span id="feed-bookmark-date" class="text-[9.5px] font-extrabold tracking-tight whitespace-nowrap" style="color: #78350F;">10.20</span>
+                <span id="feed-bookmark-day" class="text-[8.5px] font-bold tracking-tight whitespace-nowrap mt-0.5" style="color: #92400E;">(화)</span>
             </div>
+
+            <!-- 위치 정보 (1/5) -->
+            <span id="feed-bookmark-pos" class="text-[9.5px] font-black font-mono tracking-tighter whitespace-nowrap pointer-events-none shrink-0" style="color: #5B2506;">1/1</span>
             
-            <!-- 리본 끝단 쐐기 디자인 포인트 -->
-            <div id="feed-bookmark-wedge" class="absolute -left-0.5 top-1/2 -translate-y-1/2 w-1 h-3 rounded-r-xs opacity-75 pointer-events-none" style="background-color: #F59E0B;"></div>
+            <!-- 리본 끝단 쐐기 핀 -->
+            <div id="feed-bookmark-wedge" class="absolute -left-0.5 top-1/2 -translate-y-1/2 w-0.5 h-3 rounded-r-xs opacity-60 pointer-events-none" style="background-color: #D97706;"></div>
         </div>
     </div>
 
@@ -2046,28 +2063,37 @@
             }
         });
 
-        // [스마트 피드 책갈피: 12개월 계절별 파스텔톤 & 쾌속 내비게이터 상태 관리]
+        // [스마트 피드 책갈피: 왼손/오른손 이동 드래그 앤 드롭 & 세로 직사각형 고투명 상태 관리]
         let bookmarkHideTimer = null;
         let isBookmarkDragging = false;
+        let bookmarkDragStartX = 0;
         let bookmarkDragStartY = 0;
+        let bookmarkLastClientX = 0;
+        let bookmarkLastClientY = 0;
         let bookmarkInitialTop = 140;
+        let bookmarkLongPressTimer = null;
+        let isBookmarkLongPressed = false;
+        let isBookmarkHorizontalMoved = false;
+
+        // 사용자 환경설정: 왼손잡이(left) / 오른손잡이(right) 저장 및 복원
+        let bookmarkSide = localStorage.getItem('feed_bookmark_side') || 'right';
 
         const KOREAN_DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
-        // 12개월 및 4계절 맞춤 은은한 파스텔 테마 (투명도 높고 가독성 뛰어난 딥 폰트 컬러 조합)
+        // 12개월 및 4계절 맞춤 은은한 파스텔 테마 (배경 투명도를 대폭 높여 뒤쪽 피드 글/사진이 은은히 비침)
         const MONTHLY_PASTEL_THEMES = {
-            1:  { bg: 'rgba(238, 234, 254, 0.74)', border: 'rgba(167, 139, 250, 0.45)', text: '#4C1D95', subText: '#5B21B6', badge: '#8B5CF6', icon: '❄️', season: '겨울' }, // 1월: 스노우 라일락
-            2:  { bg: 'rgba(241, 245, 249, 0.76)', border: 'rgba(148, 163, 184, 0.50)', text: '#1E293B', subText: '#334155', badge: '#64748B', icon: '🌱', season: '겨울' }, // 2월: 포근한 실버미스트
-            3:  { bg: 'rgba(254, 252, 215, 0.76)', border: 'rgba(250, 204, 21, 0.48)',  text: '#713F12', subText: '#854D0E', badge: '#EAB308', icon: '🌼', season: '봄' },   // 3월: 개나리 햇살옐로우
-            4:  { bg: 'rgba(253, 232, 241, 0.76)', border: 'rgba(244, 114, 182, 0.45)', text: '#831843', subText: '#9D174D', badge: '#EC4899', icon: '🌸', season: '봄' },   // 4월: 화사한 벚꽃핑크
-            5:  { bg: 'rgba(220, 252, 231, 0.76)', border: 'rgba(52, 211, 153, 0.45)',  text: '#064E3B', subText: '#065F46', badge: '#10B981', icon: '🌿', season: '봄' },   // 5월: 싱그러운 신록연두
-            6:  { bg: 'rgba(204, 251, 241, 0.76)', border: 'rgba(45, 212, 191, 0.45)',  text: '#134E4A', subText: '#115E59', badge: '#14B8A6', icon: '🍃', season: '여름' }, // 6월: 상쾌한 쿨민트
-            7:  { bg: 'rgba(224, 242, 254, 0.76)', border: 'rgba(56, 189, 248, 0.45)',  text: '#0C4A6E', subText: '#075985', badge: '#38BDF8', icon: '🌊', season: '여름' }, // 7월: 청량한 스카이블루
-            8:  { bg: 'rgba(219, 234, 254, 0.76)', border: 'rgba(96, 165, 250, 0.45)',  text: '#1E3A8A', subText: '#1E40AF', badge: '#3B82F6', icon: '🐬', season: '여름' }, // 8월: 깊고 맑은 마린블루
-            9:  { bg: 'rgba(255, 237, 213, 0.76)', border: 'rgba(251, 146, 60, 0.45)',  text: '#7C2D12', subText: '#9A3412', badge: '#F97316', icon: '🌾', season: '가을' }, // 9월: 따스한 살구피치
-            10: { bg: 'rgba(254, 243, 199, 0.78)', border: 'rgba(245, 158, 11, 0.48)',  text: '#78350F', subText: '#92400E', badge: '#F59E0B', icon: '🍁', season: '가을' }, // 10월: 무르익은 앰버단풍
-            11: { bg: 'rgba(245, 237, 232, 0.78)', border: 'rgba(194, 152, 131, 0.48)', text: '#452615', subText: '#5C3A21', badge: '#A2674B', icon: '🍂', season: '가을' }, // 11월: 온화한 모카베이지
-            12: { bg: 'rgba(254, 226, 226, 0.78)', border: 'rgba(239, 68, 68, 0.42)',   text: '#7F1D1D', subText: '#991B1B', badge: '#EF4444', icon: '🎄', season: '겨울' }  // 12월: 포근한 홀리데이레드
+            1:  { bg: 'rgba(238, 234, 254, 0.36)', border: 'rgba(167, 139, 250, 0.30)', text: '#3B1875', subText: '#4C1D95', badge: '#7C3AED', icon: '❄️', season: '겨울' }, // 1월: 스노우 라일락
+            2:  { bg: 'rgba(241, 245, 249, 0.38)', border: 'rgba(148, 163, 184, 0.32)', text: '#0F172A', subText: '#1E293B', badge: '#475569', icon: '🌱', season: '겨울' }, // 2월: 실버미스트
+            3:  { bg: 'rgba(254, 252, 215, 0.38)', border: 'rgba(250, 204, 21, 0.32)',  text: '#582D06', subText: '#713F12', badge: '#CA8A04', icon: '🌼', season: '봄' },   // 3월: 개나리 햇살
+            4:  { bg: 'rgba(253, 232, 241, 0.38)', border: 'rgba(244, 114, 182, 0.30)', text: '#700B36', subText: '#831843', badge: '#DB2777', icon: '🌸', season: '봄' },   // 4월: 벚꽃핑크
+            5:  { bg: 'rgba(220, 252, 231, 0.38)', border: 'rgba(52, 211, 153, 0.30)',  text: '#043A2C', subText: '#064E3B', badge: '#059669', icon: '🌿', season: '봄' },   // 5월: 신록연두
+            6:  { bg: 'rgba(204, 251, 241, 0.38)', border: 'rgba(45, 212, 191, 0.30)',  text: '#0D3835', subText: '#134E4A', badge: '#0D9488', icon: '🍃', season: '여름' }, // 6월: 쿨민트
+            7:  { bg: 'rgba(224, 242, 254, 0.38)', border: 'rgba(56, 189, 248, 0.30)',  text: '#083344', subText: '#0C4A6E', badge: '#0284C7', icon: '🌊', season: '여름' }, // 7월: 스카이블루
+            8:  { bg: 'rgba(219, 234, 254, 0.38)', border: 'rgba(96, 165, 250, 0.30)',  text: '#172554', subText: '#1E3A8A', badge: '#2563EB', icon: '🐬', season: '여름' }, // 8월: 마린블루
+            9:  { bg: 'rgba(255, 237, 213, 0.38)', border: 'rgba(251, 146, 60, 0.30)',  text: '#60210A', subText: '#7C2D12', badge: '#EA580C', icon: '🌾', season: '가을' }, // 9월: 살구피치
+            10: { bg: 'rgba(254, 243, 199, 0.40)', border: 'rgba(245, 158, 11, 0.32)',  text: '#5B2506', subText: '#78350F', badge: '#D97706', icon: '🍁', season: '가을' }, // 10월: 앰버단풍
+            11: { bg: 'rgba(245, 237, 232, 0.40)', border: 'rgba(194, 152, 131, 0.32)', text: '#361C0F', subText: '#452615', badge: '#84533C', icon: '🍂', season: '가을' }, // 11월: 모카베이지
+            12: { bg: 'rgba(254, 226, 226, 0.40)', border: 'rgba(239, 68, 68, 0.28)',   text: '#5F1212', subText: '#7F1D1D', badge: '#DC2626', icon: '🎄', season: '겨울' }  // 12월: 홀리데이레드
         };
 
         function parseBookmarkDateInfo(timestamp) {
@@ -2084,7 +2110,9 @@
             return {
                 month: month,
                 dayName: dayName,
-                dateText: `${month}월 ${dateNum}일(${dayName})`
+                shortDate: `${month}.${dateNum}`,
+                dayText: `(${dayName})`,
+                fullText: `${month}월 ${dateNum}일(${dayName})`
             };
         }
 
@@ -2094,9 +2122,10 @@
 
             const ribbonEl = document.getElementById('feed-bookmark-ribbon');
             const iconEl = document.getElementById('feed-bookmark-icon');
-            const dotsEl = document.getElementById('feed-bookmark-dots');
+            const gripEl = document.getElementById('feed-bookmark-grip');
             const wedgeEl = document.getElementById('feed-bookmark-wedge');
             const dateEl = document.getElementById('feed-bookmark-date');
+            const dayEl = document.getElementById('feed-bookmark-day');
             const posEl = document.getElementById('feed-bookmark-pos');
 
             if (ribbonEl) {
@@ -2106,8 +2135,8 @@
             if (iconEl) {
                 iconEl.innerText = theme.icon;
             }
-            if (dotsEl) {
-                dotsEl.style.color = theme.badge;
+            if (gripEl) {
+                gripEl.style.color = theme.badge;
             }
             if (wedgeEl) {
                 wedgeEl.style.backgroundColor = theme.badge;
@@ -2115,8 +2144,47 @@
             if (dateEl) {
                 dateEl.style.color = theme.subText;
             }
+            if (dayEl) {
+                dayEl.style.color = theme.subText;
+            }
             if (posEl) {
                 posEl.style.color = theme.text;
+            }
+        }
+
+        // 왼손잡이 / 오른손잡이 책갈피 좌우 위치 및 라운딩 동적 적용
+        function applyBookmarkSide(side) {
+            const bookmarkEl = document.getElementById('feed-bookmark-indicator');
+            const ribbonEl = document.getElementById('feed-bookmark-ribbon');
+            const wedgeEl = document.getElementById('feed-bookmark-wedge');
+            if (!bookmarkEl || !ribbonEl) return;
+
+            bookmarkSide = side === 'left' ? 'left' : 'right';
+
+            if (bookmarkSide === 'left') {
+                bookmarkEl.classList.remove('bookmark-side-right');
+                bookmarkEl.classList.add('bookmark-side-left');
+                bookmarkEl.style.left = 'max(0px, calc(50% - 224px))';
+                bookmarkEl.style.right = 'auto';
+
+                ribbonEl.classList.remove('rounded-l-xl', 'border-l');
+                ribbonEl.classList.add('rounded-r-xl', 'border-r');
+
+                if (wedgeEl) {
+                    wedgeEl.className = 'absolute -right-0.5 top-1/2 -translate-y-1/2 w-0.5 h-3 rounded-l-xs opacity-60 pointer-events-none';
+                }
+            } else {
+                bookmarkEl.classList.remove('bookmark-side-left');
+                bookmarkEl.classList.add('bookmark-side-right');
+                bookmarkEl.style.right = 'max(0px, calc(50% - 224px))';
+                bookmarkEl.style.left = 'auto';
+
+                ribbonEl.classList.remove('rounded-r-xl', 'border-r');
+                ribbonEl.classList.add('rounded-l-xl', 'border-l');
+
+                if (wedgeEl) {
+                    wedgeEl.className = 'absolute -left-0.5 top-1/2 -translate-y-1/2 w-0.5 h-3 rounded-r-xs opacity-60 pointer-events-none';
+                }
             }
         }
 
@@ -2160,11 +2228,13 @@
 
             const posEl = document.getElementById('feed-bookmark-pos');
             const dateEl = document.getElementById('feed-bookmark-date');
+            const dayEl = document.getElementById('feed-bookmark-day');
 
-            if (posEl) posEl.innerText = `${targetIndex + 1} / ${cachedPosts.length}`;
+            if (posEl) posEl.innerText = `${targetIndex + 1}/${cachedPosts.length}`;
             if (currentPost) {
                 const dateInfo = parseBookmarkDateInfo(currentPost.createdAt);
-                if (dateEl) dateEl.innerText = dateInfo.dateText;
+                if (dateEl) dateEl.innerText = dateInfo.shortDate;
+                if (dayEl) dayEl.innerText = dateInfo.dayText;
                 applyMonthlyBookmarkTheme(dateInfo.month);
             }
 
@@ -2185,21 +2255,62 @@
             const feedContainer = document.getElementById('feed-container');
             if (!bookmarkEl || !feedContainer) return;
 
-            const onDragStart = (clientY) => {
+            // 저장된 사용자 위치(왼손/오른손) 복원 적용
+            applyBookmarkSide(bookmarkSide);
+
+            const onDragStart = (clientX, clientY) => {
                 isBookmarkDragging = true;
+                isBookmarkLongPressed = false;
+                isBookmarkHorizontalMoved = false;
+
                 if (bookmarkHideTimer) clearTimeout(bookmarkHideTimer);
 
                 bookmarkEl.classList.remove('bookmark-hidden');
                 bookmarkEl.classList.add('bookmark-visible', 'bookmark-dragging');
 
+                bookmarkDragStartX = clientX;
                 bookmarkDragStartY = clientY;
+                bookmarkLastClientX = clientX;
+                bookmarkLastClientY = clientY;
                 bookmarkInitialTop = parseFloat(bookmarkEl.style.top) || bookmarkEl.getBoundingClientRect().top;
+
+                // 350ms 꾹 누르면 '좌우 이동 모드' 활성화 (시각적 피드백 & 햅틱 진동)
+                if (bookmarkLongPressTimer) clearTimeout(bookmarkLongPressTimer);
+                bookmarkLongPressTimer = setTimeout(() => {
+                    if (isBookmarkDragging) {
+                        isBookmarkLongPressed = true;
+                        bookmarkEl.classList.add('bookmark-longpressed');
+                        if (navigator.vibrate) {
+                            try { navigator.vibrate(35); } catch(e) {}
+                        }
+                        showNotification('좌우 이동 모드: 원하는 쪽(왼쪽/오른쪽)으로 옮겨보세요');
+                    }
+                }, 350);
             };
 
-            const onDragMove = (clientY) => {
+            const onDragMove = (clientX, clientY) => {
                 if (!isBookmarkDragging || !cachedPosts || cachedPosts.length === 0) return;
 
+                bookmarkLastClientX = clientX;
+                bookmarkLastClientY = clientY;
+
+                const deltaX = clientX - bookmarkDragStartX;
                 const deltaY = clientY - bookmarkDragStartY;
+
+                // 수평 이동 거리가 25px 이상이거나 꾹 누른 상태인 경우 좌우 드래그 모드로 전환
+                if (isBookmarkLongPressed || Math.abs(deltaX) > 25) {
+                    isBookmarkHorizontalMoved = true;
+                    if (bookmarkLongPressTimer) clearTimeout(bookmarkLongPressTimer);
+
+                    // 손가락의 X 좌표를 따라 부드럽게 이동
+                    const bookmarkWidth = bookmarkEl.offsetWidth || 36;
+                    const halfW = bookmarkWidth / 2;
+                    const clampedX = Math.max(4, Math.min(window.innerWidth - bookmarkWidth - 4, clientX - halfW));
+                    bookmarkEl.style.left = `${Math.round(clampedX)}px`;
+                    bookmarkEl.style.right = 'auto';
+                }
+
+                // 수직 이동 (세로 높이 제한 및 피드 스크롤 연동)
                 const minY = 75;
                 const maxY = window.innerHeight - 130;
 
@@ -2216,10 +2327,12 @@
 
                 const posEl = document.getElementById('feed-bookmark-pos');
                 const dateEl = document.getElementById('feed-bookmark-date');
-                if (posEl) posEl.innerText = `${targetIndex + 1} / ${cachedPosts.length}`;
+                const dayEl = document.getElementById('feed-bookmark-day');
+                if (posEl) posEl.innerText = `${targetIndex + 1}/${cachedPosts.length}`;
                 if (currentPost) {
                     const dateInfo = parseBookmarkDateInfo(currentPost.createdAt);
-                    if (dateEl) dateEl.innerText = dateInfo.dateText;
+                    if (dateEl) dateEl.innerText = dateInfo.shortDate;
+                    if (dayEl) dayEl.innerText = dateInfo.dayText;
                     applyMonthlyBookmarkTheme(dateInfo.month);
                 }
 
@@ -2239,7 +2352,26 @@
             const onDragEnd = () => {
                 if (!isBookmarkDragging) return;
                 isBookmarkDragging = false;
-                bookmarkEl.classList.remove('bookmark-dragging');
+                if (bookmarkLongPressTimer) clearTimeout(bookmarkLongPressTimer);
+
+                bookmarkEl.classList.remove('bookmark-dragging', 'bookmark-longpressed');
+
+                // 좌우로 옮기거나 꾹 눌러 이동한 경우 손을 뗀 위치에 따라 왼쪽/오른쪽으로 스냅 도킹
+                if (isBookmarkHorizontalMoved || isBookmarkLongPressed) {
+                    const screenMid = window.innerWidth / 2;
+                    const targetSide = bookmarkLastClientX < screenMid ? 'left' : 'right';
+
+                    if (targetSide !== bookmarkSide) {
+                        bookmarkSide = targetSide;
+                        try {
+                            localStorage.setItem('feed_bookmark_side', bookmarkSide);
+                        } catch(e) {}
+                        showNotification(bookmarkSide === 'left' ? '책갈피가 왼쪽(왼손잡이 모드)으로 이동되었습니다.' : '책갈피가 오른쪽(오른손잡이 모드)으로 이동되었습니다.');
+                    }
+                }
+
+                // 좌우 위치 및 스타일 확정 복원
+                applyBookmarkSide(bookmarkSide);
 
                 // 손을 떼면 1.6초 후 자연스럽게 스르르 슬라이드 닫힘
                 if (bookmarkHideTimer) clearTimeout(bookmarkHideTimer);
@@ -2251,14 +2383,14 @@
             // 터치 이벤트 바인딩 (모바일)
             bookmarkEl.addEventListener('touchstart', (e) => {
                 if (e.touches.length === 1) {
-                    onDragStart(e.touches[0].clientY);
+                    onDragStart(e.touches[0].clientX, e.touches[0].clientY);
                 }
             }, { passive: false });
 
             window.addEventListener('touchmove', (e) => {
                 if (isBookmarkDragging && e.touches.length === 1) {
                     e.preventDefault(); // 스크러빙 중 화면 기본 스크롤 방지
-                    onDragMove(e.touches[0].clientY);
+                    onDragMove(e.touches[0].clientX, e.touches[0].clientY);
                 }
             }, { passive: false });
 
@@ -2270,13 +2402,13 @@
             bookmarkEl.addEventListener('mousedown', (e) => {
                 if (e.button === 0) {
                     e.preventDefault();
-                    onDragStart(e.clientY);
+                    onDragStart(e.clientX, e.clientY);
                 }
             });
 
             window.addEventListener('mousemove', (e) => {
                 if (isBookmarkDragging) {
-                    onDragMove(e.clientY);
+                    onDragMove(e.clientX, e.clientY);
                 }
             });
 
@@ -2284,6 +2416,27 @@
                 if (isBookmarkDragging) onDragEnd();
             });
         }
+
+        // [메인 피드 사진 두 번 연속 빠른 터치(더블 탭) 시에만 수정 화면(라이트박스) 호출]
+        const photoTapRecord = {};
+        window.handlePhotoDoubleTap = function(postId, photoIdx, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            const key = `${postId}_${photoIdx}`;
+            const now = Date.now();
+            const lastTap = photoTapRecord[key] || 0;
+            const diff = now - lastTap;
+
+            if (diff > 0 && diff < 380) {
+                // 더블 탭 성공: 두 번 연속 빠르게 터치한 경우만 수정/교정 라이트박스 열림
+                delete photoTapRecord[key];
+                openLightbox(postId, photoIdx);
+            } else {
+                // 한 번 터치한 경우: 스크롤 중 오작동 방지를 위해 시간 기록만 수행 (모달 열리지 않음)
+                photoTapRecord[key] = now;
+            }
+        };
 
         const feedScrollEl = document.getElementById('feed-container');
         if (feedScrollEl) {
@@ -3172,7 +3325,7 @@
                     return `
                         <div class="w-full flex flex-col photo-block-item relative">
                             <div class="w-full relative flex items-center justify-center bg-gray-50 overflow-hidden">
-                                <img src="${url}" alt="목장 사진 ${i+1}" loading="lazy" onclick="openLightbox('${post.id}', ${i})" class="w-full h-auto max-h-[600px] object-cover select-none continuous-photo-item block">
+                                <img src="${url}" alt="목장 사진 ${i+1}" loading="lazy" onclick="handlePhotoDoubleTap('${post.id}', ${i}, event)" class="w-full h-auto max-h-[600px] object-cover select-none continuous-photo-item block">
                                 
                                 <button type="button" onclick="event.stopPropagation(); togglePhotoCaptionEditor('${post.id}', ${i})" 
                                         class="no-export absolute bottom-2 right-2 w-7 h-7 rounded-full bg-black/35 hover:bg-black/50 text-white backdrop-blur-[2px] shadow-sm flex items-center justify-center text-xs active:scale-90 transition-all border border-white/20 z-10" 
