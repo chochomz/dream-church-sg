@@ -1966,6 +1966,48 @@
             document.getElementById('save-confirm-modal').classList.add('hidden');
         };
 
+                // [게시글 지정 위치 부드러운 스크롤 및 하이라이트 펄스 공통 함수]
+        window.scrollToPost = function(postId, highlight = true) {
+            if (!postId) {
+                const feedContainer = document.getElementById('feed-container');
+                if (feedContainer) feedContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
+            }
+
+            const checkAndScroll = (attempts = 0) => {
+                const targetIdx = cachedPosts.findIndex(p => p.id === postId);
+                if (targetIdx !== -1 && targetIdx >= displayedFeedCount) {
+                    displayedFeedCount = Math.min(cachedPosts.length, targetIdx + FEED_BATCH_SIZE);
+                    renderFeedList();
+                }
+
+                const targetCard = document.getElementById(`post-card-${postId}`);
+                const feedContainer = document.getElementById('feed-container');
+
+                if (targetCard && feedContainer) {
+                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    if (highlight) {
+                        targetCard.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2');
+                        void targetCard.offsetWidth; // 리플로우 강제 트리거
+                        targetCard.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-2', 'transition-all', 'duration-500');
+                        setTimeout(() => {
+                            targetCard.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2');
+                        }, 1800);
+                    }
+
+                    if (targetIdx !== -1) {
+                        currentBookmarkTargetIndex = targetIdx;
+                        showBookmark();
+                    }
+                } else if (attempts < 20) {
+                    setTimeout(() => checkAndScroll(attempts + 1), 80);
+                }
+            };
+
+            setTimeout(() => checkAndScroll(0), 100);
+        };
+
         window.executeSubmitPost = async function() {
             closeSaveConfirmModal();
             const postId = document.getElementById('editing-post-id').value;
@@ -2018,6 +2060,7 @@
                     }
                     await updateDoc(getPostDocRef(postId), updatePayload);
                     showNotification("게시글이 수정되었습니다.");
+                    scrollToPost(postId, true);
                 } else {
                     const postPayload = {
                         mokjangName: currentMokjang,
@@ -2042,8 +2085,9 @@
                         postPayload.fileSize = savedFileSize;
                         postPayload.fileTitle = fileTitle || '';
                     }
-                    await addDoc(getPostsCollection(), postPayload);
+                    const newDocRef = await addDoc(getPostsCollection(), postPayload);
                     showNotification("새로운 목장 이야기가 등록되었습니다!");
+                    scrollToPost(newDocRef.id, true);
                 }
                 setDbStatus('connected');
             } catch (err) {
@@ -2338,21 +2382,23 @@
                     bgClass = 'bg-emerald-100/70 rounded-full shadow-2xs';
                 }
 
-                // 각주 형식 피드 개수 폰트 및 컬러 (회색톤, font-mono)
-                const footnoteColor = isToday ? 'text-emerald-200' : 'text-gray-400';
+                // 각주 형식 피드 개수 폰트 및 컬러 (일자에 바짝 붙이고 진한 회색톤 text-gray-700 및 크기 확대 text-[9.5px])
+                const footnoteColor = isToday ? 'text-gray-200' : 'text-gray-700';
                 const cursorClass = hasPosts ? 'cursor-pointer hover:bg-emerald-50/80 active:scale-95' : 'cursor-default';
 
                 html += `
                     <div class="h-7 flex items-center justify-center relative select-none rounded-lg transition-all ${cursorClass}"
                          onclick="navigateToPostByDate(${year}, ${month}, ${d}, event)"
                          title="${hasPosts ? `${month + 1}월 ${d}일 목장 이야기 ${postCount}개 (터치 시 바로 이동)` : `${month + 1}월 ${d}일`}">
-                        <span class="relative w-6 h-6 flex items-center justify-center text-[10.5px] ${textClass} ${bgClass}">
-                            <span>${d}</span>
-                            ${hasPosts ? `
-                                <sup class="absolute -top-1 -right-2 text-[7.5px] font-mono font-bold leading-none select-none tracking-tighter ${footnoteColor}">
-                                    ${postCount}
-                                </sup>
-                            ` : ''}
+                        <span class="relative min-w-[24px] h-6 px-1 flex items-center justify-center text-[10.5px] ${textClass} ${bgClass}">
+                            <span class="inline-flex items-baseline justify-center">
+                                <span>${d}</span>
+                                ${hasPosts ? `
+                                    <sup class="relative ml-[0.5px] -top-1 text-[9.5px] font-mono font-black leading-none select-none tracking-tight ${footnoteColor}">
+                                        ${postCount}
+                                    </sup>
+                                ` : ''}
+                            </span>
                         </span>
                     </div>
                 `;
@@ -2393,27 +2439,9 @@
             // 달력 닫기
             closeBookmarkCalendar();
 
-            // 피드 위치로 부드럽고 쏜살같이 이동
-            setTimeout(() => {
-                const targetCard = document.getElementById(`post-card-${targetPost.id}`);
-                const feedContainer = document.getElementById('feed-container');
-
-                if (targetCard && feedContainer) {
-                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                    // 쏜살 이동 후 해당 카드 산뜻한 하이라이트 펄스 애니메이션
-                    targetCard.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-2', 'transition-all', 'duration-500');
-                    setTimeout(() => {
-                        targetCard.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2');
-                    }, 1800);
-
-                    // 책갈피 동기화
-                    currentBookmarkTargetIndex = targetIndex;
-                    showBookmark();
-
-                    showNotification(`${month + 1}월 ${day}일 이야기로 쏜살같이 이동했습니다 🚀`);
-                }
-            }, 120);
+            // 해당 피드 위치로 쏜살같이 이동 및 산뜻한 하이라이트
+            scrollToPost(targetPost.id, true);
+            showNotification(`${month + 1}월 ${day}일 이야기로 쏜살같이 이동했습니다 🚀`);
         };
 
         window.toggleBookmarkCalendar = function(event) {
@@ -2893,12 +2921,30 @@
 
         document.getElementById('confirm-yes-btn').addEventListener('click', async () => {
             if (!postToDeleteId) return;
+            const targetId = postToDeleteId;
+            const targetIndex = cachedPosts.findIndex(p => p.id === targetId);
+            let neighborId = null;
+            if (targetIndex !== -1) {
+                if (targetIndex + 1 < cachedPosts.length) {
+                    neighborId = cachedPosts[targetIndex + 1].id;
+                } else if (targetIndex - 1 >= 0) {
+                    neighborId = cachedPosts[targetIndex - 1].id;
+                }
+            }
+
             setDbStatus('saving');
             try {
-                await deleteDoc(getPostDocRef(postToDeleteId));
+                await deleteDoc(getPostDocRef(targetId));
                 closeConfirmModal();
                 setDbStatus('connected');
                 showNotification("이야기가 삭제되었습니다.");
+
+                if (neighborId) {
+                    scrollToPost(neighborId, true);
+                } else {
+                    const feedContainer = document.getElementById('feed-container');
+                    if (feedContainer) feedContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                }
             } catch (err) {
                 console.error("삭제 에러:", err);
                 showNotification("삭제 실패: " + err.message);
@@ -4629,18 +4675,8 @@
                 setDbStatus('connected');
                 showNotification("교정된 사진이 피드에 '이대로 저장'되었습니다!");
 
-                // 2. 피드된 메인 화면의 해당 게시글로 부드럽게 이동 및 여백 자동 조정
-                setTimeout(() => {
-                    const targetIdx = cachedPosts.findIndex(p => p.id === targetPostId);
-                    if (targetIdx >= displayedFeedCount) {
-                        displayedFeedCount = targetIdx + 1;
-                        renderFeedList();
-                    }
-                    const targetCard = document.getElementById(`post-card-${targetPostId}`);
-                    if (targetCard) {
-                        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                }, 150);
+                // 2. 피드된 메인 화면의 해당 게시글로 부드럽게 이동 및 하이라이트
+                scrollToPost(targetPostId, true);
             } catch (err) {
                 console.error("사진 교정 저장 실패:", err);
                 showNotification("피드 저장 실패: " + err.message);
