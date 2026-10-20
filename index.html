@@ -455,25 +455,34 @@
                 </div>
             </div>
 
-            <div class="text-center pt-0.5 pb-2 shrink-0">
-                <p id="all-pdf-status-desc" class="text-xs font-semibold text-gray-800">스크롤하여 확인 후 최종 저장해 개인 파일로 보관하세요.</p>
+            <!-- 동적 진행 상태 안내 (생성 중에만 일시 표시) -->
+            <div id="all-pdf-status-container" class="text-center shrink-0 hidden pb-1">
+                <p id="all-pdf-status-desc" class="text-[11px] font-semibold text-emerald-800"></p>
             </div>
 
-            <!-- 승인 전 액션 버튼 영역 (하단 겹침 방지 여백 확보) -->
-            <div id="all-pdf-action-buttons" class="grid grid-cols-2 gap-2 shrink-0 pb-1">
-                <button type="button" onclick="closeAllPdfPreviewModal()" class="py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium active:scale-95 transition-all">취소</button>
-                <button type="button" id="approve-generate-btn" onclick="approveAllPdfGeneration()" class="py-2.5 church-primary text-white rounded-xl text-xs font-semibold shadow-xs active:scale-95 transition-all">최종 저장</button>
-            </div>
-
-            <!-- 승인 후 나타나는 공유 및 파일 저장 버튼 영역 (처음엔 숨김) -->
-            <div id="all-pdf-download-share-buttons" class="hidden grid-cols-2 gap-2 shrink-0 pb-1">
-                <button type="button" onclick="downloadAllPdfFile()" class="py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center space-x-1.5 active:scale-95 transition-all">
+            <!-- 하단 액션 버튼 영역: 1. 내 기기에 저장, 2. 공유, 3. 닫기 -->
+            <div class="flex items-center space-x-1.5 shrink-0 pt-1 pb-0.5 border-t border-gray-100">
+                <!-- 1. 내 기기에 저장 -->
+                <button type="button" id="all-pdf-save-btn" onclick="handleAllPdfSaveClick()" 
+                        class="flex-[1.3] py-2.5 px-2 church-primary hover:opacity-90 text-white rounded-xl text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center justify-center space-x-1" 
+                        title="전체 목장 이야기 PDF를 내 기기에 저장">
                     <i class="fa-solid fa-floppy-disk text-xs"></i>
-                    <span>휴대폰에 저장</span>
+                    <span>내 기기에 저장</span>
                 </button>
-                <button type="button" onclick="shareAllPdfFile()" class="py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-md flex items-center justify-center space-x-1.5 active:scale-95 transition-all">
+
+                <!-- 2. 공유 (공유 기능 바로 열림) -->
+                <button type="button" id="all-pdf-share-btn" onclick="handleAllPdfShareClick()" 
+                        class="flex-1 py-2.5 px-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center justify-center space-x-1" 
+                        title="전체 목장 이야기 PDF 공유하기">
                     <i class="fa-solid fa-share-nodes text-xs"></i>
-                    <span>공유하기</span>
+                    <span>공유</span>
+                </button>
+
+                <!-- 3. 닫기 -->
+                <button type="button" onclick="closeAllPdfPreviewModal()" 
+                        class="py-2.5 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium active:scale-95 transition-all flex items-center justify-center shrink-0" 
+                        title="닫기">
+                    <span>닫기</span>
                 </button>
             </div>
         </div>
@@ -3456,19 +3465,26 @@
             const modal = document.getElementById('all-pdf-preview-modal');
             const continuousContainer = document.getElementById('all-pdf-continuous-container');
             const scrollViewport = document.getElementById('all-pdf-scroll-viewport');
-            const actionBox = document.getElementById('all-pdf-action-buttons');
-            const downloadShareBox = document.getElementById('all-pdf-download-share-buttons');
+            const statusContainer = document.getElementById('all-pdf-status-container');
             const statusDesc = document.getElementById('all-pdf-status-desc');
-            const approveBtn = document.getElementById('approve-generate-btn');
+            const saveBtn = document.getElementById('all-pdf-save-btn');
+            const shareBtn = document.getElementById('all-pdf-share-btn');
 
-            actionBox.classList.remove('hidden');
-            downloadShareBox.classList.add('hidden');
-            downloadShareBox.classList.remove('grid');
-            statusDesc.innerText = "스크롤하여 확인 후 최종 저장해 개인 파일로 보관하세요.";
-            if (approveBtn) {
-                approveBtn.disabled = false;
-                approveBtn.innerHTML = `<span>최종 저장</span>`;
+            if (statusContainer) statusContainer.classList.add('hidden');
+            if (statusDesc) statusDesc.innerText = "";
+
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk text-xs mr-1"></i><span>내 기기에 저장</span>`;
             }
+            if (shareBtn) {
+                shareBtn.disabled = false;
+                shareBtn.innerHTML = `<i class="fa-solid fa-share-nodes text-xs mr-1"></i><span>공유</span>`;
+            }
+
+            // PDF 캐시 초기화
+            generatedAllPdfBlob = null;
+            generatedAllPdfFileName = "";
 
             // 최신순(내림차순) 정렬
             const sortedPosts = [...cachedPosts].sort((a, b) => {
@@ -3600,20 +3616,31 @@
             document.getElementById('all-pdf-preview-modal').classList.add('hidden');
             generatedAllPdfBlob = null;
             generatedAllPdfFileName = "";
+            const statusContainer = document.getElementById('all-pdf-status-container');
+            if (statusContainer) statusContainer.classList.add('hidden');
         };
 
-        // 지능형 세로사진 높이 자동 축소 및 여백 낭비 없는 스마트 PDF 빌더
-        window.approveAllPdfGeneration = async function() {
-            const approveBtn = document.getElementById('approve-generate-btn');
+        // 지능형 세로사진 높이 자동 축소 및 여백 낭비 없는 스마트 PDF 빌더 (공통 생성 함수)
+        window.ensureAllPdfGenerated = async function(callingBtn, progressText = "PDF 생성 중...") {
+            if (generatedAllPdfBlob) return generatedAllPdfBlob;
+
+            const saveBtn = document.getElementById('all-pdf-save-btn');
+            const shareBtn = document.getElementById('all-pdf-share-btn');
+            const statusContainer = document.getElementById('all-pdf-status-container');
             const statusDesc = document.getElementById('all-pdf-status-desc');
             const continuousContainer = document.getElementById('all-pdf-continuous-container');
-            if (!continuousContainer) return;
+            if (!continuousContainer) return null;
 
-            if (approveBtn) {
-                approveBtn.disabled = true;
-                approveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i><span>PDF 생성 중...</span>`;
+            if (saveBtn) saveBtn.disabled = true;
+            if (shareBtn) shareBtn.disabled = true;
+
+            if (callingBtn) {
+                callingBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs mr-1"></i><span>${progressText}</span>`;
             }
-            statusDesc.innerText = "세로 사진과 페이지 여백을 지능적으로 맞추는 중입니다. 잠시만 기다려주세요...";
+            if (statusContainer && statusDesc) {
+                statusContainer.classList.remove('hidden');
+                statusDesc.innerText = "세로 사진과 여백을 맞추며 고품질 PDF를 생성 중입니다...";
+            }
 
             try {
                 const { jsPDF } = window.jspdf;
@@ -3646,19 +3673,14 @@
                     // 현재 페이지의 남은 가용 세로 높이
                     const remainingY = (pageHeight - margin) - currentY;
 
-                    // [스마트 맞춤 1]: 앞 페이지에 유의미한 공간(60mm 이상)이 남아있고, 카드가 세로로 길어 남은 공간을 약간 초과하는 경우
-                    // 무조건 다음 페이지로 넘겨 앞 페이지를 텅 비우지 않고, 현재 페이지 남은 공간에 쏙 들어가도록 비례 축소!
                     if (remainingY >= 60 && imgMmHeight > remainingY && (imgMmHeight - remainingY) <= 85) {
                         imgMmHeight = remainingY - 2;
                         imgMmWidth = imgMmHeight / cardAspect;
-                    } 
-                    // [스마트 맞춤 2]: 남은 공간이 너무 협소하여(60mm 미만) 도저히 넣을 수 없거나 초과 폭이 큰 경우 다음 페이지로 이월
-                    else if (imgMmHeight > remainingY) {
+                    } else if (imgMmHeight > remainingY) {
                         pdf.addPage();
                         pageIndex++;
                         currentY = margin;
 
-                        // 새 페이지에서도 단일 세로사진/카드가 한 페이지 높이를 초과하면 A4 높이에 꼭 맞게 비례 축소
                         if (imgMmHeight > contentHeight) {
                             imgMmHeight = contentHeight;
                             imgMmWidth = imgMmHeight / cardAspect;
@@ -3666,7 +3688,6 @@
                     }
 
                     const pageImgData = canvas.toDataURL('image/jpeg', 0.90);
-                    // 중앙 정렬된 가로 위치 계산
                     const posX = margin + (contentWidth - imgMmWidth) / 2;
                     pdf.addImage(pageImgData, 'JPEG', posX, currentY, imgMmWidth, imgMmHeight);
 
@@ -3676,22 +3697,50 @@
                 generatedAllPdfBlob = pdf.output('blob');
                 generatedAllPdfFileName = `목장이야기전체_${formatFileDate(new Date())}.pdf`;
 
-                const actionBox = document.getElementById('all-pdf-action-buttons');
-                const downloadShareBox = document.getElementById('all-pdf-download-share-buttons');
-
-                actionBox.classList.add('hidden');
-                downloadShareBox.classList.remove('hidden');
-                downloadShareBox.classList.add('grid');
-                statusDesc.innerText = `생성 완료 (총 ${pageIndex}페이지)! 휴대폰에 저장하거나 공유하세요.`;
+                if (statusContainer && statusDesc) {
+                    statusDesc.innerText = `생성 완료 (총 ${pageIndex}페이지)!`;
+                    setTimeout(() => {
+                        if (statusContainer) statusContainer.classList.add('hidden');
+                    }, 2500);
+                }
                 showNotification("여백 낭비 없는 깔끔한 PDF가 완성되었습니다!");
+                return generatedAllPdfBlob;
             } catch (err) {
                 console.error("PDF 생성 에러:", err);
-                statusDesc.innerText = "PDF 생성 중 오류가 발생했습니다. 다시 시도해 주세요.";
-                if (approveBtn) {
-                    approveBtn.disabled = false;
-                    approveBtn.innerHTML = `<span>다시 시도</span>`;
+                if (statusContainer && statusDesc) {
+                    statusDesc.innerText = "PDF 생성 중 오류가 발생했습니다.";
                 }
                 showNotification("PDF 생성 실패: " + err.message);
+                return null;
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = `<i class="fa-solid fa-floppy-disk text-xs mr-1"></i><span>내 기기에 저장</span>`;
+                }
+                if (shareBtn) {
+                    shareBtn.disabled = false;
+                    shareBtn.innerHTML = `<i class="fa-solid fa-share-nodes text-xs mr-1"></i><span>공유</span>`;
+                }
+            }
+        };
+
+        window.approveAllPdfGeneration = window.ensureAllPdfGenerated;
+
+        // 1. [내 기기에 저장] 클릭 시 즉시 PDF 생성 및 다운로드
+        window.handleAllPdfSaveClick = async function() {
+            const saveBtn = document.getElementById('all-pdf-save-btn');
+            const blob = await ensureAllPdfGenerated(saveBtn, "저장 중...");
+            if (blob) {
+                downloadAllPdfFile();
+            }
+        };
+
+        // 2. [공유] 클릭 시 즉시 PDF 생성 및 공유창 호출
+        window.handleAllPdfShareClick = async function() {
+            const shareBtn = document.getElementById('all-pdf-share-btn');
+            const blob = await ensureAllPdfGenerated(shareBtn, "공유 준비 중...");
+            if (blob) {
+                await shareAllPdfFile();
             }
         };
 
@@ -3705,7 +3754,7 @@
             a.click();
             document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 1000);
-            showNotification("전체 목장 이야기가 휴대폰 파일로 저장되었습니다!");
+            showNotification("전체 목장 이야기 PDF가 내 기기에 저장되었습니다!");
         };
 
         window.shareAllPdfFile = async function() {
