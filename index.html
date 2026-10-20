@@ -210,7 +210,7 @@
                 </h1>
             </div>
             <!-- 살살 흔들리는 다정한 서브 환영 문구 (접속자 한분, 두분 실시간 반영) -->
-            <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none" id="header-user-display">목장 가족님 한분 환영합니다</p>
+            <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none" id="header-user-display">목장 가족님 <span class="text-emerald-500 font-semibold">한분</span> 환영합니다</p>
         </div>
 
         <!-- 오른쪽 살아 움직이는 펜 트리거 (피드 카드의 우측 '+' 버튼과 수직 일직선 정렬) & 왼쪽 슬라이드 메뉴 -->
@@ -329,7 +329,7 @@
             <div class="p-2.5 border-t church-border bg-white shrink-0 flex items-center space-x-1.5">
                 <input type="text" id="comments-modal-input" maxlength="200" placeholder="댓글을 입력하세요..." 
                        onkeydown="if(event.key==='Enter') addCommentFromModal()" 
-                       class="flex-1 px-3 py-2 text-xs bg-gray-50 border church-border rounded-lg focus:outline-none focus:ring-1 focus:ring-[#3B5D50]">
+                       class="flex-1 px-3 py-2 text-xs bg-gray-50 border border-dashed border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#3B5D50]">
                 <button onclick="addCommentFromModal()" class="px-3.5 py-2 church-primary text-white text-xs font-semibold rounded-lg whitespace-nowrap shadow-2xs active:scale-95 transition-transform">
                     등록
                 </button>
@@ -516,7 +516,7 @@
                     <i class="fa-solid fa-rotate-right text-sm text-gray-700"></i>
                 </button>
                 <!-- 적용 버튼 (피드 원본에 적용) -->
-                <button type="button" onclick="applyLightboxImageToFeed()" class="h-8 px-2.5 church-primary hover:opacity-90 active:scale-95 text-white rounded-lg flex items-center justify-center space-x-1 shadow-xs transition-all text-xs font-semibold" title="피드 원본에 적용">
+                <button type="button" onclick="cropAndSaveLightboxImage()" class="h-8 px-2.5 church-primary hover:opacity-90 active:scale-95 text-white rounded-lg flex items-center justify-center space-x-1 shadow-xs transition-all text-xs font-semibold" title="피드 원본에 적용">
                     <i class="fa-solid fa-check text-xs"></i>
                     <span>적용</span>
                 </button>
@@ -529,23 +529,36 @@
 
         <!-- [밝기/대비 실시간 조절 패널] -->
         <div id="lightbox-adjust-panel" class="hidden w-full bg-white/95 border-b border-gray-200 px-3 py-2 flex flex-col space-y-1.5 shadow-xs text-xs z-40 rounded-b-xl">
+            <div class="flex items-center justify-center pb-0.5">
+                <button type="button" onclick="resetBrightnessContrast()" class="px-3 py-0.5 bg-gray-100 hover:bg-gray-200 active:scale-95 rounded text-[11px] text-gray-700 font-medium border border-gray-200 shadow-2xs transition-all">초기화</button>
+            </div>
             <div class="flex items-center space-x-2">
-                <span class="w-10 text-[11px] font-semibold text-gray-600 shrink-0">밝기</span>
+                <span class="w-8 text-[11px] font-semibold text-gray-600 shrink-0 text-center">밝기</span>
                 <input type="range" id="lightbox-brightness-slider" min="50" max="150" value="100" oninput="handleBrightnessContrastChange()" class="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#3B5D50]">
                 <span id="lightbox-brightness-val" class="w-8 text-right font-mono text-[10px] text-gray-500 shrink-0">100%</span>
             </div>
             <div class="flex items-center space-x-2">
-                <span class="w-10 text-[11px] font-semibold text-gray-600 shrink-0">대비</span>
+                <span class="w-8 text-[11px] font-semibold text-gray-600 shrink-0 text-center">대비</span>
                 <input type="range" id="lightbox-contrast-slider" min="50" max="150" value="100" oninput="handleBrightnessContrastChange()" class="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#3B5D50]">
                 <span id="lightbox-contrast-val" class="w-8 text-right font-mono text-[10px] text-gray-500 shrink-0">100%</span>
-                <button type="button" onclick="resetBrightnessContrast()" class="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 rounded text-[10px] text-gray-600 shrink-0 border border-gray-200">초기화</button>
             </div>
         </div>
 
-        <div id="lightbox-viewport" class="overflow-hidden w-full flex-1 flex items-center justify-center relative touch-none my-1 bg-white">
+        <div id="lightbox-viewport" class="overflow-hidden w-full flex-1 flex items-center justify-center relative touch-none my-1 bg-white select-none">
             <button type="button" id="lightbox-prev-btn" onclick="slideLightboxPrev(event)" class="absolute left-2 z-40 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-gray-700 shadow-md border border-gray-200 flex items-center justify-center transition-all opacity-80 hover:opacity-100 hidden">
                 <i class="fa-solid fa-chevron-left text-sm"></i>
             </button>
+
+            <!-- 교정 및 사진 프레이밍 박스 (가운데 + 십자선 가이드) -->
+            <div id="lightbox-crop-box" class="absolute pointer-events-none z-30 rounded-xl border-2 border-dashed border-[#3B5D50]/80" style="width: min(84vw, 360px); height: min(58vh, 440px); box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.22);">
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
+                    <i class="fa-solid fa-plus text-[#3B5D50] text-2xl"></i>
+                </div>
+                <div class="absolute -top-1 -left-1 w-3.5 h-3.5 border-t-2 border-l-2 border-[#3B5D50]"></div>
+                <div class="absolute -top-1 -right-1 w-3.5 h-3.5 border-t-2 border-r-2 border-[#3B5D50]"></div>
+                <div class="absolute -bottom-1 -left-1 w-3.5 h-3.5 border-b-2 border-l-2 border-[#3B5D50]"></div>
+                <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 border-b-2 border-r-2 border-[#3B5D50]"></div>
+            </div>
 
             <div id="lightbox-track"></div>
 
@@ -554,17 +567,21 @@
             </button>
         </div>
 
-        <div class="w-full py-1.5 px-3 flex items-center justify-center z-50 bg-white/95 border-t border-gray-200 shadow-xs rounded-xl">
-            <div class="flex items-center space-x-3">
-                <button type="button" onclick="zoomLightbox(-0.25)" class="w-7 h-7 rounded bg-gray-100 hover:bg-gray-200 active:scale-90 text-gray-700 flex items-center justify-center transition-all border border-gray-200" title="축소">
+        <div class="w-full py-1.5 px-3 flex items-center justify-between z-50 bg-white/95 border-t border-gray-200 shadow-xs rounded-xl">
+            <div class="flex items-center space-x-2">
+                <button type="button" onclick="zoomLightbox(-0.2)" class="w-7 h-7 rounded bg-gray-100 hover:bg-gray-200 active:scale-90 text-gray-700 flex items-center justify-center transition-all border border-gray-200" title="축소">
                     <i class="fa-solid fa-minus text-[11px]"></i>
                 </button>
-                <span id="lightbox-zoom-level" class="text-gray-800 font-mono text-xs select-none min-w-[42px] text-center font-bold">100%</span>
-                <button type="button" onclick="zoomLightbox(0.25)" class="w-7 h-7 rounded bg-gray-100 hover:bg-gray-200 active:scale-90 text-gray-700 flex items-center justify-center transition-all border border-gray-200" title="확대">
+                <span id="lightbox-zoom-level" class="text-gray-800 font-mono text-xs select-none min-w-[38px] text-center font-bold">100%</span>
+                <button type="button" onclick="zoomLightbox(0.2)" class="w-7 h-7 rounded bg-gray-100 hover:bg-gray-200 active:scale-90 text-gray-700 flex items-center justify-center transition-all border border-gray-200" title="확대">
                     <i class="fa-solid fa-plus text-[11px]"></i>
                 </button>
                 <button type="button" onclick="resetLightboxZoom()" class="px-2.5 py-1 rounded bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 text-[11px] font-medium transition-all border border-gray-200">초기화</button>
             </div>
+            <button type="button" onclick="cropAndSaveLightboxImage()" class="h-8 px-3.5 church-primary hover:opacity-90 active:scale-95 text-white rounded-lg flex items-center justify-center space-x-1.5 shadow-xs transition-all text-xs font-bold" title="교정박스 영역 그대로 피드에 저장">
+                <i class="fa-solid fa-crop-simple text-xs"></i>
+                <span>이대로 저장</span>
+            </button>
         </div>
     </div>
 
@@ -603,15 +620,17 @@
             const el = document.getElementById('header-user-display');
             if (!el) return;
             const countText = getKoreanCountWord(count);
-            el.innerText = `목장 가족님 ${countText} 입장 환영합니다`;
+            el.innerHTML = `목장 가족님 <span class="text-emerald-500 font-semibold">${countText}</span> 환영합니다`;
         }
 
-        // 라이트박스 상태 관리
+        // 라이트박스 상태 관리 (360도 이동 panX, panY 추가)
         let currentLightboxPostId = null;
         let currentLightboxPhotoIdx = 0;
         let currentLightboxRotationAngle = 0;
         let isLightboxAutoFixed = false;
         let currentLightboxScale = 1.0;
+        let currentLightboxPanX = 0;
+        let currentLightboxPanY = 0;
         let currentLightboxImages = [];
 
         // 단일 내보내기 상태
@@ -1264,6 +1283,8 @@
                         likedUsers: [],
                         thumbsUp: 0,
                         thumbedUsers: [],
+                        prayers: 0,
+                        prayedUsers: [],
                         comments: [],
                         photoCaptions: {},
                         createdAt: new Date()
@@ -2268,6 +2289,8 @@
                     const hasLiked = post.likedUsers && post.likedUsers.includes(currentUser);
                     const thumbsCount = post.thumbsUp || 0;
                     const hasThumbed = post.thumbedUsers && post.thumbedUsers.includes(currentUser);
+                    const prayersCount = post.prayers || 0;
+                    const hasPrayed = post.prayedUsers && post.prayedUsers.includes(currentUser);
 
                     const card = document.createElement('article');
                     card.className = "w-full px-2 pt-0.5 pb-1 box-border";
@@ -2433,14 +2456,19 @@
 
                             <div class="pt-1 flex items-center justify-between no-export">
                                 <div class="flex items-center space-x-3">
-                                    <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-300 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform">
+                                    <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-300 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform" title="좋아요">
                                         <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i>
                                         <span class="text-xs">${post.likes || 0}</span>
                                     </button>
 
-                                    <button onclick="toggleThumbsUp('${post.id}', ${hasThumbed})" class="flex items-center space-x-1 ${hasThumbed ? 'text-sky-300 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform">
+                                    <button onclick="toggleThumbsUp('${post.id}', ${hasThumbed})" class="flex items-center space-x-1 ${hasThumbed ? 'text-sky-300 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform" title="엄지척">
                                         <i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i>
                                         <span class="text-xs">${thumbsCount}</span>
+                                    </button>
+
+                                    <button onclick="togglePray('${post.id}', ${hasPrayed})" class="flex items-center space-x-1 ${hasPrayed ? 'text-amber-400 font-medium' : 'text-gray-400 hover:text-amber-300'} active:scale-90 transition-transform" title="기도손">
+                                        <i class="fa-solid fa-hands-praying text-sm"></i>
+                                        <span class="text-xs">${prayersCount}</span>
                                     </button>
 
                                     <button type="button" onclick="openCommentsModal('${post.id}')" class="flex items-center space-x-1 text-gray-500 hover:text-emerald-700 active:scale-90 transition-transform" title="댓글 열기">
@@ -2487,7 +2515,7 @@
                                     <input type="text" id="inline-comment-input-${post.id}" maxlength="200" placeholder="따뜻한 댓글을 남겨보세요..." 
                                            oninput="handleDraftInput('${post.id}', this.value)"
                                            onkeydown="if(event.key==='Enter') addCommentInline('${post.id}')"
-                                           class="flex-1 px-3 py-1.5 border church-border rounded-lg text-xs focus:outline-none focus:border-emerald-600 bg-gray-50">
+                                           class="flex-1 px-3 py-1.5 border border-dashed border-gray-300 rounded-lg text-xs focus:outline-none focus:border-emerald-600 bg-gray-50">
                                     <button onclick="addCommentInline('${post.id}')" class="px-3 py-1.5 church-primary text-white rounded-lg text-xs font-medium whitespace-nowrap shadow-2xs">
                                         등록
                                     </button>
@@ -2683,6 +2711,22 @@
             }
         };
 
+        window.togglePray = async function(postId, hasPrayed) {
+            if (!db) return;
+            setDbStatus('saving');
+            try {
+                if (hasPrayed) {
+                    await updateDoc(getPostDocRef(postId), { prayers: increment(-1), prayedUsers: arrayRemove(currentUser) });
+                } else {
+                    await updateDoc(getPostDocRef(postId), { prayers: increment(1), prayedUsers: arrayUnion(currentUser) });
+                }
+                setDbStatus('connected');
+            } catch (err) {
+                console.error("기도손 오류:", err);
+                setDbStatus('error');
+            }
+        };
+
         const lightboxModal = document.getElementById('lightbox-modal');
         const lightboxTrack = document.getElementById('lightbox-track');
         const autoFixBtn = document.getElementById('lightbox-autofix-btn');
@@ -2706,6 +2750,8 @@
             currentLightboxRotationAngle = 0;
             isLightboxAutoFixed = false;
             currentLightboxScale = 1.0;
+            currentLightboxPanX = 0;
+            currentLightboxPanY = 0;
 
             currentLightboxImages = getPostImages(postId);
             if (currentLightboxImages.length === 0) return;
@@ -2751,6 +2797,8 @@
             currentLightboxRotationAngle = 0;
             isLightboxAutoFixed = false;
             currentLightboxScale = 1.0;
+            currentLightboxPanX = 0;
+            currentLightboxPanY = 0;
             updateActiveImageTransform();
         }
 
@@ -2764,7 +2812,7 @@
         function updateActiveImageTransform() {
             const activeImg = getActiveImageEl();
             if (activeImg) {
-                activeImg.style.transform = `scale(${currentLightboxScale}) rotate(${currentLightboxRotationAngle}deg)`;
+                activeImg.style.transform = `translate(${currentLightboxPanX}px, ${currentLightboxPanY}px) scale(${currentLightboxScale}) rotate(${currentLightboxRotationAngle}deg)`;
                 activeImg.style.filter = `brightness(${currentLightboxBrightness}%) contrast(${currentLightboxContrast}%)`;
             }
             if (zoomLevelText) {
@@ -2830,6 +2878,8 @@
 
         window.resetLightboxZoom = function() {
             currentLightboxScale = 1.0;
+            currentLightboxPanX = 0;
+            currentLightboxPanY = 0;
             currentLightboxRotationAngle = 0;
             updateActiveImageTransform();
         };
@@ -2850,14 +2900,18 @@
 
         const viewport = document.getElementById('lightbox-viewport');
         if (viewport) {
+            let isPanningPhoto = false;
+            let panTouchStartX = 0;
+            let panTouchStartY = 0;
+
+            // 터치 기반 사진 상하좌우 이동 및 핀치 줌
             viewport.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1 && currentLightboxScale === 1.0) {
-                    isDraggingTrack = true;
-                    dragStartX = e.touches[0].clientX;
-                    dragCurrentX = dragStartX;
-                    lightboxTrack.style.transition = 'none';
+                if (e.touches.length === 1) {
+                    isPanningPhoto = true;
+                    panTouchStartX = e.touches[0].clientX - currentLightboxPanX;
+                    panTouchStartY = e.touches[0].clientY - currentLightboxPanY;
                 } else if (e.touches.length === 2) {
-                    isDraggingTrack = false;
+                    isPanningPhoto = false;
                     lightboxInitialPinchDist = Math.hypot(
                         e.touches[0].clientX - e.touches[1].clientX,
                         e.touches[0].clientY - e.touches[1].clientY
@@ -2867,19 +2921,10 @@
             }, { passive: true });
 
             viewport.addEventListener('touchmove', (e) => {
-                if (isDraggingTrack && e.touches.length === 1 && currentLightboxScale === 1.0) {
-                    dragCurrentX = e.touches[0].clientX;
-                    const diffX = dragCurrentX - dragStartX;
-                    
-                    let appliedDiff = diffX;
-                    if ((currentLightboxPhotoIdx === 0 && diffX > 0) || 
-                        (currentLightboxPhotoIdx === currentLightboxImages.length - 1 && diffX < 0)) {
-                        appliedDiff = diffX * 0.35;
-                    }
-                    
-                    const viewWidth = lightboxModal.clientWidth || window.innerWidth;
-                    const currentOffset = -currentLightboxPhotoIdx * viewWidth + appliedDiff;
-                    lightboxTrack.style.transform = `translateX(${currentOffset}px)`;
+                if (isPanningPhoto && e.touches.length === 1) {
+                    currentLightboxPanX = e.touches[0].clientX - panTouchStartX;
+                    currentLightboxPanY = e.touches[0].clientY - panTouchStartY;
+                    updateActiveImageTransform();
                 } else if (e.touches.length === 2 && lightboxInitialPinchDist > 0) {
                     const currentDist = Math.hypot(
                         e.touches[0].clientX - e.touches[1].clientX,
@@ -2887,29 +2932,41 @@
                     );
                     const factor = currentDist / lightboxInitialPinchDist;
                     let nextScale = lightboxInitialScale * factor;
-                    if (nextScale < 0.8) nextScale = 0.8;
-                    if (nextScale > 2.5) nextScale = 2.5;
+                    if (nextScale < 0.6) nextScale = 0.6;
+                    if (nextScale > 3.5) nextScale = 3.5;
                     currentLightboxScale = parseFloat(nextScale.toFixed(2));
                     updateActiveImageTransform();
                 }
             }, { passive: true });
 
             viewport.addEventListener('touchend', (e) => {
-                if (isDraggingTrack && currentLightboxScale === 1.0) {
-                    isDraggingTrack = false;
-                    const diffX = dragCurrentX - dragStartX;
-                    const threshold = 55;
-
-                    if (diffX < -threshold && currentLightboxPhotoIdx < currentLightboxImages.length - 1) {
-                        moveToLightboxSlide(currentLightboxPhotoIdx + 1, true);
-                    } else if (diffX > threshold && currentLightboxPhotoIdx > 0) {
-                        moveToLightboxSlide(currentLightboxPhotoIdx - 1, true);
-                    } else {
-                        moveToLightboxSlide(currentLightboxPhotoIdx, true);
-                    }
+                if (e.touches.length === 0) {
+                    isPanningPhoto = false;
+                } else if (e.touches.length === 1) {
+                    isPanningPhoto = true;
+                    panTouchStartX = e.touches[0].clientX - currentLightboxPanX;
+                    panTouchStartY = e.touches[0].clientY - currentLightboxPanY;
                 }
                 lightboxInitialPinchDist = 0;
             }, { passive: true });
+
+            // 마우스 드래그 기반 상하좌우 이동 (PC 환경 지원)
+            let isMousePanning = false;
+            viewport.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+                isMousePanning = true;
+                panTouchStartX = e.clientX - currentLightboxPanX;
+                panTouchStartY = e.clientY - currentLightboxPanY;
+            });
+            window.addEventListener('mousemove', (e) => {
+                if (!isMousePanning) return;
+                currentLightboxPanX = e.clientX - panTouchStartX;
+                currentLightboxPanY = e.clientY - panTouchStartY;
+                updateActiveImageTransform();
+            });
+            window.addEventListener('mouseup', () => {
+                isMousePanning = false;
+            });
         }
 
         window.closeLightbox = function() {
@@ -2921,22 +2978,30 @@
             currentLightboxBrightness = 100;
             currentLightboxContrast = 100;
             currentLightboxScale = 1.0;
+            currentLightboxPanX = 0;
+            currentLightboxPanY = 0;
             const panel = document.getElementById('lightbox-adjust-panel');
             if (panel) panel.classList.add('hidden');
             resetBrightnessContrast();
         };
 
-        window.applyLightboxImageToFeed = async function() {
+        // 교정박스 영역 그대로 피드에 저장 ("이대로 저장")
+        window.cropAndSaveLightboxImage = async function() {
             if (!currentLightboxPostId || currentLightboxPhotoIdx === null) return;
             const activeImg = getActiveImageEl();
-            if (!activeImg) return;
+            const cropBoxEl = document.getElementById('lightbox-crop-box');
+            if (!activeImg || !cropBoxEl) return;
 
-            showNotification("사진 수정사항을 피드 원본에 적용하는 중입니다...");
+            showNotification("교정 박스 안의 사진을 피드에 저장 중입니다...");
             setDbStatus('saving');
 
             try {
-                const finalDataUrl = await getProcessedDataUrl(
-                    activeImg.src,
+                const finalDataUrl = await getCroppedDataUrl(
+                    activeImg,
+                    cropBoxEl,
+                    currentLightboxPanX,
+                    currentLightboxPanY,
+                    currentLightboxScale,
                     currentLightboxRotationAngle,
                     currentLightboxBrightness,
                     currentLightboxContrast
@@ -2968,6 +3033,9 @@
 
                 activeImg.src = finalDataUrl;
                 currentLightboxImages[currentLightboxPhotoIdx] = finalDataUrl;
+                currentLightboxPanX = 0;
+                currentLightboxPanY = 0;
+                currentLightboxScale = 1.0;
                 currentLightboxRotationAngle = 0;
                 currentLightboxBrightness = 100;
                 currentLightboxContrast = 100;
@@ -2975,38 +3043,56 @@
                 updateActiveImageTransform();
 
                 setDbStatus('connected');
-                showNotification("수정된 사진이 피드 원본에 정상 적용되었습니다!");
+                showNotification("교정된 사진이 피드에 '이대로 저장'되었습니다!");
             } catch (err) {
-                console.error("사진 피드 적용 실패:", err);
-                showNotification("피드 적용 실패: " + err.message);
+                console.error("사진 교정 저장 실패:", err);
+                showNotification("피드 저장 실패: " + err.message);
                 setDbStatus('error');
             }
         };
 
-        function getProcessedDataUrl(src, angle, brightness = 100, contrast = 100) {
+        window.applyLightboxImageToFeed = window.cropAndSaveLightboxImage;
+
+        function getCroppedDataUrl(activeImg, cropBoxEl, panX, panY, scale, angle, brightness = 100, contrast = 100) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.crossOrigin = "anonymous";
                 img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    if (angle === 90 || angle === 270) {
-                        canvas.width = img.height;
-                        canvas.height = img.width;
-                    } else {
-                        canvas.width = img.width;
-                        canvas.height = img.height;
+                    try {
+                        const boxRect = cropBoxEl.getBoundingClientRect();
+                        const renderedBaseW = activeImg.offsetWidth || 300;
+                        const renderedBaseH = activeImg.offsetHeight || 300;
+
+                        // 원본 해상도 보존 계수 (최대 3배 고해상도 추출)
+                        const pixelRatio = Math.max(1, Math.min(3, (img.naturalWidth || 800) / renderedBaseW));
+                        const canvas = document.createElement('canvas');
+                        const canvasW = Math.round(boxRect.width * pixelRatio);
+                        const canvasH = Math.round(boxRect.height * pixelRatio);
+                        canvas.width = canvasW;
+                        canvas.height = canvasH;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, canvasW, canvasH);
+
+                        ctx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
+
+                        ctx.translate(canvasW / 2, canvasH / 2);
+                        ctx.translate(panX * pixelRatio, panY * pixelRatio);
+                        ctx.rotate((angle * Math.PI) / 180);
+                        ctx.scale(scale, scale);
+
+                        const drawW = renderedBaseW * pixelRatio;
+                        const drawH = renderedBaseH * pixelRatio;
+                        ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+
+                        resolve(canvas.toDataURL('image/jpeg', 0.85));
+                    } catch (err) {
+                        reject(err);
                     }
-
-                    ctx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
-
-                    ctx.translate(canvas.width / 2, canvas.height / 2);
-                    ctx.rotate((angle * Math.PI) / 180);
-                    ctx.drawImage(img, -img.width / 2, -img.height / 2);
-                    resolve(canvas.toDataURL('image/jpeg', 0.85));
                 };
                 img.onerror = reject;
-                img.src = src;
+                img.src = activeImg.src;
             });
         }
 
