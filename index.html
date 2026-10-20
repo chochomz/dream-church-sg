@@ -100,13 +100,13 @@
             transform-origin: bottom right;
         }
 
-        /* [모든 댓글 및 연필글 입력창 통일: 흰 바탕 + 검정 텍스트 + 흰색 점선 테두리(포커스 시에도 실선 없이 점선 유지)] */
+        /* [모든 댓글 및 연필글 입력창 통일: 흰 바탕 + 검정 텍스트 + 점선 테두리(포커스 시에도 실선 없이 점선 유지)] */
         #comments-modal-input,
         input[id^="inline-comment-input-"],
         textarea[id^="caption-input-"] {
             background-color: #ffffff !important;
             color: #111827 !important;
-            border: 1px dashed #ffffff !important;
+            border: 1px dashed #cbd5e1 !important;
             outline: none !important;
             box-shadow: none !important;
             -webkit-appearance: none !important;
@@ -116,7 +116,7 @@
         textarea[id^="caption-input-"]:focus {
             background-color: #ffffff !important;
             color: #111827 !important;
-            border: 1px dashed #ffffff !important;
+            border: 1px dashed #94a3b8 !important;
             outline: none !important;
             box-shadow: none !important;
         }
@@ -1204,6 +1204,72 @@
             }
         };
 
+                // [검색어 형광팬(Highlight) 하이라이트 및 원상 복구]
+        function clearFeedSearchHighlight() {
+            const marks = document.querySelectorAll('#feed-container mark.search-highlight');
+            marks.forEach(mark => {
+                const parent = mark.parentNode;
+                if (parent) {
+                    parent.replaceChild(document.createTextNode(mark.textContent), mark);
+                    parent.normalize();
+                }
+            });
+        }
+
+        function applyFeedSearchHighlight(query) {
+            clearFeedSearchHighlight();
+            if (!query || query.trim().length === 0) return;
+            const cleanQuery = query.trim();
+            const escaped = cleanQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escaped})`, 'gi');
+
+            const feed = document.getElementById('feed-container');
+            if (!feed) return;
+
+            const targetEls = feed.querySelectorAll('.post-content-body, .photo-caption-text span, article h4, #comments-modal-list p, article .text-gray-700');
+            targetEls.forEach(el => {
+                if (el.closest('.no-export') || el.closest('button') || el.closest('input') || el.closest('textarea')) return;
+                highlightTextNodesInElement(el, regex);
+            });
+        }
+
+        function highlightTextNodesInElement(element, regex) {
+            const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+            const textNodes = [];
+            let currentNode;
+            while ((currentNode = walker.nextNode())) {
+                if (currentNode.nodeValue && currentNode.nodeValue.trim().length > 0) {
+                    if (regex.test(currentNode.nodeValue)) {
+                        textNodes.push(currentNode);
+                    }
+                }
+            }
+
+            textNodes.forEach(node => {
+                const text = node.nodeValue;
+                regex.lastIndex = 0;
+                const frag = document.createDocumentFragment();
+                let lastIdx = 0;
+                let match;
+                while ((match = regex.exec(text)) !== null) {
+                    if (match.index > lastIdx) {
+                        frag.appendChild(document.createTextNode(text.substring(lastIdx, match.index)));
+                    }
+                    const mark = document.createElement('mark');
+                    mark.className = 'search-highlight bg-amber-200 text-gray-900 rounded-xs px-0.5 font-bold shadow-2xs';
+                    mark.textContent = match[0];
+                    frag.appendChild(mark);
+                    lastIdx = match.index + match[0].length;
+                }
+                if (lastIdx < text.length) {
+                    frag.appendChild(document.createTextNode(text.substring(lastIdx)));
+                }
+                if (node.parentNode) {
+                    node.parentNode.replaceChild(frag, node);
+                }
+            });
+        }
+
         window.closeHeaderSearch = function(event) {
             if (event) event.stopPropagation();
             const container = document.getElementById('header-search-container');
@@ -1224,6 +1290,7 @@
                 navBtns.classList.add('hidden');
                 navBtns.classList.remove('inline-flex');
             }
+            clearFeedSearchHighlight();
         };
 
         function getPostSearchableText(post) {
@@ -1259,6 +1326,7 @@
                 currentSearchMatchIndex = 0;
                 if (countBadge) countBadge.classList.add('hidden');
                 if (navBtns) navBtns.classList.add('hidden');
+                clearFeedSearchHighlight();
                 return;
             }
 
@@ -1296,9 +1364,11 @@
                     navBtns.classList.remove('hidden');
                     navBtns.classList.add('inline-flex');
                 }
-                // [핵심 요구사항]: 한 글자 이상 입력 즉시 버튼 클릭 없이 배경에서 해당 피드로 자동 스크롤 및 하이라이트!
+                // [핵심 요구사항]: 한 글자 이상 입력 즉시 버튼 클릭 없이 배경에서 해당 피드로 자동 스크롤 및 형광펜 하이라이트!
+                applyFeedSearchHighlight(query);
                 scrollToPost(matched[0], true);
             } else {
+                clearFeedSearchHighlight();
                 currentSearchMatchIndex = 0;
                 if (countBadge) {
                     countBadge.innerText = '0건';
@@ -3532,13 +3602,50 @@
             }
         });
 
+                // [모바일 키보드 가림 방지: 입력창 터치 시 키보드 위로 부드럽게 위치 정렬]
+        function scrollInputAboveKeyboard(el) {
+            if (!el) return;
+            setTimeout(() => {
+                try {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } catch(e) {
+                    el.scrollIntoView();
+                }
+            }, 250);
+        }
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                const active = document.activeElement;
+                if (active && (
+                    active.id === 'comments-modal-input' ||
+                    (active.id && active.id.startsWith('inline-comment-input-')) ||
+                    (active.id && active.id.startsWith('caption-input-'))
+                )) {
+                    setTimeout(() => {
+                        try {
+                            active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        } catch(e) {}
+                    }, 100);
+                }
+            });
+        }
+
+        // [사진 연필 댓글창 자동 높이 확장: 글이 늘어나면 문단에 맞춰 자연스럽게 확장]
+        window.autoExpandCaptionTextarea = function(el) {
+            if (!el) return;
+            el.style.height = 'auto';
+            const newH = Math.max(34, Math.min(260, el.scrollHeight));
+            el.style.height = newH + 'px';
+        };
+
         window.togglePhotoCaptionEditor = function(postId, photoIdx) {
             const editor = document.getElementById(`caption-editor-${postId}-${photoIdx}`);
             if (!editor) return;
             const isHidden = editor.classList.contains('hidden');
 
             if (isHidden) {
-                // [요청 반영: 2열 격자 상태에서 연필글 터치 시 사진을 터치한 것처럼 1열로 자동 확장 전환]
+                // [요청 반영: 2열 격자 상태에서 연필 댓글 터치 시 1열 펼쳐진 상태로 자동 확장 전환]
                 const container = document.getElementById(`post-photos-${postId}`);
                 if (container && container.getAttribute('data-view-mode') !== 'expanded') {
                     setPostPhotoLayout(postId, 'expanded', false);
@@ -3547,13 +3654,18 @@
                 editor.classList.remove('hidden');
                 const input = document.getElementById(`caption-input-${postId}-${photoIdx}`);
                 if (input) {
+                    autoExpandCaptionTextarea(input);
+                    scrollInputAboveKeyboard(input);
                     setTimeout(() => {
                         input.focus();
-                        input.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        autoExpandCaptionTextarea(input);
+                        scrollInputAboveKeyboard(input);
                     }, 120);
                 }
             } else {
                 editor.classList.add('hidden');
+                // [요청 반영: 연필 댓글창을 닫으면 2열 격자 상태로 자동 원위치]
+                setPostPhotoLayout(postId, 'grid', false);
             }
         };
 
@@ -3576,6 +3688,8 @@
                 showNotification("사진 이야기가 저장되었습니다.");
                 const editor = document.getElementById(`caption-editor-${postId}-${photoIdx}`);
                 if (editor) editor.classList.add('hidden');
+                // [요청 반영: 저장 완료 후 2열 격자 상태로 자동 원위치]
+                setPostPhotoLayout(postId, 'grid', false);
             } catch (err) {
                 console.error("사진 이야기 저장 오류:", err);
                 showNotification("저장 실패: " + err.message);
@@ -4638,31 +4752,32 @@
                                      class="w-full ${imgHeightClass} object-cover select-none continuous-photo-item block transition-all duration-200">
                                 
                                 <button type="button" onclick="event.stopPropagation(); togglePhotoCaptionEditor('${post.id}', ${i})" 
-                                        class="no-export absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-black/45 hover:bg-black/60 text-white backdrop-blur-[2px] shadow-sm flex items-center justify-center text-[10px] active:scale-90 transition-all border border-white/20 z-10" 
+                                        class="no-export absolute bottom-1.5 right-1.5 w-5 h-5 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-[2px] shadow-xs flex items-center justify-center active:scale-90 transition-all border border-white/25 z-10" 
                                         title="이 사진 이야기 작성">
-                                    <i class="fa-solid fa-pencil text-[9.5px]"></i>
+                                    <i class="fa-solid fa-pencil text-[8px]"></i>
                                 </button>
                             </div>
 
-                            <div id="caption-display-${post.id}-${i}" class="photo-caption-text ${caption ? '' : 'hidden'} text-left px-2 py-1 bg-white/95 border-t border-gray-100 text-[11px] leading-snug">
-                                <div class="flex items-start space-x-1">
-                                    <i class="fa-regular fa-comment-dots text-emerald-600 text-[10px] mt-0.5 shrink-0"></i>
-                                    <span class="flex-1 whitespace-pre-wrap">${escapeHtml(caption)}</span>
+                            <div id="caption-display-${post.id}-${i}" class="photo-caption-text ${caption ? '' : 'hidden'} text-left px-2.5 py-1.5 bg-white border-t border-gray-100 text-[11.5px] leading-relaxed">
+                                <div class="flex items-start space-x-1.5">
+                                    <i class="fa-regular fa-comment-dots text-emerald-600 text-[10.5px] mt-0.5 shrink-0"></i>
+                                    <span class="flex-1 whitespace-pre-wrap break-words overflow-wrap-anywhere text-gray-800">${escapeHtml(caption)}</span>
                                 </div>
                             </div>
 
-                            <div id="caption-editor-${post.id}-${i}" class="no-export hidden p-1.5 bg-emerald-50/90 border-t border-emerald-100">
-                                <div class="flex justify-between items-center mb-0.5 text-[10px] text-emerald-900 font-semibold px-0.5">
-                                    <span><i class="fa-solid fa-pencil mr-1 text-[9px]"></i>사진 이야기</span>
-                                    <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="text-gray-400 hover:text-gray-600">
+                            <div id="caption-editor-${post.id}-${i}" class="no-export hidden p-2 bg-white border-t border-dashed border-gray-200 rounded-b-xl shadow-2xs">
+                                <div class="flex justify-between items-center mb-1 text-[10.5px] text-gray-700 font-semibold px-0.5">
+                                    <span class="flex items-center space-x-1"><i class="fa-solid fa-pencil text-emerald-700 text-[9px]"></i><span>사진 이야기</span></span>
+                                    <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="w-5 h-5 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100">
                                         <i class="fa-solid fa-xmark text-xs"></i>
                                     </button>
                                 </div>
-                                <textarea id="caption-input-${post.id}-${i}" rows="2" maxlength="150" placeholder="이 사진에 담긴 이야기를 입력해 보세요..." 
-                                          class="w-full p-1.5 bg-white text-gray-900 placeholder-gray-400 rounded-lg border border-dashed border-white text-xs outline-none focus:outline-none focus:border-dashed focus:border-white resize-none shadow-2xs">${escapeHtml(caption)}</textarea>
-                                <div class="flex justify-end mt-1 space-x-1">
-                                    <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="px-2 py-0.5 text-[10.5px] bg-gray-100 hover:bg-gray-200 text-gray-600 rounded">취소</button>
-                                    <button type="button" onclick="savePhotoCaption('${post.id}', ${i})" class="px-2.5 py-0.5 text-[10.5px] church-primary text-white font-medium rounded shadow-2xs">저장</button>
+                                <textarea id="caption-input-${post.id}-${i}" rows="1" maxlength="300" placeholder="이 사진에 담긴 이야기를 입력해 보세요..." 
+                                          oninput="autoExpandCaptionTextarea(this)" 
+                                          class="w-full p-2 bg-white text-gray-900 placeholder-gray-400 rounded-lg border border-dashed border-gray-300 text-xs outline-none focus:outline-none focus:border-dashed focus:border-gray-400 resize-none shadow-2xs leading-relaxed transition-[height] duration-150">${escapeHtml(caption)}</textarea>
+                                <div class="flex justify-end mt-1.5 space-x-1.5">
+                                    <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="px-2.5 py-1 text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg font-medium transition-all">취소</button>
+                                    <button type="button" onclick="savePhotoCaption('${post.id}', ${i})" class="px-3 py-1 text-[11px] church-primary hover:opacity-90 text-white font-semibold rounded-lg shadow-2xs active:scale-95 transition-all">저장</button>
                                 </div>
                             </div>
                         </div>
@@ -4760,9 +4875,9 @@
                                     <span>삭제</span>
                                 </button>
                                 <span class="text-[#A7D1B7] text-[10px]">|</span>
-                                <button type="button" onclick="event.stopPropagation(); openFileManagerModal()" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform" title="전체파일 보관함">
+                                <button type="button" onclick="event.stopPropagation(); openFileManagerModal()" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform" title="파일보관함">
                                     <span>🗂️</span>
-                                    <span>보관함</span>
+                                    <span>파일보관함</span>
                                 </button>
                             </div>
 
@@ -4858,7 +4973,7 @@
             // 좋아요
             const likeBtn = cardEl.querySelector('[data-reaction-btn="like"]');
             const hasLiked = Array.isArray(post.likedUsers) && post.likedUsers.includes(reactionUserId);
-            const likesCount = Math.max(0, parseInt(post.likes) || 0);
+            const likesCount = Math.max(0, Array.isArray(post.likedUsers) ? post.likedUsers.length : (parseInt(post.likes) || 0));
             if (likeBtn) {
                 likeBtn.className = `flex items-center space-x-1 ${hasLiked ? 'text-rose-400 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform`;
                 likeBtn.innerHTML = `<i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i><span class="text-xs">${likesCount}</span>`;
@@ -4867,7 +4982,7 @@
             // 엄지척
             const thumbBtn = cardEl.querySelector('[data-reaction-btn="thumbsUp"]');
             const hasThumbed = Array.isArray(post.thumbedUsers) && post.thumbedUsers.includes(reactionUserId);
-            const thumbsCount = Math.max(0, parseInt(post.thumbsUp) || 0);
+            const thumbsCount = Math.max(0, Array.isArray(post.thumbedUsers) ? post.thumbedUsers.length : (parseInt(post.thumbsUp) || 0));
             if (thumbBtn) {
                 thumbBtn.className = `flex items-center space-x-1 ${hasThumbed ? 'text-sky-400 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform`;
                 thumbBtn.innerHTML = `<i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i><span class="text-xs">${thumbsCount}</span>`;
@@ -4876,7 +4991,7 @@
             // 기도손
             const prayBtn = cardEl.querySelector('[data-reaction-btn="pray"]');
             const hasPrayed = Array.isArray(post.prayedUsers) && post.prayedUsers.includes(reactionUserId);
-            const prayersCount = Math.max(0, parseInt(post.prayers) || 0);
+            const prayersCount = Math.max(0, Array.isArray(post.prayedUsers) ? post.prayedUsers.length : (parseInt(post.prayers) || 0));
             if (prayBtn) {
                 prayBtn.className = `flex items-center space-x-1 ${hasPrayed ? 'text-amber-400 font-medium' : 'text-gray-400 hover:text-amber-300'} active:scale-90 transition-transform`;
                 prayBtn.innerHTML = `<i class="fa-solid fa-hands-praying text-sm inline-block" style="transform: rotate(20deg) translateY(1.5px);"></i><span class="text-xs">${prayersCount}</span>`;
@@ -4961,6 +5076,10 @@
                         feedContainer.scrollTop = previousScroll;
                     }
                 });
+            }
+
+            if (lastSearchQuery && lastSearchQuery.trim().length >= 1) {
+                applyFeedSearchHighlight(lastSearchQuery);
             }
         }
 
@@ -5110,7 +5229,10 @@
             document.getElementById('comments-popup-modal').classList.remove('hidden');
             setTimeout(() => {
                 const input = document.getElementById('comments-modal-input');
-                if (input) input.focus();
+                if (input) {
+                    input.focus();
+                    scrollInputAboveKeyboard(input);
+                }
             }, 100);
         };
 
@@ -5203,6 +5325,7 @@
                     } catch (e) {
                         input.focus();
                     }
+                    scrollInputAboveKeyboard(input);
                     setTimeout(() => { isFocusingInlineComment = false; }, 300);
                 }
             } else {
@@ -5271,31 +5394,25 @@
 
                 if (isCurrentlyLiked) {
                     // 이미 좋아요를 누른 상태에서 다시 터치 시: 취소 처리 (0 이하 마이너스 절대 불가)
-                    nextLikes = Math.max(0, currentLikes - 1);
                     nextLikedUsers = nextLikedUsers.filter(u => u !== reactionUserId);
                 } else {
                     // 새로 좋아요 터치 시: 1회만 카운트 증가
-                    nextLikes = currentLikes + 1;
-                    nextLikedUsers.push(reactionUserId);
+                    if (!nextLikedUsers.includes(reactionUserId)) {
+                        nextLikedUsers.push(reactionUserId);
+                    }
                 }
+                nextLikes = Math.max(0, nextLikedUsers.length);
 
-                // 화면 로컬 즉시 반영 (깜빡임 없음)
+                // 화면 로컬 즉시 반영 (음수 및 깜빡임 원천 차단)
                 post.likes = nextLikes;
                 post.likedUsers = nextLikedUsers;
                 updatePostReactionDOM(postId, post);
 
                 setDbStatus('saving');
-                if (isCurrentlyLiked) {
-                    await updateDoc(getPostDocRef(postId), {
-                        likes: nextLikes,
-                        likedUsers: arrayRemove(reactionUserId)
-                    });
-                } else {
-                    await updateDoc(getPostDocRef(postId), {
-                        likes: nextLikes,
-                        likedUsers: arrayUnion(reactionUserId)
-                    });
-                }
+                await updateDoc(getPostDocRef(postId), {
+                    likes: nextLikes,
+                    likedUsers: nextLikedUsers
+                });
                 setDbStatus('connected');
             } catch (err) {
                 console.error("좋아요 처리 오류:", err);
@@ -5328,29 +5445,23 @@
                 let nextThumbedUsers = [...post.thumbedUsers];
 
                 if (isCurrentlyThumbed) {
-                    nextThumbs = Math.max(0, currentThumbs - 1);
                     nextThumbedUsers = nextThumbedUsers.filter(u => u !== reactionUserId);
                 } else {
-                    nextThumbs = currentThumbs + 1;
-                    nextThumbedUsers.push(reactionUserId);
+                    if (!nextThumbedUsers.includes(reactionUserId)) {
+                        nextThumbedUsers.push(reactionUserId);
+                    }
                 }
+                nextThumbs = Math.max(0, nextThumbedUsers.length);
 
                 post.thumbsUp = nextThumbs;
                 post.thumbedUsers = nextThumbedUsers;
                 updatePostReactionDOM(postId, post);
 
                 setDbStatus('saving');
-                if (isCurrentlyThumbed) {
-                    await updateDoc(getPostDocRef(postId), {
-                        thumbsUp: nextThumbs,
-                        thumbedUsers: arrayRemove(reactionUserId)
-                    });
-                } else {
-                    await updateDoc(getPostDocRef(postId), {
-                        thumbsUp: nextThumbs,
-                        thumbedUsers: arrayUnion(reactionUserId)
-                    });
-                }
+                await updateDoc(getPostDocRef(postId), {
+                    thumbsUp: nextThumbs,
+                    thumbedUsers: nextThumbedUsers
+                });
                 setDbStatus('connected');
             } catch (err) {
                 console.error("엄지척 처리 오류:", err);
@@ -5383,29 +5494,23 @@
                 let nextPrayedUsers = [...post.prayedUsers];
 
                 if (isCurrentlyPrayed) {
-                    nextPrayers = Math.max(0, currentPrayers - 1);
                     nextPrayedUsers = nextPrayedUsers.filter(u => u !== reactionUserId);
                 } else {
-                    nextPrayers = currentPrayers + 1;
-                    nextPrayedUsers.push(reactionUserId);
+                    if (!nextPrayedUsers.includes(reactionUserId)) {
+                        nextPrayedUsers.push(reactionUserId);
+                    }
                 }
+                nextPrayers = Math.max(0, nextPrayedUsers.length);
 
                 post.prayers = nextPrayers;
                 post.prayedUsers = nextPrayedUsers;
                 updatePostReactionDOM(postId, post);
 
                 setDbStatus('saving');
-                if (isCurrentlyPrayed) {
-                    await updateDoc(getPostDocRef(postId), {
-                        prayers: nextPrayers,
-                        prayedUsers: arrayRemove(reactionUserId)
-                    });
-                } else {
-                    await updateDoc(getPostDocRef(postId), {
-                        prayers: nextPrayers,
-                        prayedUsers: arrayUnion(reactionUserId)
-                    });
-                }
+                await updateDoc(getPostDocRef(postId), {
+                    prayers: nextPrayers,
+                    prayedUsers: nextPrayedUsers
+                });
                 setDbStatus('connected');
             } catch (err) {
                 console.error("기도손 처리 오류:", err);
