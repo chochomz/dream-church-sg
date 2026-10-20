@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>우리들의 목장 이야기 - 세종꿈의교회 23목장</title>
-        <!-- Google Fonts for Korean typography (10 Popular Fonts) -->
+        <!-- Google Fonts for Korean & English typography (한글 10종 + 영문 인기 10종) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Dongle:wght@400;700&family=Gamja+Flower&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Jua&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Pen+Script&family=Song+Myung&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Cinzel:wght@500;700&family=Dancing+Script:wght@500;700&family=Do+Hyeon&family=Dongle:wght@400;700&family=Gamja+Flower&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Great+Vibes&family=Jua&family=Montserrat:wght@400;600&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Pen+Script&family=Oswald:wght@500;700&family=Pacifico&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Poppins:wght@400;600&family=Roboto:wght@400;500;700&family=Song+Myung&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,7 +17,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-                /* 폰트 10종 클래스 */
+                /* 폰트 20종 (한글 10종 + 영문 인기 10종) 클래스 */
         .font-pretendard { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif !important; }
         .font-myeongjo { font-family: 'Nanum Myeongjo', serif !important; }
         .font-pen { font-family: 'Nanum Pen Script', cursive !important; font-size: 1.15em; line-height: 1.35 !important; }
@@ -27,7 +27,19 @@
         .font-dongle { font-family: 'Dongle', sans-serif !important; font-size: 1.25em; line-height: 1.25 !important; }
         .font-songmyung { font-family: 'Song Myung', serif !important; }
         .font-dohyeon { font-family: 'Do Hyeon', sans-serif !important; }
-        .font-gamja { font-family: 'Gamja Flower', cursive !important; font-size: 1.1em; !important; }
+        .font-gamja { font-family: 'Gamja Flower', cursive !important; font-size: 1.1em !important; }
+
+        /* 영문 인기 10종 */
+        .font-roboto { font-family: 'Roboto', sans-serif !important; }
+        .font-montserrat { font-family: 'Montserrat', sans-serif !important; }
+        .font-poppins { font-family: 'Poppins', sans-serif !important; }
+        .font-playfair { font-family: 'Playfair Display', serif !important; }
+        .font-cinzel { font-family: 'Cinzel', serif !important; }
+        .font-oswald { font-family: 'Oswald', sans-serif !important; letter-spacing: 0.02em !important; }
+        .font-dancing { font-family: 'Dancing Script', cursive !important; font-size: 1.15em !important; }
+        .font-caveat { font-family: 'Caveat', cursive !important; font-size: 1.2em !important; }
+        .font-pacifico { font-family: 'Pacifico', cursive !important; }
+        .font-greatvibes { font-family: 'Great Vibes', cursive !important; font-size: 1.25em !important; }
 
         /* Pretendard 웹폰트 */
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -131,12 +143,14 @@
             background-color: #ffffff;
             display: flex;
             flex-direction: column;
-            margin-top: 1px;
-            margin-bottom: 1px;
+            margin-top: 3px;
+            margin-bottom: 4px;
             width: 100%;
         }
         .continuous-photo-item {
             width: 100%;
+            height: auto;
+            max-height: 600px;
             display: block;
             cursor: pointer;
             transition: opacity 0.2s;
@@ -376,43 +390,25 @@
 
                 <div class="w-full pt-1" id="post-content-container">
                     <div class="flex justify-between items-center mb-1 text-[11px]">
-                        <span class="font-medium text-gray-700">내용 및 글씨체</span>
-                        <span id="char-count-indicator" class="text-gray-400">0 / 200자</span>
+                        <div class="flex items-center space-x-1.5">
+                            <span class="font-medium text-gray-700">내용 및 글씨체</span>
+                            <!-- 한글 10종 / 영문 10종 전환 스위치 -->
+                            <div class="inline-flex items-center rounded-full bg-gray-100 p-0.5 border border-gray-200 select-none">
+                                <button type="button" id="font-lang-ko-btn" onclick="switchFontLanguage('ko')" class="px-2 py-0.5 text-[10px] rounded-full font-bold transition-all bg-white text-emerald-800 shadow-2xs">
+                                    한글 10종
+                                </button>
+                                <button type="button" id="font-lang-en-btn" onclick="switchFontLanguage('en')" class="px-2 py-0.5 text-[10px] rounded-full font-medium transition-all text-gray-500 hover:text-gray-800">
+                                    영문 10종
+                                </button>
+                            </div>
+                        </div>
+                        <span id="char-count-indicator" class="text-gray-400 font-mono text-[10.5px]">0 / 200자</span>
                     </div>
 
-                    <!-- [글씨체 10종 선택 칩 (스크롤 사이즈 최적화)] -->
+                    <!-- [글씨체 10종 선택 칩 (한글/영문 즉시 전환 & 자유로운 폰트 변경)] -->
                     <div class="w-full overflow-hidden mb-1">
-                        <div class="flex items-center space-x-1 overflow-x-auto py-1 px-0.5 scrollbar-none select-none text-[10.5px]">
-                            <button type="button" onclick="selectPostFont('pretendard')" id="font-btn-pretendard" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-emerald-600 bg-emerald-50 text-emerald-800 shadow-2xs shrink-0 font-pretendard">
-                                기본고딕
-                            </button>
-                            <button type="button" onclick="selectPostFont('myeongjo')" id="font-btn-myeongjo" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-myeongjo">
-                                나눔명조
-                            </button>
-                            <button type="button" onclick="selectPostFont('pen')" id="font-btn-pen" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-pen">
-                                손글씨
-                            </button>
-                            <button type="button" onclick="selectPostFont('gowun-dodum')" id="font-btn-gowun-dodum" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-gowun-dodum">
-                                고운돋움
-                            </button>
-                            <button type="button" onclick="selectPostFont('gowun-batang')" id="font-btn-gowun-batang" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-gowun-batang">
-                                고운바탕
-                            </button>
-                            <button type="button" onclick="selectPostFont('jua')" id="font-btn-jua" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-jua">
-                                주아체
-                            </button>
-                            <button type="button" onclick="selectPostFont('dongle')" id="font-btn-dongle" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-dongle">
-                                동글체
-                            </button>
-                            <button type="button" onclick="selectPostFont('songmyung')" id="font-btn-songmyung" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-songmyung">
-                                송명체
-                            </button>
-                            <button type="button" onclick="selectPostFont('dohyeon')" id="font-btn-dohyeon" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-dohyeon">
-                                도현체
-                            </button>
-                            <button type="button" onclick="selectPostFont('gamja')" id="font-btn-gamja" class="px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-gamja">
-                                감자꽃
-                            </button>
+                        <div id="font-chips-container" class="flex items-center space-x-1 overflow-x-auto py-1 px-0.5 scrollbar-none select-none text-[10.5px]">
+                            <!-- renderFontSelectorUI()를 통해 한글/영문 폰트 버튼이 동적 주입됩니다 -->
                         </div>
                     </div>
 
@@ -653,8 +649,12 @@
 
         <!-- [밝기/대비 실시간 조절 패널] -->
         <div id="lightbox-adjust-panel" class="hidden w-full bg-white/95 border-b border-gray-200 px-3 py-2 flex flex-col space-y-1.5 shadow-xs text-xs z-40 rounded-b-xl">
-            <div class="flex items-center justify-center pb-0.5">
-                <button type="button" onclick="resetBrightnessContrast()" class="px-3 py-0.5 bg-gray-100 hover:bg-gray-200 active:scale-95 rounded text-[11px] text-gray-700 font-medium border border-gray-200 shadow-2xs transition-all">초기화</button>
+            <div class="flex items-center justify-center pb-0.5 space-x-1.5">
+                <button type="button" onclick="autoFixBrightnessContrast()" class="px-2.5 py-0.5 bg-emerald-50 hover:bg-emerald-100 active:scale-95 rounded text-[11px] text-emerald-800 font-semibold border border-emerald-200 shadow-2xs transition-all flex items-center space-x-1" title="화사하고 선명하게 자동 보정">
+                    <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+                    <span>자동 보정</span>
+                </button>
+                <button type="button" onclick="resetBrightnessContrast()" class="px-2.5 py-0.5 bg-gray-100 hover:bg-gray-200 active:scale-95 rounded text-[11px] text-gray-700 font-medium border border-gray-200 shadow-2xs transition-all">초기화</button>
             </div>
             <div class="flex items-center space-x-2">
                 <span class="w-8 text-[11px] font-semibold text-gray-600 shrink-0 text-center">밝기</span>
@@ -1458,23 +1458,40 @@
             document.getElementById('char-count-indicator').innerText = `${textarea.value.length} / 200자`;
         };
 
-                // 폰트 상태 및 5종 지원 관리
+                // [폰트 20종 (한글 10종 + 영문 인기 10종) 상태 및 다국어 지원 관리]
+        let currentFontLang = 'ko'; // 'ko' or 'en'
         let currentSelectedFont = 'pretendard';
-        const AVAILABLE_FONTS = [
-            { id: 'pretendard', name: '기본고딕', className: 'font-pretendard' },
-            { id: 'myeongjo', name: '나눔명조', className: 'font-myeongjo' },
-            { id: 'pen', name: '손글씨', className: 'font-pen' },
-            { id: 'gowun-dodum', name: '고운돋움', className: 'font-gowun-dodum' },
-            { id: 'gowun-batang', name: '고운바탕', className: 'font-gowun-batang' },
-            { id: 'jua', name: '주아체', className: 'font-jua' },
-            { id: 'dongle', name: '동글체', className: 'font-dongle' },
-            { id: 'songmyung', name: '송명체', className: 'font-songmyung' },
-            { id: 'dohyeon', name: '도현체', className: 'font-dohyeon' },
-            { id: 'gamja', name: '감자꽃', className: 'font-gamja' }
+
+        const AVAILABLE_FONTS_KO = [
+            { id: 'pretendard', name: '기본고딕', className: 'font-pretendard', fontFamily: "'Pretendard', sans-serif" },
+            { id: 'myeongjo', name: '나눔명조', className: 'font-myeongjo', fontFamily: "'Nanum Myeongjo', serif" },
+            { id: 'pen', name: '손글씨', className: 'font-pen', fontFamily: "'Nanum Pen Script', cursive" },
+            { id: 'gowun-dodum', name: '고운돋움', className: 'font-gowun-dodum', fontFamily: "'Gowun Dodum', sans-serif" },
+            { id: 'gowun-batang', name: '고운바탕', className: 'font-gowun-batang', fontFamily: "'Gowun Batang', serif" },
+            { id: 'jua', name: '주아체', className: 'font-jua', fontFamily: "'Jua', sans-serif" },
+            { id: 'dongle', name: '동글체', className: 'font-dongle', fontFamily: "'Dongle', sans-serif" },
+            { id: 'songmyung', name: '송명체', className: 'font-songmyung', fontFamily: "'Song Myung', serif" },
+            { id: 'dohyeon', name: '도현체', className: 'font-dohyeon', fontFamily: "'Do Hyeon', sans-serif" },
+            { id: 'gamja', name: '감자꽃', className: 'font-gamja', fontFamily: "'Gamja Flower', cursive" }
         ];
 
+        const AVAILABLE_FONTS_EN = [
+            { id: 'roboto', name: 'Roboto', className: 'font-roboto', fontFamily: "'Roboto', sans-serif" },
+            { id: 'montserrat', name: 'Montserrat', className: 'font-montserrat', fontFamily: "'Montserrat', sans-serif" },
+            { id: 'poppins', name: 'Poppins', className: 'font-poppins', fontFamily: "'Poppins', sans-serif" },
+            { id: 'playfair', name: 'Playfair', className: 'font-playfair', fontFamily: "'Playfair Display', serif" },
+            { id: 'cinzel', name: 'Cinzel', className: 'font-cinzel', fontFamily: "'Cinzel', serif" },
+            { id: 'oswald', name: 'Oswald', className: 'font-oswald', fontFamily: "'Oswald', sans-serif" },
+            { id: 'dancing', name: 'Dancing', className: 'font-dancing', fontFamily: "'Dancing Script', cursive" },
+            { id: 'caveat', name: 'Caveat', className: 'font-caveat', fontFamily: "'Caveat', cursive" },
+            { id: 'pacifico', name: 'Pacifico', className: 'font-pacifico', fontFamily: "'Pacifico', cursive" },
+            { id: 'greatvibes', name: 'Great Vibes', className: 'font-greatvibes', fontFamily: "'Great Vibes', cursive" }
+        ];
+
+        const ALL_FONTS = [...AVAILABLE_FONTS_KO, ...AVAILABLE_FONTS_EN];
+
         function getFontClass(fontId) {
-            const found = AVAILABLE_FONTS.find(f => f.id === fontId);
+            const found = ALL_FONTS.find(f => f.id === fontId);
             if (found) return found.className;
             if (fontId === 'gowun') return 'font-gowun-dodum';
             if (fontId === 'nanum-myeongjo') return 'font-myeongjo';
@@ -1487,28 +1504,66 @@
             if (ind) ind.innerText = `${input.value.length} / 15자`;
         };
 
+        window.switchFontLanguage = function(lang) {
+            currentFontLang = lang;
+            const koBtn = document.getElementById('font-lang-ko-btn');
+            const enBtn = document.getElementById('font-lang-en-btn');
+            if (koBtn && enBtn) {
+                if (lang === 'ko') {
+                    koBtn.className = "px-2 py-0.5 text-[10px] rounded-full font-bold transition-all bg-white text-emerald-800 shadow-2xs";
+                    enBtn.className = "px-2 py-0.5 text-[10px] rounded-full font-medium transition-all text-gray-500 hover:text-gray-800";
+                } else {
+                    enBtn.className = "px-2 py-0.5 text-[10px] rounded-full font-bold transition-all bg-white text-emerald-800 shadow-2xs";
+                    koBtn.className = "px-2 py-0.5 text-[10px] rounded-full font-medium transition-all text-gray-500 hover:text-gray-800";
+                }
+            }
+            renderFontSelectorUI();
+        };
+
         window.selectPostFont = function(fontId) {
             currentSelectedFont = fontId || 'pretendard';
+
+            // 영문 폰트 선택 시 영문 탭, 한글 폰트 선택 시 한글 탭 자동 동기화
+            if (AVAILABLE_FONTS_EN.some(f => f.id === currentSelectedFont)) {
+                currentFontLang = 'en';
+            } else {
+                currentFontLang = 'ko';
+            }
+            const koBtn = document.getElementById('font-lang-ko-btn');
+            const enBtn = document.getElementById('font-lang-en-btn');
+            if (koBtn && enBtn) {
+                if (currentFontLang === 'ko') {
+                    koBtn.className = "px-2 py-0.5 text-[10px] rounded-full font-bold transition-all bg-white text-emerald-800 shadow-2xs";
+                    enBtn.className = "px-2 py-0.5 text-[10px] rounded-full font-medium transition-all text-gray-500 hover:text-gray-800";
+                } else {
+                    enBtn.className = "px-2 py-0.5 text-[10px] rounded-full font-bold transition-all bg-white text-emerald-800 shadow-2xs";
+                    koBtn.className = "px-2 py-0.5 text-[10px] rounded-full font-medium transition-all text-gray-500 hover:text-gray-800";
+                }
+            }
+
             const textarea = document.getElementById('post-content');
             if (textarea) {
-                AVAILABLE_FONTS.forEach(f => textarea.classList.remove(f.className));
-                const target = AVAILABLE_FONTS.find(f => f.id === currentSelectedFont) || AVAILABLE_FONTS[0];
+                ALL_FONTS.forEach(f => textarea.classList.remove(f.className));
+                const target = ALL_FONTS.find(f => f.id === currentSelectedFont) || ALL_FONTS[0];
                 textarea.classList.add(target.className);
+                // 인라인 스타일로도 즉각 적용하여 브라우저 상관없이 100% 실시간 변경
+                textarea.style.fontFamily = target.fontFamily;
             }
             renderFontSelectorUI();
         };
 
         function renderFontSelectorUI() {
-            AVAILABLE_FONTS.forEach(f => {
-                const btn = document.getElementById(`font-btn-${f.id}`);
-                if (btn) {
-                    if (f.id === currentSelectedFont) {
-                        btn.className = `px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-emerald-600 bg-emerald-50 text-emerald-800 shadow-2xs shrink-0 ${f.className}`;
-                    } else {
-                        btn.className = `px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 ${f.className}`;
-                    }
-                }
-            });
+            const container = document.getElementById('font-chips-container');
+            if (!container) return;
+
+            const list = currentFontLang === 'en' ? AVAILABLE_FONTS_EN : AVAILABLE_FONTS_KO;
+            container.innerHTML = list.map(f => {
+                const isSelected = f.id === currentSelectedFont;
+                const btnClass = isSelected
+                    ? `px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-emerald-600 bg-emerald-50 text-emerald-800 shadow-2xs shrink-0 ${f.className}`
+                    : `px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 ${f.className}`;
+                return `<button type="button" onclick="selectPostFont('${f.id}')" id="font-btn-${f.id}" class="${btnClass}">${f.name}</button>`;
+            }).join('');
         }
 
         let currentAttachedFile = null;
@@ -2733,7 +2788,7 @@
                             return `
                                 <div class="w-full flex flex-col photo-block-item relative">
                                     <div class="w-full relative flex items-center justify-center bg-gray-50 overflow-hidden">
-                                        <img src="${url}" alt="목장 사진 ${i+1}" onclick="openLightbox('${post.id}', ${i})" class="w-full max-h-[520px] object-cover select-none continuous-photo-item block">
+                                        <img src="${url}" alt="목장 사진 ${i+1}" onclick="openLightbox('${post.id}', ${i})" class="w-full h-auto max-h-[600px] object-cover select-none continuous-photo-item block">
                                         
                                         <button type="button" onclick="event.stopPropagation(); togglePhotoCaptionEditor('${post.id}', ${i})" 
                                                 class="no-export absolute bottom-2 right-2 w-7 h-7 rounded-full bg-black/35 hover:bg-black/50 text-white backdrop-blur-[2px] shadow-sm flex items-center justify-center text-xs active:scale-90 transition-all border border-white/20 z-10" 
@@ -3174,6 +3229,7 @@
             currentLightboxScale = 1.0;
             currentLightboxPanX = 0;
             currentLightboxPanY = 0;
+            resetBrightnessContrast();
 
             currentLightboxImages = getPostImages(postId);
             if (currentLightboxImages.length === 0) return;
@@ -3269,6 +3325,21 @@
             if (cVal) cVal.innerText = `${currentLightboxContrast}%`;
 
             updateActiveImageTransform();
+        };
+
+        window.autoFixBrightnessContrast = function() {
+            currentLightboxBrightness = 112;
+            currentLightboxContrast = 115;
+            const bSlider = document.getElementById('lightbox-brightness-slider');
+            const cSlider = document.getElementById('lightbox-contrast-slider');
+            const bVal = document.getElementById('lightbox-brightness-val');
+            const cVal = document.getElementById('lightbox-contrast-val');
+            if (bSlider) bSlider.value = 112;
+            if (cSlider) cSlider.value = 115;
+            if (bVal) bVal.innerText = '112%';
+            if (cVal) cVal.innerText = '115%';
+            updateActiveImageTransform();
+            showNotification("자동 보정(밝기 112%, 대비 115%)이 적용되었습니다.");
         };
 
         window.resetBrightnessContrast = function() {
@@ -3407,9 +3478,10 @@
             resetBrightnessContrast();
         };
 
-        // 교정박스 영역 그대로 피드에 저장 ("이대로 저장")
+        // 교정박스 영역 그대로 피드에 저장 ("이대로 저장" 및 편집창 닫기 + 피드 이동)
         window.cropAndSaveLightboxImage = async function() {
             if (!currentLightboxPostId || currentLightboxPhotoIdx === null) return;
+            const targetPostId = currentLightboxPostId;
             const activeImg = getActiveImageEl();
             const cropBoxEl = document.getElementById('lightbox-crop-box');
             if (!activeImg || !cropBoxEl) return;
@@ -3429,7 +3501,7 @@
                     currentLightboxContrast
                 );
 
-                const post = cachedPosts.find(p => p.id === currentLightboxPostId);
+                const post = cachedPosts.find(p => p.id === targetPostId);
                 if (!post) throw new Error("게시글을 찾을 수 없습니다.");
 
                 let updatedImages = [];
@@ -3451,21 +3523,21 @@
                     updatedAt: new Date()
                 };
 
-                await updateDoc(getPostDocRef(currentLightboxPostId), updatePayload);
+                await updateDoc(getPostDocRef(targetPostId), updatePayload);
 
-                activeImg.src = finalDataUrl;
-                currentLightboxImages[currentLightboxPhotoIdx] = finalDataUrl;
-                currentLightboxPanX = 0;
-                currentLightboxPanY = 0;
-                currentLightboxScale = 1.0;
-                currentLightboxRotationAngle = 0;
-                currentLightboxBrightness = 100;
-                currentLightboxContrast = 100;
-                resetBrightnessContrast();
-                updateActiveImageTransform();
+                // 1. 편집창 즉시 닫기
+                closeLightbox();
 
                 setDbStatus('connected');
                 showNotification("교정된 사진이 피드에 '이대로 저장'되었습니다!");
+
+                // 2. 피드된 메인 화면의 해당 게시글로 부드럽게 이동 및 여백 자동 조정
+                setTimeout(() => {
+                    const targetCard = document.getElementById(`post-card-${targetPostId}`);
+                    if (targetCard) {
+                        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 150);
             } catch (err) {
                 console.error("사진 교정 저장 실패:", err);
                 showNotification("피드 저장 실패: " + err.message);
@@ -3474,6 +3546,31 @@
         };
 
         window.applyLightboxImageToFeed = window.cropAndSaveLightboxImage;
+
+        // 캔버스 픽셀 직접 조작: 브라우저/모바일/사파리 ctx.filter 미지원 무시 버그 완벽 해결
+        function applyBrightnessContrastPixels(ctx, width, height, brightness, contrast) {
+            if (brightness === 100 && contrast === 100) return;
+            try {
+                const imgData = ctx.getImageData(0, 0, width, height);
+                const d = imgData.data;
+                const b = brightness / 100;
+                const c = contrast / 100;
+                for (let i = 0; i < d.length; i += 4) {
+                    // 밝기(Brightness) 계수 적용
+                    const r = d[i] * b;
+                    const g = d[i + 1] * b;
+                    const bl = d[i + 2] * b;
+
+                    // 대비(Contrast) 중앙값(127.5) 기준 보정
+                    d[i]     = Math.min(255, Math.max(0, (r - 127.5) * c + 127.5));
+                    d[i + 1] = Math.min(255, Math.max(0, (g - 127.5) * c + 127.5));
+                    d[i + 2] = Math.min(255, Math.max(0, (bl - 127.5) * c + 127.5));
+                }
+                ctx.putImageData(imgData, 0, 0);
+            } catch (err) {
+                console.warn("픽셀 밝기/대비 직접 보정 오류:", err);
+            }
+        }
 
         function getCroppedDataUrl(activeImg, cropBoxEl, panX, panY, scale, angle, brightness = 100, contrast = 100) {
             return new Promise((resolve, reject) => {
@@ -3493,12 +3590,11 @@
                         canvas.width = canvasW;
                         canvas.height = canvasH;
 
-                        const ctx = canvas.getContext('2d');
+                        const ctx = canvas.getContext('2d', { willReadFrequently: true });
                         ctx.fillStyle = '#ffffff';
                         ctx.fillRect(0, 0, canvasW, canvasH);
 
-                        ctx.filter = `brightness(${brightness}%) contrast(${contrast}%)`;
-
+                        ctx.save();
                         ctx.translate(canvasW / 2, canvasH / 2);
                         ctx.translate(panX * pixelRatio, panY * pixelRatio);
                         ctx.rotate((angle * Math.PI) / 180);
@@ -3507,6 +3603,10 @@
                         const drawW = renderedBaseW * pixelRatio;
                         const drawH = renderedBaseH * pixelRatio;
                         ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+                        ctx.restore();
+
+                        // 직접 픽셀 조작으로 밝기 및 대비 영구 적용 (모바일/사파리/웹뷰 100% 호환)
+                        applyBrightnessContrastPixels(ctx, canvasW, canvasH, brightness, contrast);
 
                         resolve(canvas.toDataURL('image/jpeg', 0.85));
                     } catch (err) {
