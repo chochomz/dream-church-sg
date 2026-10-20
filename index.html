@@ -1489,22 +1489,184 @@
             }
         };
 
+        // [내보내기 복제 DOM 겹침 방지 레이아웃 정돈]
+        function fixClonedCardLayout(clonedDoc, postId) {
+            const target = clonedDoc.getElementById(`post-card-${postId}`);
+            if (!target) return;
+
+            target.style.display = 'block';
+            target.style.width = '100%';
+            target.style.boxSizing = 'border-box';
+            target.style.position = 'relative';
+
+            const body = target.querySelector('.post-content-body');
+            if (body) {
+                body.style.display = 'block';
+                body.style.position = 'relative';
+                body.style.width = '100%';
+                body.style.textAlign = 'left';
+                body.style.textIndent = '0px';
+                body.style.direction = 'ltr';
+                body.style.margin = '4px 0 10px 0';
+                body.style.padding = '0 2px';
+                body.style.lineHeight = '1.5';
+                body.style.wordBreak = 'break-word';
+                body.style.overflowWrap = 'anywhere';
+                body.style.clear = 'both';
+            }
+
+            const photoContainer = target.querySelector('.continuous-photo-container');
+            if (photoContainer) {
+                photoContainer.style.display = 'block';
+                photoContainer.style.position = 'relative';
+                photoContainer.style.width = '100%';
+                photoContainer.style.marginTop = '10px';
+                photoContainer.style.marginBottom = '10px';
+                photoContainer.style.clear = 'both';
+            }
+
+            const photoItems = target.querySelectorAll('.photo-block-item');
+            photoItems.forEach(item => {
+                item.style.display = 'block';
+                item.style.position = 'relative';
+                item.style.width = '100%';
+                item.style.marginBottom = '8px';
+                item.style.clear = 'both';
+            });
+
+            target.querySelectorAll('.no-export').forEach(el => el.style.display = 'none');
+        }
+
+        // 세로 사이즈가 큰 경우 가로형(Landscape) 2분할 레이아웃 적합 여부 판단
+        function shouldPostUseLandscapePdf(post) {
+            const hasPhotos = (Array.isArray(post.images) && post.images.length > 0) || (post.imageUrl && post.imageUrl.trim().length > 0);
+            if (!hasPhotos) return false;
+            
+            const hasText = post.content && post.content.trim().length > 0;
+            const hasComments = post.comments && post.comments.length > 0;
+            const photoCount = Array.isArray(post.images) ? post.images.length : (post.imageUrl ? 1 : 0);
+
+            // 사진이 세로로 길거나 사진+글/댓글이 함께 있어 세로 A4에서 잘릴 위험이 있는 경우 가로 2분할 전환
+            if (photoCount > 1 || (photoCount >= 1 && (hasText || hasComments))) {
+                return true;
+            }
+            return false;
+        }
+
+        // 가로형(Landscape) 2분할 카드 렌더링 (왼쪽: 사진, 오른쪽: 글/댓글)
+        function createLandscapeCardElement(post) {
+            const wrapper = document.createElement('div');
+            wrapper.id = `landscape-export-${post.id}`;
+            wrapper.className = "w-[880px] bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-row space-x-5 box-border text-left";
+            wrapper.style.position = 'fixed';
+            wrapper.style.left = '-9999px';
+            wrapper.style.top = '-9999px';
+            wrapper.style.zIndex = '-100';
+
+            let imgArray = [];
+            if (Array.isArray(post.images) && post.images.length > 0) {
+                imgArray = post.images.filter(img => typeof img === 'string' && img.trim().length > 0);
+            } else if (post.imageUrl && typeof post.imageUrl === 'string' && post.imageUrl.trim().length > 0) {
+                imgArray = [post.imageUrl];
+            }
+
+            const photoCaptions = post.photoCaptions || {};
+            const photosHtml = imgArray.map((url, i) => {
+                const caption = photoCaptions[i] || '';
+                return `
+                    <div class="w-full flex flex-col mb-2 last:mb-0 border border-gray-100 rounded-xl overflow-hidden bg-gray-50">
+                        <img src="${url}" alt="사진 ${i+1}" class="w-full max-h-[460px] object-contain block mx-auto">
+                        ${caption ? `<div class="p-2 bg-gray-50 text-[11px] text-gray-700 leading-snug border-t border-gray-100"><i class="fa-regular fa-comment-dots text-emerald-600 mr-1"></i>${escapeHtml(caption)}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            const postComments = post.comments || [];
+            let commentsHtml = '';
+            if (postComments.length > 0) {
+                commentsHtml = `
+                    <div class="mt-3 pt-2 border-t border-gray-100 bg-gray-50/80 rounded-xl p-2.5 text-left">
+                        <div class="text-[11px] font-bold text-emerald-800 mb-1.5 flex items-center space-x-1">
+                            <i class="fa-regular fa-comment-dots text-xs"></i>
+                            <span>목장 댓글 (${postComments.length})</span>
+                        </div>
+                        <div class="space-y-1.5 max-h-[220px] overflow-hidden">
+                            ${postComments.map(c => `
+                                <div class="text-[11px] leading-tight pb-1 border-b border-gray-200/50 last:border-0 last:pb-0">
+                                    <span class="font-bold text-gray-800">${escapeHtml(c.author)}:</span>
+                                    <span class="text-gray-700 ml-0.5">${escapeHtml(c.text)}</span>
+                                    <span class="text-[9px] text-gray-400 ml-1">(${c.time || ''})</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const attachedFileHtml = post.fileName ? `
+                <div class="mt-2 p-2 bg-emerald-50/70 rounded-xl border border-emerald-100 flex items-center justify-between text-xs">
+                    <div class="flex items-center space-x-2 truncate">
+                        <span class="text-sm shrink-0">📁</span>
+                        <span class="font-bold text-emerald-900 truncate">${escapeHtml(post.fileName)}</span>
+                        <span class="text-[10px] text-gray-500 shrink-0">(${formatFileSize(post.fileSize)})</span>
+                    </div>
+                </div>
+            ` : '';
+
+            wrapper.innerHTML = `
+                <!-- 왼쪽: 사진 영역 (가로 규격에 맞춰 비율 유지) -->
+                <div class="w-[48%] flex flex-col justify-center shrink-0">
+                    <div class="w-full flex flex-col rounded-xl overflow-hidden border border-gray-100 p-1 bg-gray-50/50">
+                        ${photosHtml}
+                    </div>
+                </div>
+
+                <!-- 오른쪽: 글과 댓글 영역 -->
+                <div class="w-[52%] flex flex-col justify-start text-left shrink-0">
+                    <div class="flex items-center justify-between pb-2 mb-2 border-b border-gray-100">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-7 h-7 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                                ${escapeHtml((post.author || 'M').charAt(0))}
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-gray-800 leading-tight">${escapeHtml(post.author || '목장가족')}</h4>
+                                <p class="text-[9.5px] text-gray-400 leading-none mt-0.5">${formatDate(post.createdAt)}</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] text-emerald-800 font-semibold px-2 py-0.5 bg-emerald-50 rounded-full border border-emerald-100">${currentMokjang}</span>
+                    </div>
+
+                    ${post.content ? `<div class="text-[14px] text-gray-800 leading-relaxed whitespace-pre-wrap mb-2 text-left">${escapeHtml(post.content.trim())}</div>` : ''}
+                    ${attachedFileHtml}
+                    ${commentsHtml}
+                </div>
+            `;
+
+            document.body.appendChild(wrapper);
+            return wrapper;
+        }
+
         window.requestExportPreview = async function(postId, type) {
             closeAllExportMenus();
             pendingExportPostId = postId;
             pendingExportType = type;
 
+            const post = cachedPosts.find(p => p.id === postId);
             const cardEl = document.getElementById(`post-card-${postId}`);
-            if (!cardEl) return;
+            if (!cardEl || !post) return;
 
             const modal = document.getElementById('export-preview-modal');
             const titleEl = document.getElementById('export-modal-title');
             const previewContainer = document.getElementById('export-preview-content');
 
+            const useLandscape = (type === 'pdf') && shouldPostUseLandscapePdf(post);
+
             if (type === 'image') {
                 titleEl.innerHTML = `<i class="fa-regular fa-image church-primary-text mr-1.5"></i>이미지 저장 미리보기`;
             } else if (type === 'pdf') {
-                titleEl.innerHTML = `<i class="fa-regular fa-file-pdf church-primary-text mr-1.5"></i>PDF 저장 미리보기`;
+                titleEl.innerHTML = useLandscape 
+                    ? `<i class="fa-regular fa-file-pdf church-primary-text mr-1.5"></i>PDF 가로형(Landscape) 미리보기`
+                    : `<i class="fa-regular fa-file-pdf church-primary-text mr-1.5"></i>PDF 저장 미리보기`;
             } else {
                 titleEl.innerHTML = `<i class="fa-solid fa-print church-primary-text mr-1.5"></i>인쇄 미리보기`;
             }
@@ -1517,27 +1679,24 @@
             `;
             modal.classList.remove('hidden');
 
-            const noExportEls = cardEl.querySelectorAll('.no-export');
+            let targetEl = cardEl;
+            let tempWrapper = null;
+            if (useLandscape) {
+                tempWrapper = createLandscapeCardElement(post);
+                targetEl = tempWrapper;
+            }
+
+            const noExportEls = targetEl.querySelectorAll('.no-export');
             noExportEls.forEach(el => el.style.display = 'none');
 
             try {
-                const canvas = await html2canvas(cardEl, {
+                const canvas = await html2canvas(targetEl, {
                     scale: 1.5,
                     useCORS: true,
                     backgroundColor: '#ffffff',
                     onclone: (clonedDoc) => {
-                        const target = clonedDoc.getElementById(`post-card-${postId}`);
-                        if (target) {
-                            const body = target.querySelector('.post-content-body');
-                            if (body) {
-                                body.style.textAlign = 'left';
-                                body.style.textIndent = '0px';
-                                body.style.direction = 'ltr';
-                                body.style.marginLeft = '0px';
-                                body.style.paddingLeft = '2px';
-                                body.style.width = '100%';
-                                body.style.display = 'block';
-                            }
+                        if (!useLandscape) {
+                            fixClonedCardLayout(clonedDoc, postId);
                         }
                     }
                 });
@@ -1565,6 +1724,7 @@
                 previewContainer.innerHTML = `<p class="text-xs text-rose-500 py-6">미리보기를 불러오지 못했습니다.</p>`;
             } finally {
                 noExportEls.forEach(el => el.style.display = '');
+                if (tempWrapper) tempWrapper.remove();
             }
         };
 
@@ -1577,7 +1737,7 @@
         async function executeExportImage(postId) {
             const cardEl = document.getElementById(`post-card-${postId}`);
             if (!cardEl) return;
-            showNotification("게시글과 댓글 이미지를 생성 중입니다...");
+            showNotification("게시글 이미지를 생성 중입니다...");
 
             const noExportEls = cardEl.querySelectorAll('.no-export');
             noExportEls.forEach(el => el.style.display = 'none');
@@ -1586,14 +1746,43 @@
                 const canvas = await html2canvas(cardEl, {
                     scale: 2,
                     useCORS: true,
-                    backgroundColor: '#ffffff'
+                    backgroundColor: '#ffffff',
+                    onclone: (clonedDoc) => {
+                        fixClonedCardLayout(clonedDoc, postId);
+                    }
                 });
 
-                const link = document.createElement('a');
-                link.download = `목장이야기_${postId.substring(0, 6)}_${formatFileDate(new Date())}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                showNotification("게시글 이미지가 저장되었습니다!");
+                const fileName = `목장이야기_${postId.substring(0, 6)}_${formatFileDate(new Date())}.png`;
+
+                // 모바일 갤러리(사진첩) 저장 지원: Web Share API 우선 시도
+                canvas.toBlob(async (blob) => {
+                    if (!blob) {
+                        downloadCanvasFallback(canvas, fileName);
+                        return;
+                    }
+
+                    const file = new File([blob], fileName, { type: 'image/png' });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        try {
+                            await navigator.share({
+                                files: [file],
+                                title: '목장 이야기 사진',
+                                text: '목장 이야기 이미지 (갤러리에 저장 가능)'
+                            });
+                            showNotification("공유창에서 '이미지 저장'을 누르면 갤러리에 저장됩니다.");
+                            return;
+                        } catch (err) {
+                            if (err.name === 'AbortError') return;
+                            console.warn("Web Share 실패, 파일 다운로드로 전환:", err);
+                        }
+                    }
+
+                    // PC 및 일반 브라우저 다운로드 fallback
+                    downloadBlobFallback(blob, fileName);
+                    showNotification("게시글 이미지가 저장되었습니다!");
+                }, 'image/png');
+
             } catch (e) {
                 console.error("이미지 저장 오류:", e);
                 showNotification("이미지 저장 중 오류가 발생했습니다.");
@@ -1602,38 +1791,115 @@
             }
         }
 
+        function downloadBlobFallback(blob, fileName) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        function downloadCanvasFallback(canvas, fileName) {
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
         async function executeExportPdf(postId) {
-            const cardEl = document.getElementById(`post-card-${postId}`);
-            if (!cardEl) return;
+            const post = cachedPosts.find(p => p.id === postId);
+            if (!post) return;
             showNotification("PDF 문서를 생성 중입니다...");
 
-            const noExportEls = cardEl.querySelectorAll('.no-export');
+            const useLandscape = shouldPostUseLandscapePdf(post);
+            let targetEl = null;
+            let tempWrapper = null;
+
+            if (useLandscape) {
+                tempWrapper = createLandscapeCardElement(post);
+                targetEl = tempWrapper;
+            } else {
+                targetEl = document.getElementById(`post-card-${postId}`);
+            }
+
+            if (!targetEl) return;
+
+            const noExportEls = targetEl.querySelectorAll('.no-export');
             noExportEls.forEach(el => el.style.display = 'none');
 
             try {
-                const canvas = await html2canvas(cardEl, {
+                const canvas = await html2canvas(targetEl, {
                     scale: 2,
                     useCORS: true,
-                    backgroundColor: '#ffffff'
+                    backgroundColor: '#ffffff',
+                    onclone: (clonedDoc) => {
+                        if (!useLandscape) {
+                            fixClonedCardLayout(clonedDoc, postId);
+                        }
+                    }
                 });
 
                 const imgData = canvas.toDataURL('image/jpeg', 0.95);
                 const { jsPDF } = window.jspdf;
                 
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pageWidth = 210;
-                const pageHeight = 297;
-                const imgWidth = pageWidth - 20;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let pdf;
+                const margin = 10;
 
-                pdf.addImage(imgData, 'JPEG', 10, 10, imgWidth, Math.min(imgHeight, pageHeight - 20));
+                if (useLandscape) {
+                    // 가로형(Landscape A4: 297mm x 210mm)
+                    pdf = new jsPDF('l', 'mm', 'a4');
+                    const pageWidth = 297;
+                    const pageHeight = 210;
+                    const contentWidth = pageWidth - (margin * 2); // 277mm
+                    const contentHeight = pageHeight - (margin * 2); // 190mm
+
+                    let imgMmWidth = contentWidth;
+                    let imgMmHeight = (canvas.height * contentWidth) / canvas.width;
+
+                    // 페이지 높이를 초과하지 않도록 비례 축소
+                    if (imgMmHeight > contentHeight) {
+                        imgMmHeight = contentHeight;
+                        imgMmWidth = (canvas.width * contentHeight) / canvas.height;
+                    }
+
+                    const posX = margin + (contentWidth - imgMmWidth) / 2;
+                    const posY = margin + (contentHeight - imgMmHeight) / 2;
+
+                    pdf.addImage(imgData, 'JPEG', posX, posY, imgMmWidth, imgMmHeight);
+                } else {
+                    // 세로형(Portrait A4: 210mm x 297mm)
+                    pdf = new jsPDF('p', 'mm', 'a4');
+                    const pageWidth = 210;
+                    const pageHeight = 297;
+                    const contentWidth = pageWidth - (margin * 2); // 190mm
+                    const contentHeight = pageHeight - (margin * 2); // 277mm
+
+                    let imgMmWidth = contentWidth;
+                    let imgMmHeight = (canvas.height * contentWidth) / canvas.width;
+
+                    // 페이지를 벗어나 잘리지 않도록 비례 축소
+                    if (imgMmHeight > contentHeight) {
+                        imgMmHeight = contentHeight;
+                        imgMmWidth = (canvas.width * contentHeight) / canvas.height;
+                    }
+
+                    const posX = margin + (contentWidth - imgMmWidth) / 2;
+                    const posY = margin;
+
+                    pdf.addImage(imgData, 'JPEG', posX, posY, imgMmWidth, imgMmHeight);
+                }
+
                 pdf.save(`목장이야기_${postId.substring(0, 6)}_${formatFileDate(new Date())}.pdf`);
-                showNotification("댓글이 포함된 PDF 저장이 완료되었습니다!");
+                showNotification(useLandscape ? "가로형(Landscape) 2분할 PDF 저장이 완료되었습니다!" : "댓글이 포함된 PDF 저장이 완료되었습니다!");
             } catch (e) {
                 console.error("PDF 저장 오류:", e);
                 showNotification("PDF 생성 중 오류가 발생했습니다.");
             } finally {
                 noExportEls.forEach(el => el.style.display = '');
+                if (tempWrapper) tempWrapper.remove();
             }
         }
 
