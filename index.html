@@ -414,7 +414,7 @@
                 <span class="w-2 h-2 rounded-full bg-emerald-300 inline-block"></span>
                 <span class="text-emerald-800 font-semibold">월요일 강조</span>
             </span>
-            <span>바깥 터치 시 닫힘</span>
+            <span class="text-[9px] text-gray-500 font-medium">일자 터치 시 쏜살 이동 🚀</span>
         </div>
     </div>
 
@@ -2274,7 +2274,7 @@
             }
         }
 
-        // [센스 월 달력 렌더링 & 슬라이드 팝업 제어]
+        // [센스 월 달력 렌더링 & 슬라이드 팝업 제어: 일자별 피드 개수 각주 표기 및 쏜살 이동]
         function renderBookmarkCalendar(year, month) {
             const container = document.getElementById('bookmark-calendar-grid');
             const titleEl = document.getElementById('bookmark-calendar-title');
@@ -2289,13 +2289,31 @@
             const isThisMonth = (today.getFullYear() === year && today.getMonth() === month);
             const todayDate = today.getDate();
 
+            // 해당 연/월에 작성된 피드 게시글 수 및 첫 번째 게시글 인덱스 매핑
+            const postCountByDay = {};
+            if (Array.isArray(cachedPosts)) {
+                cachedPosts.forEach((post, index) => {
+                    if (!post.createdAt) return;
+                    const d = post.createdAt.toDate ? post.createdAt.toDate() : new Date(post.createdAt);
+                    if (isNaN(d.getTime())) return;
+
+                    if (d.getFullYear() === year && d.getMonth() === month) {
+                        const dayNum = d.getDate();
+                        if (!postCountByDay[dayNum]) {
+                            postCountByDay[dayNum] = { count: 0, firstPostId: post.id, firstPostIndex: index };
+                        }
+                        postCountByDay[dayNum].count++;
+                    }
+                });
+            }
+
             let html = '';
             // 첫날 이전 빈칸
             for (let i = 0; i < firstDayIndex; i++) {
-                html += '<div class="h-6 flex items-center justify-center text-gray-300 text-[10px]"></div>';
+                html += '<div class="h-7 flex items-center justify-center text-gray-300 text-[10px]"></div>';
             }
 
-            // 날짜 렌더링 (월요일 강조)
+            // 날짜 렌더링 (각주 형태 피드 개수 표기 & 터치 시 해당 피드 쾌속 이동)
             for (let d = 1; d <= daysInMonth; d++) {
                 const dayOfWeek = (firstDayIndex + d - 1) % 7;
                 const isToday = isThisMonth && d === todayDate;
@@ -2303,23 +2321,38 @@
                 const isSunday = dayOfWeek === 0; // 일요일
                 const isSaturday = dayOfWeek === 6; // 토요일
 
+                const dayPostInfo = postCountByDay[d];
+                const hasPosts = dayPostInfo && dayPostInfo.count > 0;
+                const postCount = hasPosts ? dayPostInfo.count : 0;
+
                 let textClass = 'text-gray-700';
                 if (isSunday) textClass = 'text-rose-500 font-semibold';
                 else if (isSaturday) textClass = 'text-sky-500 font-semibold';
-                else if (isMonday) textClass = 'text-emerald-800 font-extrabold'; // 월요일 돋보이게 강조
+                else if (isMonday) textClass = 'text-emerald-800 font-extrabold';
 
                 let bgClass = '';
                 if (isToday) {
                     bgClass = 'bg-[#3B5D50] text-white rounded-full font-black shadow-xs';
                     textClass = 'text-white';
                 } else if (isMonday) {
-                    bgClass = 'bg-emerald-100/70 rounded-full shadow-2xs'; // 월요일 연한 에메랄드 배경
+                    bgClass = 'bg-emerald-100/70 rounded-full shadow-2xs';
                 }
 
+                // 각주 형식 피드 개수 폰트 및 컬러 (회색톤, font-mono)
+                const footnoteColor = isToday ? 'text-emerald-200' : 'text-gray-400';
+                const cursorClass = hasPosts ? 'cursor-pointer hover:bg-emerald-50/80 active:scale-95' : 'cursor-default';
+
                 html += `
-                    <div class="h-6 flex items-center justify-center">
-                        <span class="w-5 h-5 flex items-center justify-center text-[10.5px] ${textClass} ${bgClass}">
-                            ${d}
+                    <div class="h-7 flex items-center justify-center relative select-none rounded-lg transition-all ${cursorClass}"
+                         onclick="navigateToPostByDate(${year}, ${month}, ${d}, event)"
+                         title="${hasPosts ? `${month + 1}월 ${d}일 목장 이야기 ${postCount}개 (터치 시 바로 이동)` : `${month + 1}월 ${d}일`}">
+                        <span class="relative w-6 h-6 flex items-center justify-center text-[10.5px] ${textClass} ${bgClass}">
+                            <span>${d}</span>
+                            ${hasPosts ? `
+                                <sup class="absolute -top-1 -right-2 text-[7.5px] font-mono font-bold leading-none select-none tracking-tighter ${footnoteColor}">
+                                    ${postCount}
+                                </sup>
+                            ` : ''}
                         </span>
                     </div>
                 `;
@@ -2327,6 +2360,61 @@
 
             container.innerHTML = html;
         }
+
+        // [해당 날짜 터치 시 피드로 쏜살같이 직행 이동]
+        window.navigateToPostByDate = function(year, month, day, event) {
+            if (event) event.stopPropagation();
+
+            if (!Array.isArray(cachedPosts) || cachedPosts.length === 0) {
+                showNotification("등록된 목장 이야기가 없습니다.");
+                return;
+            }
+
+            const targetIndex = cachedPosts.findIndex(post => {
+                if (!post.createdAt) return false;
+                const postDate = post.createdAt.toDate ? post.createdAt.toDate() : new Date(post.createdAt);
+                if (isNaN(postDate.getTime())) return false;
+                return postDate.getFullYear() === year && postDate.getMonth() === month && postDate.getDate() === day;
+            });
+
+            if (targetIndex === -1) {
+                showNotification(`${month + 1}월 ${day}일에는 작성된 목장 이야기가 없습니다.`);
+                return;
+            }
+
+            const targetPost = cachedPosts[targetIndex];
+
+            // 해당 글이 아직 점진적 렌더링 범위 밖이라면 즉시 확장 렌더링
+            if (targetIndex >= displayedFeedCount) {
+                displayedFeedCount = Math.min(cachedPosts.length, targetIndex + FEED_BATCH_SIZE);
+                renderFeedList();
+            }
+
+            // 달력 닫기
+            closeBookmarkCalendar();
+
+            // 피드 위치로 부드럽고 쏜살같이 이동
+            setTimeout(() => {
+                const targetCard = document.getElementById(`post-card-${targetPost.id}`);
+                const feedContainer = document.getElementById('feed-container');
+
+                if (targetCard && feedContainer) {
+                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // 쏜살 이동 후 해당 카드 산뜻한 하이라이트 펄스 애니메이션
+                    targetCard.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-2', 'transition-all', 'duration-500');
+                    setTimeout(() => {
+                        targetCard.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2');
+                    }, 1800);
+
+                    // 책갈피 동기화
+                    currentBookmarkTargetIndex = targetIndex;
+                    showBookmark();
+
+                    showNotification(`${month + 1}월 ${day}일 이야기로 쏜살같이 이동했습니다 🚀`);
+                }
+            }, 120);
+        };
 
         window.toggleBookmarkCalendar = function(event) {
             if (event) event.stopPropagation();
@@ -3965,6 +4053,11 @@
 
                 if (currentActivePopupPostId) {
                     renderCommentsModalList(currentActivePopupPostId);
+                }
+
+                const calPopup = document.getElementById('bookmark-calendar-popup');
+                if (calPopup && !calPopup.classList.contains('hidden')) {
+                    renderBookmarkCalendar(calendarCurrentYear, calendarCurrentMonth);
                 }
 
                 // 피드 렌더링 (초기 5개 로딩 및 스크롤 누적 수치 유지)
