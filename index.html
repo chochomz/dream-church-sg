@@ -1145,25 +1145,33 @@
         // [파이어베이스 스토리지 사진 업로드 헬퍼: 사진은 Storage에 저장하고 다운로드 URL만 반환]
         async function uploadPhotoToStorage(dataUrl, folderName = 'mokjang_photos') {
             if (!dataUrl || typeof dataUrl !== 'string') return dataUrl;
-            // 이미 웹 URL(http:// 또는 https://)인 경우 그대로 반환 (재업로드 불필요)
             if (dataUrl.startsWith('http://') || dataUrl.startsWith('https://')) {
                 return dataUrl;
             }
-            // Storage가 준비되지 않았거나 data:image 형식이 아닌 경우 그대로 반환
             if (!storage || !dataUrl.startsWith('data:image/')) {
                 return dataUrl;
             }
-            try {
+
+            // 4초 타임아웃 적용 (스토리지 지연/권한오류 시 글쓰기 먹통 방지)
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error("Storage timeout")), 4000)
+            );
+
+            const uploadPromise = (async () => {
                 const uniqueFileName = Date.now() + '_' + Math.random().toString(36).substring(2, 9) + '.jpg';
                 const fileRef = storageRef(storage, folderName + '/' + uniqueFileName);
                 await uploadString(fileRef, dataUrl, 'data_url');
-                const downloadUrl = await getDownloadURL(fileRef);
-                return downloadUrl;
+                return await getDownloadURL(fileRef);
+            })();
+
+            try {
+                return await Promise.race([uploadPromise, timeoutPromise]);
             } catch (err) {
-                console.warn("Storage 사진 업로드 경고 (Fallback to DataURL):", err);
-                return dataUrl; // 오류 시 방어용 Fallback
+                console.warn("Storage 사진 업로드 경고 (DataURL 안전 폴백):", err);
+                return dataUrl;
             }
         }
+
 
         function getPostsCollection() {
             return collection(db, 'mokjang_posts');
@@ -1353,18 +1361,18 @@
             const updatedComments = [...post.comments];
             updatedComments.splice(commentIdx, 1);
 
+            // 로컬 캐시 및 화면 즉각 반영 (리로드 없이 0.01초 즉시 삭제)
+            post.comments = updatedComments;
+            updatePostReactionDOM(postId, post);
+            if (currentActivePopupPostId === postId) {
+                renderCommentsModalList(postId);
+            }
+
             setDbStatus('saving');
             try {
                 await updateDoc(getPostDocRef(postId), { comments: updatedComments });
-                post.comments = updatedComments;
                 setDbStatus('connected');
                 showNotification("댓글이 삭제되었습니다.");
-
-                if (currentActivePopupPostId === postId) {
-                    renderCommentsModalList(postId);
-                }
-                updatePostReactionDOM(postId, post);
-                renderFeedList();
             } catch (err) {
                 console.error("댓글 삭제 오류:", err);
                 setDbStatus('error');
@@ -2202,7 +2210,8 @@
                         const canvas = document.createElement('canvas');
                         let width = img.width;
                         let height = img.height;
-                        const maxDim = 960;
+                        // 3장~5장 첨부 시에도 Firestore 1MB 문서 한도를 절대 넘지 않도록 720px / 0.68 품질로 최적화
+                        const maxDim = 720;
 
                         if (width > height) {
                             if (width > maxDim) {
@@ -2221,10 +2230,10 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        const compressed = canvas.toDataURL('image/jpeg', 0.75);
+                        const compressed = canvas.toDataURL('image/jpeg', 0.68);
                         callback(compressed);
                     } catch (err) {
-                        console.warn("Canvas 압축 대체:", err);
+                        console.warn("Canvas 압축 오류, 원본 폴백:", err);
                         callback(e.target.result);
                     }
                 };
@@ -2715,11 +2724,11 @@
             const finalImages = [...selectedImagesList];
             const fileToSave = currentAttachedFile;
 
-            closeWriteModal();
             setDbStatus('saving');
+            showNotification("이야기를 등록하는 중입니다...");
 
             try {
-                // 사진들을 Firebase Storage에 업로드하고 다운로드 URL 목록으로 변환
+                // 사진들을 Firebase Storage에 업로드 (실패 시 720px 압축 DataURL로 안전 폴백)
                 const uploadedImages = await Promise.all(finalImages.map(img => uploadPhotoToStorage(img)));
 
                 let savedFileId = null;
@@ -2760,6 +2769,7 @@
                         updatePayload.fileTitle = fileTitle || '';
                     }
                     await updateDoc(getPostDocRef(postId), updatePayload);
+                    closeWriteModal();
                     showNotification("게시글이 수정되었습니다.");
                     scrollToPost(postId, true);
                 } else {
@@ -2787,6 +2797,7 @@
                         postPayload.fileTitle = fileTitle || '';
                     }
                     const newDocRef = await addDoc(getPostsCollection(), postPayload);
+                    closeWriteModal();
                     showNotification("새로운 목장 이야기가 등록되었습니다!");
                     scrollToPost(newDocRef.id, true);
                 }
@@ -2794,6 +2805,7 @@
             } catch (err) {
                 console.error("게시글 저장 오류:", err);
                 showNotification("저장 실패: " + err.message);
+                alert("게시글 저장에 실패했습니다: " + err.message + "\n(사진 용량을 확인하거나 다시 시도해 주세요)");
                 setDbStatus('error');
             }
         };
@@ -3779,9 +3791,7 @@
                 closeAllHeaderQuickMenu();
                 closeAllActionMenus();
                 closeAllExportMenus();
-                if (!isFocusingInlineComment) {
-                    closeAllInlineCommentInputs();
-                }
+                // 스크롤 시 작성 중인 댓글창 유지 (임의 닫힘 방지)
                 // 스크롤 시작 시 책갈피 슬라이드 노출 & 정보 갱신
                 showBookmark();
 
@@ -4989,6 +4999,40 @@
         let isFeedLoadingMore = false;
         let feedObserver = null;
 
+        
+        // [피드 카드 내 댓글 박스 HTML 생성 헬퍼]
+        function renderPostCommentsBoxHtml(post) {
+            const postComments = Array.isArray(post.comments) ? post.comments : [];
+            if (postComments.length === 0) return '';
+
+            const items = postComments.map((c, idx) => `
+                <div id="feed-comment-${post.id}-${idx}" class="py-1 px-1.5 border-b border-gray-100 last:border-b-0 text-[11.5px] flex items-center justify-between space-x-1.5 text-left rounded-lg transition-all duration-300 hover:bg-gray-100/60">
+                    <div class="flex-1 flex items-baseline space-x-1.5 min-w-0">
+                        <span class="font-bold text-gray-800 text-[11px] shrink-0">${escapeHtml(c.author)} :</span>
+                        <span class="text-gray-700 text-[11.5px] leading-snug break-words">${escapeHtml(c.text)}</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5 shrink-0 select-none">
+                        ${c.time ? `<span class="text-[9px] text-gray-400 font-mono">${c.time}</span>` : ''}
+                        <button type="button" onclick="event.stopPropagation(); deleteComment('${post.id}', ${idx})" class="w-4 h-4 rounded-full hover:bg-rose-100 text-gray-400 hover:text-rose-600 flex items-center justify-center text-[10px] active:scale-90 transition-all" title="댓글 삭제">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            return `
+                <div id="post-comments-box-${post.id}" class="mt-1 pt-1 border-t border-gray-100 bg-gray-50/70 rounded-xl p-1.5 text-left transition-all duration-300">
+                    <div class="flex items-center space-x-1 text-[10px] font-bold text-gray-600 mb-0.5 px-1">
+                        <i class="fa-regular fa-comment-dots text-emerald-700"></i>
+                        <span>목장 댓글 (${postComments.length})</span>
+                    </div>
+                    <div class="space-y-0.5">
+                        ${items}
+                    </div>
+                </div>
+            `;
+        }
+
         function buildPostCardElement(post) {
             const hasLiked = Array.isArray(post.likedUsers) && post.likedUsers.includes(reactionUserId);
             const likesCount = Math.max(0, parseInt(post.likes) || 0);
@@ -5104,33 +5148,7 @@
             const commentCount = post.comments ? post.comments.length : 0;
             const postComments = post.comments || [];
 
-            let commentsDisplayHtml = '';
-            if (postComments.length > 0) {
-                const items = postComments.map((c, idx) => `
-                    <div id="feed-comment-${post.id}-${idx}" class="py-1 px-1.5 border-b border-gray-100 last:border-b-0 text-[11px] flex flex-col space-y-0.5 text-left rounded-lg transition-all duration-300">
-                        <div class="flex items-center justify-between">
-                            <span class="font-bold text-gray-800 text-[10px]">${escapeHtml(c.author)}</span>
-                            <div class="flex flex-col items-end shrink-0">
-                                <span class="text-[9px] text-gray-400">${c.time || ''}</span>
-                                <button type="button" onclick="event.stopPropagation(); deleteComment('${post.id}', ${idx})" class="text-[9.5px] text-rose-500 hover:text-rose-700 font-semibold active:scale-90 transition-transform mt-0.5" title="댓글 삭제">삭제</button>
-                            </div>
-                        </div>
-                        <p class="text-gray-700 text-[11px] leading-snug whitespace-pre-wrap text-left">${escapeHtml(c.text)}</p>
-                    </div>
-                `).join('');
-
-                commentsDisplayHtml = `
-                    <div id="post-comments-box-${post.id}" class="mt-1 pt-1 border-t border-gray-100 bg-gray-50/70 rounded-xl p-1.5 text-left transition-all duration-300">
-                        <div class="flex items-center space-x-1 text-[10px] font-bold text-gray-600 mb-1 px-1">
-                            <i class="fa-regular fa-comment-dots text-emerald-700"></i>
-                            <span>목장 댓글 (${postComments.length})</span>
-                        </div>
-                        <div class="space-y-0.5">
-                            ${items}
-                        </div>
-                    </div>
-                `;
-            }
+            const commentsDisplayHtml = renderPostCommentsBoxHtml(post);
 
             const postFontClass = getFontClass(post.fontFamily);
             const formattedContent = (post.content && post.content.trim()) 
@@ -5247,14 +5265,14 @@
                         </div>
                     </div>
 
-                    <div id="inline-comment-row-${post.id}" class="no-export mt-1 pt-0.5 hidden">
+                    <div id="inline-comment-row-${post.id}" class="no-export mt-1.5 pt-1 border-t border-gray-100 hidden">
                         <div class="flex space-x-1.5 items-center">
                             <input type="text" id="inline-comment-input-${post.id}" maxlength="200" placeholder="따뜻한 댓글을 남겨보세요..." 
                                    oninput="handleDraftInput('${post.id}', this.value)"
-                                   onkeydown="if(event.key==='Enter') addCommentInline('${post.id}')"
-                                   class="flex-1 px-3 py-1.5 border border-dashed border-white rounded-lg text-xs bg-white text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:border-dashed focus:border-white shadow-2xs">
-                            <button onclick="addCommentInline('${post.id}')" class="px-3 py-1.5 church-primary text-white rounded-lg text-xs font-medium whitespace-nowrap shadow-2xs">
-                                등록
+                                   onkeydown="if(event.key==='Enter'){ event.preventDefault(); addCommentInline('${post.id}', event); }"
+                                   class="flex-1 px-3 py-1.5 border border-dashed border-gray-300 rounded-lg text-xs bg-white text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:border-dashed focus:border-emerald-600 shadow-2xs">
+                            <button type="button" onpointerdown="event.preventDefault();" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); addCommentInline('${post.id}', event)" class="px-3.5 py-1.5 church-primary hover:opacity-90 active:scale-95 text-white rounded-lg text-xs font-semibold whitespace-nowrap shadow-2xs transition-all flex items-center justify-center" title="댓글 등록">
+                                <span>등록</span>
                             </button>
                         </div>
                     </div>
@@ -5299,8 +5317,22 @@
 
             // 댓글 수
             const commentCountEl = cardEl.querySelector('[data-comment-count]');
+            const commentsCount = Array.isArray(post.comments) ? post.comments.length : 0;
             if (commentCountEl) {
-                commentCountEl.innerText = post.comments ? post.comments.length : 0;
+                commentCountEl.innerText = commentsCount;
+            }
+
+            // [피드 카드 내 댓글 실시간 동기화]
+            const existingCommentsBox = document.getElementById(`post-comments-box-${postId}`);
+            const newCommentsHtml = renderPostCommentsBoxHtml(post);
+            if (existingCommentsBox) {
+                if (newCommentsHtml) {
+                    existingCommentsBox.outerHTML = newCommentsHtml;
+                } else {
+                    existingCommentsBox.remove();
+                }
+            } else if (newCommentsHtml) {
+                cardEl.insertAdjacentHTML('beforeend', newCommentsHtml);
             }
 
             return true;
@@ -5561,15 +5593,17 @@
             }
 
             listEl.innerHTML = comments.map((c, idx) => `
-                <div class="bg-gray-50 rounded-xl p-2.5 border border-gray-100 flex flex-col space-y-0.5 text-left">
-                    <div class="flex items-center justify-between">
-                        <span class="font-bold text-gray-800 text-xs">${escapeHtml(c.author)}</span>
-                        <div class="flex flex-col items-end shrink-0">
-                            <span class="text-[9px] text-gray-400">${c.time || ''}</span>
-                            <button type="button" onclick="deleteComment('${postId}', ${idx})" class="text-[9.5px] text-rose-500 hover:text-rose-700 font-semibold active:scale-90 transition-transform mt-0.5" title="댓글 삭제">삭제</button>
-                        </div>
+                <div class="py-1.5 px-2 bg-gray-50/80 rounded-lg border border-gray-100 flex items-center justify-between space-x-1.5 text-left hover:bg-gray-100/60 transition-all">
+                    <div class="flex-1 flex items-baseline space-x-1.5 min-w-0">
+                        <span class="font-bold text-gray-800 text-xs shrink-0">${escapeHtml(c.author)} :</span>
+                        <span class="text-gray-700 text-xs leading-snug break-words">${escapeHtml(c.text)}</span>
                     </div>
-                    <p class="text-gray-700 text-xs leading-relaxed whitespace-pre-wrap text-left">${escapeHtml(c.text)}</p>
+                    <div class="flex items-center space-x-1.5 shrink-0 select-none">
+                        ${c.time ? `<span class="text-[9px] text-gray-400 font-mono">${c.time}</span>` : ''}
+                        <button type="button" onclick="deleteComment('${postId}', ${idx})" class="w-5 h-5 rounded-full hover:bg-rose-100 text-gray-400 hover:text-rose-600 flex items-center justify-center text-xs active:scale-90 transition-all" title="댓글 삭제">
+                            <i class="fa-solid fa-xmark text-[11px]"></i>
+                        </button>
+                    </div>
                 </div>
             `).join('');
 
@@ -5620,13 +5654,15 @@
                         }
                     }
                     isFocusingInlineComment = true;
-                    try {
-                        input.focus({ preventScroll: true });
-                    } catch (e) {
-                        input.focus();
-                    }
-                    scrollInputAboveKeyboard(input);
-                    setTimeout(() => { isFocusingInlineComment = false; }, 300);
+                    setTimeout(() => {
+                        try {
+                            input.focus({ preventScroll: true });
+                        } catch (e) {
+                            input.focus();
+                        }
+                        scrollInputAboveKeyboard(input);
+                    }, 50);
+                    setTimeout(() => { isFocusingInlineComment = false; }, 800);
                 }
             } else {
                 const input = document.getElementById(`inline-comment-input-${postId}`);
@@ -5640,22 +5676,43 @@
             }
         };
 
-        window.addCommentInline = async function(postId) {
+        window.addCommentInline = async function(postId, event) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
             const input = document.getElementById(`inline-comment-input-${postId}`);
+            if (!input) return;
             const text = input.value.trim();
-            if (!text) return;
+            if (!text) {
+                showNotification("댓글 내용을 입력해 주세요.");
+                input.focus();
+                return;
+            }
 
-            await submitComment(postId, text);
             input.value = '';
             delete commentDrafts[postId];
             const row = document.getElementById(`inline-comment-row-${postId}`);
             if (row) row.classList.add('hidden');
+
+            await submitComment(postId, text);
         };
 
         async function submitComment(postId, text) {
             const now = new Date();
             const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
             const commentObj = { author: currentUser, text: text, time: timeStr };
+
+            // 1. 낙관적 UI 업데이트 (지연 없이 즉각 화면에 새 댓글 반영)
+            let post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+            if (post) {
+                if (!Array.isArray(post.comments)) post.comments = [];
+                post.comments.push(commentObj);
+                updatePostReactionDOM(postId, post);
+                if (currentActivePopupPostId === postId) {
+                    renderCommentsModalList(postId);
+                }
+            }
 
             if (!db) return;
             setDbStatus('saving');
@@ -5666,6 +5723,16 @@
             } catch (err) {
                 console.error("댓글 등록 오류:", err);
                 setDbStatus('error');
+                showNotification("댓글 등록 실패: " + err.message);
+                // 실패 시 롤백
+                if (post && Array.isArray(post.comments)) {
+                    const idx = post.comments.lastIndexOf(commentObj);
+                    if (idx !== -1) post.comments.splice(idx, 1);
+                    updatePostReactionDOM(postId, post);
+                    if (currentActivePopupPostId === postId) {
+                        renderCommentsModalList(postId);
+                    }
+                }
             }
         }
 
