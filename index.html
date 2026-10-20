@@ -268,16 +268,25 @@
         }
 
         @media print {
-            body * { visibility: hidden; }
-            #print-area, #print-area * { visibility: visible; }
+            @page {
+                size: A4 auto;
+                margin: 8mm 10mm;
+            }
+            body * { visibility: hidden !important; }
+            #print-area, #print-area * { visibility: visible !important; }
             #print-area {
                 position: absolute;
                 left: 0;
                 top: 0;
                 width: 100%;
                 margin: 0;
-                padding: 10px;
-                background: white;
+                padding: 0;
+                background: white !important;
+                display: block !important;
+            }
+            .page-break-after {
+                page-break-after: always;
+                break-after: page;
             }
             .no-print, .no-export { display: none !important; }
         }
@@ -427,13 +436,31 @@
 
     <!-- [전체 PDF 다중 페이지 미리보기 & 저장/공유 모달] -->
     <div id="all-pdf-preview-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden" style="touch-action: auto !important;">
-        <div class="bg-white rounded-2xl w-full max-w-sm max-h-[86vh] p-4 shadow-2xl border church-border flex flex-col overflow-hidden">
-            <div class="flex items-center justify-between pb-2 border-b church-border shrink-0">
-                <div class="flex items-center space-x-1.5">
+        <div id="all-pdf-modal-dialog" class="bg-white rounded-2xl w-full max-w-sm max-h-[88vh] p-3.5 shadow-2xl border church-border flex flex-col overflow-hidden transition-all duration-300">
+            <div class="flex items-center justify-between pb-2 border-b church-border shrink-0 gap-1">
+                <div class="flex items-center space-x-1.5 shrink-0">
                     <i class="fa-solid fa-book-open church-primary-text text-sm"></i>
-                    <h3 class="text-xs font-bold text-gray-800">목장 이야기 전체 PDF 미리보기</h3>
+                    <h3 class="text-xs font-bold text-gray-800 whitespace-nowrap">전체 PDF</h3>
                 </div>
-                <button onclick="closeAllPdfPreviewModal()" class="text-gray-400 hover:text-gray-600 p-0.5"><i class="fa-solid fa-xmark text-sm"></i></button>
+                <!-- 세로 저장 / 가로 저장(2개씩) 선택 탭 -->
+                <div class="inline-flex items-center rounded-lg bg-gray-100 p-0.5 border border-gray-200 select-none shrink-0">
+                    <button type="button" id="all-pdf-mode-portrait-btn" onclick="switchAllPdfMode('portrait')" 
+                            class="px-2 py-0.5 text-[10.5px] rounded-md font-bold transition-all bg-white text-emerald-800 shadow-2xs">
+                        세로 저장
+                    </button>
+                    <button type="button" id="all-pdf-mode-landscape-btn" onclick="switchAllPdfMode('landscape')" 
+                            class="px-2 py-0.5 text-[10.5px] rounded-md font-medium transition-all text-gray-500 hover:text-gray-800">
+                        가로 저장(2개씩)
+                    </button>
+                </div>
+                <div class="flex items-center space-x-1 shrink-0">
+                    <button type="button" onclick="handleAllPdfPrint()" class="text-gray-500 hover:text-emerald-800 p-1 hover:bg-emerald-50 rounded-lg transition-all" title="브라우저 100% 벡터 인쇄 / PDF로 저장">
+                        <i class="fa-solid fa-print text-xs"></i>
+                    </button>
+                    <button type="button" onclick="closeAllPdfPreviewModal()" class="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all" title="닫기">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- 스크롤 뷰포트: 피드처럼 부드럽게 위아래로 손가락 스크롤되는 영역 -->
@@ -2645,10 +2672,47 @@
             let bookmarkRafId = null;
             let lastTapTime = 0;
 
+            // [엣지 오토스크롤: 상단/하단 끝 도달 시 대기 스크롤 제어]
+            let edgeScrollRaf = null;
+            let edgeScrollDir = 0; // -1: 상단(위로), 1: 하단(아래로), 0: 중지
+            let edgeScrollSpeed = 0;
+
+            const stopEdgeScroll = () => {
+                if (edgeScrollRaf) {
+                    cancelAnimationFrame(edgeScrollRaf);
+                    edgeScrollRaf = null;
+                }
+                edgeScrollDir = 0;
+                edgeScrollSpeed = 0;
+            };
+
+            const startEdgeScrollLoop = () => {
+                if (edgeScrollRaf) return;
+                const step = () => {
+                    if (!isBookmarkDragging || edgeScrollDir === 0) {
+                        stopEdgeScroll();
+                        return;
+                    }
+                    if (feedContainer) {
+                        feedContainer.scrollTop += edgeScrollDir * edgeScrollSpeed;
+                        // 스크롤에 맞춰 책갈피 날짜/요일/순번 실시간 갱신
+                        updateBookmarkInfoFromScroll();
+
+                        // 하단 스크롤 시 자동 추가 로드
+                        if (edgeScrollDir > 0 && feedContainer.scrollTop + feedContainer.clientHeight >= feedContainer.scrollHeight - 250) {
+                            loadMorePosts();
+                        }
+                    }
+                    edgeScrollRaf = requestAnimationFrame(step);
+                };
+                edgeScrollRaf = requestAnimationFrame(step);
+            };
+
             const onDragStart = (clientX, clientY) => {
                 isBookmarkDragging = true;
                 isBookmarkLongPressed = false;
                 isBookmarkHorizontalMoved = false;
+                stopEdgeScroll();
 
                 if (bookmarkHideTimer) clearTimeout(bookmarkHideTimer);
 
@@ -2671,7 +2735,7 @@
                         if (navigator.vibrate) {
                             try { navigator.vibrate(25); } catch(e) {}
                         }
-                        showNotification('상하좌우 이동 모드: 내용이 가려지지 않는 곳으로 옮겨보세요');
+                        showNotification('상하좌우 이동 모드: 끝으로 옮기면 피드가 자동 스크롤됩니다');
                     }
                 }, 250);
             };
@@ -2697,16 +2761,34 @@
                     bookmarkEl.style.left = `${Math.round(clampedX)}px`;
                     bookmarkEl.style.right = 'auto';
 
-                    // 세로(Y) 좌표: 상하 화면 경계(헤더 아래 56px ~ 하단 80px 여백) 안에서 자유 이동
+                    // 세로(Y) 좌표: 상하 화면 경계(헤더 아래 54px ~ 하단 40px 여백) 안에서 자유 이동
                     const bookmarkHeight = bookmarkEl.offsetHeight || 85;
                     const halfH = bookmarkHeight / 2;
-                    const minY = 56;
-                    const maxY = window.innerHeight - bookmarkHeight - 16;
+                    const minY = 54;
+                    const maxY = window.innerHeight - bookmarkHeight - 10;
                     const clampedY = Math.max(minY, Math.min(maxY, clientY - halfH));
                     bookmarkEl.style.top = `${Math.round(clampedY)}px`;
-                }
 
-                // [중요] 피드 내용이 전혀 움직이지 않아야 하므로 feedContainer.scrollTop 조작이나 loadMorePosts 등은 일절 실행하지 않음!
+                    // [핵심: 엣지 오토스크롤 감지]
+                    // 위 끝(헤더 직하단 82px 이내) 또는 아래 끝(화면 하단 90px 이내) 도달 시에만 대기 스크롤 작동
+                    const topThreshold = 82;
+                    const bottomThreshold = window.innerHeight - 90;
+
+                    if (clientY < topThreshold) {
+                        edgeScrollDir = -1;
+                        // 상단 끝으로 더 밀수록 속도 가속 (4px ~ 14px)
+                        edgeScrollSpeed = Math.max(4, Math.min(14, (topThreshold - clientY) * 0.4 + 4));
+                        startEdgeScrollLoop();
+                    } else if (clientY > bottomThreshold) {
+                        edgeScrollDir = 1;
+                        // 하단 끝으로 더 밀수록 속도 가속 (4px ~ 14px)
+                        edgeScrollSpeed = Math.max(4, Math.min(14, (clientY - bottomThreshold) * 0.4 + 4));
+                        startEdgeScrollLoop();
+                    } else {
+                        // 중앙 안전 영역: 피드 내용 1픽셀도 움직이지 않음!
+                        stopEdgeScroll();
+                    }
+                }
             };
 
             const onDragMove = (clientX, clientY) => {
@@ -2725,6 +2807,8 @@
             const onDragEnd = (e, isCancelled = false) => {
                 if (!isBookmarkDragging) return;
                 isBookmarkDragging = false;
+                stopEdgeScroll();
+
                 if (bookmarkLongPressTimer) clearTimeout(bookmarkLongPressTimer);
                 if (bookmarkRafId) {
                     cancelAnimationFrame(bookmarkRafId);
@@ -2769,7 +2853,7 @@
                         showNotification('책갈피 위치가 조정되었습니다.');
                     }
 
-                    // 드롭된 위치로 스타일 확정 (피드 스크롤은 전혀 변경되지 않음)
+                    // 드롭된 위치로 스타일 확정 (피드 스크롤은 유지)
                     applyBookmarkSide(bookmarkSide, bookmarkCustomTop);
                 } else if (moveDist < 8 && !isBookmarkLongPressed) {
                     // 이동 없이 순수 탭 동작인 경우 -> 더블 탭 판정 (월 달력 호출)
@@ -2784,8 +2868,6 @@
                 } else {
                     applyBookmarkSide(bookmarkSide, bookmarkCustomTop);
                 }
-
-                // [중요] 드롭 시에도 피드 스크롤이나 내용 이동은 일절 수행하지 않음!
 
                 // 달력이 열려있지 않을 때만 1.8초 후 자연스럽게 스르르 슬라이드 닫힘
                 const calPopup = document.getElementById('bookmark-calendar-popup');
@@ -3451,6 +3533,40 @@
             }, 500);
         }
 
+        // [전체 PDF 상태 변수: 세로(portrait) vs 가로(landscape 2-Up) 모드 지원]
+        let currentAllPdfMode = 'portrait'; // 'portrait' | 'landscape'
+
+        window.switchAllPdfMode = function(mode) {
+            if (currentAllPdfMode === mode) return;
+            currentAllPdfMode = mode;
+            generatedAllPdfBlob = null;
+            generatedAllPdfFileName = "";
+
+            const portraitBtn = document.getElementById('all-pdf-mode-portrait-btn');
+            const landscapeBtn = document.getElementById('all-pdf-mode-landscape-btn');
+            const modalDialog = document.getElementById('all-pdf-modal-dialog');
+
+            if (portraitBtn && landscapeBtn) {
+                if (mode === 'portrait') {
+                    portraitBtn.className = "px-2 py-0.5 text-[10.5px] rounded-md font-bold transition-all bg-white text-emerald-800 shadow-2xs";
+                    landscapeBtn.className = "px-2 py-0.5 text-[10.5px] rounded-md font-medium transition-all text-gray-500 hover:text-gray-800";
+                    if (modalDialog) {
+                        modalDialog.classList.remove('max-w-md', 'max-w-lg');
+                        modalDialog.classList.add('max-w-sm');
+                    }
+                } else {
+                    landscapeBtn.className = "px-2 py-0.5 text-[10.5px] rounded-md font-bold transition-all bg-white text-emerald-800 shadow-2xs";
+                    portraitBtn.className = "px-2 py-0.5 text-[10.5px] rounded-md font-medium transition-all text-gray-500 hover:text-gray-800";
+                    if (modalDialog) {
+                        modalDialog.classList.remove('max-w-sm');
+                        modalDialog.classList.add('max-w-md');
+                    }
+                }
+            }
+
+            renderAllPdfPreviewContent();
+        };
+
         window.requestAllFeedPdfPreview = function() {
             closeAllHeaderQuickMenu();
             if (!cachedPosts || cachedPosts.length === 0) {
@@ -3459,8 +3575,6 @@
             }
 
             const modal = document.getElementById('all-pdf-preview-modal');
-            const continuousContainer = document.getElementById('all-pdf-continuous-container');
-            const scrollViewport = document.getElementById('all-pdf-scroll-viewport');
             const statusContainer = document.getElementById('all-pdf-status-container');
             const statusDesc = document.getElementById('all-pdf-status-desc');
             const saveBtn = document.getElementById('all-pdf-save-btn');
@@ -3482,29 +3596,58 @@
             generatedAllPdfBlob = null;
             generatedAllPdfFileName = "";
 
-            // 최신순(내림차순) 정렬
+            // 기본 모드 UI 초기화 (세로 저장)
+            const portraitBtn = document.getElementById('all-pdf-mode-portrait-btn');
+            const landscapeBtn = document.getElementById('all-pdf-mode-landscape-btn');
+            const modalDialog = document.getElementById('all-pdf-modal-dialog');
+            if (portraitBtn && landscapeBtn) {
+                if (currentAllPdfMode === 'portrait') {
+                    portraitBtn.className = "px-2 py-0.5 text-[10.5px] rounded-md font-bold transition-all bg-white text-emerald-800 shadow-2xs";
+                    landscapeBtn.className = "px-2 py-0.5 text-[10.5px] rounded-md font-medium transition-all text-gray-500 hover:text-gray-800";
+                    if (modalDialog) {
+                        modalDialog.classList.remove('max-w-md', 'max-w-lg');
+                        modalDialog.classList.add('max-w-sm');
+                    }
+                } else {
+                    landscapeBtn.className = "px-2 py-0.5 text-[10.5px] rounded-md font-bold transition-all bg-white text-emerald-800 shadow-2xs";
+                    portraitBtn.className = "px-2 py-0.5 text-[10.5px] rounded-md font-medium transition-all text-gray-500 hover:text-gray-800";
+                    if (modalDialog) {
+                        modalDialog.classList.remove('max-w-sm');
+                        modalDialog.classList.add('max-w-md');
+                    }
+                }
+            }
+
+            modal.classList.remove('hidden');
+            renderAllPdfPreviewContent();
+        };
+
+        // 전체 PDF 미리보기 내용 렌더링 (세로 1열 vs 가로 1페이지 2개 피드 2열)
+        function renderAllPdfPreviewContent() {
+            const continuousContainer = document.getElementById('all-pdf-continuous-container');
+            const scrollViewport = document.getElementById('all-pdf-scroll-viewport');
+            if (!continuousContainer) return;
+
+            continuousContainer.innerHTML = '';
+
             const sortedPosts = [...cachedPosts].sort((a, b) => {
                 const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
                 const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
                 return tB - tA;
             });
 
-            continuousContainer.innerHTML = '';
-
-            // 상단 책자 헤더 카드
+            // 1. 상단 공통 헤더 카드
             const headerCard = document.createElement('div');
-            headerCard.className = "w-full text-center pb-2.5 pt-2 border-b-2 border-emerald-800 bg-emerald-50/70 p-2.5 rounded-xl shrink-0";
+            headerCard.className = "w-full text-center pb-2 pt-1.5 border-b-2 border-emerald-800 bg-emerald-50/80 p-2 rounded-xl shrink-0";
+            const modeText = currentAllPdfMode === 'landscape' ? '가로 2열 나눔 모음집' : '세로 나눔 모음집';
             headerCard.innerHTML = `
-                <h2 class="text-sm font-bold text-gray-900">${currentMokjang} 이야기 모음</h2>
-                <p class="text-[10px] text-gray-500 mt-0.5">발행: ${new Date().toLocaleDateString('ko-KR')} | 총 ${sortedPosts.length}개의 나눔 (댓글 포함)</p>
+                <h2 class="text-xs font-bold text-gray-900">${currentMokjang} 이야기 (${modeText})</h2>
+                <p class="text-[9.5px] text-gray-500 mt-0.5">발행: ${new Date().toLocaleDateString('ko-KR')} | 총 ${sortedPosts.length}개의 나눔 (댓글 포함)</p>
             `;
             continuousContainer.appendChild(headerCard);
 
-            // 각 게시글 카드 복제 주입 (불필요한 버튼/툴바 완전 제거)
-            sortedPosts.forEach((post) => {
-                const card = document.createElement('div');
-                card.className = "w-full bg-white rounded-xl border border-gray-200 shadow-2xs p-2.5 box-border text-left pdf-render-card";
-
+            // 2. 단일 카드 생성 헬퍼
+            const createSingleCardHtml = (post, isCompact = false) => {
                 let imgArray = [];
                 if (Array.isArray(post.images) && post.images.length > 0) {
                     imgArray = post.images.filter(img => typeof img === 'string' && img.trim().length > 0);
@@ -3518,9 +3661,9 @@
                     photosHtml = imgArray.map((url, i) => {
                         const caption = photoCaptions[i] || '';
                         return `
-                            <div class="w-full flex flex-col mb-1.5 last:mb-0 border border-gray-100 rounded-lg overflow-hidden">
-                                <img src="${url}" alt="사진 ${i+1}" class="w-full object-cover block">
-                                ${caption ? `<div class="p-1.5 bg-gray-50 text-[11px] text-gray-700 leading-snug border-t border-gray-100"><i class="fa-regular fa-comment-dots text-emerald-600 mr-1"></i>${escapeHtml(caption)}</div>` : ''}
+                            <div class="w-full flex flex-col mb-1 last:mb-0 border border-gray-100 rounded-lg overflow-hidden bg-gray-50/50">
+                                <img src="${url}" alt="사진 ${i+1}" class="w-full object-cover block max-h-[220px]">
+                                ${caption ? `<div class="p-1 bg-gray-50 text-[10px] text-gray-700 leading-snug border-t border-gray-100"><i class="fa-regular fa-comment-dots text-emerald-600 mr-1"></i>${escapeHtml(caption)}</div>` : ''}
                             </div>
                         `;
                     }).join('');
@@ -3530,16 +3673,16 @@
                 let commentsHtml = '';
                 if (postComments.length > 0) {
                     commentsHtml = `
-                        <div class="mt-2 pt-1.5 border-t border-gray-100 bg-gray-50/80 rounded-lg p-2 text-left">
-                            <div class="text-[10px] font-bold text-emerald-800 mb-1">
+                        <div class="mt-1.5 pt-1 border-t border-gray-100 bg-gray-50/80 rounded-lg p-1.5 text-left">
+                            <div class="text-[9.5px] font-bold text-emerald-800 mb-0.5">
                                 <i class="fa-regular fa-comment-dots mr-1"></i>댓글 (${postComments.length})
                             </div>
-                            <div class="space-y-1">
+                            <div class="space-y-0.5">
                                 ${postComments.map(c => `
-                                    <div class="text-[10.5px] leading-tight pb-1 border-b border-gray-200/50 last:border-0 last:pb-0">
+                                    <div class="text-[10px] leading-tight pb-0.5 border-b border-gray-200/50 last:border-0 last:pb-0">
                                         <span class="font-bold text-gray-800">${escapeHtml(c.author)}:</span>
                                         <span class="text-gray-700 ml-0.5">${escapeHtml(c.text)}</span>
-                                        <span class="text-[8.5px] text-gray-400 ml-1">(${c.time || ''})</span>
+                                        <span class="text-[8px] text-gray-400 ml-1">(${c.time || ''})</span>
                                     </div>
                                 `).join('')}
                             </div>
@@ -3547,28 +3690,63 @@
                     `;
                 }
 
-                card.innerHTML = `
-                    <div class="flex items-center space-x-1.5 pb-1 mb-1 border-b border-gray-100">
-                        <div class="w-5 h-5 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-[10px]">
-                            ${escapeHtml((post.author || 'M').charAt(0))}
+                return `
+                    <div class="w-full bg-white rounded-xl border border-gray-200 shadow-2xs p-2 box-border text-left pdf-render-card flex flex-col justify-start">
+                        <div class="flex items-center space-x-1.5 pb-1 mb-1 border-b border-gray-100">
+                            <div class="w-5 h-5 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-[9.5px] shrink-0">
+                                ${escapeHtml((post.author || 'M').charAt(0))}
+                            </div>
+                            <span class="text-[11px] font-bold text-gray-800 truncate">${escapeHtml(post.author || '목장가족')}</span>
+                            <span class="text-[8.5px] text-gray-400 ml-auto whitespace-nowrap">${formatDate(post.createdAt)}</span>
                         </div>
-                        <span class="text-xs font-bold text-gray-800">${escapeHtml(post.author || '목장가족')}</span>
-                        <span class="text-[9px] text-gray-400 ml-auto">${formatDate(post.createdAt)}</span>
+                        ${post.content ? `<div class="text-[11.5px] ${getFontClass(post.fontFamily)} text-gray-800 leading-relaxed whitespace-pre-wrap mb-1 text-left break-words overflow-wrap-anywhere">${renderPostContentHtml(post.content)}</div>` : ''}
+                        ${photosHtml}
+                        ${commentsHtml}
                     </div>
-                    ${post.content ? `<div class="text-xs ${getFontClass(post.fontFamily)} text-gray-800 leading-relaxed whitespace-pre-wrap mb-1.5 text-left">${renderPostContentHtml(post.content)}</div>` : ''}
-                    ${photosHtml}
-                    ${commentsHtml}
                 `;
-                continuousContainer.appendChild(card);
-            });
+            };
 
-            modal.classList.remove('hidden');
+            // 3. 모드별 레이아웃 주입
+            if (currentAllPdfMode === 'landscape') {
+                // [가로 저장]: 한 페이지에 2개씩 피드 카드 배치 (좌/우 2열 그리드)
+                const pageCount = Math.ceil(sortedPosts.length / 2);
+                for (let p = 0; p < pageCount; p++) {
+                    const post1 = sortedPosts[p * 2];
+                    const post2 = sortedPosts[p * 2 + 1];
+
+                    const pageContainer = document.createElement('div');
+                    pageContainer.className = "w-full bg-white rounded-xl border border-emerald-200/70 p-2 shadow-xs mb-2.5 flex flex-col";
+                    
+                    // 페이지 상단 쪽수 안내
+                    const pageHeader = document.createElement('div');
+                    pageHeader.className = "flex items-center justify-between text-[9px] text-emerald-800 font-semibold pb-1 mb-1 border-b border-gray-100";
+                    pageHeader.innerHTML = `<span>가로 A4 페이지 ${p + 1}</span><span class="text-gray-400">${p + 1} / ${pageCount}</span>`;
+                    pageContainer.appendChild(pageHeader);
+
+                    const gridContainer = document.createElement('div');
+                    gridContainer.className = "grid grid-cols-2 gap-2 w-full items-start";
+                    gridContainer.innerHTML = `
+                        <div class="w-full">${createSingleCardHtml(post1, true)}</div>
+                        <div class="w-full">${post2 ? createSingleCardHtml(post2, true) : '<div class="h-full border border-dashed border-gray-200 rounded-xl flex items-center justify-center text-[10px] text-gray-400 p-4">목장 나눔의 끝</div>'}</div>
+                    `;
+                    pageContainer.appendChild(gridContainer);
+                    continuousContainer.appendChild(pageContainer);
+                }
+            } else {
+                // [세로 저장]: 1열 연속 배치
+                sortedPosts.forEach((post) => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = "w-full";
+                    wrapper.innerHTML = createSingleCardHtml(post, false);
+                    continuousContainer.appendChild(wrapper);
+                });
+            }
+
             if (scrollViewport) scrollViewport.scrollTop = 0;
-
             setTimeout(() => {
                 recalculateViewportPages();
             }, 100);
-        };
+        }
 
         function recalculateViewportPages() {
             const viewport = document.getElementById('all-pdf-scroll-viewport');
@@ -3576,19 +3754,37 @@
             const indicatorText = document.getElementById('all-pdf-page-indicator-text');
             if (!viewport || !continuousContainer) return;
 
-            const currentWidth = continuousContainer.clientWidth || 300;
-            pdfA4PageHeightPx = Math.round(currentWidth * 1.414);
-
-            const totalHeight = continuousContainer.scrollHeight;
-            pdfTotalPagesCalculated = Math.max(1, Math.ceil(totalHeight / pdfA4PageHeightPx));
-
-            if (indicatorText) {
-                indicatorText.innerText = `1 / ${pdfTotalPagesCalculated} 페이지`;
+            if (currentAllPdfMode === 'landscape') {
+                const totalPosts = cachedPosts.length;
+                pdfTotalPagesCalculated = Math.max(1, Math.ceil(totalPosts / 2));
+                if (indicatorText) {
+                    indicatorText.innerText = `총 ${pdfTotalPagesCalculated}페이지 (가로 2열)`;
+                }
+            } else {
+                const currentWidth = continuousContainer.clientWidth || 300;
+                pdfA4PageHeightPx = Math.round(currentWidth * 1.414);
+                const totalHeight = continuousContainer.scrollHeight;
+                pdfTotalPagesCalculated = Math.max(1, Math.ceil(totalHeight / pdfA4PageHeightPx));
+                if (indicatorText) {
+                    indicatorText.innerText = `1 / ${pdfTotalPagesCalculated} 페이지`;
+                }
             }
         }
 
         window.handlePdfViewerScroll = function(viewport) {
-            if (!viewport || !pdfA4PageHeightPx || pdfA4PageHeightPx <= 0) return;
+            if (!viewport) return;
+            const indicatorText = document.getElementById('all-pdf-page-indicator-text');
+            if (currentAllPdfMode === 'landscape') {
+                const totalPages = Math.max(1, Math.ceil(cachedPosts.length / 2));
+                const scrollRatio = viewport.scrollTop / (viewport.scrollHeight - viewport.clientHeight || 1);
+                const curPage = Math.min(totalPages, Math.max(1, Math.floor(scrollRatio * totalPages) + 1));
+                if (indicatorText) {
+                    indicatorText.innerText = `${curPage} / ${totalPages} 페이지 (가로 2열)`;
+                }
+                return;
+            }
+
+            if (!pdfA4PageHeightPx || pdfA4PageHeightPx <= 0) return;
             const scrollTop = viewport.scrollTop;
             const maxScroll = viewport.scrollHeight - viewport.clientHeight;
 
@@ -3602,7 +3798,6 @@
             if (currentPage > pdfTotalPagesCalculated) currentPage = pdfTotalPagesCalculated;
             if (currentPage < 1) currentPage = 1;
 
-            const indicatorText = document.getElementById('all-pdf-page-indicator-text');
             if (indicatorText) {
                 indicatorText.innerText = `${currentPage} / ${pdfTotalPagesCalculated} 페이지`;
             }
@@ -3616,7 +3811,69 @@
             if (statusContainer) statusContainer.classList.add('hidden');
         };
 
-        // 지능형 세로사진 높이 자동 축소 및 여백 낭비 없는 스마트 PDF 빌더 (공통 생성 함수)
+        // [고품질 벡터 방식 PDF 인쇄 전용 영역 동적 빌드]
+        function preparePrintAreaForVectorPdf(mode) {
+            const printArea = document.getElementById('print-area');
+            if (!printArea) return;
+
+            const sortedPosts = [...cachedPosts].sort((a, b) => {
+                const tA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+                const tB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+                return tB - tA;
+            });
+
+            printArea.innerHTML = '';
+
+            if (mode === 'landscape') {
+                // 가로 2열 인쇄 레이아웃 (한 페이지당 2개씩)
+                const pageCount = Math.ceil(sortedPosts.length / 2);
+                for (let p = 0; p < pageCount; p++) {
+                    const post1 = sortedPosts[p * 2];
+                    const post2 = sortedPosts[p * 2 + 1];
+
+                    const pageDiv = document.createElement('div');
+                    pageDiv.className = "w-full min-h-[95vh] p-4 box-border page-break-after flex flex-col justify-start text-left";
+                    pageDiv.innerHTML = `
+                        <div class="w-full flex items-center justify-between pb-2 mb-3 border-b-2 border-emerald-800">
+                            <h2 class="text-sm font-bold text-gray-800">${currentMokjang} 이야기 모음</h2>
+                            <span class="text-xs font-mono font-bold text-emerald-800">${p + 1} / ${pageCount}</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-5 w-full items-start">
+                            <div class="border border-gray-200 rounded-xl p-3 bg-white">${buildPostCardElement(post1).innerHTML}</div>
+                            <div class="border border-gray-200 rounded-xl p-3 bg-white">${post2 ? buildPostCardElement(post2).innerHTML : '<div class="p-6 text-center text-gray-400">목장 이야기 끝</div>'}</div>
+                        </div>
+                    `;
+                    printArea.appendChild(pageDiv);
+                }
+            } else {
+                // 세로 1열 인쇄 레이아웃
+                const titleDiv = document.createElement('div');
+                titleDiv.className = "w-full pb-3 mb-4 border-b-2 border-emerald-800 text-center";
+                titleDiv.innerHTML = `
+                    <h1 class="text-base font-bold text-gray-900">${currentMokjang} 이야기 나눔집</h1>
+                    <p class="text-xs text-gray-500 mt-1">발행: ${new Date().toLocaleDateString('ko-KR')} | 총 ${sortedPosts.length}개의 나눔</p>
+                `;
+                printArea.appendChild(titleDiv);
+
+                sortedPosts.forEach((post) => {
+                    const postDiv = document.createElement('div');
+                    postDiv.className = "w-full mb-4 border border-gray-200 rounded-xl p-3 bg-white text-left";
+                    postDiv.style.breakInside = 'avoid';
+                    postDiv.innerHTML = buildPostCardElement(post).innerHTML;
+                    printArea.appendChild(postDiv);
+                });
+            }
+
+            printArea.querySelectorAll('.no-export, .no-print').forEach(el => el.remove());
+        }
+
+        // [지능형 세로 / 가로 2열 고선명 PDF 빌더]
+        window.handleAllPdfPrint = function() {
+            preparePrintAreaForVectorPdf(currentAllPdfMode);
+            showNotification("브라우저 인쇄창에서 'PDF로 저장'을 선택하면 100% 벡터 PDF로 저장됩니다.");
+            window.print();
+        };
+
         window.ensureAllPdfGenerated = async function(callingBtn, progressText = "PDF 생성 중...") {
             if (generatedAllPdfBlob) return generatedAllPdfBlob;
 
@@ -3635,71 +3892,119 @@
             }
             if (statusContainer && statusDesc) {
                 statusContainer.classList.remove('hidden');
-                statusDesc.innerText = "세로 사진과 여백을 맞추며 고품질 PDF를 생성 중입니다...";
+                statusDesc.innerText = currentAllPdfMode === 'landscape'
+                    ? "가로 2열 규격으로 글과 댓글을 정돈하며 고화질 PDF를 생성 중입니다..."
+                    : "세로 A4 규격으로 여백을 맞추며 고품질 PDF를 생성 중입니다...";
             }
 
             try {
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pageWidth = 210;
-                const pageHeight = 297;
-                const margin = 10;
-                const contentWidth = pageWidth - (margin * 2); // 190mm
-                const contentHeight = pageHeight - (margin * 2); // 277mm
+                let pdf = null;
 
-                let currentY = margin;
-                let pageIndex = 1;
+                if (currentAllPdfMode === 'landscape') {
+                    // 가로 저장 (Landscape A4: 297mm x 210mm)
+                    pdf = new jsPDF('l', 'mm', 'a4');
+                    const pageWidth = 297;
+                    const pageHeight = 210;
+                    const margin = 10;
+                    const contentWidth = pageWidth - (margin * 2); // 277mm
+                    const contentHeight = pageHeight - (margin * 2); // 190mm
 
-                const childCards = Array.from(continuousContainer.children);
+                    // continuousContainer 내부의 각 pageContainer를 캡처
+                    const childPages = Array.from(continuousContainer.children).slice(1); // 헤더카드 제외
+                    if (childPages.length === 0) {
+                        childPages.push(continuousContainer.firstElementChild);
+                    }
 
-                for (let i = 0; i < childCards.length; i++) {
-                    const card = childCards[i];
+                    for (let i = 0; i < childPages.length; i++) {
+                        if (i > 0) pdf.addPage();
+                        const pageEl = childPages[i];
 
-                    // 각 카드를 캔버스로 변환
-                    const canvas = await html2canvas(card, {
-                        scale: 1.6,
-                        useCORS: true,
-                        backgroundColor: '#ffffff'
-                    });
+                        // 초고화질 스케일(scale: 2.2)로 캡처하여 글씨 뭉개짐 방지
+                        const canvas = await html2canvas(pageEl, {
+                            scale: 2.2,
+                            useCORS: true,
+                            backgroundColor: '#ffffff'
+                        });
 
-                    let imgMmWidth = contentWidth;
-                    let imgMmHeight = (canvas.height * contentWidth) / canvas.width;
-                    const cardAspect = canvas.height / canvas.width;
-
-                    // 현재 페이지의 남은 가용 세로 높이
-                    const remainingY = (pageHeight - margin) - currentY;
-
-                    if (remainingY >= 60 && imgMmHeight > remainingY && (imgMmHeight - remainingY) <= 85) {
-                        imgMmHeight = remainingY - 2;
-                        imgMmWidth = imgMmHeight / cardAspect;
-                    } else if (imgMmHeight > remainingY) {
-                        pdf.addPage();
-                        pageIndex++;
-                        currentY = margin;
+                        let imgMmWidth = contentWidth;
+                        let imgMmHeight = (canvas.height * contentWidth) / canvas.width;
 
                         if (imgMmHeight > contentHeight) {
                             imgMmHeight = contentHeight;
-                            imgMmWidth = imgMmHeight / cardAspect;
+                            imgMmWidth = (canvas.width * contentHeight) / canvas.height;
                         }
+
+                        const posX = margin + (contentWidth - imgMmWidth) / 2;
+                        const posY = margin + (contentHeight - imgMmHeight) / 2;
+
+                        const pageImgData = canvas.toDataURL('image/jpeg', 0.95);
+                        pdf.addImage(pageImgData, 'JPEG', posX, posY, imgMmWidth, imgMmHeight);
                     }
 
-                    const pageImgData = canvas.toDataURL('image/jpeg', 0.90);
-                    const posX = margin + (contentWidth - imgMmWidth) / 2;
-                    pdf.addImage(pageImgData, 'JPEG', posX, currentY, imgMmWidth, imgMmHeight);
+                    generatedAllPdfFileName = `목장이야기전체_가로2열_${formatFileDate(new Date())}.pdf`;
+                } else {
+                    // 세로 저장 (Portrait A4: 210mm x 297mm)
+                    pdf = new jsPDF('p', 'mm', 'a4');
+                    const pageWidth = 210;
+                    const pageHeight = 297;
+                    const margin = 10;
+                    const contentWidth = pageWidth - (margin * 2); // 190mm
+                    const contentHeight = pageHeight - (margin * 2); // 277mm
 
-                    currentY += imgMmHeight + 3.5; // 카드 간격 3.5mm
+                    let currentY = margin;
+                    let pageIndex = 1;
+
+                    const childCards = Array.from(continuousContainer.children);
+
+                    for (let i = 0; i < childCards.length; i++) {
+                        const card = childCards[i];
+
+                        const canvas = await html2canvas(card, {
+                            scale: 2.2,
+                            useCORS: true,
+                            backgroundColor: '#ffffff'
+                        });
+
+                        let imgMmWidth = contentWidth;
+                        let imgMmHeight = (canvas.height * contentWidth) / canvas.width;
+                        const cardAspect = canvas.height / canvas.width;
+
+                        const remainingY = (pageHeight - margin) - currentY;
+
+                        if (remainingY >= 50 && imgMmHeight > remainingY && (imgMmHeight - remainingY) <= 80) {
+                            imgMmHeight = remainingY - 2;
+                            imgMmWidth = imgMmHeight / cardAspect;
+                        } else if (imgMmHeight > remainingY) {
+                            pdf.addPage();
+                            pageIndex++;
+                            currentY = margin;
+
+                            if (imgMmHeight > contentHeight) {
+                                imgMmHeight = contentHeight;
+                                imgMmWidth = imgMmHeight / cardAspect;
+                            }
+                        }
+
+                        const pageImgData = canvas.toDataURL('image/jpeg', 0.95);
+                        const posX = margin + (contentWidth - imgMmWidth) / 2;
+                        pdf.addImage(pageImgData, 'JPEG', posX, currentY, imgMmWidth, imgMmHeight);
+
+                        currentY += imgMmHeight + 3.5;
+                    }
+
+                    generatedAllPdfFileName = `목장이야기전체_세로_${formatFileDate(new Date())}.pdf`;
                 }
 
                 generatedAllPdfBlob = pdf.output('blob');
-                generatedAllPdfFileName = `목장이야기전체_${formatFileDate(new Date())}.pdf`;
 
                 if (statusContainer && statusDesc) {
-                    statusDesc.innerText = `생성 완료 (총 ${pageIndex}페이지)!`;
+                    statusDesc.innerText = "PDF 생성 완료!";
                     setTimeout(() => {
                         if (statusContainer) statusContainer.classList.add('hidden');
                     }, 2500);
                 }
-                showNotification("여백 낭비 없는 깔끔한 PDF가 완성되었습니다!");
+                showNotification("선택하신 모드의 고선명 PDF 생성이 완료되었습니다!");
                 return generatedAllPdfBlob;
             } catch (err) {
                 console.error("PDF 생성 에러:", err);
@@ -3722,7 +4027,7 @@
 
         window.approveAllPdfGeneration = window.ensureAllPdfGenerated;
 
-        // 1. [내 기기에 저장] 클릭 시 즉시 PDF 생성 및 다운로드
+        // 1. [내 기기에 저장] 클릭 시
         window.handleAllPdfSaveClick = async function() {
             const saveBtn = document.getElementById('all-pdf-save-btn');
             const blob = await ensureAllPdfGenerated(saveBtn, "저장 중...");
@@ -3731,7 +4036,7 @@
             }
         };
 
-        // 2. [공유] 클릭 시 즉시 PDF 생성 및 공유창 호출
+        // 2. [공유] 클릭 시
         window.handleAllPdfShareClick = async function() {
             const shareBtn = document.getElementById('all-pdf-share-btn');
             const blob = await ensureAllPdfGenerated(shareBtn, "공유 준비 중...");
