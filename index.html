@@ -17,7 +17,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-                /* 폰트 20종 (한글 10종 + 영문 인기 10종) 클래스 */
+        /* Pretendard 웹폰트 (최상단 배치로 브라우저 @import 규칙 준수) */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+        /* 폰트 20종 (한글 10종 + 영문 인기 10종) 클래스 */
         .font-pretendard { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif !important; }
         .font-myeongjo { font-family: 'Nanum Myeongjo', serif !important; }
         .font-pen { font-family: 'Nanum Pen Script', cursive !important; font-size: 1.15em; line-height: 1.35 !important; }
@@ -41,8 +44,26 @@
         .font-pacifico { font-family: 'Pacifico', cursive !important; }
         .font-greatvibes { font-family: 'Great Vibes', cursive !important; font-size: 1.25em !important; }
 
-        /* Pretendard 웹폰트 */
-        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        /* 다중 폰트 스팬 중첩 시 em 폰트 크기 배수 증폭 방지 */
+        #post-content span span,
+        .post-content-body span span {
+            font-size: 100% !important;
+        }
+
+        /* 상단 타이틀 '꿈' 중심 백색 빛 번짐 쉬머 효과 */
+        @keyframes dreamShimmer {
+            0%, 100% { background-position: 200% center; }
+            50% { background-position: -200% center; }
+        }
+        .dream-shimmer-text {
+            background: linear-gradient(90deg, #3B5D50 0%, #3B5D50 38%, #FFFFFF 50%, #3B5D50 62%, #3B5D50 100%);
+            background-size: 220% auto;
+            color: #3B5D50;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: dreamShimmer 5.5s ease-in-out infinite;
+        }
         
         html, body {
             width: 100%;
@@ -1058,6 +1079,7 @@
                 setTimeout(() => toast.remove(), 300);
             }, 2500);
         }
+        window.showNotification = showNotification;
 
         // 상단 헤더 펜 선그림 슬라이드 메뉴 토글
         window.toggleHeaderQuickMenu = function(event) {
@@ -1128,6 +1150,59 @@
             }
         };
 
+        function clearFeedSearchHighlights() {
+            const feedContainer = document.getElementById('feed-container');
+            if (!feedContainer) return;
+            feedContainer.querySelectorAll('mark.feed-search-highlight').forEach(mark => {
+                const parent = mark.parentNode;
+                if (parent) {
+                    parent.replaceChild(document.createTextNode(mark.textContent), mark);
+                    parent.normalize();
+                }
+            });
+        }
+
+        function applyFeedSearchHighlights(query) {
+            clearFeedSearchHighlights();
+            const cleanQuery = (query || '').trim();
+            if (!cleanQuery) return;
+            const feedContainer = document.getElementById('feed-container');
+            if (!feedContainer) return;
+
+            const escaped = cleanQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escaped})`, 'gi');
+
+            const targets = feedContainer.querySelectorAll('.post-content-body, .photo-caption-text, [id^="post-card-"] p, [id^="post-card-"] h4');
+            targets.forEach(container => {
+                const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+                const textNodes = [];
+                let node;
+                while ((node = walker.nextNode())) {
+                    if (node.nodeValue && regex.test(node.nodeValue)) {
+                        textNodes.push(node);
+                    }
+                    regex.lastIndex = 0;
+                }
+                textNodes.forEach(textNode => {
+                    const frag = document.createDocumentFragment();
+                    const parts = textNode.nodeValue.split(regex);
+                    parts.forEach(part => {
+                        if (part.toLowerCase() === cleanQuery.toLowerCase()) {
+                            const mark = document.createElement('mark');
+                            mark.className = 'feed-search-highlight bg-amber-200/90 text-gray-900 rounded-xs px-0.5 font-semibold';
+                            mark.textContent = part;
+                            frag.appendChild(mark);
+                        } else if (part) {
+                            frag.appendChild(document.createTextNode(part));
+                        }
+                    });
+                    if (textNode.parentNode) {
+                        textNode.parentNode.replaceChild(frag, textNode);
+                    }
+                });
+            });
+        }
+
         window.closeHeaderSearch = function(event) {
             if (event) event.stopPropagation();
             const container = document.getElementById('header-search-container');
@@ -1141,6 +1216,7 @@
             matchedSearchPostIds = [];
             currentSearchMatchIndex = 0;
             lastSearchQuery = '';
+            clearFeedSearchHighlights();
             const countBadge = document.getElementById('feed-search-count-badge');
             if (countBadge) countBadge.classList.add('hidden');
             const navBtns = document.getElementById('feed-search-nav-btns');
@@ -1181,6 +1257,7 @@
             if (query.length < 1) {
                 matchedSearchPostIds = [];
                 currentSearchMatchIndex = 0;
+                clearFeedSearchHighlights();
                 if (countBadge) countBadge.classList.add('hidden');
                 if (navBtns) navBtns.classList.add('hidden');
                 return;
@@ -1221,8 +1298,10 @@
                     navBtns.classList.add('inline-flex');
                 }
                 // [핵심 요구사항]: 한 글자 이상 입력 즉시 버튼 클릭 없이 배경에서 해당 피드로 자동 스크롤 및 하이라이트!
+                applyFeedSearchHighlights(query);
                 scrollToPost(matched[0], true);
             } else {
+                clearFeedSearchHighlights();
                 currentSearchMatchIndex = 0;
                 if (countBadge) {
                     countBadge.innerText = '0건';
@@ -1345,6 +1424,7 @@
                 loadMokjangFeed();
                 loadMokjangFiles();
                 initPresenceSystem();
+                initFeedBookmark();
             }
         }
         let cachedMokjangFiles = [];
@@ -1661,11 +1741,37 @@
             showNotification(`'${fileName}' 다운로드를 시작합니다.`);
         };
 
+        let pendingDeleteFileId = null;
+        let pendingDeleteFileTimer = null;
+
         window.deleteFileById = async function(fileId, fileName) {
-            if (!confirm(`'${fileName || "이 파일"}'을(를) 보관함에서 삭제하시겠습니까?`)) return;
+            if (pendingDeleteFileId !== fileId) {
+                pendingDeleteFileId = fileId;
+                if (pendingDeleteFileTimer) clearTimeout(pendingDeleteFileTimer);
+                pendingDeleteFileTimer = setTimeout(() => { pendingDeleteFileId = null; }, 3500);
+                showNotification(`한 번 더 누르면 '${fileName || "이 파일"}'이(가) 보관함에서 삭제됩니다.`);
+                return;
+            }
+            pendingDeleteFileId = null;
+            if (pendingDeleteFileTimer) clearTimeout(pendingDeleteFileTimer);
+
             setDbStatus('saving');
             try {
                 await deleteDoc(doc(db, 'mokjang_files', fileId));
+                // 연결된 게시글의 파일 배지 정보도 동기화하여 초기화
+                const linkedPosts = cachedPosts.filter(p => p.fileId === fileId || (!p.fileId && p.fileName === fileName));
+                for (const p of linkedPosts) {
+                    try {
+                        await updateDoc(getPostDocRef(p.id), {
+                            fileId: "",
+                            fileName: "",
+                            fileSize: 0,
+                            fileTitle: ""
+                        });
+                    } catch (syncErr) {
+                        console.warn("게시글 파일 배지 동기화 경고:", syncErr);
+                    }
+                }
                 showNotification("파일이 삭제되었습니다.");
                 setDbStatus('connected');
             } catch (err) {
@@ -1675,9 +1781,20 @@
             }
         };
 
-        // 본문 에디터 실시간 글자수 및 빈상태 제어
+        // 본문 에디터 실시간 글자수, 선택영역 보존 및 빈상태 제어
+        let savedEditorRange = null;
         const editorEl = document.getElementById('post-content');
         if (editorEl) {
+            const saveCurrentEditorSelection = () => {
+                const sel = window.getSelection();
+                if (sel && sel.rangeCount > 0 && editorEl.contains(sel.anchorNode)) {
+                    savedEditorRange = sel.getRangeAt(0).cloneRange();
+                }
+            };
+            editorEl.addEventListener('keyup', saveCurrentEditorSelection);
+            editorEl.addEventListener('mouseup', saveCurrentEditorSelection);
+            editorEl.addEventListener('touchend', saveCurrentEditorSelection, { passive: true });
+
             editorEl.addEventListener('input', () => {
                 const text = (editorEl.innerText || '').replace(/\u200B/g, '').trim();
                 if (!text) {
@@ -1686,6 +1803,7 @@
                     editorEl.removeAttribute('data-empty');
                 }
                 updateCharCount(editorEl);
+                saveCurrentEditorSelection();
             });
             editorEl.addEventListener('beforeinput', (e) => {
                 const text = (editorEl.innerText || '').replace(/\u200B/g, '');
@@ -1938,16 +2056,59 @@
             if (ind) ind.innerText = `${input.value.length} / 15자`;
         };
 
-        function applyFontToCaretOrSelection(fontObj) {
+        // 에디터 내 스팬이 아닌 순수 텍스트 노드를 이전 폰트 스팬으로 고정하여 폰트 변경 시 앞부분 글씨체가 바뀌지 않도록 보호
+        function lockBareTextNodesWithFont(editor, fontObj) {
+            if (!editor || !fontObj) return;
+            const childNodes = Array.from(editor.childNodes);
+            childNodes.forEach(node => {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const cleanText = (node.nodeValue || '').replace(/\u200B/g, '');
+                    if (cleanText.length > 0) {
+                        const wrapper = document.createElement('span');
+                        wrapper.className = fontObj.className;
+                        wrapper.style.fontFamily = fontObj.fontFamily;
+                        wrapper.textContent = node.nodeValue;
+                        editor.replaceChild(wrapper, node);
+                    }
+                }
+            });
+        }
+
+        function setEditorBaseFontClass(editor, fontClassName) {
+            if (!editor) return;
+            ALL_FONTS.forEach(f => editor.classList.remove(f.className));
+            editor.classList.add(fontClassName || 'font-pretendard');
+        }
+
+        function applyFontToCaretOrSelection(fontObj, prevFontObj) {
             const editor = document.getElementById('post-content');
             if (!editor || editor.offsetParent === null) return;
             try {
+                const plainText = (editor.innerText || '').replace(/\u200B/g, '').trim();
+
+                // 0. 아직 아무 글자도 입력하지 않은 빈 상태인 경우: 플레이스홀더를 깨뜨리지 않고 기본 폰트 클래스만 즉시 전환
+                if (!plainText) {
+                    editor.innerHTML = '';
+                    editor.setAttribute('data-empty', 'true');
+                    setEditorBaseFontClass(editor, fontObj.className);
+                    editor.focus();
+                    return;
+                }
+
+                // 기존에 스팬 없이 입력된 텍스트가 있다면 이전 폰트로 먼저 고정
+                if (prevFontObj) {
+                    lockBareTextNodesWithFont(editor, prevFontObj);
+                }
+
                 editor.focus();
                 const sel = window.getSelection();
                 if (!sel) return;
 
-                // 에디터 내부에 커서/선택영역이 없으면 에디터 끝에 커서 배치
-                if (sel.rangeCount === 0 || !editor.contains(sel.anchorNode)) {
+                // 저장된 선택 영역 복원 (모바일/버튼 클릭 시 선택 영역 풀림 방지)
+                if ((sel.rangeCount === 0 || !editor.contains(sel.anchorNode)) && savedEditorRange && editor.contains(savedEditorRange.commonAncestorContainer)) {
+                    sel.removeAllRanges();
+                    sel.addRange(savedEditorRange);
+                } else if (sel.rangeCount === 0 || !editor.contains(sel.anchorNode)) {
                     const range = document.createRange();
                     range.selectNodeContents(editor);
                     range.collapse(false);
@@ -1958,9 +2119,13 @@
                 if (sel.rangeCount === 0) return;
                 const range = sel.getRangeAt(0);
 
-                // 1. 블록 지정(드래그 선택)된 글자가 있는 경우: 선택된 글자만 해당 폰트로 변경
+                // 1. 블록 지정(드래그 선택)된 글자가 있는 경우: 선택된 글자만 해당 폰트로 변경 (내부 중첩 폰트 클래스 정리)
                 if (!range.collapsed) {
                     const selectedContent = range.extractContents();
+                    selectedContent.querySelectorAll('span').forEach(innerSpan => {
+                        ALL_FONTS.forEach(f => innerSpan.classList.remove(f.className));
+                        innerSpan.style.fontFamily = '';
+                    });
                     const span = document.createElement('span');
                     span.className = fontObj.className;
                     span.style.fontFamily = fontObj.fontFamily;
@@ -1971,21 +2136,48 @@
                     const newRange = document.createRange();
                     newRange.selectNodeContents(span);
                     sel.addRange(newRange);
+                    savedEditorRange = newRange.cloneRange();
                 } else {
-                    // 2. 글을 쓰다가 폰트를 바꾼 경우: 쓰던 글은 이전 폰트 그대로 두고, 새로 입력할 위치에 새 폰트 스팬 배치
+                    // 2. 글을 쓰다가 폰트를 바꾼 경우: 중첩 스팬이 생기지 않도록 처리
+                    let containerEl = range.startContainer.nodeType === Node.ELEMENT_NODE
+                        ? range.startContainer
+                        : range.startContainer.parentElement;
+
+                    // 이미 비어있는(​만 있는) 폰트 스팬 안이라면 그 스팬의 폰트만 교체
+                    if (containerEl && containerEl !== editor && containerEl.tagName === 'SPAN' && (containerEl.textContent || '').replace(/\u200B/g, '') === '') {
+                        containerEl.className = fontObj.className;
+                        containerEl.style.fontFamily = fontObj.fontFamily;
+                        return;
+                    }
+
                     const span = document.createElement('span');
                     span.className = fontObj.className;
                     span.style.fontFamily = fontObj.fontFamily;
                     const zwsp = document.createTextNode('\u200B');
                     span.appendChild(zwsp);
 
-                    range.insertNode(span);
+                    // 기존 스팬 내부 끝에 커서가 있다면 중첩하지 않고 형제 노드로 바로 뒤에 삽입
+                    const topSpan = (containerEl && containerEl !== editor) ? containerEl.closest('#post-content > span') : null;
+                    if (topSpan && topSpan.parentNode === editor) {
+                        const afterRange = document.createRange();
+                        afterRange.setStart(range.startContainer, range.startOffset);
+                        afterRange.setEndAfter(topSpan.lastChild || topSpan);
+                        const trailingText = (afterRange.toString() || '').replace(/\u200B/g, '');
+                        if (trailingText.length === 0) {
+                            topSpan.after(span);
+                        } else {
+                            range.insertNode(span);
+                        }
+                    } else {
+                        range.insertNode(span);
+                    }
 
                     sel.removeAllRanges();
                     const newRange = document.createRange();
                     newRange.setStart(span.firstChild, 1);
                     newRange.collapse(true);
                     sel.addRange(newRange);
+                    savedEditorRange = newRange.cloneRange();
                 }
             } catch (err) {
                 console.warn("폰트 적용 커서 예외 방지:", err);
@@ -2009,7 +2201,9 @@
         };
 
         window.selectPostFont = function(fontId, applyToEditor = true) {
+            const prevFontObj = ALL_FONTS.find(f => f.id === currentSelectedFont) || ALL_FONTS[0];
             currentSelectedFont = fontId || 'pretendard';
+            const target = ALL_FONTS.find(f => f.id === currentSelectedFont) || ALL_FONTS[0];
 
             // 영문 폰트 선택 시 영문 탭, 한글 폰트 선택 시 한글 탭 자동 동기화
             if (AVAILABLE_FONTS_EN.some(f => f.id === currentSelectedFont)) {
@@ -2029,12 +2223,13 @@
                 }
             }
 
+            const editor = document.getElementById('post-content');
             if (applyToEditor) {
-                const editor = document.getElementById('post-content');
-                const target = ALL_FONTS.find(f => f.id === currentSelectedFont) || ALL_FONTS[0];
                 if (editor && editor.offsetParent !== null) {
-                    applyFontToCaretOrSelection(target);
+                    applyFontToCaretOrSelection(target, prevFontObj);
                 }
+            } else if (editor) {
+                setEditorBaseFontClass(editor, target.className);
             }
             renderFontSelectorUI();
         };
@@ -2049,7 +2244,7 @@
                 const btnClass = isSelected
                     ? `px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-emerald-600 bg-emerald-50 text-emerald-800 shadow-2xs shrink-0 ${f.className}`
                     : `px-2 py-0.5 rounded-full font-medium transition-all text-[10.5px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 ${f.className}`;
-                return `<button type="button" onclick="selectPostFont('${f.id}')" id="font-btn-${f.id}" class="${btnClass}">${f.name}</button>`;
+                return `<button type="button" onmousedown="event.preventDefault()" onclick="selectPostFont('${f.id}')" id="font-btn-${f.id}" class="${btnClass}">${f.name}</button>`;
             }).join('');
         }
 
@@ -2066,8 +2261,7 @@
 
             const MAX_SIZE = 1 * 1024 * 1024; // 1MB 제한
             if (file.size > MAX_SIZE) {
-                showNotification("첨부한 파일은 1MB가 넘으면 안 됩니다.");
-                alert("첨부한 파일은 1MB를 초과할 수 없습니다. (현재: " + (file.size / 1024 / 1024).toFixed(2) + "MB)");
+                showNotification("첨부한 파일은 1MB를 초과할 수 없습니다. (현재: " + (file.size / 1024 / 1024).toFixed(2) + "MB)");
                 event.target.value = '';
                 return;
             }
@@ -2149,16 +2343,17 @@
                 if (editTargetPost && (editTargetPost.fileName || editTargetPost.fileId)) {
                     const matchedFile = cachedMokjangFiles.find(f => f.id === editTargetPost.fileId || f.fileName === editTargetPost.fileName);
                     if (matchedFile) {
-                        currentAttachedFile = { ...matchedFile };
+                        currentAttachedFile = { ...matchedFile, id: matchedFile.id || editTargetPost.fileId || null };
                     } else {
                         currentAttachedFile = {
+                            id: editTargetPost.fileId || null,
                             fileName: editTargetPost.fileName,
                             fileSize: editTargetPost.fileSize,
                             fileType: editTargetPost.fileType || 'application/octet-stream',
                             dataUrl: editTargetPost.fileDataUrl || ''
                         };
                     }
-                    if (fileTitleInput) fileTitleInput.value = editTargetPost.fileTitle || '';
+                    if (fileTitleInput) fileTitleInput.value = editTargetPost.fileTitle || (matchedFile ? matchedFile.title : '') || '';
                 }
             }
             renderAttachedFileUI();
@@ -2270,10 +2465,16 @@
             closeSaveConfirmModal();
             const postId = document.getElementById('editing-post-id').value;
             const contentEl = document.getElementById('post-content');
+            if (contentEl) {
+                const activeFontObj = ALL_FONTS.find(f => f.id === currentSelectedFont) || ALL_FONTS[0];
+                lockBareTextNodesWithFont(contentEl, activeFontObj);
+            }
             let content = contentEl ? contentEl.innerHTML.replace(/\u200B/g, '').trim() : '';
             if (content === '<br>' || content === '<div><br></div>') content = '';
             const finalImages = [...selectedImagesList];
             const fileToSave = currentAttachedFile;
+            const fileTitleInput = document.getElementById('post-file-title');
+            const fileTitle = fileTitleInput ? fileTitleInput.value.trim().substring(0, 15) : '';
 
             closeWriteModal();
             setDbStatus('saving');
@@ -2283,26 +2484,36 @@
                 let savedFileName = null;
                 let savedFileSize = null;
 
-                const fileTitleInput = document.getElementById('post-file-title');
-                const fileTitle = fileTitleInput ? fileTitleInput.value.trim().substring(0, 15) : '';
-
                 if (fileToSave) {
-                    const fileDocRef = await addDoc(collection(db, 'mokjang_files'), {
-                        title: fileTitle || fileToSave.fileName,
-                        fileName: fileToSave.fileName,
-                        fileSize: fileToSave.fileSize,
-                        fileType: fileToSave.fileType,
-                        dataUrl: fileToSave.dataUrl,
-                        author: currentUser,
-                        createdAt: new Date(),
-                        postId: postId || null
-                    });
-                    savedFileId = fileDocRef.id;
-                    savedFileName = fileToSave.fileName;
-                    savedFileSize = fileToSave.fileSize;
+                    if (fileToSave.id) {
+                        // 기존 첨부파일이 유지된 경우 중복 생성하지 않고 제목만 업데이트
+                        savedFileId = fileToSave.id;
+                        savedFileName = fileToSave.fileName;
+                        savedFileSize = fileToSave.fileSize;
+                        try {
+                            await updateDoc(doc(db, 'mokjang_files', fileToSave.id), {
+                                title: fileTitle || fileToSave.fileName
+                            });
+                        } catch (e) {}
+                    } else {
+                        const fileDocRef = await addDoc(collection(db, 'mokjang_files'), {
+                            title: fileTitle || fileToSave.fileName,
+                            fileName: fileToSave.fileName,
+                            fileSize: fileToSave.fileSize,
+                            fileType: fileToSave.fileType,
+                            dataUrl: fileToSave.dataUrl,
+                            author: currentUser,
+                            createdAt: new Date(),
+                            postId: postId || null
+                        });
+                        savedFileId = fileDocRef.id;
+                        savedFileName = fileToSave.fileName;
+                        savedFileSize = fileToSave.fileSize;
+                    }
                 }
 
                 if (postId) {
+                    const prevPost = cachedPosts.find(p => p.id === postId);
                     const updatePayload = {
                         content: content,
                         fontFamily: currentSelectedFont || 'pretendard',
@@ -2315,6 +2526,19 @@
                         updatePayload.fileName = savedFileName;
                         updatePayload.fileSize = savedFileSize;
                         updatePayload.fileTitle = fileTitle || '';
+                        // 기존 파일에서 새 파일로 교체된 경우 이전 파일 정리
+                        if (prevPost && prevPost.fileId && prevPost.fileId !== savedFileId) {
+                            try { await deleteDoc(doc(db, 'mokjang_files', prevPost.fileId)); } catch (e) {}
+                        }
+                    } else {
+                        // 수정 화면에서 첨부파일을 삭제(제거)한 경우 게시글의 파일 정보도 초기화
+                        updatePayload.fileId = "";
+                        updatePayload.fileName = "";
+                        updatePayload.fileSize = 0;
+                        updatePayload.fileTitle = "";
+                        if (prevPost && prevPost.fileId) {
+                            try { await deleteDoc(doc(db, 'mokjang_files', prevPost.fileId)); } catch (e) {}
+                        }
                     }
                     await updateDoc(getPostDocRef(postId), updatePayload);
                     showNotification("게시글이 수정되었습니다.");
@@ -3059,13 +3283,20 @@
 
                 // 꾹 누르고 상하좌우로 이동하여 드롭한 경우
                 if (isBookmarkHorizontalMoved || (isBookmarkLongPressed && moveDist > 10)) {
-                    // 1. 드롭된 세로 위치(top) 확정 및 영구 저장
+                    // 1. 드롭된 세로 위치(top) 확정 및 영구 저장 (단, 상/하단 엣지 오토스크롤 영역에서 손을 뗀 경우 기존 안전 위치로 복귀)
                     const bookmarkHeight = bookmarkEl.offsetHeight || 85;
                     const halfH = bookmarkHeight / 2;
-                    const minY = 56;
-                    const maxY = window.innerHeight - bookmarkHeight - 16;
-                    const finalTop = Math.max(minY, Math.min(maxY, bookmarkLastClientY - halfH));
-                    bookmarkCustomTop = Math.round(finalTop);
+                    const topEdgeZone = 85;
+                    const bottomEdgeZone = window.innerHeight - 95;
+                    const minY = 64;
+                    const maxY = window.innerHeight - bookmarkHeight - 24;
+
+                    if (bookmarkLastClientY < topEdgeZone || bookmarkLastClientY > bottomEdgeZone) {
+                        bookmarkCustomTop = Math.max(85, Math.min(window.innerHeight - bookmarkHeight - 95, bookmarkInitialTop || 140));
+                    } else {
+                        const finalTop = Math.max(minY, Math.min(maxY, bookmarkLastClientY - halfH));
+                        bookmarkCustomTop = Math.round(finalTop);
+                    }
                     try {
                         localStorage.setItem('feed_bookmark_top', bookmarkCustomTop);
                     } catch(err) {}
@@ -4599,6 +4830,10 @@
                 endNotice.className = "w-full py-4 text-center text-gray-400 text-[11px] select-none flex items-center justify-center space-x-1";
                 endNotice.innerHTML = `<span>목장의 모든 소식을 다 읽으셨습니다 ✨</span>`;
                 feedContainer.appendChild(endNotice);
+            }
+
+            if (lastSearchQuery && lastSearchQuery.trim().length >= 1) {
+                applyFeedSearchHighlights(lastSearchQuery);
             }
 
             // 스크롤 위치 원상태로 즉각 고정 복원 (이모지 클릭/피드 동기화 시 화면 튐 차단, 단 글 등록/수정/삭제/달력 이동 중에는 방해 금지)
