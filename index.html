@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>우리들의 목장 이야기 - 세종꿈의교회 23목장</title>
+        <!-- Google Fonts for Korean typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
@@ -12,6 +17,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
+                /* 폰트 5종 클래스 */
+        .font-pretendard { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif !important; }
+        .font-myeongjo { font-family: 'Nanum Myeongjo', serif !important; }
+        .font-pen { font-family: 'Nanum Pen Script', cursive !important; font-size: 1.15em; line-height: 1.4 !important; }
+        .font-gowun { font-family: 'Gowun Dodum', sans-serif !important; }
+        .font-jua { font-family: 'Jua', sans-serif !important; }
+
         /* Pretendard 웹폰트 */
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         
@@ -359,12 +371,32 @@
 
                 <div class="w-full pt-1" id="post-content-container">
                     <div class="flex justify-between items-center mb-1 text-[11px]">
-                        <span class="font-medium text-gray-700">내용 입력</span>
+                        <span class="font-medium text-gray-700">내용 및 글씨체</span>
                         <span id="char-count-indicator" class="text-gray-400">0 / 200자</span>
                     </div>
+
+                    <!-- [글씨체 5종 선택 칩] -->
+                    <div class="flex items-center space-x-1.5 overflow-x-auto pb-1.5 mb-1.5 scrollbar-none select-none text-[11px]">
+                        <button type="button" onclick="selectPostFont('pretendard')" id="font-btn-pretendard" class="px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-emerald-600 bg-emerald-50 text-emerald-800 shadow-2xs shrink-0 font-pretendard">
+                            기본고딕
+                        </button>
+                        <button type="button" onclick="selectPostFont('myeongjo')" id="font-btn-myeongjo" class="px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-myeongjo">
+                            나눔명조
+                        </button>
+                        <button type="button" onclick="selectPostFont('pen')" id="font-btn-pen" class="px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-pen">
+                            손글씨
+                        </button>
+                        <button type="button" onclick="selectPostFont('gowun')" id="font-btn-gowun" class="px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-gowun">
+                            고운돋움
+                        </button>
+                        <button type="button" onclick="selectPostFont('jua')" id="font-btn-jua" class="px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 font-jua">
+                            주아체
+                        </button>
+                    </div>
+
                     <textarea id="post-content" rows="3" maxlength="200" oninput="updateCharCount(this)" placeholder="목장 가족들과 나눌 따뜻한 이야기를 입력하세요..." 
                               dir="ltr"
-                              class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#3B5D50] focus:ring-1 focus:ring-[#3B5D50] focus:outline-none resize-none bg-white block transition-all shadow-2xs text-left"></textarea>
+                              class="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#3B5D50] focus:ring-1 focus:ring-[#3B5D50] focus:outline-none resize-none bg-white block transition-all shadow-2xs text-left font-pretendard"></textarea>
                 </div>
 
                 <div class="w-full pt-1.5 border-t border-gray-100 space-y-1.5" id="post-file-attach-container">
@@ -1119,6 +1151,48 @@
             document.getElementById('char-count-indicator').innerText = `${textarea.value.length} / 200자`;
         };
 
+                // 폰트 상태 및 5종 지원 관리
+        let currentSelectedFont = 'pretendard';
+        const AVAILABLE_FONTS = [
+            { id: 'pretendard', name: '기본고딕', className: 'font-pretendard' },
+            { id: 'myeongjo', name: '나눔명조', className: 'font-myeongjo' },
+            { id: 'pen', name: '손글씨', className: 'font-pen' },
+            { id: 'gowun', name: '고운돋움', className: 'font-gowun' },
+            { id: 'jua', name: '주아체', className: 'font-jua' }
+        ];
+
+        function getFontClass(fontId) {
+            if (fontId === 'myeongjo' || fontId === 'nanum-myeongjo') return 'font-myeongjo';
+            if (fontId === 'pen' || fontId === 'nanum-pen') return 'font-pen';
+            if (fontId === 'gowun' || fontId === 'gowun-dodum') return 'font-gowun';
+            if (fontId === 'jua') return 'font-jua';
+            return 'font-pretendard';
+        }
+
+        window.selectPostFont = function(fontId) {
+            currentSelectedFont = fontId || 'pretendard';
+            const textarea = document.getElementById('post-content');
+            if (textarea) {
+                AVAILABLE_FONTS.forEach(f => textarea.classList.remove(f.className));
+                const target = AVAILABLE_FONTS.find(f => f.id === currentSelectedFont) || AVAILABLE_FONTS[0];
+                textarea.classList.add(target.className);
+            }
+            renderFontSelectorUI();
+        };
+
+        function renderFontSelectorUI() {
+            AVAILABLE_FONTS.forEach(f => {
+                const btn = document.getElementById(`font-btn-${f.id}`);
+                if (btn) {
+                    if (f.id === currentSelectedFont) {
+                        btn.className = `px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-emerald-600 bg-emerald-50 text-emerald-800 shadow-2xs shrink-0 ${f.className}`;
+                    } else {
+                        btn.className = `px-2.5 py-1 rounded-full font-medium transition-all text-[11px] border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 shrink-0 ${f.className}`;
+                    }
+                }
+            });
+        }
+
         let currentAttachedFile = null;
 
         window.triggerFileAttachmentPicker = function() {
@@ -1185,11 +1259,13 @@
             }
         }
 
-        window.openWriteModal = function(postId = null, existingContent = "", existingImages = []) {
+        window.openWriteModal = function(postId = null, existingContent = "", existingImages = [], existingFont = 'pretendard') {
             document.getElementById('editing-post-id').value = postId || "";
             const contentEl = document.getElementById('post-content');
             contentEl.value = existingContent || "";
             updateCharCount(contentEl);
+
+            selectPostFont(existingFont || 'pretendard');
 
             selectedImagesList = Array.isArray(existingImages) ? [...existingImages] : (existingImages ? [existingImages] : []);
             renderImagePreviews();
@@ -1211,6 +1287,7 @@
             selectedImagesList = [];
             currentAttachedFile = null;
             renderAttachedFileUI();
+            selectPostFont('pretendard');
             document.getElementById('post-content').value = '';
             document.getElementById('editing-post-id').value = '';
         };
@@ -1261,6 +1338,7 @@
                 if (postId) {
                     const updatePayload = {
                         content: content,
+                        fontFamily: currentSelectedFont || 'pretendard',
                         images: finalImages,
                         imageUrl: finalImages.length > 0 ? finalImages[0] : "",
                         updatedAt: new Date()
@@ -1277,6 +1355,7 @@
                         mokjangName: currentMokjang,
                         author: currentUser,
                         content: content,
+                        fontFamily: currentSelectedFont || 'pretendard',
                         images: finalImages,
                         imageUrl: finalImages.length > 0 ? finalImages[0] : "",
                         likes: 0,
@@ -1421,10 +1500,12 @@
                 previewThumbs.appendChild(img);
             });
 
+            const post = cachedPosts.find(p => p.id === postId);
+            const postFont = post ? (post.fontFamily || 'pretendard') : 'pretendard';
             const yesBtn = document.getElementById('edit-confirm-yes-btn');
             yesBtn.onclick = function() {
                 closeEditConfirmModal();
-                openWriteModal(postId, content, imagesJson);
+                openWriteModal(postId, content, imagesJson, postFont);
             };
             document.getElementById('edit-confirm-modal').classList.remove('hidden');
         };
@@ -1657,7 +1738,7 @@
                         <span class="text-[10px] text-emerald-800 font-semibold px-2 py-0.5 bg-emerald-50 rounded-full border border-emerald-100">${currentMokjang}</span>
                     </div>
 
-                    ${post.content ? `<div class="text-[14px] text-gray-800 leading-relaxed whitespace-pre-wrap mb-2 text-left">${escapeHtml(post.content.trim())}</div>` : ''}
+                    ${post.content ? `<div class="text-[14px] ${getFontClass(post.fontFamily)} text-gray-800 leading-relaxed whitespace-pre-wrap mb-2 text-left">${escapeHtml(post.content.trim())}</div>` : ''}
                     ${attachedFileHtml}
                     ${commentsHtml}
                 </div>
@@ -2042,7 +2123,7 @@
                         <span class="text-xs font-bold text-gray-800">${escapeHtml(post.author || '목장가족')}</span>
                         <span class="text-[9px] text-gray-400 ml-auto">${formatDate(post.createdAt)}</span>
                     </div>
-                    ${post.content ? `<p class="text-xs text-gray-800 leading-relaxed whitespace-pre-wrap mb-1.5 text-left">${escapeHtml(post.content)}</p>` : ''}
+                    ${post.content ? `<p class="text-xs ${getFontClass(post.fontFamily)} text-gray-800 leading-relaxed whitespace-pre-wrap mb-1.5 text-left">${escapeHtml(post.content)}</p>` : ''}
                     ${photosHtml}
                     ${commentsHtml}
                 `;
@@ -2395,8 +2476,9 @@
                         </div>
                     ` : '';
 
+                    const postFontClass = getFontClass(post.fontFamily);
                     const formattedContent = (post.content && post.content.trim()) 
-                        ? `<div class="post-content-body pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight text-left break-words overflow-wrap-anywhere whitespace-pre-wrap" style="text-align: left !important; text-indent: 0 !important; margin: 0 !important; padding-left: 2px !important; direction: ltr !important; width: 100% !important; display: block !important;">${escapeHtml(post.content.trim())}</div>` 
+                        ? `<div class="post-content-body ${postFontClass} pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight text-left break-words overflow-wrap-anywhere whitespace-pre-wrap" style="text-align: left !important; text-indent: 0 !important; margin: 0 !important; padding-left: 2px !important; direction: ltr !important; width: 100% !important; display: block !important;">${escapeHtml(post.content.trim())}</div>` 
                         : '';
 
                     card.innerHTML = `
