@@ -2223,6 +2223,7 @@
 
         // 사용자 환경설정: 왼손잡이(left) / 오른손잡이(right) 저장 및 복원
         let bookmarkSide = localStorage.getItem('feed_bookmark_side') || 'right';
+        let bookmarkCustomTop = parseInt(localStorage.getItem('feed_bookmark_top'), 10) || 140;
 
         const KOREAN_DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -2301,7 +2302,7 @@
         }
 
         // 왼손잡이 / 오른손잡이 책갈피 좌우 위치 및 라운딩 동적 적용
-        function applyBookmarkSide(side) {
+        function applyBookmarkSide(side, customTop = null) {
             const bookmarkEl = document.getElementById('feed-bookmark-indicator');
             const ribbonEl = document.getElementById('feed-bookmark-ribbon');
             const wedgeEl = document.getElementById('feed-bookmark-wedge');
@@ -2312,6 +2313,11 @@
             // 인라인 좌표를 비워 CSS 클래스 반응형 규칙(모바일/태블릿)이 완벽히 작동하도록 함
             bookmarkEl.style.left = '';
             bookmarkEl.style.right = '';
+            if (customTop !== null) {
+                bookmarkEl.style.top = customTop + 'px';
+            } else if (bookmarkCustomTop) {
+                bookmarkEl.style.top = bookmarkCustomTop + 'px';
+            }
 
             if (bookmarkSide === 'left') {
                 bookmarkEl.classList.remove('bookmark-side-right');
@@ -2619,14 +2625,11 @@
                 applyMonthlyBookmarkTheme(dateInfo.month);
             }
 
-            // 직접 손가락으로 드래그하고 있지 않을 때 스크롤 위치에 맞춰 책갈피 세로 위치 부드럽게 추종
+            // 직접 손가락으로 드래그하고 있지 않을 때 사용자가 배치한 세로 위치(bookmarkCustomTop)를 안정적으로 유지
             if (!isBookmarkDragging) {
                 const bookmarkEl = document.getElementById('feed-bookmark-indicator');
-                if (bookmarkEl) {
-                    const minY = 75; // 헤더 아래
-                    const maxY = window.innerHeight - 130; // 하단 여백
-                    const calculatedTop = minY + clampedRatio * (maxY - minY);
-                    bookmarkEl.style.top = `${Math.round(calculatedTop)}px`;
+                if (bookmarkEl && bookmarkCustomTop) {
+                    bookmarkEl.style.top = bookmarkCustomTop + 'px';
                 }
             }
         }
@@ -2636,8 +2639,8 @@
             const feedContainer = document.getElementById('feed-container');
             if (!bookmarkEl || !feedContainer) return;
 
-            // 저장된 사용자 위치(왼손/오른손) 복원 적용
-            applyBookmarkSide(bookmarkSide);
+            // 저장된 사용자 위치(좌우 사이드 및 세로 높이) 복원 적용
+            applyBookmarkSide(bookmarkSide, bookmarkCustomTop);
 
             let bookmarkRafId = null;
             let lastTapTime = 0;
@@ -2659,7 +2662,7 @@
                 bookmarkEl.classList.remove('bookmark-hidden');
                 bookmarkEl.classList.add('bookmark-visible', 'bookmark-dragging');
 
-                // 280ms 꾹 누르면 '좌우 이동 모드' 활성화 (사파리 햅틱 진동)
+                // 250ms 꾹 누르면 '상하좌우 자유 이동 모드' 활성화 (햅틱 진동 피드백)
                 if (bookmarkLongPressTimer) clearTimeout(bookmarkLongPressTimer);
                 bookmarkLongPressTimer = setTimeout(() => {
                     if (isBookmarkDragging) {
@@ -2668,68 +2671,42 @@
                         if (navigator.vibrate) {
                             try { navigator.vibrate(25); } catch(e) {}
                         }
-                        showNotification('좌우 이동 모드: 원하는 쪽(왼쪽/오른쪽)으로 옮겨보세요');
+                        showNotification('상하좌우 이동 모드: 내용이 가려지지 않는 곳으로 옮겨보세요');
                     }
-                }, 280);
+                }, 250);
             };
 
             const updateDragVisuals = (clientX, clientY) => {
-                if (!isBookmarkDragging || !cachedPosts || cachedPosts.length === 0) return;
+                if (!isBookmarkDragging) return;
 
                 const deltaX = clientX - bookmarkDragStartX;
                 const deltaY = clientY - bookmarkDragStartY;
+                const moveDist = Math.hypot(deltaX, deltaY);
 
-                // 수평 이동: 꾹 누른 상태이거나 20px 이상 밀었을 때 좌우 드래그 모드 활성화
-                if (isBookmarkLongPressed || Math.abs(deltaX) > 20) {
+                // 꾹 누른 상태이거나 10px 이상 움직였을 때 상하좌우 자유 이동 활성화
+                if (isBookmarkLongPressed || moveDist > 10) {
                     if (!isBookmarkHorizontalMoved) {
                         isBookmarkHorizontalMoved = true;
-                        if (bookmarkLongPressTimer) clearTimeout(bookmarkLongPressTimer);
                         bookmarkEl.classList.remove('bookmark-side-left', 'bookmark-side-right');
                     }
+
+                    // 가로(X) 좌표: 좌우 화면 경계 안에서 자유 이동
                     const bookmarkWidth = bookmarkEl.offsetWidth || 36;
                     const halfW = bookmarkWidth / 2;
                     const clampedX = Math.max(4, Math.min(window.innerWidth - bookmarkWidth - 4, clientX - halfW));
                     bookmarkEl.style.left = `${Math.round(clampedX)}px`;
                     bookmarkEl.style.right = 'auto';
+
+                    // 세로(Y) 좌표: 상하 화면 경계(헤더 아래 56px ~ 하단 80px 여백) 안에서 자유 이동
+                    const bookmarkHeight = bookmarkEl.offsetHeight || 85;
+                    const halfH = bookmarkHeight / 2;
+                    const minY = 56;
+                    const maxY = window.innerHeight - bookmarkHeight - 16;
+                    const clampedY = Math.max(minY, Math.min(maxY, clientY - halfH));
+                    bookmarkEl.style.top = `${Math.round(clampedY)}px`;
                 }
 
-                // 수직 이동 (세로 높이 제한 및 피드 스크롤 연동)
-                const minY = 75;
-                const maxY = window.innerHeight - 130;
-
-                let newTop = bookmarkInitialTop + deltaY;
-                newTop = Math.max(minY, Math.min(maxY, newTop));
-                bookmarkEl.style.top = `${Math.round(newTop)}px`;
-
-                const progressRatio = (newTop - minY) / (maxY - minY);
-                const clampedProgress = Math.max(0, Math.min(1, progressRatio));
-
-                // 쾌속 내비게이션: 해당 위치의 게시글 인덱스 및 날짜 계산
-                const targetIndex = Math.min(cachedPosts.length - 1, Math.round(clampedProgress * (cachedPosts.length - 1)));
-                currentBookmarkTargetIndex = targetIndex;
-                const currentPost = cachedPosts[targetIndex];
-
-                const posEl = document.getElementById('feed-bookmark-pos');
-                const dateEl = document.getElementById('feed-bookmark-date');
-                const dayEl = document.getElementById('feed-bookmark-day');
-                if (posEl) posEl.innerText = `${targetIndex + 1}/${cachedPosts.length}`;
-                if (currentPost) {
-                    const dateInfo = parseBookmarkDateInfo(currentPost.createdAt);
-                    if (dateEl) dateEl.innerText = dateInfo.shortDate;
-                    if (dayEl) dayEl.innerText = dateInfo.dayText;
-                    applyMonthlyBookmarkTheme(dateInfo.month);
-                }
-
-                // 드래그 중에는 DOM을 초기화(renderFeedList)하지 않고 뒤쪽 카드만 안전하게 점진 추가(loadMorePosts)
-                if (targetIndex >= displayedFeedCount) {
-                    loadMorePosts();
-                }
-
-                // 피드 스크롤을 쾌속 이동
-                const scrollHeight = feedContainer.scrollHeight - feedContainer.clientHeight;
-                if (scrollHeight > 0) {
-                    feedContainer.scrollTop = clampedProgress * scrollHeight;
-                }
+                // [중요] 피드 내용이 전혀 움직이지 않아야 하므로 feedContainer.scrollTop 조작이나 loadMorePosts 등은 일절 실행하지 않음!
             };
 
             const onDragMove = (clientX, clientY) => {
@@ -2757,7 +2734,7 @@
                 bookmarkEl.classList.remove('bookmark-dragging', 'bookmark-longpressed');
 
                 if (isCancelled) {
-                    applyBookmarkSide(bookmarkSide);
+                    applyBookmarkSide(bookmarkSide, bookmarkCustomTop);
                     return;
                 }
 
@@ -2765,8 +2742,20 @@
                 const deltaY = bookmarkLastClientY - bookmarkDragStartY;
                 const moveDist = Math.hypot(deltaX, deltaY);
 
-                // 좌우로 옮겼거나 꾹 눌러 이동한 경우
-                if (isBookmarkHorizontalMoved || (isBookmarkLongPressed && moveDist > 20)) {
+                // 꾹 누르고 상하좌우로 이동하여 드롭한 경우
+                if (isBookmarkHorizontalMoved || (isBookmarkLongPressed && moveDist > 10)) {
+                    // 1. 드롭된 세로 위치(top) 확정 및 영구 저장
+                    const bookmarkHeight = bookmarkEl.offsetHeight || 85;
+                    const halfH = bookmarkHeight / 2;
+                    const minY = 56;
+                    const maxY = window.innerHeight - bookmarkHeight - 16;
+                    const finalTop = Math.max(minY, Math.min(maxY, bookmarkLastClientY - halfH));
+                    bookmarkCustomTop = Math.round(finalTop);
+                    try {
+                        localStorage.setItem('feed_bookmark_top', bookmarkCustomTop);
+                    } catch(err) {}
+
+                    // 2. 가로 위치: 화면 좌/우 중 더 가까운 측면에 깔끔하게 스냅 도킹
                     const screenMid = window.innerWidth / 2;
                     const targetSide = bookmarkLastClientX < screenMid ? 'left' : 'right';
 
@@ -2774,11 +2763,16 @@
                         bookmarkSide = targetSide;
                         try {
                             localStorage.setItem('feed_bookmark_side', bookmarkSide);
-                        } catch(e) {}
-                        showNotification(bookmarkSide === 'left' ? '책갈피가 왼쪽(왼손잡이 모드)으로 이동되었습니다.' : '책갈피가 오른쪽(오른손잡이 모드)으로 이동되었습니다.');
+                        } catch(err) {}
+                        showNotification(bookmarkSide === 'left' ? '책갈피가 왼쪽으로 이동되었습니다.' : '책갈피가 오른쪽으로 이동되었습니다.');
+                    } else {
+                        showNotification('책갈피 위치가 조정되었습니다.');
                     }
+
+                    // 드롭된 위치로 스타일 확정 (피드 스크롤은 전혀 변경되지 않음)
+                    applyBookmarkSide(bookmarkSide, bookmarkCustomTop);
                 } else if (moveDist < 8 && !isBookmarkLongPressed) {
-                    // 순수 탭 동작인 경우 -> 더블 탭 판정 (월 달력 호출)
+                    // 이동 없이 순수 탭 동작인 경우 -> 더블 탭 판정 (월 달력 호출)
                     const now = Date.now();
                     if (now - lastTapTime < 360) {
                         lastTapTime = 0;
@@ -2786,19 +2780,21 @@
                     } else {
                         lastTapTime = now;
                     }
+                    applyBookmarkSide(bookmarkSide, bookmarkCustomTop);
+                } else {
+                    applyBookmarkSide(bookmarkSide, bookmarkCustomTop);
                 }
 
-                // 좌우 위치 및 스타일 확정 복원
-                applyBookmarkSide(bookmarkSide);
+                // [중요] 드롭 시에도 피드 스크롤이나 내용 이동은 일절 수행하지 않음!
 
-                // 달력이 열려있지 않을 때만 1.6초 후 자연스럽게 스르르 슬라이드 닫힘
+                // 달력이 열려있지 않을 때만 1.8초 후 자연스럽게 스르르 슬라이드 닫힘
                 const calPopup = document.getElementById('bookmark-calendar-popup');
                 const isCalOpen = calPopup && !calPopup.classList.contains('hidden');
                 if (!isCalOpen) {
                     if (bookmarkHideTimer) clearTimeout(bookmarkHideTimer);
                     bookmarkHideTimer = setTimeout(() => {
                         hideBookmark();
-                    }, 1600);
+                    }, 1800);
                 }
             };
 
