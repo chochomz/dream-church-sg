@@ -435,7 +435,7 @@
 
     <!-- [책갈피 연동 센스 미니 월 달력 팝업 (월요일 한눈에 확인)] -->
     <div id="bookmark-calendar-popup" 
-         class="fixed z-50 pointer-events-auto hidden select-none shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md border border-gray-200/90 p-3 w-[252px] transition-all duration-300 transform opacity-0 scale-90"
+         class="fixed z-50 pointer-events-auto hidden select-none shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md border-2 border-emerald-600/80 ring-1 ring-black/5 p-3 w-[252px] transition-all duration-300 transform opacity-0 scale-90"
          style="touch-action: auto;">
         <!-- 상단 헤더: 이전달 / 연월 / 다음달 / 닫기 -->
         <div class="flex items-center justify-between pb-2 mb-2 border-b border-gray-100">
@@ -1377,6 +1377,7 @@
                 loadMokjangFiles();
                 initPresenceSystem();
                 initFeedBookmark();
+                initPostLayoutObserver();
             } catch (e) {
                 console.warn("익명 인증 경고:", e);
                 isAuthReady = true;
@@ -2779,20 +2780,25 @@
 
                 renderBookmarkCalendar(calendarCurrentYear, calendarCurrentMonth);
 
-                // 책갈피의 세로 위치에 맞춰 달력 팝업 위치 정렬
-                const bookmarkTop = parseFloat(bookmarkEl.style.top) || 140;
-                const popupHeight = 220;
-                const targetTop = Math.max(68, Math.min(window.innerHeight - popupHeight - 16, bookmarkTop - 40));
+                // 책갈피의 실시간 바운딩 박스를 기준으로 위치 정밀 계산
+                const bookmarkRect = bookmarkEl.getBoundingClientRect();
+                const bookmarkTop = bookmarkRect.top;
+                const popupHeight = 230;
+                const targetTop = Math.max(54, Math.min(window.innerHeight - popupHeight - 14, bookmarkTop - 25));
                 popup.style.top = `${targetTop}px`;
 
-                // 좌우 측면에 맞게 튀어나오는 방향 설정
+                // [요청 반영: 책갈피가 가려지지 않게 책갈피 끝/안쪽 가장자리에 정확히 맞춤]
                 if (bookmarkSide === 'left') {
-                    popup.style.left = 'max(8px, calc(50% - 224px + 42px))';
+                    // 책갈피가 왼쪽에 있을 때: 책갈피 오른쪽 끝(inner edge) 바로 옆에 배치
+                    const popupLeft = Math.max(8, Math.round(bookmarkRect.right + 2));
+                    popup.style.left = `${popupLeft}px`;
                     popup.style.right = 'auto';
                     popup.classList.remove('origin-top-right');
                     popup.classList.add('origin-top-left');
                 } else {
-                    popup.style.right = 'max(8px, calc(50% - 224px + 42px))';
+                    // 책갈피가 오른쪽에 있을 때: 책갈피 왼쪽 끝(inner edge) 바로 옆에 배치
+                    const popupRight = Math.max(8, Math.round(window.innerWidth - bookmarkRect.left + 2));
+                    popup.style.right = `${popupRight}px`;
                     popup.style.left = 'auto';
                     popup.classList.remove('origin-top-left');
                     popup.classList.add('origin-top-right');
@@ -3212,9 +3218,13 @@
             }
         });
 
-        // [메인 피드 사진 두 번 연속 빠른 터치(더블 탭) 시에만 수정 화면(라이트박스) 호출]
+        // [피드 사진 단일 탭(한 장씩 펼치기/접기) & 더블 탭(라이트박스 편집) 및 자동 복귀 제어]
+        const singleTapTimers = {};
         const photoTapRecord = {};
-        window.handlePhotoDoubleTap = function(postId, photoIdx, event) {
+        const expandedPhotoPosts = new Set();
+        let postLayoutObserver = null;
+
+        window.handlePhotoClick = function(postId, photoIdx, event) {
             if (event) {
                 event.stopPropagation();
             }
@@ -3223,15 +3233,145 @@
             const lastTap = photoTapRecord[key] || 0;
             const diff = now - lastTap;
 
-            if (diff > 0 && diff < 380) {
-                // 더블 탭 성공: 두 번 연속 빠르게 터치한 경우만 수정/교정 라이트박스 열림
+            if (diff > 0 && diff < 360) {
+                // 더블 탭 성공: 즉시 라이트박스(수정/교정) 모달 오픈
+                if (singleTapTimers[key]) {
+                    clearTimeout(singleTapTimers[key]);
+                    delete singleTapTimers[key];
+                }
                 delete photoTapRecord[key];
                 openLightbox(postId, photoIdx);
             } else {
-                // 한 번 터치한 경우: 스크롤 중 오작동 방지를 위해 시간 기록만 수행 (모달 열리지 않음)
+                // 단일 탭: 300ms 동안 더블탭이 오지 않으면 한 장씩 죽 늘어지게 펼쳐보기/격자 접기 토글
                 photoTapRecord[key] = now;
+                if (singleTapTimers[key]) {
+                    clearTimeout(singleTapTimers[key]);
+                }
+                singleTapTimers[key] = setTimeout(() => {
+                    delete singleTapTimers[key];
+                    const post = cachedPosts.find(p => p.id === postId);
+                    const count = post ? (Array.isArray(post.images) ? post.images.length : (post.imageUrl ? 1 : 0)) : 1;
+                    if (count > 1) {
+                        togglePostPhotoLayout(postId);
+                    }
+                }, 300);
             }
         };
+
+        // 기존 함수명 호환성 유지
+        window.handlePhotoDoubleTap = window.handlePhotoClick;
+
+        window.togglePostPhotoLayout = function(postId) {
+            const container = document.getElementById(`post-photos-${postId}`);
+            if (!container) return;
+            const currentMode = container.getAttribute('data-view-mode') || 'grid';
+            if (currentMode === 'grid') {
+                setPostPhotoLayout(postId, 'expanded', true);
+            } else {
+                setPostPhotoLayout(postId, 'grid', true);
+            }
+        };
+
+        window.setPostPhotoLayout = function(postId, mode, notify = false) {
+            const container = document.getElementById(`post-photos-${postId}`);
+            if (!container) return;
+
+            const count = parseInt(container.getAttribute('data-photo-count'), 10) || 1;
+            const btnText = document.getElementById(`photo-layout-text-${postId}`);
+            const btnIcon = document.getElementById(`photo-layout-icon-${postId}`);
+            const btn = document.getElementById(`photo-layout-btn-${postId}`);
+
+            if (mode === 'expanded') {
+                expandedPhotoPosts.add(postId);
+                container.setAttribute('data-view-mode', 'expanded');
+                container.className = "flex flex-col space-y-2.5 w-full mt-0.5 mb-1 transition-all duration-300";
+
+                // 모든 사진 블록을 1열 전체 폭 및 object-contain으로 전환 (얼굴/전체 잘림 100% 방지)
+                for (let i = 0; i < count; i++) {
+                    const block = document.getElementById(`photo-block-${postId}-${i}`);
+                    const img = document.getElementById(`feed-photo-img-${postId}-${i}`);
+                    if (block) {
+                        block.classList.remove('col-span-1', 'col-span-2');
+                        block.classList.add('w-full');
+                    }
+                    if (img) {
+                        img.classList.remove('h-36', 'sm:h-40');
+                        img.classList.add('h-auto', 'max-h-[650px]', 'object-contain', 'bg-black/5');
+                        img.style.objectPosition = 'center center';
+                    }
+                }
+
+                if (btnText) btnText.innerText = "접기 (격자)";
+                if (btnIcon) {
+                    btnIcon.className = "fa-solid fa-compress text-[8.5px]";
+                }
+                if (btn) {
+                    btn.classList.add('bg-emerald-100', 'text-emerald-900', 'border-emerald-300');
+                    btn.classList.remove('bg-gray-100', 'text-gray-600');
+                }
+                if (notify) {
+                    showNotification("사진을 한 장씩 크게 펼쳤습니다. (스크롤 시 자동 복귀)");
+                }
+            } else {
+                expandedPhotoPosts.delete(postId);
+                container.setAttribute('data-view-mode', 'grid');
+                container.className = `grid gap-1.5 w-full ${count === 1 ? 'grid-cols-1' : 'grid-cols-2'} mt-0.5 mb-1 transition-all duration-300`;
+
+                // 격자 모드로 복원
+                for (let i = 0; i < count; i++) {
+                    const block = document.getElementById(`photo-block-${postId}-${i}`);
+                    const img = document.getElementById(`feed-photo-img-${postId}-${i}`);
+                    if (block) {
+                        block.classList.remove('w-full');
+                        const origSpan = block.getAttribute('data-grid-colspan') || 'col-span-1';
+                        block.classList.add(origSpan);
+                    }
+                    if (img) {
+                        img.classList.remove('h-auto', 'max-h-[650px]', 'object-contain', 'bg-black/5');
+                        const origHeight = img.getAttribute('data-grid-height') || 'h-36 sm:h-40';
+                        img.className = `w-full ${origHeight} object-cover select-none continuous-photo-item block transition-all duration-200`;
+                        img.style.objectPosition = 'center 20%';
+                    }
+                }
+
+                if (btnText) btnText.innerText = "펼쳐보기";
+                if (btnIcon) {
+                    btnIcon.className = "fa-solid fa-expand text-[8.5px]";
+                }
+                if (btn) {
+                    btn.classList.remove('bg-emerald-100', 'text-emerald-900', 'border-emerald-300');
+                    btn.classList.add('bg-gray-100', 'text-gray-600');
+                }
+                if (notify) {
+                    showNotification("격자 정렬로 복귀했습니다.");
+                }
+            }
+        };
+
+        function initPostLayoutObserver() {
+            const feedContainer = document.getElementById('feed-container');
+            if (!feedContainer || !('IntersectionObserver' in window)) return;
+
+            if (postLayoutObserver) {
+                postLayoutObserver.disconnect();
+            }
+
+            postLayoutObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    // 화면 밖으로 벗어난 게시글이 펼쳐진 상태라면 즉시 컴팩트 격자 레이아웃으로 자동 복구!
+                    if (!entry.isIntersecting || entry.intersectionRatio < 0.05) {
+                        const card = entry.target;
+                        const postId = card.getAttribute('data-post-id');
+                        if (postId && expandedPhotoPosts.has(postId)) {
+                            setPostPhotoLayout(postId, 'grid', false);
+                        }
+                    }
+                });
+            }, {
+                root: feedContainer,
+                threshold: [0, 0.05]
+            });
+        }
 
         const feedScrollEl = document.getElementById('feed-container');
         if (feedScrollEl) {
@@ -3245,6 +3385,20 @@
                 }
                 // 스크롤 시작 시 책갈피 슬라이드 노출 & 정보 갱신
                 showBookmark();
+
+                // [요청 반영]: 스크롤 시 화면 밖으로 벗어난 펼쳐진 사진 자동 격자 복귀 검사
+                if (expandedPhotoPosts.size > 0) {
+                    const containerRect = feedScrollEl.getBoundingClientRect();
+                    expandedPhotoPosts.forEach(postId => {
+                        const card = document.getElementById(`post-card-${postId}`);
+                        if (card) {
+                            const cardRect = card.getBoundingClientRect();
+                            if (cardRect.bottom < containerRect.top - 60 || cardRect.top > containerRect.bottom + 60) {
+                                setPostPhotoLayout(postId, 'grid', false);
+                            }
+                        }
+                    });
+                }
 
                 // 스크롤 바닥 부근 도달 시 다음 5개 자동 로딩 (IntersectionObserver 보조)
                 if (feedScrollEl.scrollTop + feedScrollEl.clientHeight >= feedScrollEl.scrollHeight - 250) {
@@ -4424,9 +4578,13 @@
                     }
 
                     return `
-                        <div class="${itemColSpan} flex flex-col photo-block-item rounded-xl overflow-hidden border border-gray-200/80 bg-gray-50/70 shadow-2xs relative">
+                        <div id="photo-block-${post.id}-${i}" data-grid-colspan="${itemColSpan}" class="${itemColSpan} flex flex-col photo-block-item rounded-xl overflow-hidden border border-gray-200/80 bg-gray-50/70 shadow-2xs relative transition-all duration-200">
                             <div class="w-full relative flex items-center justify-center bg-gray-100 overflow-hidden">
-                                <img id="feed-photo-img-${post.id}-${i}" src="${url}" alt="목장 사진 ${i+1}" loading="lazy" onclick="handlePhotoDoubleTap('${post.id}', ${i}, event)" class="w-full ${imgHeightClass} object-cover select-none continuous-photo-item block">
+                                <img id="feed-photo-img-${post.id}-${i}" src="${url}" alt="목장 사진 ${i+1}" loading="lazy" 
+                                     onclick="handlePhotoClick('${post.id}', ${i}, event)" 
+                                     data-grid-height="${imgHeightClass}"
+                                     style="object-position: center 20%;"
+                                     class="w-full ${imgHeightClass} object-cover select-none continuous-photo-item block transition-all duration-200">
                                 
                                 <button type="button" onclick="event.stopPropagation(); togglePhotoCaptionEditor('${post.id}', ${i})" 
                                         class="no-export absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-black/45 hover:bg-black/60 text-white backdrop-blur-[2px] shadow-sm flex items-center justify-center text-[10px] active:scale-90 transition-all border border-white/20 z-10" 
@@ -4461,8 +4619,20 @@
                 }).join('');
 
                 mediaSectionHtml = `
-                    <div class="${gridClass} mt-1.5 mb-1">
-                        ${photosHtml}
+                    <div class="relative w-full">
+                        ${count > 1 ? `
+                            <div class="flex items-center justify-between pb-1 px-0.5 text-[10px] text-gray-500 select-none">
+                                <span class="text-gray-400">사진 ${count}장</span>
+                                <button type="button" id="photo-layout-btn-${post.id}" onclick="event.stopPropagation(); togglePostPhotoLayout('${post.id}')" 
+                                        class="no-export px-2 py-0.5 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-600 hover:text-emerald-800 border border-gray-200 shadow-2xs text-[9.5px] font-medium flex items-center space-x-1 active:scale-95 transition-all" title="사진 보기 방식 전환">
+                                    <i id="photo-layout-icon-${post.id}" class="fa-solid fa-expand text-[8.5px]"></i>
+                                    <span id="photo-layout-text-${post.id}">펼쳐보기</span>
+                                </button>
+                            </div>
+                        ` : ''}
+                        <div id="post-photos-${post.id}" data-view-mode="grid" data-photo-count="${count}" class="${gridClass} mt-0.5 mb-1 transition-all duration-300">
+                            ${photosHtml}
+                        </div>
                     </div>
                 `;
             }
@@ -4704,7 +4874,9 @@
             // 글이 새로 추가되거나 삭제된 경우에만 전체 렌더링
             feedContainer.innerHTML = "";
             visiblePosts.forEach(post => {
-                feedContainer.appendChild(buildPostCardElement(post));
+                const card = buildPostCardElement(post);
+                feedContainer.appendChild(card);
+                if (postLayoutObserver) postLayoutObserver.observe(card);
             });
 
             // 5개 초과 게시물이 있을 경우 하단 스크롤 센티넬 표시 및 Observer 연결
@@ -4753,7 +4925,9 @@
             if (sentinel) sentinel.remove();
 
             nextBatch.forEach(post => {
-                feedContainer.appendChild(buildPostCardElement(post));
+                const card = buildPostCardElement(post);
+                feedContainer.appendChild(card);
+                if (postLayoutObserver) postLayoutObserver.observe(card);
             });
 
             if (displayedFeedCount < cachedPosts.length) {
