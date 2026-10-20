@@ -318,6 +318,18 @@
             }
             .no-print, .no-export { display: none !important; }
         }
+    
+        /* [새댓글 순회 시 해당 댓글 형광색 하이라이트 효과] */
+        @keyframes fluorescentPulse {
+            0%, 100% { background-color: rgba(254, 240, 138, 0.95); box-shadow: 0 0 10px rgba(250, 204, 21, 0.7); }
+            50% { background-color: rgba(253, 224, 71, 0.85); box-shadow: 0 0 16px rgba(250, 204, 21, 0.9); }
+        }
+        .recent-comment-fluorescent {
+            animation: fluorescentPulse 1.2s ease-in-out infinite;
+            border-radius: 8px !important;
+            transition: all 0.3s ease-in-out;
+        }
+
     </style>
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
@@ -653,12 +665,9 @@
 
             <div id="comments-modal-list" class="flex-1 overflow-y-auto p-3 space-y-2.5 text-xs"></div>
 
-            <div class="p-2.5 border-t church-border bg-white shrink-0 flex items-center space-x-1.5">
-                <input type="text" id="comments-modal-input" maxlength="200" placeholder="댓글을 입력하세요..." 
-                       onkeydown="if(event.key==='Enter') addCommentFromModal()" 
-                       class="flex-1 px-3 py-2 text-xs bg-white text-gray-900 placeholder-gray-400 border border-dashed border-white rounded-lg outline-none focus:outline-none focus:border-dashed focus:border-white shadow-2xs">
-                <button onclick="addCommentFromModal()" class="px-3.5 py-2 church-primary text-white text-xs font-semibold rounded-lg whitespace-nowrap shadow-2xs active:scale-95 transition-transform">
-                    등록
+            <div class="p-2 border-t church-border bg-gray-50/70 shrink-0 flex items-center justify-end">
+                <button type="button" onclick="closeCommentsModal()" class="py-1 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium active:scale-95 transition-all">
+                    닫기
                 </button>
             </div>
         </div>
@@ -1302,6 +1311,67 @@
             return scored.map(item => item.post.id);
         }
 
+        
+        // [새댓글 위치 형광색 하이라이트 안내]
+        let recentCommentHighlightTimer = null;
+        function highlightRecentComment(postId) {
+            const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+            if (!post || !Array.isArray(post.comments) || post.comments.length === 0) return;
+            const lastIdx = post.comments.length - 1;
+
+            const checkAndHighlight = (attempts = 0) => {
+                const commentEl = document.getElementById(`feed-comment-${postId}-${lastIdx}`);
+                const commentsBox = document.getElementById(`post-comments-box-${postId}`);
+
+                // 기존 하이라이트 제거
+                document.querySelectorAll('.recent-comment-fluorescent').forEach(el => {
+                    el.classList.remove('recent-comment-fluorescent');
+                });
+
+                const targetEl = commentEl || commentsBox;
+                if (targetEl) {
+                    targetEl.classList.add('recent-comment-fluorescent');
+
+                    if (recentCommentHighlightTimer) clearTimeout(recentCommentHighlightTimer);
+                    recentCommentHighlightTimer = setTimeout(() => {
+                        targetEl.classList.remove('recent-comment-fluorescent');
+                    }, 3500);
+                } else if (attempts < 15) {
+                    setTimeout(() => checkAndHighlight(attempts + 1), 80);
+                }
+            };
+
+            setTimeout(() => checkAndHighlight(0), 120);
+        }
+
+        // [댓글 삭제 기능: Firestore 영구 반영 및 UI 동기화]
+        window.deleteComment = async function(postId, commentIdx) {
+            if (!confirm("이 댓글을 삭제하시겠습니까?")) return;
+            const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+            if (!post || !Array.isArray(post.comments) || commentIdx >= post.comments.length) return;
+
+            const updatedComments = [...post.comments];
+            updatedComments.splice(commentIdx, 1);
+
+            setDbStatus('saving');
+            try {
+                await updateDoc(getPostDocRef(postId), { comments: updatedComments });
+                post.comments = updatedComments;
+                setDbStatus('connected');
+                showNotification("댓글이 삭제되었습니다.");
+
+                if (currentActivePopupPostId === postId) {
+                    renderCommentsModalList(postId);
+                }
+                updatePostReactionDOM(postId, post);
+                renderFeedList();
+            } catch (err) {
+                console.error("댓글 삭제 오류:", err);
+                setDbStatus('error');
+                showNotification("댓글 삭제 실패: " + err.message);
+            }
+        };
+
         window.toggleRecentCommentsNavigator = function(event) {
             if (event) event.stopPropagation();
             const nav = document.getElementById('recent-comments-navigator');
@@ -1349,12 +1419,7 @@
 
             nav.classList.remove('hidden');
             scrollToPost(matchedIds[0], true);
-
-            const firstPost = cachedPosts.find(p => p.id === matchedIds[0] || String(p.id) === String(matchedIds[0]));
-            if (firstPost && firstPost.comments && firstPost.comments.length > 0) {
-                const lastC = firstPost.comments[firstPost.comments.length - 1];
-                showNotification(`💬 '${lastC.author}': "${lastC.text}"`);
-            }
+            highlightRecentComment(matchedIds[0]);
         };
 
         window.navigateRecentComments = function(direction, event) {
@@ -1371,12 +1436,7 @@
 
             const targetPostId = recentCommentMatchedPosts[recentCommentCurrentIndex];
             scrollToPost(targetPostId, true);
-
-            const post = cachedPosts.find(p => p.id === targetPostId || String(p.id) === String(targetPostId));
-            if (post && post.comments && post.comments.length > 0) {
-                const lastC = post.comments[post.comments.length - 1];
-                showNotification(`💬 '${lastC.author}': "${lastC.text}"`);
-            }
+            highlightRecentComment(targetPostId);
         };
 
         window.closeRecentCommentsNavigator = function(event) {
@@ -5046,18 +5106,21 @@
 
             let commentsDisplayHtml = '';
             if (postComments.length > 0) {
-                const items = postComments.map(c => `
-                    <div class="py-1 px-1.5 border-b border-gray-100 last:border-b-0 text-[11px] flex flex-col space-y-0.5 text-left">
+                const items = postComments.map((c, idx) => `
+                    <div id="feed-comment-${post.id}-${idx}" class="py-1 px-1.5 border-b border-gray-100 last:border-b-0 text-[11px] flex flex-col space-y-0.5 text-left rounded-lg transition-all duration-300">
                         <div class="flex items-center justify-between">
                             <span class="font-bold text-gray-800 text-[10px]">${escapeHtml(c.author)}</span>
-                            <span class="text-[9px] text-gray-400">${c.time || ''}</span>
+                            <div class="flex flex-col items-end shrink-0">
+                                <span class="text-[9px] text-gray-400">${c.time || ''}</span>
+                                <button type="button" onclick="event.stopPropagation(); deleteComment('${post.id}', ${idx})" class="text-[9.5px] text-rose-500 hover:text-rose-700 font-semibold active:scale-90 transition-transform mt-0.5" title="댓글 삭제">삭제</button>
+                            </div>
                         </div>
                         <p class="text-gray-700 text-[11px] leading-snug whitespace-pre-wrap text-left">${escapeHtml(c.text)}</p>
                     </div>
                 `).join('');
 
                 commentsDisplayHtml = `
-                    <div class="mt-1 pt-1 border-t border-gray-100 bg-gray-50/70 rounded-xl p-1.5 text-left">
+                    <div id="post-comments-box-${post.id}" class="mt-1 pt-1 border-t border-gray-100 bg-gray-50/70 rounded-xl p-1.5 text-left transition-all duration-300">
                         <div class="flex items-center space-x-1 text-[10px] font-bold text-gray-600 mb-1 px-1">
                             <i class="fa-regular fa-comment-dots text-emerald-700"></i>
                             <span>목장 댓글 (${postComments.length})</span>
@@ -5468,13 +5531,6 @@
             currentActivePopupPostId = postId;
             renderCommentsModalList(postId);
             document.getElementById('comments-popup-modal').classList.remove('hidden');
-            setTimeout(() => {
-                const input = document.getElementById('comments-modal-input');
-                if (input) {
-                    input.focus();
-                    scrollInputAboveKeyboard(input);
-                }
-            }, 100);
         };
 
         window.closeCommentsModal = function() {
@@ -5504,11 +5560,14 @@
                 return;
             }
 
-            listEl.innerHTML = comments.map(c => `
+            listEl.innerHTML = comments.map((c, idx) => `
                 <div class="bg-gray-50 rounded-xl p-2.5 border border-gray-100 flex flex-col space-y-0.5 text-left">
                     <div class="flex items-center justify-between">
                         <span class="font-bold text-gray-800 text-xs">${escapeHtml(c.author)}</span>
-                        <span class="text-[9px] text-gray-400">${c.time || ''}</span>
+                        <div class="flex flex-col items-end shrink-0">
+                            <span class="text-[9px] text-gray-400">${c.time || ''}</span>
+                            <button type="button" onclick="deleteComment('${postId}', ${idx})" class="text-[9.5px] text-rose-500 hover:text-rose-700 font-semibold active:scale-90 transition-transform mt-0.5" title="댓글 삭제">삭제</button>
+                        </div>
                     </div>
                     <p class="text-gray-700 text-xs leading-relaxed whitespace-pre-wrap text-left">${escapeHtml(c.text)}</p>
                 </div>
