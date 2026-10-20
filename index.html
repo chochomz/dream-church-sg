@@ -1198,8 +1198,8 @@
 
         window.requestSavePost = function() {
             const content = document.getElementById('post-content').value.trim();
-            if (!content && selectedImagesList.length === 0) {
-                showNotification('이야기 내용이나 사진을 등록해 주세요.');
+            if (!content && selectedImagesList.length === 0 && !currentAttachedFile) {
+                showNotification('이야기 내용, 사진, 또는 첨부파일을 등록해 주세요.');
                 return;
             }
             document.getElementById('save-confirm-modal').classList.remove('hidden');
@@ -1963,8 +1963,9 @@
                     
                     const hasValidContent = data.content && data.content.trim().length > 0;
                     const hasValidImages = (Array.isArray(data.images) && data.images.some(img => img && img.trim().length > 0)) || (rawImg && rawImg.trim().length > 0);
+                    const hasValidFile = (data.fileName && data.fileName.trim().length > 0) || (data.fileId && data.fileId.trim().length > 0);
                     
-                    if ((!hasValidContent && !hasValidImages) || rawImg.includes("unsplash") || rawImgs.includes("unsplash")) {
+                    if ((!hasValidContent && !hasValidImages && !hasValidFile) || rawImg.includes("unsplash") || rawImgs.includes("unsplash")) {
                         try { deleteDoc(getPostDocRef(docSnap.id)); } catch(e) {}
                         return;
                     }
@@ -2122,7 +2123,20 @@
                                     </div>
                                 </div>
 
-                                <div class="no-export relative flex items-center">
+                                <div class="no-export relative flex items-center space-x-1">
+                                    <!-- 첨부파일 유무에 따른 직관적 이모지 배지 (있으면 은은한 컬러, 없으면 흑백) -->
+                                    ${post.fileName ? `
+                                        <button type="button" onclick="event.stopPropagation(); openFileManagerModal()" class="h-5 px-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/90 shadow-2xs flex items-center space-x-0.5 active:scale-95 transition-all mr-0.5" title="첨부파일 보관함 (1개 첨부됨)">
+                                            <span class="text-[11px] leading-none">📁</span>
+                                            <span class="font-mono font-bold text-[9.5px] text-emerald-800">1</span>
+                                        </button>
+                                    ` : `
+                                        <button type="button" onclick="event.stopPropagation(); openFileManagerModal()" class="h-5 px-1.5 rounded-full bg-gray-50/90 hover:bg-gray-100 text-gray-400 border border-gray-200/70 shadow-2xs flex items-center space-x-0.5 active:scale-95 transition-all opacity-55 grayscale hover:opacity-90 mr-0.5" title="첨부파일 보관함 (첨부 없음)">
+                                            <span class="text-[11px] leading-none filter grayscale">📁</span>
+                                            <span class="font-mono font-medium text-[9.5px] text-gray-400">0</span>
+                                        </button>
+                                    `}
+
                                     <div id="action-menu-${post.id}" class="slide-menu-container menu-closed absolute right-7 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-3 z-20 flex items-center space-x-2.5 whitespace-nowrap">
                                         <button onclick="requestEditPost('${post.id}', \`${escapeHtml(post.content || '')}\`, ${imagesParam})" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform">
                                             <i class="fa-solid fa-pen text-[9px]"></i>
@@ -2324,7 +2338,11 @@
                     } catch (e) {
                         input.focus();
                     }
-                    setTimeout(() => { isFocusingInlineComment = false; }, 350);
+                    // 키보드 창에 가려지지 않도록 댓글창을 화면 중앙/가시 영역으로 부드럽게 스크롤 이동
+                    setTimeout(() => {
+                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 120);
+                    setTimeout(() => { isFocusingInlineComment = false; }, 700);
                 }
             } else {
                 const input = document.getElementById(`inline-comment-input-${postId}`);
