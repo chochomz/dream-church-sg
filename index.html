@@ -100,6 +100,27 @@
             transform-origin: bottom right;
         }
 
+        /* [모든 댓글 및 연필글 입력창 통일: 흰 바탕 + 검정 텍스트 + 흰색 점선 테두리(포커스 시에도 실선 없이 점선 유지)] */
+        #comments-modal-input,
+        input[id^="inline-comment-input-"],
+        textarea[id^="caption-input-"] {
+            background-color: #ffffff !important;
+            color: #111827 !important;
+            border: 1px dashed #ffffff !important;
+            outline: none !important;
+            box-shadow: none !important;
+            -webkit-appearance: none !important;
+        }
+        #comments-modal-input:focus,
+        input[id^="inline-comment-input-"]:focus,
+        textarea[id^="caption-input-"]:focus {
+            background-color: #ffffff !important;
+            color: #111827 !important;
+            border: 1px dashed #ffffff !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
         /* 피드 스크롤 최적화 */
         #feed-container {
             -webkit-overflow-scrolling: touch;
@@ -587,7 +608,7 @@
             <div class="p-2.5 border-t church-border bg-white shrink-0 flex items-center space-x-1.5">
                 <input type="text" id="comments-modal-input" maxlength="200" placeholder="댓글을 입력하세요..." 
                        onkeydown="if(event.key==='Enter') addCommentFromModal()" 
-                       class="flex-1 px-3 py-2 text-xs bg-gray-50 border border-dashed border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#3B5D50]">
+                       class="flex-1 px-3 py-2 text-xs bg-white text-gray-900 placeholder-gray-400 border border-dashed border-white rounded-lg outline-none focus:outline-none focus:border-dashed focus:border-white shadow-2xs">
                 <button onclick="addCommentFromModal()" class="px-3.5 py-2 church-primary text-white text-xs font-semibold rounded-lg whitespace-nowrap shadow-2xs active:scale-95 transition-transform">
                     등록
                 </button>
@@ -955,6 +976,22 @@
 
         let currentUser = "목장가족";
         let currentMokjang = "세종꿈의교회 23목장";
+
+        // [고유 기기(사용자) ID 발급: 1인 1반응 보장 및 다중 기기 사용자 간 충돌/중복 원천 차단]
+        function getReactionUserId() {
+            let uid = '';
+            try {
+                uid = localStorage.getItem('mokjang_reaction_uid') || '';
+                if (!uid) {
+                    uid = 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 9);
+                    localStorage.setItem('mokjang_reaction_uid', uid);
+                }
+            } catch(e) {
+                uid = 'usr_temp_' + sessionId;
+            }
+            return uid;
+        }
+        const reactionUserId = getReactionUserId();
         let selectedImagesList = [];
         let postToDeleteId = null;
         let isAuthReady = false;
@@ -3499,10 +3536,24 @@
             const editor = document.getElementById(`caption-editor-${postId}-${photoIdx}`);
             if (!editor) return;
             const isHidden = editor.classList.contains('hidden');
-            editor.classList.toggle('hidden');
+
             if (isHidden) {
+                // [요청 반영: 2열 격자 상태에서 연필글 터치 시 사진을 터치한 것처럼 1열로 자동 확장 전환]
+                const container = document.getElementById(`post-photos-${postId}`);
+                if (container && container.getAttribute('data-view-mode') !== 'expanded') {
+                    setPostPhotoLayout(postId, 'expanded', false);
+                }
+
+                editor.classList.remove('hidden');
                 const input = document.getElementById(`caption-input-${postId}-${photoIdx}`);
-                if (input) input.focus();
+                if (input) {
+                    setTimeout(() => {
+                        input.focus();
+                        input.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }, 120);
+                }
+            } else {
+                editor.classList.add('hidden');
             }
         };
 
@@ -4074,9 +4125,8 @@
             // 1. 상단 공통 헤더 카드
             const headerCard = document.createElement('div');
             headerCard.className = "w-full text-center pb-2 pt-1.5 border-b-2 border-emerald-800 bg-emerald-50/80 p-2 rounded-xl shrink-0";
-            const modeText = currentAllPdfMode === 'landscape' ? '가로 2열 나눔 모음집' : '세로 나눔 모음집';
             headerCard.innerHTML = `
-                <h2 class="text-xs font-bold text-gray-900">${currentMokjang} 이야기 (${modeText})</h2>
+                <h2 class="text-xs font-bold text-gray-900">${currentMokjang} 이야기</h2>
                 <p class="text-[9.5px] text-gray-500 mt-0.5">발행: ${new Date().toLocaleDateString('ko-KR')} | 총 ${sortedPosts.length}개의 나눔 (댓글 포함)</p>
             `;
             continuousContainer.appendChild(headerCard);
@@ -4270,7 +4320,7 @@
                     pageDiv.className = "w-full min-h-[95vh] p-4 box-border page-break-after flex flex-col justify-start text-left";
                     pageDiv.innerHTML = `
                         <div class="w-full flex items-center justify-between pb-2 mb-3 border-b-2 border-emerald-800">
-                            <h2 class="text-sm font-bold text-gray-800">${currentMokjang} 이야기 모음</h2>
+                            <h2 class="text-sm font-bold text-gray-800">${currentMokjang} 이야기</h2>
                             <span class="text-xs font-mono font-bold text-emerald-800">${p + 1} / ${pageCount}</span>
                         </div>
                         <div class="grid grid-cols-2 gap-5 w-full items-start">
@@ -4285,7 +4335,7 @@
                 const titleDiv = document.createElement('div');
                 titleDiv.className = "w-full pb-3 mb-4 border-b-2 border-emerald-800 text-center";
                 titleDiv.innerHTML = `
-                    <h1 class="text-base font-bold text-gray-900">${currentMokjang} 이야기 나눔집</h1>
+                    <h1 class="text-base font-bold text-gray-900">${currentMokjang} 이야기</h1>
                     <p class="text-xs text-gray-500 mt-1">발행: ${new Date().toLocaleDateString('ko-KR')} | 총 ${sortedPosts.length}개의 나눔</p>
                 `;
                 printArea.appendChild(titleDiv);
@@ -4529,11 +4579,12 @@
         let feedObserver = null;
 
         function buildPostCardElement(post) {
-            const hasLiked = post.likedUsers && post.likedUsers.includes(currentUser);
-            const thumbsCount = post.thumbsUp || 0;
-            const hasThumbed = post.thumbedUsers && post.thumbedUsers.includes(currentUser);
-            const prayersCount = post.prayers || 0;
-            const hasPrayed = post.prayedUsers && post.prayedUsers.includes(currentUser);
+            const hasLiked = Array.isArray(post.likedUsers) && post.likedUsers.includes(reactionUserId);
+            const likesCount = Math.max(0, parseInt(post.likes) || 0);
+            const thumbsCount = Math.max(0, parseInt(post.thumbsUp) || 0);
+            const hasThumbed = Array.isArray(post.thumbedUsers) && post.thumbedUsers.includes(reactionUserId);
+            const prayersCount = Math.max(0, parseInt(post.prayers) || 0);
+            const hasPrayed = Array.isArray(post.prayedUsers) && post.prayedUsers.includes(reactionUserId);
 
             const card = document.createElement('article');
             card.className = "w-full px-2 pt-0.5 pb-1 box-border";
@@ -4608,7 +4659,7 @@
                                     </button>
                                 </div>
                                 <textarea id="caption-input-${post.id}-${i}" rows="2" maxlength="150" placeholder="이 사진에 담긴 이야기를 입력해 보세요..." 
-                                          class="w-full p-1.5 bg-white rounded-lg border border-emerald-200 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 resize-none shadow-2xs">${escapeHtml(caption)}</textarea>
+                                          class="w-full p-1.5 bg-white text-gray-900 placeholder-gray-400 rounded-lg border border-dashed border-white text-xs outline-none focus:outline-none focus:border-dashed focus:border-white resize-none shadow-2xs">${escapeHtml(caption)}</textarea>
                                 <div class="flex justify-end mt-1 space-x-1">
                                     <button type="button" onclick="togglePhotoCaptionEditor('${post.id}', ${i})" class="px-2 py-0.5 text-[10.5px] bg-gray-100 hover:bg-gray-200 text-gray-600 rounded">취소</button>
                                     <button type="button" onclick="savePhotoCaption('${post.id}', ${i})" class="px-2.5 py-0.5 text-[10.5px] church-primary text-white font-medium rounded shadow-2xs">저장</button>
@@ -4727,17 +4778,17 @@
 
                     <div class="pt-1 flex items-center justify-between no-export">
                         <div class="flex items-center space-x-3">
-                            <button type="button" data-reaction-btn="like" onclick="event.stopPropagation(); toggleLike('${post.id}', ${hasLiked}, event)" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-400 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform" title="좋아요">
+                            <button type="button" data-reaction-btn="like" onclick="event.stopPropagation(); toggleLike('${post.id}', event)" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-400 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform" title="좋아요">
                                 <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i>
-                                <span class="text-xs">${post.likes || 0}</span>
+                                <span class="text-xs">${likesCount}</span>
                             </button>
 
-                            <button type="button" data-reaction-btn="thumbsUp" onclick="event.stopPropagation(); toggleThumbsUp('${post.id}', ${hasThumbed}, event)" class="flex items-center space-x-1 ${hasThumbed ? 'text-sky-400 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform" title="엄지척">
+                            <button type="button" data-reaction-btn="thumbsUp" onclick="event.stopPropagation(); toggleThumbsUp('${post.id}', event)" class="flex items-center space-x-1 ${hasThumbed ? 'text-sky-400 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform" title="엄지척">
                                 <i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i>
                                 <span class="text-xs">${thumbsCount}</span>
                             </button>
 
-                            <button type="button" data-reaction-btn="pray" onclick="event.stopPropagation(); togglePray('${post.id}', ${hasPrayed}, event)" class="flex items-center space-x-1 ${hasPrayed ? 'text-amber-400 font-medium' : 'text-gray-400 hover:text-amber-300'} active:scale-90 transition-transform" title="기도손">
+                            <button type="button" data-reaction-btn="pray" onclick="event.stopPropagation(); togglePray('${post.id}', event)" class="flex items-center space-x-1 ${hasPrayed ? 'text-amber-400 font-medium' : 'text-gray-400 hover:text-amber-300'} active:scale-90 transition-transform" title="기도손">
                                 <i class="fa-solid fa-hands-praying text-sm inline-block" style="transform: rotate(20deg) translateY(1.5px);"></i>
                                 <span class="text-xs">${prayersCount}</span>
                             </button>
@@ -4786,7 +4837,7 @@
                             <input type="text" id="inline-comment-input-${post.id}" maxlength="200" placeholder="따뜻한 댓글을 남겨보세요..." 
                                    oninput="handleDraftInput('${post.id}', this.value)"
                                    onkeydown="if(event.key==='Enter') addCommentInline('${post.id}')"
-                                   class="flex-1 px-3 py-1.5 border border-dashed border-gray-300 rounded-lg text-xs focus:outline-none focus:border-emerald-600 bg-gray-50">
+                                   class="flex-1 px-3 py-1.5 border border-dashed border-white rounded-lg text-xs bg-white text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:border-dashed focus:border-white shadow-2xs">
                             <button onclick="addCommentInline('${post.id}')" class="px-3 py-1.5 church-primary text-white rounded-lg text-xs font-medium whitespace-nowrap shadow-2xs">
                                 등록
                             </button>
@@ -4799,33 +4850,36 @@
             return card;
         }
 
-        // [리액션 DOM 부분 갱신: 사진 재렌더링 및 깜빡임 100% 원천 차단]
+        // [리액션 DOM 부분 갱신: 고유 ID 기반 1인 1반응 보장 및 0 이하 마이너스 원천 차단]
         function updatePostReactionDOM(postId, post) {
             const cardEl = document.getElementById(`post-card-${postId}`);
             if (!cardEl || !post) return false;
 
             // 좋아요
             const likeBtn = cardEl.querySelector('[data-reaction-btn="like"]');
-            const hasLiked = post.likedUsers && post.likedUsers.includes(currentUser);
+            const hasLiked = Array.isArray(post.likedUsers) && post.likedUsers.includes(reactionUserId);
+            const likesCount = Math.max(0, parseInt(post.likes) || 0);
             if (likeBtn) {
                 likeBtn.className = `flex items-center space-x-1 ${hasLiked ? 'text-rose-400 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform`;
-                likeBtn.innerHTML = `<i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i><span class="text-xs">${post.likes || 0}</span>`;
+                likeBtn.innerHTML = `<i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i><span class="text-xs">${likesCount}</span>`;
             }
 
             // 엄지척
             const thumbBtn = cardEl.querySelector('[data-reaction-btn="thumbsUp"]');
-            const hasThumbed = post.thumbedUsers && post.thumbedUsers.includes(currentUser);
+            const hasThumbed = Array.isArray(post.thumbedUsers) && post.thumbedUsers.includes(reactionUserId);
+            const thumbsCount = Math.max(0, parseInt(post.thumbsUp) || 0);
             if (thumbBtn) {
                 thumbBtn.className = `flex items-center space-x-1 ${hasThumbed ? 'text-sky-400 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform`;
-                thumbBtn.innerHTML = `<i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i><span class="text-xs">${post.thumbsUp || 0}</span>`;
+                thumbBtn.innerHTML = `<i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i><span class="text-xs">${thumbsCount}</span>`;
             }
 
             // 기도손
             const prayBtn = cardEl.querySelector('[data-reaction-btn="pray"]');
-            const hasPrayed = post.prayedUsers && post.prayedUsers.includes(currentUser);
+            const hasPrayed = Array.isArray(post.prayedUsers) && post.prayedUsers.includes(reactionUserId);
+            const prayersCount = Math.max(0, parseInt(post.prayers) || 0);
             if (prayBtn) {
                 prayBtn.className = `flex items-center space-x-1 ${hasPrayed ? 'text-amber-400 font-medium' : 'text-gray-400 hover:text-amber-300'} active:scale-90 transition-transform`;
-                prayBtn.innerHTML = `<i class="fa-solid fa-hands-praying text-sm inline-block" style="transform: rotate(20deg) translateY(1.5px);"></i><span class="text-xs">${post.prayers || 0}</span>`;
+                prayBtn.innerHTML = `<i class="fa-solid fa-hands-praying text-sm inline-block" style="transform: rotate(20deg) translateY(1.5px);"></i><span class="text-xs">${prayersCount}</span>`;
             }
 
             // 댓글 수
@@ -4991,6 +5045,28 @@
                         try { deleteDoc(getPostDocRef(docSnap.id)); } catch(e) {}
                         return;
                     }
+
+                    // 과거 발생한 음수(-) 마이너스 카운터 즉각 0으로 정상화 및 DB 자동 치유
+                    const safeLikes = Math.max(0, parseInt(data.likes) || 0);
+                    const safeThumbs = Math.max(0, parseInt(data.thumbsUp) || 0);
+                    const safePrayers = Math.max(0, parseInt(data.prayers) || 0);
+
+                    if ((data.likes !== undefined && data.likes < 0) || 
+                        (data.thumbsUp !== undefined && data.thumbsUp < 0) || 
+                        (data.prayers !== undefined && data.prayers < 0)) {
+                        try {
+                            updateDoc(docSnap.ref, {
+                                likes: safeLikes,
+                                thumbsUp: safeThumbs,
+                                prayers: safePrayers
+                            });
+                        } catch(e) {}
+                    }
+
+                    data.likes = safeLikes;
+                    data.thumbsUp = safeThumbs;
+                    data.prayers = safePrayers;
+
                     posts.push({ id: docSnap.id, ...data });
                 });
 
@@ -5170,97 +5246,174 @@
             }
         }
 
-        window.toggleLike = async function(postId, hasLiked, event) {
-            if (event) event.stopPropagation();
+        // [리액션 마이너스(-) 이상 카운터 원천 방지, 연속 터치 디바운스 및 1인 1반응 고유 판정]
+        const reactionInFlight = new Set();
+
+        window.toggleLike = async function(postId, eventOrLegacy, legacyEvent) {
+            const event = (eventOrLegacy && eventOrLegacy.stopPropagation) ? eventOrLegacy : legacyEvent;
+            if (event && event.stopPropagation) event.stopPropagation();
             if (!db) return;
 
-            // 로컬 상태 즉각 반영 (화면 이동 없이 제자리 유지)
-            const post = cachedPosts.find(p => p.id === postId);
-            if (post) {
+            const lockKey = `${postId}_like`;
+            if (reactionInFlight.has(lockKey)) return; // 연속/중복 터치 완벽 차단
+            reactionInFlight.add(lockKey);
+
+            try {
+                const post = cachedPosts.find(p => p.id === postId);
+                if (!post) return;
+
                 if (!Array.isArray(post.likedUsers)) post.likedUsers = [];
-                if (hasLiked) {
-                    post.likes = Math.max(0, (post.likes || 1) - 1);
-                    post.likedUsers = post.likedUsers.filter(u => u !== currentUser);
-                } else {
-                    post.likes = (post.likes || 0) + 1;
-                    post.likedUsers.push(currentUser);
-                }
-            }
+                const isCurrentlyLiked = post.likedUsers.includes(reactionUserId);
+                const currentLikes = Math.max(0, parseInt(post.likes) || 0);
 
-            if (post) updatePostReactionDOM(postId, post);
-            setDbStatus('saving');
-            try {
-                if (hasLiked) {
-                    await updateDoc(getPostDocRef(postId), { likes: increment(-1), likedUsers: arrayRemove(currentUser) });
+                let nextLikes = currentLikes;
+                let nextLikedUsers = [...post.likedUsers];
+
+                if (isCurrentlyLiked) {
+                    // 이미 좋아요를 누른 상태에서 다시 터치 시: 취소 처리 (0 이하 마이너스 절대 불가)
+                    nextLikes = Math.max(0, currentLikes - 1);
+                    nextLikedUsers = nextLikedUsers.filter(u => u !== reactionUserId);
                 } else {
-                    await updateDoc(getPostDocRef(postId), { likes: increment(1), likedUsers: arrayUnion(currentUser) });
+                    // 새로 좋아요 터치 시: 1회만 카운트 증가
+                    nextLikes = currentLikes + 1;
+                    nextLikedUsers.push(reactionUserId);
+                }
+
+                // 화면 로컬 즉시 반영 (깜빡임 없음)
+                post.likes = nextLikes;
+                post.likedUsers = nextLikedUsers;
+                updatePostReactionDOM(postId, post);
+
+                setDbStatus('saving');
+                if (isCurrentlyLiked) {
+                    await updateDoc(getPostDocRef(postId), {
+                        likes: nextLikes,
+                        likedUsers: arrayRemove(reactionUserId)
+                    });
+                } else {
+                    await updateDoc(getPostDocRef(postId), {
+                        likes: nextLikes,
+                        likedUsers: arrayUnion(reactionUserId)
+                    });
                 }
                 setDbStatus('connected');
             } catch (err) {
-                console.error("좋아요 오류:", err);
+                console.error("좋아요 처리 오류:", err);
                 setDbStatus('error');
+            } finally {
+                setTimeout(() => {
+                    reactionInFlight.delete(lockKey);
+                }, 320);
             }
         };
 
-        window.toggleThumbsUp = async function(postId, hasThumbed, event) {
-            if (event) event.stopPropagation();
+        window.toggleThumbsUp = async function(postId, eventOrLegacy, legacyEvent) {
+            const event = (eventOrLegacy && eventOrLegacy.stopPropagation) ? eventOrLegacy : legacyEvent;
+            if (event && event.stopPropagation) event.stopPropagation();
             if (!db) return;
 
-            const post = cachedPosts.find(p => p.id === postId);
-            if (post) {
+            const lockKey = `${postId}_thumb`;
+            if (reactionInFlight.has(lockKey)) return;
+            reactionInFlight.add(lockKey);
+
+            try {
+                const post = cachedPosts.find(p => p.id === postId);
+                if (!post) return;
+
                 if (!Array.isArray(post.thumbedUsers)) post.thumbedUsers = [];
-                if (hasThumbed) {
-                    post.thumbsUp = Math.max(0, (post.thumbsUp || 1) - 1);
-                    post.thumbedUsers = post.thumbedUsers.filter(u => u !== currentUser);
-                } else {
-                    post.thumbsUp = (post.thumbsUp || 0) + 1;
-                    post.thumbedUsers.push(currentUser);
-                }
-            }
+                const isCurrentlyThumbed = post.thumbedUsers.includes(reactionUserId);
+                const currentThumbs = Math.max(0, parseInt(post.thumbsUp) || 0);
 
-            if (post) updatePostReactionDOM(postId, post);
-            setDbStatus('saving');
-            try {
-                if (hasThumbed) {
-                    await updateDoc(getPostDocRef(postId), { thumbsUp: increment(-1), thumbedUsers: arrayRemove(currentUser) });
+                let nextThumbs = currentThumbs;
+                let nextThumbedUsers = [...post.thumbedUsers];
+
+                if (isCurrentlyThumbed) {
+                    nextThumbs = Math.max(0, currentThumbs - 1);
+                    nextThumbedUsers = nextThumbedUsers.filter(u => u !== reactionUserId);
                 } else {
-                    await updateDoc(getPostDocRef(postId), { thumbsUp: increment(1), thumbedUsers: arrayUnion(currentUser) });
+                    nextThumbs = currentThumbs + 1;
+                    nextThumbedUsers.push(reactionUserId);
+                }
+
+                post.thumbsUp = nextThumbs;
+                post.thumbedUsers = nextThumbedUsers;
+                updatePostReactionDOM(postId, post);
+
+                setDbStatus('saving');
+                if (isCurrentlyThumbed) {
+                    await updateDoc(getPostDocRef(postId), {
+                        thumbsUp: nextThumbs,
+                        thumbedUsers: arrayRemove(reactionUserId)
+                    });
+                } else {
+                    await updateDoc(getPostDocRef(postId), {
+                        thumbsUp: nextThumbs,
+                        thumbedUsers: arrayUnion(reactionUserId)
+                    });
                 }
                 setDbStatus('connected');
             } catch (err) {
-                console.error("엄지척 오류:", err);
+                console.error("엄지척 처리 오류:", err);
                 setDbStatus('error');
+            } finally {
+                setTimeout(() => {
+                    reactionInFlight.delete(lockKey);
+                }, 320);
             }
         };
 
-        window.togglePray = async function(postId, hasPrayed, event) {
-            if (event) event.stopPropagation();
+        window.togglePray = async function(postId, eventOrLegacy, legacyEvent) {
+            const event = (eventOrLegacy && eventOrLegacy.stopPropagation) ? eventOrLegacy : legacyEvent;
+            if (event && event.stopPropagation) event.stopPropagation();
             if (!db) return;
 
-            const post = cachedPosts.find(p => p.id === postId);
-            if (post) {
-                if (!Array.isArray(post.prayedUsers)) post.prayedUsers = [];
-                if (hasPrayed) {
-                    post.prayers = Math.max(0, (post.prayers || 1) - 1);
-                    post.prayedUsers = post.prayedUsers.filter(u => u !== currentUser);
-                } else {
-                    post.prayers = (post.prayers || 0) + 1;
-                    post.prayedUsers.push(currentUser);
-                }
-            }
+            const lockKey = `${postId}_pray`;
+            if (reactionInFlight.has(lockKey)) return;
+            reactionInFlight.add(lockKey);
 
-            if (post) updatePostReactionDOM(postId, post);
-            setDbStatus('saving');
             try {
-                if (hasPrayed) {
-                    await updateDoc(getPostDocRef(postId), { prayers: increment(-1), prayedUsers: arrayRemove(currentUser) });
+                const post = cachedPosts.find(p => p.id === postId);
+                if (!post) return;
+
+                if (!Array.isArray(post.prayedUsers)) post.prayedUsers = [];
+                const isCurrentlyPrayed = post.prayedUsers.includes(reactionUserId);
+                const currentPrayers = Math.max(0, parseInt(post.prayers) || 0);
+
+                let nextPrayers = currentPrayers;
+                let nextPrayedUsers = [...post.prayedUsers];
+
+                if (isCurrentlyPrayed) {
+                    nextPrayers = Math.max(0, currentPrayers - 1);
+                    nextPrayedUsers = nextPrayedUsers.filter(u => u !== reactionUserId);
                 } else {
-                    await updateDoc(getPostDocRef(postId), { prayers: increment(1), prayedUsers: arrayUnion(currentUser) });
+                    nextPrayers = currentPrayers + 1;
+                    nextPrayedUsers.push(reactionUserId);
+                }
+
+                post.prayers = nextPrayers;
+                post.prayedUsers = nextPrayedUsers;
+                updatePostReactionDOM(postId, post);
+
+                setDbStatus('saving');
+                if (isCurrentlyPrayed) {
+                    await updateDoc(getPostDocRef(postId), {
+                        prayers: nextPrayers,
+                        prayedUsers: arrayRemove(reactionUserId)
+                    });
+                } else {
+                    await updateDoc(getPostDocRef(postId), {
+                        prayers: nextPrayers,
+                        prayedUsers: arrayUnion(reactionUserId)
+                    });
                 }
                 setDbStatus('connected');
             } catch (err) {
-                console.error("기도손 오류:", err);
+                console.error("기도손 처리 오류:", err);
                 setDbStatus('error');
+            } finally {
+                setTimeout(() => {
+                    reactionInFlight.delete(lockKey);
+                }, 320);
             }
         };
 
