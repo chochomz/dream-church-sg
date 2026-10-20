@@ -100,6 +100,27 @@
             border-radius: 4px;
         }
 
+        /* 플로팅 스마트 피드 책갈피 (인터랙티브 쾌속 내비게이터) */
+        #feed-bookmark-indicator {
+            right: max(0px, calc(50% - 224px));
+            transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.32s ease;
+            will-change: transform, top;
+        }
+        #feed-bookmark-indicator.bookmark-hidden {
+            transform: translateX(100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+        #feed-bookmark-indicator.bookmark-visible {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #feed-bookmark-indicator.bookmark-dragging {
+            transition: none !important;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.38));
+        }
+
         /* 모달 터치 제어: all-pdf-preview-modal은 자유로운 상하 스크롤을 위해 제외 */
         #lightbox-modal, #write-modal, #confirm-modal, #save-confirm-modal, #edit-confirm-modal, #comments-popup-modal, #export-preview-modal {
             touch-action: none;
@@ -284,6 +305,33 @@
     <main class="w-full max-w-md mx-auto flex-1 overflow-y-auto px-1 py-0.5" id="feed-container">
         <!-- 게시글 목록이 실시간으로 동적 렌더링됩니다 -->
     </main>
+
+    <!-- [플로팅 스마트 피드 책갈피 (인터랙티브 쾌속 내비게이터)] -->
+    <div id="feed-bookmark-indicator" 
+         class="fixed z-40 select-none pointer-events-auto flex items-center cursor-grab active:cursor-grabbing touch-none bookmark-hidden"
+         style="top: 140px; touch-action: none;">
+        <div id="feed-bookmark-ribbon" 
+             class="relative bg-[#244E3F]/95 hover:bg-[#1C3E32] active:bg-[#163329] text-white pl-2.5 pr-1.5 py-1.5 rounded-l-2xl shadow-xl border-y border-l border-emerald-300/40 backdrop-blur-xs flex items-center space-x-1.5 transition-all">
+            <!-- 상하 이동 직관성 3점 핸들 -->
+            <div class="flex flex-col space-y-0.5 opacity-60 shrink-0 pr-0.5 pointer-events-none">
+                <span class="w-1 h-1 bg-white rounded-full"></span>
+                <span class="w-1 h-1 bg-white rounded-full"></span>
+                <span class="w-1 h-1 bg-white rounded-full"></span>
+            </div>
+
+            <!-- 책갈피 이모지 -->
+            <span class="text-sm shrink-0 leading-none filter drop-shadow pointer-events-none">🔖</span>
+
+            <!-- 날짜 및 위치 정보 -->
+            <div class="flex flex-col text-left leading-tight shrink-0 pr-0.5 pointer-events-none">
+                <span id="feed-bookmark-date" class="text-[10px] font-bold text-emerald-200 tracking-tight whitespace-nowrap">오늘</span>
+                <span id="feed-bookmark-pos" class="text-[11px] font-black text-white font-mono tracking-wide whitespace-nowrap">1 / 1</span>
+            </div>
+            
+            <!-- 리본 끝단 쐐기 디자인 포인트 -->
+            <div class="absolute -left-1 top-1/2 -translate-y-1/2 w-1.5 h-3.5 bg-emerald-400 rounded-r-xs opacity-80 pointer-events-none"></div>
+        </div>
+    </div>
 
     <!-- [인쇄 전용 숨김 컨테이너] -->
     <div id="print-area" class="hidden"></div>
@@ -951,6 +999,7 @@
                 loadMokjangFeed();
                 loadMokjangFiles();
                 initPresenceSystem();
+                initFeedBookmark();
             } catch (e) {
                 console.warn("익명 인증 경고:", e);
                 isAuthReady = true;
@@ -1876,6 +1925,178 @@
             }
         });
 
+        // [스마트 피드 책갈피 & 쾌속 내비게이터 상태 관리]
+        let bookmarkHideTimer = null;
+        let isBookmarkDragging = false;
+        let bookmarkDragStartY = 0;
+        let bookmarkInitialTop = 140;
+
+        function formatBookmarkDate(timestamp) {
+            if (!timestamp) return '오늘';
+            const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            if (isNaN(d.getTime())) return '오늘';
+            return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+        }
+
+        window.showBookmark = function() {
+            const bookmarkEl = document.getElementById('feed-bookmark-indicator');
+            if (!bookmarkEl || !cachedPosts || cachedPosts.length === 0) return;
+
+            bookmarkEl.classList.remove('bookmark-hidden');
+            bookmarkEl.classList.add('bookmark-visible');
+
+            updateBookmarkInfoFromScroll();
+
+            if (bookmarkHideTimer) clearTimeout(bookmarkHideTimer);
+            if (!isBookmarkDragging) {
+                bookmarkHideTimer = setTimeout(() => {
+                    hideBookmark();
+                }, 1600);
+            }
+        };
+
+        window.hideBookmark = function() {
+            if (isBookmarkDragging) return;
+            const bookmarkEl = document.getElementById('feed-bookmark-indicator');
+            if (bookmarkEl) {
+                bookmarkEl.classList.remove('bookmark-visible');
+                bookmarkEl.classList.add('bookmark-hidden');
+            }
+        };
+
+        function updateBookmarkInfoFromScroll() {
+            if (!cachedPosts || cachedPosts.length === 0) return;
+            const feedContainer = document.getElementById('feed-container');
+            if (!feedContainer) return;
+
+            const scrollHeight = feedContainer.scrollHeight - feedContainer.clientHeight;
+            const scrollRatio = scrollHeight > 0 ? (feedContainer.scrollTop / scrollHeight) : 0;
+            const clampedRatio = Math.max(0, Math.min(1, scrollRatio));
+
+            const targetIndex = Math.min(cachedPosts.length - 1, Math.round(clampedRatio * (cachedPosts.length - 1)));
+            const currentPost = cachedPosts[targetIndex];
+
+            const posEl = document.getElementById('feed-bookmark-pos');
+            const dateEl = document.getElementById('feed-bookmark-date');
+
+            if (posEl) posEl.innerText = `${targetIndex + 1} / ${cachedPosts.length}`;
+            if (dateEl && currentPost) {
+                dateEl.innerText = formatBookmarkDate(currentPost.createdAt);
+            }
+
+            // 직접 손가락으로 드래그하고 있지 않을 때 스크롤 위치에 맞춰 책갈피 세로 위치 부드럽게 추종
+            if (!isBookmarkDragging) {
+                const bookmarkEl = document.getElementById('feed-bookmark-indicator');
+                if (bookmarkEl) {
+                    const minY = 75; // 헤더 아래
+                    const maxY = window.innerHeight - 130; // 하단 여백
+                    const calculatedTop = minY + clampedRatio * (maxY - minY);
+                    bookmarkEl.style.top = `${Math.round(calculatedTop)}px`;
+                }
+            }
+        }
+
+        function initFeedBookmark() {
+            const bookmarkEl = document.getElementById('feed-bookmark-indicator');
+            const feedContainer = document.getElementById('feed-container');
+            if (!bookmarkEl || !feedContainer) return;
+
+            const onDragStart = (clientY) => {
+                isBookmarkDragging = true;
+                if (bookmarkHideTimer) clearTimeout(bookmarkHideTimer);
+
+                bookmarkEl.classList.remove('bookmark-hidden');
+                bookmarkEl.classList.add('bookmark-visible', 'bookmark-dragging');
+
+                bookmarkDragStartY = clientY;
+                bookmarkInitialTop = parseFloat(bookmarkEl.style.top) || bookmarkEl.getBoundingClientRect().top;
+            };
+
+            const onDragMove = (clientY) => {
+                if (!isBookmarkDragging || !cachedPosts || cachedPosts.length === 0) return;
+
+                const deltaY = clientY - bookmarkDragStartY;
+                const minY = 75;
+                const maxY = window.innerHeight - 130;
+
+                let newTop = bookmarkInitialTop + deltaY;
+                newTop = Math.max(minY, Math.min(maxY, newTop));
+                bookmarkEl.style.top = `${Math.round(newTop)}px`;
+
+                const progressRatio = (newTop - minY) / (maxY - minY);
+                const clampedProgress = Math.max(0, Math.min(1, progressRatio));
+
+                // 쾌속 내비게이션: 해당 위치의 게시글 인덱스 및 날짜 계산
+                const targetIndex = Math.min(cachedPosts.length - 1, Math.round(clampedProgress * (cachedPosts.length - 1)));
+                const currentPost = cachedPosts[targetIndex];
+
+                const posEl = document.getElementById('feed-bookmark-pos');
+                const dateEl = document.getElementById('feed-bookmark-date');
+                if (posEl) posEl.innerText = `${targetIndex + 1} / ${cachedPosts.length}`;
+                if (dateEl && currentPost) dateEl.innerText = formatBookmarkDate(currentPost.createdAt);
+
+                // 만약 해당 위치의 게시글이 아직 로딩되지 않았다면 즉시 확장 렌더링
+                if (targetIndex >= displayedFeedCount) {
+                    displayedFeedCount = Math.min(cachedPosts.length, targetIndex + FEED_BATCH_SIZE);
+                    renderFeedList();
+                }
+
+                // 피드 스크롤을 쾌속 이동
+                const scrollHeight = feedContainer.scrollHeight - feedContainer.clientHeight;
+                if (scrollHeight > 0) {
+                    feedContainer.scrollTop = clampedProgress * scrollHeight;
+                }
+            };
+
+            const onDragEnd = () => {
+                if (!isBookmarkDragging) return;
+                isBookmarkDragging = false;
+                bookmarkEl.classList.remove('bookmark-dragging');
+
+                // 손을 떼면 1.6초 후 자연스럽게 스르르 슬라이드 닫힘
+                if (bookmarkHideTimer) clearTimeout(bookmarkHideTimer);
+                bookmarkHideTimer = setTimeout(() => {
+                    hideBookmark();
+                }, 1600);
+            };
+
+            // 터치 이벤트 바인딩 (모바일)
+            bookmarkEl.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    onDragStart(e.touches[0].clientY);
+                }
+            }, { passive: false });
+
+            window.addEventListener('touchmove', (e) => {
+                if (isBookmarkDragging && e.touches.length === 1) {
+                    e.preventDefault(); // 스크러빙 중 화면 기본 스크롤 방지
+                    onDragMove(e.touches[0].clientY);
+                }
+            }, { passive: false });
+
+            window.addEventListener('touchend', () => {
+                if (isBookmarkDragging) onDragEnd();
+            }, { passive: true });
+
+            // 마우스 이벤트 바인딩 (PC 데스크톱)
+            bookmarkEl.addEventListener('mousedown', (e) => {
+                if (e.button === 0) {
+                    e.preventDefault();
+                    onDragStart(e.clientY);
+                }
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (isBookmarkDragging) {
+                    onDragMove(e.clientY);
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isBookmarkDragging) onDragEnd();
+            });
+        }
+
         const feedScrollEl = document.getElementById('feed-container');
         if (feedScrollEl) {
             feedScrollEl.addEventListener('scroll', () => {
@@ -1885,6 +2106,9 @@
                 if (!isFocusingInlineComment) {
                     closeAllInlineCommentInputs();
                 }
+                // 스크롤 시작 시 책갈피 슬라이드 노출 & 정보 갱신
+                showBookmark();
+
                 // 스크롤 바닥 부근 도달 시 다음 5개 자동 로딩 (IntersectionObserver 보조)
                 if (feedScrollEl.scrollTop + feedScrollEl.clientHeight >= feedScrollEl.scrollHeight - 250) {
                     loadMorePosts();
