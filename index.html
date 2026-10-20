@@ -1691,51 +1691,55 @@
 
         function applyFontToCaretOrSelection(fontObj) {
             const editor = document.getElementById('post-content');
-            if (!editor) return;
-            editor.focus();
+            if (!editor || editor.offsetParent === null) return;
+            try {
+                editor.focus();
+                const sel = window.getSelection();
+                if (!sel) return;
 
-            const sel = window.getSelection();
-            if (!sel) return;
+                // 에디터 내부에 커서/선택영역이 없으면 에디터 끝에 커서 배치
+                if (sel.rangeCount === 0 || !editor.contains(sel.anchorNode)) {
+                    const range = document.createRange();
+                    range.selectNodeContents(editor);
+                    range.collapse(false);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
 
-            // 에디터 내부에 커서/선택영역이 없으면 에디터 끝에 커서 배치
-            if (sel.rangeCount === 0 || !editor.contains(sel.anchorNode)) {
-                const range = document.createRange();
-                range.selectNodeContents(editor);
-                range.collapse(false);
-                sel.removeAllRanges();
-                sel.addRange(range);
-            }
+                if (sel.rangeCount === 0) return;
+                const range = sel.getRangeAt(0);
 
-            const range = sel.getRangeAt(0);
+                // 1. 블록 지정(드래그 선택)된 글자가 있는 경우: 선택된 글자만 해당 폰트로 변경
+                if (!range.collapsed) {
+                    const selectedContent = range.extractContents();
+                    const span = document.createElement('span');
+                    span.className = fontObj.className;
+                    span.style.fontFamily = fontObj.fontFamily;
+                    span.appendChild(selectedContent);
+                    range.insertNode(span);
 
-            // 1. 블록 지정(드래그 선택)된 글자가 있는 경우: 선택된 글자만 해당 폰트로 변경
-            if (!range.collapsed) {
-                const selectedContent = range.extractContents();
-                const span = document.createElement('span');
-                span.className = fontObj.className;
-                span.style.fontFamily = fontObj.fontFamily;
-                span.appendChild(selectedContent);
-                range.insertNode(span);
+                    sel.removeAllRanges();
+                    const newRange = document.createRange();
+                    newRange.selectNodeContents(span);
+                    sel.addRange(newRange);
+                } else {
+                    // 2. 글을 쓰다가 폰트를 바꾼 경우: 쓰던 글은 이전 폰트 그대로 두고, 새로 입력할 위치에 새 폰트 스팬 배치
+                    const span = document.createElement('span');
+                    span.className = fontObj.className;
+                    span.style.fontFamily = fontObj.fontFamily;
+                    const zwsp = document.createTextNode('\u200B');
+                    span.appendChild(zwsp);
 
-                sel.removeAllRanges();
-                const newRange = document.createRange();
-                newRange.selectNodeContents(span);
-                sel.addRange(newRange);
-            } else {
-                // 2. 글을 쓰다가 폰트를 바꾼 경우: 쓰던 글은 이전 폰트 그대로 두고, 새로 입력할 위치에 새 폰트 스팬 배치
-                const span = document.createElement('span');
-                span.className = fontObj.className;
-                span.style.fontFamily = fontObj.fontFamily;
-                const zwsp = document.createTextNode('\u200B'); // 제로 너비 공백으로 커서 안착 보장
-                span.appendChild(zwsp);
+                    range.insertNode(span);
 
-                range.insertNode(span);
-
-                sel.removeAllRanges();
-                const newRange = document.createRange();
-                newRange.setStart(span.firstChild, 1);
-                newRange.collapse(true);
-                sel.addRange(newRange);
+                    sel.removeAllRanges();
+                    const newRange = document.createRange();
+                    newRange.setStart(span.firstChild, 1);
+                    newRange.collapse(true);
+                    sel.addRange(newRange);
+                }
+            } catch (err) {
+                console.warn("폰트 적용 커서 예외 방지:", err);
             }
         }
 
@@ -1755,7 +1759,7 @@
             renderFontSelectorUI();
         };
 
-        window.selectPostFont = function(fontId) {
+        window.selectPostFont = function(fontId, applyToEditor = true) {
             currentSelectedFont = fontId || 'pretendard';
 
             // 영문 폰트 선택 시 영문 탭, 한글 폰트 선택 시 한글 탭 자동 동기화
@@ -1776,10 +1780,12 @@
                 }
             }
 
-            const editor = document.getElementById('post-content');
-            const target = ALL_FONTS.find(f => f.id === currentSelectedFont) || ALL_FONTS[0];
-            if (editor) {
-                applyFontToCaretOrSelection(target);
+            if (applyToEditor) {
+                const editor = document.getElementById('post-content');
+                const target = ALL_FONTS.find(f => f.id === currentSelectedFont) || ALL_FONTS[0];
+                if (editor && editor.offsetParent !== null) {
+                    applyFontToCaretOrSelection(target);
+                }
             }
             renderFontSelectorUI();
         };
@@ -1878,7 +1884,7 @@
                 updateCharCount(contentEl);
             }
 
-            selectPostFont(existingFont || 'pretendard');
+            selectPostFont(existingFont || 'pretendard', false);
 
             selectedImagesList = Array.isArray(existingImages) ? [...existingImages] : (existingImages ? [existingImages] : []);
             renderImagePreviews();
@@ -1927,7 +1933,7 @@
                 contentEl.innerHTML = '';
                 contentEl.setAttribute('data-empty', 'true');
             }
-            selectPostFont('pretendard');
+            selectPostFont('pretendard', false);
             const fileTitleInput = document.getElementById('post-file-title');
             if (fileTitleInput) fileTitleInput.value = '';
             document.getElementById('editing-post-id').value = '';
@@ -2742,10 +2748,15 @@
             }, { passive: true });
         }
 
-        window.requestEditPost = function(postId) {
+        window.requestEditPost = function(postId, event) {
+            if (event) event.stopPropagation();
             closeAllActionMenus();
-            const post = cachedPosts.find(p => p.id === postId);
-            if (!post) return;
+            
+            let post = cachedPosts.find(p => p.id === postId) || cachedPosts.find(p => String(p.id) === String(postId));
+            if (!post) {
+                showNotification("수정할 게시글을 찾을 수 없습니다.");
+                return;
+            }
 
             const imgs = Array.isArray(post.images) ? post.images : (post.imageUrl ? [post.imageUrl] : []);
             const postFont = post.fontFamily || 'pretendard';
@@ -2758,26 +2769,33 @@
             document.getElementById('edit-confirm-modal').classList.add('hidden');
         };
 
-        window.confirmDeletePost = function(postId) {
+        window.confirmDeletePost = function(postId, event) {
+            if (event) event.stopPropagation();
             closeAllActionMenus();
             postToDeleteId = postId;
-            const post = cachedPosts.find(p => p.id === postId);
-            if (!post) return;
+            
+            let post = cachedPosts.find(p => p.id === postId) || cachedPosts.find(p => String(p.id) === String(postId));
+            if (!post) {
+                showNotification("삭제할 게시글을 찾을 수 없습니다.");
+                return;
+            }
 
             const previewText = document.getElementById('delete-preview-text');
             const previewThumbs = document.getElementById('delete-preview-thumbs');
-            previewText.innerHTML = renderPostContentHtml(post.content || "내용 없음");
-            previewThumbs.innerHTML = "";
-            
-            const imgs = Array.isArray(post.images) ? post.images : (post.imageUrl ? [post.imageUrl] : []);
-            imgs.slice(0, 4).forEach(src => {
-                const img = document.createElement('img');
-                img.src = src;
-                img.className = "w-8 h-8 rounded object-cover border border-gray-200 shrink-0";
-                previewThumbs.appendChild(img);
-            });
+            if (previewText) previewText.innerHTML = renderPostContentHtml(post.content || "내용 없음");
+            if (previewThumbs) {
+                previewThumbs.innerHTML = "";
+                const imgs = Array.isArray(post.images) ? post.images : (post.imageUrl ? [post.imageUrl] : []);
+                imgs.slice(0, 4).forEach(src => {
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.className = "w-8 h-8 rounded object-cover border border-gray-200 shrink-0";
+                    previewThumbs.appendChild(img);
+                });
+            }
 
-            document.getElementById('confirm-modal').classList.remove('hidden');
+            const modal = document.getElementById('confirm-modal');
+            if (modal) modal.classList.remove('hidden');
         };
 
         window.closeConfirmModal = function() {
@@ -3698,17 +3716,17 @@
                             `}
 
                             <div id="action-menu-${post.id}" class="slide-menu-container menu-closed absolute right-7 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-3 z-20 flex items-center space-x-2.5 whitespace-nowrap">
-                                <button onclick="requestEditPost('${post.id}')" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform">
+                                <button type="button" onclick="event.stopPropagation(); requestEditPost('${post.id}', event)" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform">
                                     <i class="fa-solid fa-pen text-[9px]"></i>
                                     <span>수정</span>
                                 </button>
                                 <span class="text-[#A7D1B7] text-[10px]">|</span>
-                                <button onclick="confirmDeletePost('${post.id}')" class="text-[11px] font-semibold text-rose-600 hover:text-rose-700 flex items-center space-x-1 active:scale-95 transition-transform">
+                                <button type="button" onclick="event.stopPropagation(); confirmDeletePost('${post.id}', event)" class="text-[11px] font-semibold text-rose-600 hover:text-rose-700 flex items-center space-x-1 active:scale-95 transition-transform">
                                     <i class="fa-solid fa-trash-can text-[9px]"></i>
                                     <span>삭제</span>
                                 </button>
                                 <span class="text-[#A7D1B7] text-[10px]">|</span>
-                                <button onclick="openFileManagerModal()" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform" title="전체파일 보관함">
+                                <button type="button" onclick="event.stopPropagation(); openFileManagerModal()" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform" title="전체파일 보관함">
                                     <span>🗂️</span>
                                     <span>보관함</span>
                                 </button>
@@ -3726,27 +3744,27 @@
 
                     <div class="pt-1 flex items-center justify-between no-export">
                         <div class="flex items-center space-x-3">
-                            <button onclick="toggleLike('${post.id}', ${hasLiked})" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-300 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform" title="좋아요">
+                            <button type="button" onclick="event.stopPropagation(); toggleLike('${post.id}', ${hasLiked}, event)" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-400 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform" title="좋아요">
                                 <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i>
                                 <span class="text-xs">${post.likes || 0}</span>
                             </button>
 
-                            <button onclick="toggleThumbsUp('${post.id}', ${hasThumbed})" class="flex items-center space-x-1 ${hasThumbed ? 'text-sky-300 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform" title="엄지척">
+                            <button type="button" onclick="event.stopPropagation(); toggleThumbsUp('${post.id}', ${hasThumbed}, event)" class="flex items-center space-x-1 ${hasThumbed ? 'text-sky-400 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform" title="엄지척">
                                 <i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i>
                                 <span class="text-xs">${thumbsCount}</span>
                             </button>
 
-                            <button onclick="togglePray('${post.id}', ${hasPrayed})" class="flex items-center space-x-1 ${hasPrayed ? 'text-amber-400 font-medium' : 'text-gray-400 hover:text-amber-300'} active:scale-90 transition-transform" title="기도손">
+                            <button type="button" onclick="event.stopPropagation(); togglePray('${post.id}', ${hasPrayed}, event)" class="flex items-center space-x-1 ${hasPrayed ? 'text-amber-400 font-medium' : 'text-gray-400 hover:text-amber-300'} active:scale-90 transition-transform" title="기도손">
                                 <i class="fa-solid fa-hands-praying text-sm inline-block" style="transform: rotate(20deg) translateY(1.5px);"></i>
                                 <span class="text-xs">${prayersCount}</span>
                             </button>
 
-                            <button type="button" onclick="openCommentsModal('${post.id}')" class="flex items-center space-x-1 text-gray-500 hover:text-emerald-700 active:scale-90 transition-transform" title="댓글 열기">
+                            <button type="button" onclick="event.stopPropagation(); openCommentsModal('${post.id}')" class="flex items-center space-x-1 text-gray-500 hover:text-emerald-700 active:scale-90 transition-transform" title="댓글 열기">
                                 <i class="fa-regular fa-comment-dots text-sm"></i>
                                 <span class="text-xs">${commentCount}</span>
                             </button>
 
-                            <button type="button" onclick="toggleInlineCommentInput('${post.id}', event)" class="w-5 h-5 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-500 hover:text-emerald-700 flex items-center justify-center text-xs font-bold active:scale-90 transition-transform" title="댓글 바로 달기">
+                            <button type="button" onclick="event.stopPropagation(); toggleInlineCommentInput('${post.id}', event)" class="w-5 h-5 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-500 hover:text-emerald-700 flex items-center justify-center text-xs font-bold active:scale-90 transition-transform" title="댓글 바로 달기">
                                 <i class="fa-solid fa-plus text-[10px]"></i>
                             </button>
                         </div>
@@ -3802,6 +3820,9 @@
             const feedContainer = document.getElementById('feed-container');
             if (!feedContainer) return;
 
+            // 기존 스크롤 위치 완벽 보존 (이모지 클릭/피드 동기화 시 화면 튐 원천 차단)
+            const previousScroll = feedContainer.scrollTop;
+
             feedContainer.innerHTML = "";
 
             if (!cachedPosts || cachedPosts.length === 0) {
@@ -3840,6 +3861,14 @@
                 endNotice.className = "w-full py-4 text-center text-gray-400 text-[11px] select-none flex items-center justify-center space-x-1";
                 endNotice.innerHTML = `<span>목장의 모든 소식을 다 읽으셨습니다 ✨</span>`;
                 feedContainer.appendChild(endNotice);
+            }
+
+            // 스크롤 위치 원상태로 즉각 고정 복원
+            if (previousScroll > 0) {
+                feedContainer.scrollTop = previousScroll;
+                requestAnimationFrame(() => {
+                    feedContainer.scrollTop = previousScroll;
+                });
             }
         }
 
@@ -4046,11 +4075,7 @@
                     } catch (e) {
                         input.focus();
                     }
-                    // 키보드 창에 가려지지 않도록 댓글창을 화면 중앙/가시 영역으로 부드럽게 스크롤 이동
-                    setTimeout(() => {
-                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 120);
-                    setTimeout(() => { isFocusingInlineComment = false; }, 700);
+                    setTimeout(() => { isFocusingInlineComment = false; }, 300);
                 }
             } else {
                 const input = document.getElementById(`inline-comment-input-${postId}`);
@@ -4093,8 +4118,23 @@
             }
         }
 
-        window.toggleLike = async function(postId, hasLiked) {
+        window.toggleLike = async function(postId, hasLiked, event) {
+            if (event) event.stopPropagation();
             if (!db) return;
+
+            // 로컬 상태 즉각 반영 (화면 이동 없이 제자리 유지)
+            const post = cachedPosts.find(p => p.id === postId);
+            if (post) {
+                if (!Array.isArray(post.likedUsers)) post.likedUsers = [];
+                if (hasLiked) {
+                    post.likes = Math.max(0, (post.likes || 1) - 1);
+                    post.likedUsers = post.likedUsers.filter(u => u !== currentUser);
+                } else {
+                    post.likes = (post.likes || 0) + 1;
+                    post.likedUsers.push(currentUser);
+                }
+            }
+
             setDbStatus('saving');
             try {
                 if (hasLiked) {
@@ -4109,8 +4149,22 @@
             }
         };
 
-        window.toggleThumbsUp = async function(postId, hasThumbed) {
+        window.toggleThumbsUp = async function(postId, hasThumbed, event) {
+            if (event) event.stopPropagation();
             if (!db) return;
+
+            const post = cachedPosts.find(p => p.id === postId);
+            if (post) {
+                if (!Array.isArray(post.thumbedUsers)) post.thumbedUsers = [];
+                if (hasThumbed) {
+                    post.thumbsUp = Math.max(0, (post.thumbsUp || 1) - 1);
+                    post.thumbedUsers = post.thumbedUsers.filter(u => u !== currentUser);
+                } else {
+                    post.thumbsUp = (post.thumbsUp || 0) + 1;
+                    post.thumbedUsers.push(currentUser);
+                }
+            }
+
             setDbStatus('saving');
             try {
                 if (hasThumbed) {
@@ -4125,8 +4179,22 @@
             }
         };
 
-        window.togglePray = async function(postId, hasPrayed) {
+        window.togglePray = async function(postId, hasPrayed, event) {
+            if (event) event.stopPropagation();
             if (!db) return;
+
+            const post = cachedPosts.find(p => p.id === postId);
+            if (post) {
+                if (!Array.isArray(post.prayedUsers)) post.prayedUsers = [];
+                if (hasPrayed) {
+                    post.prayers = Math.max(0, (post.prayers || 1) - 1);
+                    post.prayedUsers = post.prayedUsers.filter(u => u !== currentUser);
+                } else {
+                    post.prayers = (post.prayers || 0) + 1;
+                    post.prayedUsers.push(currentUser);
+                }
+            }
+
             setDbStatus('saving');
             try {
                 if (hasPrayed) {
