@@ -353,37 +353,38 @@
         </div>
     </header>
 
-    <!-- [상단 플로팅 실시간 피드 검색 바 (한 글자 이상 실시간 배경 피드 연동 & 꺾쇠 다음/이전 내비게이션)] -->
-    <div id="header-search-bar" 
-         class="hidden fixed top-[56px] left-1/2 -translate-x-1/2 w-[calc(100%-1.25rem)] max-w-md z-45 bg-white/95 backdrop-blur-md rounded-2xl border border-emerald-300 shadow-xl px-2.5 py-1.5 items-center space-x-1.5 transition-all select-none">
-        <i class="fa-solid fa-magnifying-glass text-emerald-700 text-xs shrink-0 pl-0.5"></i>
-        <input type="text" id="feed-search-input" maxlength="50"
-               placeholder="목장 이야기 검색 (한 글자 이상)..." 
-               oninput="handleFeedSearchInput(this.value)"
-               onkeydown="handleFeedSearchKeyDown(event)"
-               class="flex-1 bg-transparent text-xs text-gray-800 placeholder-gray-400 focus:outline-none py-0.5 min-w-0">
-        
-        <!-- 검색 결과 카운트 배지 (예: 1/3 또는 0건) -->
-        <span id="feed-search-count-badge" class="hidden text-[10px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-1.5 py-0.5 rounded-full whitespace-nowrap shrink-0">
-            0/0
-        </span>
+        <!-- [상단 실시간 피드 검색 바 (스마트 푸시다운: 검색창이 열리면 피드를 아래로 부드럽게 밀어내어 상단 내용 가림 100% 방지)] -->
+    <div id="header-search-container" 
+         class="w-full max-w-md mx-auto overflow-hidden transition-all duration-300 ease-in-out max-h-0 opacity-0 pointer-events-none bg-white border-b border-emerald-100 shadow-2xs z-35 shrink-0 select-none">
+        <div class="px-3 py-2 flex items-center space-x-1.5">
+            <i class="fa-solid fa-magnifying-glass text-emerald-700 text-xs shrink-0 pl-0.5"></i>
+            <input type="text" id="feed-search-input" maxlength="50"
+                   placeholder="목장 이야기 검색 (한 글자 이상)..." 
+                   oninput="handleFeedSearchInput(this.value)"
+                   onkeydown="handleFeedSearchKeyDown(event)"
+                   class="flex-1 bg-emerald-50/60 border border-emerald-200/80 rounded-xl px-2.5 py-1 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-emerald-500 min-w-0 transition-all">
+            
+            <!-- 검색 결과 카운트 배지 (예: 1/3 또는 0건) -->
+            <span id="feed-search-count-badge" class="hidden text-[10px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-1.5 py-0.5 rounded-full whitespace-nowrap shrink-0">
+                0/0
+            </span>
 
-        <!-- 꺽쇠 화살표 (이전 / 다음 검색 결과 순회) -->
-        <div id="feed-search-nav-btns" class="hidden items-center space-x-0.5 shrink-0">
-            <button type="button" onclick="navigateSearchResult(-1, event)" class="w-6 h-6 rounded-full hover:bg-emerald-100 active:scale-90 text-gray-600 hover:text-emerald-800 flex items-center justify-center transition-all text-xs" title="이전 결과 (위로)">
-                <i class="fa-solid fa-chevron-up text-[10px]"></i>
-            </button>
-            <button type="button" onclick="navigateSearchResult(1, event)" class="w-6 h-6 rounded-full hover:bg-emerald-100 active:scale-90 text-gray-600 hover:text-emerald-800 flex items-center justify-center transition-all text-xs" title="다음 결과 (아래로)">
-                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+            <!-- 꺽쇠 화살표 (이전 / 다음 검색 결과 순회) -->
+            <div id="feed-search-nav-btns" class="hidden items-center space-x-0.5 shrink-0">
+                <button type="button" onclick="navigateSearchResult(-1, event)" class="w-6 h-6 rounded-full hover:bg-emerald-100 active:scale-90 text-gray-600 hover:text-emerald-800 flex items-center justify-center transition-all text-xs" title="이전 결과 (위로)">
+                    <i class="fa-solid fa-chevron-up text-[10px]"></i>
+                </button>
+                <button type="button" onclick="navigateSearchResult(1, event)" class="w-6 h-6 rounded-full hover:bg-emerald-100 active:scale-90 text-gray-600 hover:text-emerald-800 flex items-center justify-center transition-all text-xs" title="다음 결과 (아래로)">
+                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                </button>
+            </div>
+
+            <!-- 검색창 닫기 버튼 -->
+            <button type="button" onclick="closeHeaderSearch(event)" class="w-6 h-6 rounded-full hover:bg-gray-100 active:scale-90 text-gray-400 hover:text-gray-700 flex items-center justify-center transition-all text-xs shrink-0" title="검색 닫기">
+                <i class="fa-solid fa-xmark text-xs"></i>
             </button>
         </div>
-
-        <!-- 검색창 닫기 버튼 -->
-        <button type="button" onclick="closeHeaderSearch(event)" class="w-6 h-6 rounded-full hover:bg-gray-100 active:scale-90 text-gray-400 hover:text-gray-700 flex items-center justify-center transition-all text-xs shrink-0" title="검색 닫기">
-            <i class="fa-solid fa-xmark text-xs"></i>
-        </button>
     </div>
-
 
     <!-- [피드 메인 컨테이너] -->
     <main class="w-full max-w-md mx-auto flex-1 overflow-y-auto px-1 py-0.5" id="feed-container">
@@ -1101,17 +1102,18 @@
 
         window.toggleHeaderSearch = function(event) {
             if (event) event.stopPropagation();
-            const bar = document.getElementById('header-search-bar');
-            if (!bar) return;
+            const container = document.getElementById('header-search-container');
+            if (!container) return;
 
-            const isHidden = bar.classList.contains('hidden');
+            const isClosed = container.classList.contains('max-h-0');
             closeAllHeaderQuickMenu();
             closeAllActionMenus();
             closeAllExportMenus();
 
-            if (isHidden) {
-                bar.classList.remove('hidden');
-                bar.classList.add('flex');
+            if (isClosed) {
+                // [스마트 푸시다운]: 검색창이 아래로 부드럽게 펼쳐지며 피드 전체를 아래로 밀어냄 (피드 내용 가림 100% 차단)
+                container.classList.remove('max-h-0', 'opacity-0', 'pointer-events-none');
+                container.classList.add('max-h-14', 'opacity-100', 'pointer-events-auto');
                 const input = document.getElementById('feed-search-input');
                 if (input) {
                     setTimeout(() => {
@@ -1119,7 +1121,7 @@
                         if (input.value.trim().length >= 1) {
                             handleFeedSearchInput(input.value);
                         }
-                    }, 50);
+                    }, 80);
                 }
             } else {
                 closeHeaderSearch();
@@ -1128,10 +1130,11 @@
 
         window.closeHeaderSearch = function(event) {
             if (event) event.stopPropagation();
-            const bar = document.getElementById('header-search-bar');
-            if (bar) {
-                bar.classList.add('hidden');
-                bar.classList.remove('flex');
+            const container = document.getElementById('header-search-container');
+            if (container) {
+                // [스마트 푸시다운 복귀]: 검색창이 부드럽게 접히며 피드가 자연스럽게 원래 위치로 복귀
+                container.classList.remove('max-h-14', 'opacity-100', 'pointer-events-auto');
+                container.classList.add('max-h-0', 'opacity-0', 'pointer-events-none');
             }
             const input = document.getElementById('feed-search-input');
             if (input) input.value = '';
@@ -4701,8 +4704,8 @@
                 updateStorageQuotaDisplay(posts);
 
                 const searchInput = document.getElementById('feed-search-input');
-                const searchBar = document.getElementById('header-search-bar');
-                if (searchBar && !searchBar.classList.contains('hidden') && searchInput && searchInput.value.trim().length >= 1) {
+                const searchContainer = document.getElementById('header-search-container');
+                if (searchContainer && !searchContainer.classList.contains('max-h-0') && searchInput && searchInput.value.trim().length >= 1) {
                     handleFeedSearchInput(searchInput.value);
                 }
 
