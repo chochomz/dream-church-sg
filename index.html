@@ -4037,7 +4037,26 @@
                 closeAllHeaderQuickMenu();
                 closeAllActionMenus();
                 closeAllExportMenus();
-                // 스크롤 시 작성 중인 댓글창 유지 (임의 닫힘 방지)
+                // [요청 반영]: 스크롤 시 화면 밖(뷰포트)을 벗어난 댓글 작성창 자동 닫기 (입력 중인 글은 임시 보관)
+                document.querySelectorAll('[id^="inline-comment-row-"]:not(.hidden)').forEach(row => {
+                    const pId = row.id.replace("inline-comment-row-", "");
+                    const card = document.getElementById(`post-card-${pId}`);
+                    if (card) {
+                        const cardRect = card.getBoundingClientRect();
+                        const containerRect = feedScrollEl.getBoundingClientRect();
+                        if (cardRect.bottom < containerRect.top - 20 || cardRect.top > containerRect.bottom + 20) {
+                            const input = document.getElementById(`inline-comment-input-${pId}`);
+                            if (input && input.value.trim().length > 0) {
+                                commentDrafts[pId] = {
+                                    text: input.value,
+                                    updatedAt: Date.now()
+                                };
+                            }
+                            row.classList.add("hidden");
+                            if (input) input.blur();
+                        }
+                    }
+                });
                 // 스크롤 시작 시 책갈피 슬라이드 노출 & 정보 갱신
                 showBookmark();
 
@@ -5634,10 +5653,10 @@
                                 <span class="text-xs">${prayersCount}</span>
                             </button>
 
-                            <button type="button" onclick="event.stopPropagation(); openCommentsModal('${post.id}')" class="flex items-center space-x-1 text-gray-500 hover:text-emerald-700 active:scale-90 transition-transform" title="댓글 열기">
+                            <div class="flex items-center space-x-1 text-gray-500 select-none" title="목장 댓글">
                                 <i class="fa-regular fa-comment-dots text-sm"></i>
-                                <span class="text-xs" data-comment-count>${commentCount}</span>
-                            </button>
+                                <span class="text-xs font-semibold" data-comment-count>${commentCount}</span>
+                            </div>
 
                             <button type="button" onclick="event.stopPropagation(); toggleInlineCommentInput('${post.id}', event)" class="w-5 h-5 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-500 hover:text-emerald-700 flex items-center justify-center text-xs font-bold active:scale-90 transition-transform" title="댓글 바로 달기">
                                 <i class="fa-solid fa-plus text-[10px]"></i>
