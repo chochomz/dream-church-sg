@@ -2281,6 +2281,7 @@
 
             // 2. 창 닫거나 나갈 때 즉시 세션 제거 시도
             window.addEventListener('beforeunload', () => {
+                setLastVisitedTime(Date.now());
                 try {
                     deleteDoc(myRef);
                 } catch (e) {}
@@ -2918,6 +2919,9 @@
                     }
                     const newDocRef = await addDoc(getPostsCollection(), postPayload);
                     closeWriteModal();
+                    setLastVisitedTime(Date.now());
+                    isUnreadPostMode = false;
+                    unreadPostsCount = 0;
                     showNotification("새로운 목장 이야기가 등록되었습니다!");
                     scrollToPost(newDocRef.id, true);
                 }
@@ -3042,6 +3046,92 @@
 
         const KOREAN_DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
+        // [책갈피 - 사용자 방문 일자 기억 및 안 본 최신글(새글) 카운트 관리 (향후 로그인 연동 완벽 대비)]
+        function getUserVisitStorageKey() {
+            let uid = reactionUserId;
+            try {
+                if (auth && auth.currentUser && !auth.currentUser.isAnonymous && auth.currentUser.uid) {
+                    uid = auth.currentUser.uid;
+                }
+            } catch(e) {}
+            return "mokjang_last_visit_time_" + uid;
+        }
+
+        function getLastVisitedTime() {
+            try {
+                const key = getUserVisitStorageKey();
+                const saved = localStorage.getItem(key);
+                if (saved) {
+                    const parsed = parseInt(saved, 10);
+                    if (!isNaN(parsed) && parsed > 0) return parsed;
+                }
+                const now = Date.now();
+                localStorage.setItem(key, String(now));
+                return now;
+            } catch(e) {
+                return Date.now();
+            }
+        }
+
+        function setLastVisitedTime(timestamp = Date.now()) {
+            try {
+                const key = getUserVisitStorageKey();
+                localStorage.setItem(key, String(timestamp));
+            } catch(e) {}
+        }
+
+        function getPostTimestampMs(post) {
+            if (!post || !post.createdAt) return 0;
+            try {
+                if (typeof post.createdAt.toDate === "function") {
+                    return post.createdAt.toDate().getTime();
+                }
+                if (post.createdAt instanceof Date) {
+                    return post.createdAt.getTime();
+                }
+                const parsed = new Date(post.createdAt).getTime();
+                return isNaN(parsed) ? 0 : parsed;
+            } catch(e) {
+                return 0;
+            }
+        }
+
+        let isUnreadPostMode = false;
+        let unreadPostsCount = 0;
+
+        function checkUnreadPosts() {
+            if (!cachedPosts || cachedPosts.length === 0) {
+                unreadPostsCount = 0;
+                isUnreadPostMode = false;
+                return;
+            }
+            const lastVisited = getLastVisitedTime();
+            const unread = cachedPosts.filter(p => {
+                const pTime = getPostTimestampMs(p);
+                return pTime > lastVisited;
+            });
+            unreadPostsCount = unread.length;
+            isUnreadPostMode = (unreadPostsCount > 0);
+        }
+
+        window.markAllPostsAsRead = function() {
+            isUnreadPostMode = false;
+            unreadPostsCount = 0;
+            setLastVisitedTime(Date.now());
+            updateBookmarkInfoFromScroll();
+        };
+
+        window.goToUnreadPost = function(event) {
+            if (event) {
+                event.stopPropagation();
+                if (event.preventDefault) event.preventDefault();
+            }
+            if (!cachedPosts || cachedPosts.length === 0) return;
+            scrollToPost(cachedPosts[0].id, true);
+            showNotification(`안 본 최신글(${unreadPostsCount}개)로 이동했습니다.`);
+            markAllPostsAsRead();
+        };
+
         // 12개월 및 4계절 맞춤 초고투명 은은한 파스텔 테마 (투명도를 더욱 높여 피드 내용이 훤히 비침)
         const MONTHLY_PASTEL_THEMES = {
             1:  { bg: 'rgba(238, 234, 254, 0.20)', border: 'rgba(167, 139, 250, 0.22)', text: '#3B1875', subText: '#4C1D95', badge: '#7C3AED', icon: '❄️', season: '겨울' }, // 1월: 스노우 라일락
@@ -3112,7 +3202,9 @@
                 dayEl.style.color = theme.subText;
             }
             if (posEl) {
-                posEl.style.color = theme.text;
+                if (!isUnreadPostMode || unreadPostsCount <= 0) {
+                    posEl.style.color = theme.text;
+                }
             }
         }
 
@@ -3437,7 +3529,25 @@
             const dateEl = document.getElementById('feed-bookmark-date');
             const dayEl = document.getElementById('feed-bookmark-day');
 
-            if (posEl) posEl.innerText = `${targetIndex + 1}/${cachedPosts.length}`;
+            if (posEl) {
+                if (isUnreadPostMode && unreadPostsCount > 0) {
+                    posEl.className = "px-1 py-0.5 rounded bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-[8px] leading-none shadow-2xs pointer-events-auto cursor-pointer active:scale-90 transition-transform select-none";
+                    posEl.style.color = "#ffffff";
+                    posEl.innerText = `새글 ${unreadPostsCount}`;
+                    posEl.title = `안 본 새글 ${unreadPostsCount}개 (터치 시 최신글로 이동)`;
+                    posEl.onpointerdown = (e) => { if (e) e.stopPropagation(); };
+                    posEl.onclick = (e) => {
+                        if (e) e.stopPropagation();
+                        goToUnreadPost(e);
+                    };
+                } else {
+                    posEl.className = "text-[9.5px] font-black font-mono tracking-tighter whitespace-nowrap pointer-events-none shrink-0";
+                    posEl.innerText = `${targetIndex + 1}/${cachedPosts.length}`;
+                    posEl.title = "";
+                    posEl.onpointerdown = null;
+                    posEl.onclick = null;
+                }
+            }
             if (currentPost) {
                 const dateInfo = parseBookmarkDateInfo(currentPost.createdAt);
                 if (dateEl) dateEl.innerText = dateInfo.shortDate;
@@ -5849,6 +5959,7 @@
                 });
 
                 cachedPosts = posts;
+                checkUnreadPosts();
                 updateStorageQuotaDisplay(posts);
 
                 const searchInput = document.getElementById('feed-search-input');
@@ -5869,6 +5980,10 @@
                 // 피드 렌더링 (초기 5개 로딩 및 스크롤 누적 수치 유지)
                 displayedFeedCount = Math.max(INITIAL_FEED_LIMIT, Math.min(displayedFeedCount, posts.length || INITIAL_FEED_LIMIT));
                 renderFeedList();
+
+                if (isUnreadPostMode && unreadPostsCount > 0) {
+                    showBookmark();
+                }
 
                 posts.forEach(p => {
                     if (p.fontFamily && p.fontFamily !== 'pretendard') {
