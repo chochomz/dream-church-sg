@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>우리들의 목장 이야기 - 세종꿈의교회 23목장</title>
     <!-- Pretendard 기본 웹폰트 (초기 렌더링 최적화 병렬 로드) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <!-- Pretendard 다이나믹 서브셋 웹폰트 (사파리 메모리 및 초기 렌더링 최적화) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
@@ -988,7 +989,7 @@
             </button>
 
             <!-- 교정 및 사진 프레이밍 박스 (가운데 큰 흰색 반투명 + 가이드, 상하좌우 여백 확보, 두꺼운 초록 긴점선) -->
-            <div id="lightbox-crop-box" class="absolute pointer-events-none z-30 rounded-2xl" style="width: min(76vw, 320px); height: min(50vh, 380px); border: 3.5px dashed #244E3F; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.28);">
+            <div id="lightbox-crop-box" class="absolute pointer-events-none z-30 rounded-2xl" style="width: min(76vw, 320px); height: min(50vh, 380px); border: 3.5px dashed #244E3F; box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.28);">
                 <!-- 더 크고 선명한 흰색 반투명 십자선 (+) 안내선 -->
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <i class="fa-solid fa-plus text-white/70 text-4xl drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"></i>
@@ -1028,7 +1029,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager, memoryLocalCache, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         let currentUser = "목장가족";
@@ -1127,15 +1128,21 @@
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             try {
-                // [IndexedDB 오프라인 영구 캐시: 재방문 시 0.1초 만에 피드 즉시 렌더링]
+                // [사파리/모바일 안정화: WebKit IndexedDB 락업 방지 싱글탭 + 에러 시 메모리 캐시 안전 폴백]
                 db = initializeFirestore(app, {
                     localCache: persistentLocalCache({
-                        tabManager: persistentMultipleTabManager()
+                        tabManager: persistentSingleTabManager()
                     })
                 });
             } catch (dbErr) {
-                console.warn("Firestore persistentLocalCache fallback:", dbErr);
-                db = getFirestore(app);
+                console.warn("Firestore persistentLocalCache fallback to memory:", dbErr);
+                try {
+                    db = initializeFirestore(app, {
+                        localCache: memoryLocalCache()
+                    });
+                } catch (memErr) {
+                    db = getFirestore(app);
+                }
             }
             storage = getStorage(app);
         } catch (e) {
@@ -1233,15 +1240,47 @@
             return exportLibsLoadedPromise;
         };
 
-        // [20종 서체 온디맨드 로딩: 글쓰기 모달 또는 유휴 시간 로드하여 초기 화면 블로킹 차단]
-        let specialFontsLoaded = false;
-        window.loadSpecialFonts = function() {
-            if (specialFontsLoaded) return;
-            specialFontsLoaded = true;
+        // [20종 서체 스마트 온디맨드 로딩: 실제 쓰인 서체만 개별 로드하여 사파리 CoreText 메모리 폭발 완벽 차단]
+        const FONT_URL_MAP = {
+            'myeongjo': 'Nanum+Myeongjo:wght@400;700',
+            'pen': 'Nanum+Pen+Script',
+            'gowun-dodum': 'Gowun+Dodum',
+            'gowun-batang': 'Gowun+Batang:wght@400;700',
+            'jua': 'Jua',
+            'dongle': 'Dongle:wght@400;700',
+            'songmyung': 'Song+Myung',
+            'dohyeon': 'Do+Hyeon',
+            'gamja': 'Gamja+Flower',
+            'roboto': 'Roboto:wght@400;500;700',
+            'montserrat': 'Montserrat:wght@400;600',
+            'poppins': 'Poppins:wght@400;600',
+            'playfair': 'Playfair+Display:ital,wght@0,500;0,700;1,400',
+            'cinzel': 'Cinzel:wght@500;700',
+            'oswald': 'Oswald:wght@500;700',
+            'dancing': 'Dancing+Script:wght@500;700',
+            'caveat': 'Caveat:wght@400;700',
+            'pacifico': 'Pacifico',
+            'greatvibes': 'Great+Vibes'
+        };
+        const loadedFontsSet = new Set(['pretendard']);
+
+        window.loadFontFamily = function(fontId) {
+            if (!fontId || loadedFontsSet.has(fontId)) return;
+            const query = FONT_URL_MAP[fontId];
+            if (!query) return;
+            loadedFontsSet.add(fontId);
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = 'https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Cinzel:wght@500;700&family=Dancing+Script:wght@500;700&family=Do+Hyeon&family=Dongle:wght@400;700&family=Gamja+Flower&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Great+Vibes&family=Jua&family=Montserrat:wght@400;600&family=Nanum+Myeongjo:wght@400;700&family=Nanum+Pen+Script&family=Oswald:wght@500;700&family=Pacifico&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Poppins:wght@400;600&family=Roboto:wght@400;500;700&family=Song+Myung&display=swap';
+            link.href = 'https://fonts.googleapis.com/css2?family=' + query + '&display=swap';
             document.head.appendChild(link);
+        };
+
+        window.loadSpecialFonts = function(targetFont = null) {
+            if (targetFont) {
+                loadFontFamily(targetFont);
+            } else if (typeof currentSelectedFont !== 'undefined' && currentSelectedFont) {
+                loadFontFamily(currentSelectedFont);
+            }
         };
 
         window.toggleHeaderQuickMenu = function(event) {
@@ -2452,6 +2491,7 @@
 
         window.selectPostFont = function(fontId, applyToEditor = true) {
             currentSelectedFont = fontId || 'pretendard';
+            loadFontFamily(currentSelectedFont);
 
             // 영문 폰트 선택 시 영문 탭, 한글 폰트 선택 시 한글 탭 자동 동기화
             if (AVAILABLE_FONTS_EN.some(f => f.id === currentSelectedFont)) {
@@ -5623,9 +5663,11 @@
                 displayedFeedCount = Math.max(INITIAL_FEED_LIMIT, Math.min(displayedFeedCount, posts.length || INITIAL_FEED_LIMIT));
                 renderFeedList();
 
-                if (posts.some(p => p.fontFamily && p.fontFamily !== 'pretendard')) {
-                    loadSpecialFonts();
-                }
+                posts.forEach(p => {
+                    if (p.fontFamily && p.fontFamily !== 'pretendard') {
+                        loadFontFamily(p.fontFamily);
+                    }
+                });
             }, (err) => {
                 console.error("피드 스냅샷 오류:", err);
                 setDbStatus('error');
