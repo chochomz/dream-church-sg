@@ -4378,16 +4378,8 @@
             return false;
         }
 
-        // 가로형(Landscape) 2분할 카드 렌더링 (왼쪽: 사진, 오른쪽: 글/댓글)
-        function createLandscapeCardElement(post) {
-            const wrapper = document.createElement('div');
-            wrapper.id = `landscape-export-${post.id}`;
-            wrapper.className = "w-[880px] bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-row space-x-5 box-border text-left";
-            wrapper.style.position = 'fixed';
-            wrapper.style.left = '-9999px';
-            wrapper.style.top = '-9999px';
-            wrapper.style.zIndex = '-100';
-
+        // [사진과 댓글 세트 단위 2열 균형 절단 정렬: 공간 낭비 없는 최적화]
+        function buildExportPhotosAndCommentsHtml(post, isLandscape = false, isAllPdfCompact = false) {
             let imgArray = [];
             if (Array.isArray(post.images) && post.images.length > 0) {
                 imgArray = post.images.filter(img => typeof img === 'string' && img.trim().length > 0);
@@ -4396,37 +4388,123 @@
             }
 
             const photoCaptions = post.photoCaptions || {};
-            const photosHtml = imgArray.map((url, i) => {
+            const postComments = Array.isArray(post.comments) ? post.comments : [];
+            const hasComments = postComments.length > 0;
+            const photoCount = imgArray.length;
+
+            const renderPhotoItem = (url, i, maxH = 'max-h-[260px]') => {
                 const caption = photoCaptions[i] || '';
                 return `
-                    <div class="w-full flex flex-col mb-2 last:mb-0 border border-gray-100 rounded-xl overflow-hidden bg-gray-50">
-                        <img src="${url}" alt="사진 ${i+1}" class="w-full max-h-[460px] object-contain block mx-auto">
-                        ${caption ? `<div class="p-2 bg-gray-50 text-[11px] text-gray-700 leading-snug border-t border-gray-100"><i class="fa-regular fa-comment-dots text-emerald-600 mr-1"></i>${escapeHtml(caption)}</div>` : ''}
+                    <div class="w-full flex flex-col border border-gray-100 rounded-xl overflow-hidden bg-gray-50/70 shadow-2xs">
+                        <img src="${url}" alt="사진 ${i+1}" class="w-full ${maxH} object-cover block mx-auto">
+                        ${caption ? `<div class="p-1.5 bg-gray-50 text-[10px] text-gray-700 leading-snug border-t border-gray-100 text-left"><i class="fa-regular fa-comment-dots text-emerald-600 mr-1 text-[9px]"></i>${escapeHtml(caption)}</div>` : ''}
                     </div>
                 `;
-            }).join('');
+            };
 
-            const postComments = post.comments || [];
-            let commentsHtml = '';
-            if (postComments.length > 0) {
-                commentsHtml = `
-                    <div class="mt-3 pt-2 border-t border-gray-100 bg-gray-50/80 rounded-xl p-2.5 text-left">
-                        <div class="text-[11px] font-bold text-emerald-800 mb-1.5 flex items-center space-x-1">
-                            <i class="fa-regular fa-comment-dots text-xs"></i>
+            const renderCommentsBox = (maxH = 'max-h-[260px]') => {
+                if (!hasComments) return '';
+                return `
+                    <div class="w-full h-full border border-gray-100 bg-gray-50/80 rounded-xl p-2 text-left flex flex-col justify-start shadow-2xs box-border">
+                        <div class="text-[10px] font-bold text-emerald-800 mb-1 flex items-center space-x-1 shrink-0">
+                            <i class="fa-regular fa-comment-dots text-[10px]"></i>
                             <span>목장 댓글 (${postComments.length})</span>
                         </div>
-                        <div class="space-y-1.5 max-h-[220px] overflow-hidden">
+                        <div class="space-y-1 ${maxH} overflow-hidden flex-1">
                             ${postComments.map(c => `
-                                <div class="text-[11px] leading-tight pb-1 border-b border-gray-200/50 last:border-0 last:pb-0">
-                                    <span class="font-bold text-gray-800">${escapeHtml(c.author)}:</span>
+                                <div class="text-[9.5px] leading-tight pb-0.5 border-b border-gray-200/50 last:border-0 last:pb-0">
+                                    <span class="font-bold text-gray-800">${escapeHtml(c.author)} :</span>
                                     <span class="text-gray-700 ml-0.5">${escapeHtml(c.text)}</span>
-                                    <span class="text-[9px] text-gray-400 ml-1">(${c.time || ''})</span>
+                                    <span class="text-[8px] text-gray-400 ml-1">${c.time || ''}</span>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
                 `;
+            };
+
+            // 사진과 댓글이 전혀 없는 경우
+            if (photoCount === 0 && !hasComments) return '';
+
+            // 사진이 없고 댓글만 있는 경우
+            if (photoCount === 0 && hasComments) {
+                return `<div class="w-full mt-2">${renderCommentsBox('max-h-[220px]')}</div>`;
             }
+
+            const imgMaxH = isAllPdfCompact ? 'max-h-[160px]' : (isLandscape ? 'max-h-[300px]' : 'max-h-[240px]');
+            const commentsMaxH = isAllPdfCompact ? 'max-h-[160px]' : (isLandscape ? 'max-h-[300px]' : 'max-h-[240px]');
+
+            // 1장 + 댓글: 2열 절단 나란히 정렬 (좌: 사진, 우: 댓글)
+            if (photoCount === 1 && hasComments) {
+                return `
+                    <div class="grid grid-cols-2 gap-2 w-full items-stretch mt-1.5">
+                        <div class="w-full">${renderPhotoItem(imgArray[0], 0, imgMaxH)}</div>
+                        <div class="w-full">${renderCommentsBox(commentsMaxH)}</div>
+                    </div>
+                `;
+            }
+
+            // 1장 + 댓글 없음
+            if (photoCount === 1 && !hasComments) {
+                return `
+                    <div class="w-full mt-1.5">
+                        ${renderPhotoItem(imgArray[0], 0, isLandscape ? 'max-h-[360px]' : 'max-h-[300px]')}
+                    </div>
+                `;
+            }
+
+            // 3장 + 댓글: 2x2 그리드에 1~3번 사진과 4번째 칸에 댓글을 절단 배치!
+            if (photoCount === 3 && hasComments) {
+                return `
+                    <div class="grid grid-cols-2 gap-2 w-full items-stretch mt-1.5">
+                        <div class="w-full">${renderPhotoItem(imgArray[0], 0, imgMaxH)}</div>
+                        <div class="w-full">${renderPhotoItem(imgArray[1], 1, imgMaxH)}</div>
+                        <div class="w-full">${renderPhotoItem(imgArray[2], 2, imgMaxH)}</div>
+                        <div class="w-full">${renderCommentsBox(commentsMaxH)}</div>
+                    </div>
+                `;
+            }
+
+            // 5장 + 댓글: 2x3 그리드에 1~5번 사진과 6번째 칸에 댓글을 절단 배치!
+            if (photoCount === 5 && hasComments) {
+                return `
+                    <div class="grid grid-cols-2 gap-2 w-full items-stretch mt-1.5">
+                        <div class="w-full">${renderPhotoItem(imgArray[0], 0, imgMaxH)}</div>
+                        <div class="w-full">${renderPhotoItem(imgArray[1], 1, imgMaxH)}</div>
+                        <div class="w-full">${renderPhotoItem(imgArray[2], 2, imgMaxH)}</div>
+                        <div class="w-full">${renderPhotoItem(imgArray[3], 3, imgMaxH)}</div>
+                        <div class="w-full">${renderPhotoItem(imgArray[4], 4, imgMaxH)}</div>
+                        <div class="w-full">${renderCommentsBox(commentsMaxH)}</div>
+                    </div>
+                `;
+            }
+
+            // 짝수 장수(2장, 4장) 또는 홀수 장수인데 댓글이 없는 경우: 2열 사진 배치 후 댓글 하단 정렬
+            const photoGridItems = imgArray.map((url, i) => {
+                const isOddLast = (photoCount % 2 === 1) && (i === photoCount - 1);
+                const colSpanClass = isOddLast ? 'col-span-2' : 'col-span-1';
+                return `<div class="${colSpanClass} w-full">${renderPhotoItem(url, i, imgMaxH)}</div>`;
+            }).join('');
+
+            return `
+                <div class="grid grid-cols-2 gap-2 w-full items-start mt-1.5">
+                    ${photoGridItems}
+                </div>
+                ${hasComments ? `<div class="w-full mt-2">${renderCommentsBox('max-h-[220px]')}</div>` : ''}
+            `;
+        }
+
+        // [단일 게시글 내보내기 전용 카드 렌더링 (세로 및 가로 2열 완벽 지원)]
+        function createLandscapeCardElement(post, mode = 'landscape') {
+            const wrapper = document.createElement('div');
+            wrapper.id = `export-card-${post.id}`;
+            const isLandscape = (mode === 'landscape');
+            const cardWidth = isLandscape ? 'w-[880px]' : 'w-[520px]';
+            wrapper.className = `${cardWidth} bg-white p-4 sm:p-5 rounded-2xl border border-gray-200 shadow-sm flex flex-col box-border text-left`;
+            wrapper.style.position = 'fixed';
+            wrapper.style.left = '-9999px';
+            wrapper.style.top = '-9999px';
+            wrapper.style.zIndex = '-100';
 
             const attachedFileHtml = post.fileName ? `
                 <div class="mt-2 p-2 bg-emerald-50/70 rounded-xl border border-emerald-100 flex items-center justify-between text-xs">
@@ -4438,33 +4516,30 @@
                 </div>
             ` : '';
 
-            wrapper.innerHTML = `
-                <!-- 왼쪽: 사진 영역 (가로 규격에 맞춰 비율 유지) -->
-                <div class="w-[48%] flex flex-col justify-center shrink-0">
-                    <div class="w-full flex flex-col rounded-xl overflow-hidden border border-gray-100 p-1 bg-gray-50/50">
-                        ${photosHtml}
-                    </div>
-                </div>
-
-                <!-- 오른쪽: 글과 댓글 영역 -->
-                <div class="w-[52%] flex flex-col justify-start text-left shrink-0">
-                    <div class="flex items-center justify-between pb-2 mb-2 border-b border-gray-100">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-7 h-7 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-                                ${escapeHtml((post.author || 'M').charAt(0))}
-                            </div>
-                            <div>
-                                <h4 class="text-xs font-bold text-gray-800 leading-tight">${escapeHtml(post.author || '목장가족')}</h4>
-                                <p class="text-[9.5px] text-gray-400 leading-none mt-0.5">${formatDate(post.createdAt)}</p>
-                            </div>
+            const headerHtml = `
+                <div class="flex items-center justify-between pb-2 mb-2 border-b border-gray-100 w-full">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-7 h-7 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                            ${escapeHtml((post.author || 'M').charAt(0))}
                         </div>
-                        <span class="text-[10px] text-emerald-800 font-semibold px-2 py-0.5 bg-emerald-50 rounded-full border border-emerald-100">${currentMokjang}</span>
+                        <div>
+                            <h4 class="text-xs font-bold text-gray-800 leading-tight">${escapeHtml(post.author || '목장가족')}</h4>
+                            <p class="text-[9.5px] text-gray-400 leading-none mt-0.5">${formatDate(post.createdAt)}</p>
+                        </div>
                     </div>
-
-                    ${post.content ? `<div class="text-[14px] ${getFontClass(post.fontFamily)} text-gray-800 leading-relaxed whitespace-pre-wrap mb-2 text-left">${renderPostContentHtml(post.content.trim())}</div>` : ''}
-                    ${attachedFileHtml}
-                    ${commentsHtml}
+                    <span class="text-[10px] text-emerald-800 font-semibold px-2 py-0.5 bg-emerald-50 rounded-full border border-emerald-100">${currentMokjang}</span>
                 </div>
+            `;
+
+            const contentHtml = post.content ? `<div class="text-[13.5px] ${getFontClass(post.fontFamily)} text-gray-800 leading-relaxed whitespace-pre-wrap mb-2 text-left">${renderPostContentHtml(post.content.trim())}</div>` : '';
+
+            const bodyMediaHtml = buildExportPhotosAndCommentsHtml(post, isLandscape, false);
+
+            wrapper.innerHTML = `
+                ${headerHtml}
+                ${contentHtml}
+                ${attachedFileHtml}
+                ${bodyMediaHtml}
             `;
 
             document.body.appendChild(wrapper);
@@ -4544,12 +4619,8 @@
                 </div>
             `;
 
-            let targetEl = cardEl;
-            let tempWrapper = null;
-            if (useLandscape) {
-                tempWrapper = createLandscapeCardElement(post);
-                targetEl = tempWrapper;
-            }
+            let tempWrapper = createLandscapeCardElement(post, currentSingleExportMode);
+            let targetEl = tempWrapper;
 
             const noExportEls = targetEl.querySelectorAll('.no-export');
             noExportEls.forEach(el => el.style.display = 'none');
@@ -4606,14 +4677,8 @@
             showNotification("게시글 이미지를 생성 중입니다...");
 
             const useLandscape = (mode === 'landscape');
-            let targetEl = null;
-            let tempWrapper = null;
-            if (useLandscape) {
-                tempWrapper = createLandscapeCardElement(post);
-                targetEl = tempWrapper;
-            } else {
-                targetEl = document.getElementById(`post-card-${postId}`);
-            }
+            let tempWrapper = createLandscapeCardElement(post, mode);
+            let targetEl = tempWrapper;
             if (!targetEl) return;
 
             const noExportEls = targetEl.querySelectorAll('.no-export');
@@ -4696,15 +4761,8 @@
             showNotification("PDF 문서를 생성 중입니다...");
 
             const useLandscape = (mode !== null) ? (mode === 'landscape') : shouldPostUseLandscapePdf(post);
-            let targetEl = null;
-            let tempWrapper = null;
-
-            if (useLandscape) {
-                tempWrapper = createLandscapeCardElement(post);
-                targetEl = tempWrapper;
-            } else {
-                targetEl = document.getElementById(`post-card-${postId}`);
-            }
+            let tempWrapper = createLandscapeCardElement(post, useLandscape ? 'landscape' : 'portrait');
+            let targetEl = tempWrapper;
 
             if (!targetEl) return;
 
@@ -4789,7 +4847,8 @@
             const printArea = document.getElementById('print-area');
             if (!post || !printArea) return;
 
-            let sourceEl = (mode === 'landscape') ? createLandscapeCardElement(post) : document.getElementById(`post-card-${postId}`);
+            let tempWrapper = createLandscapeCardElement(post, mode);
+            let sourceEl = tempWrapper;
             if (!sourceEl) return;
 
             const clone = sourceEl.cloneNode(true);
@@ -4805,7 +4864,7 @@
             setTimeout(() => {
                 printArea.classList.add('hidden');
                 printArea.innerHTML = '';
-                if (mode === 'landscape' && sourceEl) sourceEl.remove();
+                if (tempWrapper) tempWrapper.remove();
             }, 500);
         }
 
@@ -4901,6 +4960,36 @@
         };
 
         // 전체 PDF 미리보기 내용 렌더링 (세로 1열 vs 가로 1페이지 2개 피드 2열)
+                // [전체 PDF 전용 카드 생성 헬퍼 (사진/댓글 세트 절단 균형 정렬 적용)]
+        function createAllPdfCardHtml(post, isCompact = false) {
+            const attachedFileHtml = post.fileName ? `
+                <div class="mt-1 p-1.5 bg-emerald-50/70 rounded-lg border border-emerald-100 flex items-center justify-between text-[10px]">
+                    <div class="flex items-center space-x-1.5 truncate">
+                        <span class="text-xs shrink-0">📁</span>
+                        <span class="font-bold text-emerald-900 truncate">${escapeHtml(post.fileName)}</span>
+                        <span class="text-[9px] text-gray-500 shrink-0">(${formatFileSize(post.fileSize)})</span>
+                    </div>
+                </div>
+            ` : '';
+
+            const bodyMediaHtml = buildExportPhotosAndCommentsHtml(post, isCompact, isCompact);
+
+            return `
+                <div class="w-full bg-white rounded-xl border border-gray-200 shadow-2xs p-2.5 box-border text-left pdf-render-card flex flex-col justify-start">
+                    <div class="flex items-center space-x-1.5 pb-1 mb-1 border-b border-gray-100">
+                        <div class="w-5 h-5 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-[9.5px] shrink-0">
+                            ${escapeHtml((post.author || 'M').charAt(0))}
+                        </div>
+                        <span class="text-[11px] font-bold text-gray-800 truncate">${escapeHtml(post.author || '목장가족')}</span>
+                        <span class="text-[8.5px] text-gray-400 ml-auto whitespace-nowrap">${formatDate(post.createdAt)}</span>
+                    </div>
+                    ${post.content ? `<div class="text-[11.5px] ${getFontClass(post.fontFamily)} text-gray-800 leading-relaxed whitespace-pre-wrap mb-1 text-left break-words overflow-wrap-anywhere">${renderPostContentHtml(post.content)}</div>` : ''}
+                    ${attachedFileHtml}
+                    ${bodyMediaHtml}
+                </div>
+            `;
+        }
+
         function renderAllPdfPreviewContent() {
             const continuousContainer = document.getElementById('all-pdf-continuous-container');
             const scrollViewport = document.getElementById('all-pdf-scroll-viewport');
@@ -4923,65 +5012,7 @@
             `;
             continuousContainer.appendChild(headerCard);
 
-            // 2. 단일 카드 생성 헬퍼
-            const createSingleCardHtml = (post, isCompact = false) => {
-                let imgArray = [];
-                if (Array.isArray(post.images) && post.images.length > 0) {
-                    imgArray = post.images.filter(img => typeof img === 'string' && img.trim().length > 0);
-                } else if (post.imageUrl && typeof post.imageUrl === 'string' && post.imageUrl.trim().length > 0) {
-                    imgArray = [post.imageUrl];
-                }
-
-                const photoCaptions = post.photoCaptions || {};
-                let photosHtml = '';
-                if (imgArray.length > 0) {
-                    photosHtml = imgArray.map((url, i) => {
-                        const caption = photoCaptions[i] || '';
-                        return `
-                            <div class="w-full flex flex-col mb-1 last:mb-0 border border-gray-100 rounded-lg overflow-hidden bg-gray-50/50">
-                                <img src="${url}" alt="사진 ${i+1}" class="w-full object-cover block max-h-[220px]">
-                                ${caption ? `<div class="p-1 bg-gray-50 text-[10px] text-gray-700 leading-snug border-t border-gray-100"><i class="fa-regular fa-comment-dots text-emerald-600 mr-1"></i>${escapeHtml(caption)}</div>` : ''}
-                            </div>
-                        `;
-                    }).join('');
-                }
-
-                const postComments = post.comments || [];
-                let commentsHtml = '';
-                if (postComments.length > 0) {
-                    commentsHtml = `
-                        <div class="mt-1.5 pt-1 border-t border-gray-100 bg-gray-50/80 rounded-lg p-1.5 text-left">
-                            <div class="text-[9.5px] font-bold text-emerald-800 mb-0.5">
-                                <i class="fa-regular fa-comment-dots mr-1"></i>댓글 (${postComments.length})
-                            </div>
-                            <div class="space-y-0.5">
-                                ${postComments.map(c => `
-                                    <div class="text-[10px] leading-tight pb-0.5 border-b border-gray-200/50 last:border-0 last:pb-0">
-                                        <span class="font-bold text-gray-800">${escapeHtml(c.author)}:</span>
-                                        <span class="text-gray-700 ml-0.5">${escapeHtml(c.text)}</span>
-                                        <span class="text-[8px] text-gray-400 ml-1">(${c.time || ''})</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
-
-                return `
-                    <div class="w-full bg-white rounded-xl border border-gray-200 shadow-2xs p-2 box-border text-left pdf-render-card flex flex-col justify-start">
-                        <div class="flex items-center space-x-1.5 pb-1 mb-1 border-b border-gray-100">
-                            <div class="w-5 h-5 rounded-full church-accent church-primary-text flex items-center justify-center font-bold text-[9.5px] shrink-0">
-                                ${escapeHtml((post.author || 'M').charAt(0))}
-                            </div>
-                            <span class="text-[11px] font-bold text-gray-800 truncate">${escapeHtml(post.author || '목장가족')}</span>
-                            <span class="text-[8.5px] text-gray-400 ml-auto whitespace-nowrap">${formatDate(post.createdAt)}</span>
-                        </div>
-                        ${post.content ? `<div class="text-[11.5px] ${getFontClass(post.fontFamily)} text-gray-800 leading-relaxed whitespace-pre-wrap mb-1 text-left break-words overflow-wrap-anywhere">${renderPostContentHtml(post.content)}</div>` : ''}
-                        ${photosHtml}
-                        ${commentsHtml}
-                    </div>
-                `;
-            };
+            const createSingleCardHtml = (p, c) => createAllPdfCardHtml(p, c);
 
             // 3. 모드별 레이아웃 주입
             if (currentAllPdfMode === 'landscape') {
@@ -5116,8 +5147,8 @@
                             <span class="text-xs font-mono font-bold text-emerald-800">${p + 1} / ${pageCount}</span>
                         </div>
                         <div class="grid grid-cols-2 gap-5 w-full items-start">
-                            <div class="border border-gray-200 rounded-xl p-3 bg-white">${buildPostCardElement(post1).innerHTML}</div>
-                            <div class="border border-gray-200 rounded-xl p-3 bg-white">${post2 ? buildPostCardElement(post2).innerHTML : '<div class="p-6 text-center text-gray-400">목장 이야기 끝</div>'}</div>
+                            <div class="w-full">${createAllPdfCardHtml(post1, true)}</div>
+                            <div class="w-full">${post2 ? createAllPdfCardHtml(post2, true) : '<div class="p-6 text-center text-gray-400 border border-dashed border-gray-200 rounded-xl">목장 이야기 끝</div>'}</div>
                         </div>
                     `;
                     printArea.appendChild(pageDiv);
@@ -5136,7 +5167,7 @@
                     const postDiv = document.createElement('div');
                     postDiv.className = "w-full mb-4 border border-gray-200 rounded-xl p-3 bg-white text-left";
                     postDiv.style.breakInside = 'avoid';
-                    postDiv.innerHTML = buildPostCardElement(post).innerHTML;
+                    postDiv.innerHTML = createAllPdfCardHtml(post, false);
                     printArea.appendChild(postDiv);
                 });
             }
@@ -5411,8 +5442,8 @@
                 return `
                 <div id="feed-comment-${post.id}-${origIdx}" class="py-0.5 px-1 border-b border-gray-100 last:border-b-0 text-[11px] flex items-center justify-between space-x-1 text-left rounded-md transition-all duration-200 hover:bg-gray-100/60 leading-tight">
                     <div class="flex-1 flex items-baseline space-x-0.5 min-w-0">
-                        <span class="font-bold text-gray-800 text-[11px] shrink-0">(${escapeHtml(c.author)} :</span>
-                        <span class="text-gray-700 text-[11px] leading-tight break-words ml-0.5">${escapeHtml(c.text)})</span>
+                        <span class="font-bold text-gray-800 text-[11px] shrink-0">${escapeHtml(c.author)} :</span>
+                        <span class="text-gray-700 text-[11px] leading-tight break-words ml-0.5">${escapeHtml(c.text)}</span>
                     </div>
                     <div class="flex items-center space-x-1 shrink-0 select-none">
                         ${(datePart || hourPart) ? `
