@@ -43,11 +43,13 @@
             height: 100%;
             max-width: 100%;
             overflow: hidden;
+            overscroll-behavior-x: none;
+            overscroll-behavior-y: auto;
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
             background-color: #F8F9FA;
             color: #222222;
             -webkit-tap-highlight-color: transparent;
-            touch-action: manipulation;
+            touch-action: pan-y;
         }
 
         .church-primary { background-color: #3B5D50; }
@@ -115,10 +117,13 @@
             box-shadow: none !important;
         }
 
-        /* 피드 스크롤 최적화 */
+        /* 피드 스크롤 최적화 & 사파리 가로 제스처 튕김(webkitBlobResource 에러) 원천 차단 */
         #feed-container {
             -webkit-overflow-scrolling: touch;
             overflow-y: auto;
+            overscroll-behavior-x: none;
+            overscroll-behavior-y: auto;
+            touch-action: pan-y;
             scrollbar-width: thin;
         }
         #feed-container::-webkit-scrollbar {
@@ -1026,17 +1031,38 @@
                 <i class="fa-solid fa-chevron-left text-sm"></i>
             </button>
 
-            <!-- 교정 및 사진 프레이밍 박스 (가운데 큰 흰색 반투명 + 가이드, 상하좌우 여백 확보, 두꺼운 초록 긴점선) -->
-            <div id="lightbox-crop-box" class="absolute pointer-events-none z-30 rounded-2xl" style="width: min(76vw, 320px); height: min(50vh, 380px); border: 3.5px dashed #244E3F; box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.28);">
-                <!-- 더 크고 선명한 흰색 반투명 십자선 (+) 안내선 -->
-                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <i class="fa-solid fa-plus text-white/70 text-4xl drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"></i>
+            <!-- [4각 꼭지점 조절 크롭 틀: 사진은 고정, 틀과 4개 모서리를 움직여 영역 맞춤] -->
+            <div id="lightbox-crop-box" class="absolute z-30 select-none touch-none rounded-xl" 
+                 style="width: 220px; height: 220px; left: 50px; top: 50px; border: 2.5px dashed #15803d; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.45); cursor: move;">
+                <!-- 3등분 안내 가이드선 -->
+                <div class="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-30">
+                    <div class="border-r border-b border-white"></div>
+                    <div class="border-r border-b border-white"></div>
+                    <div class="border-b border-white"></div>
+                    <div class="border-r border-b border-white"></div>
+                    <div class="border-r border-b border-white"></div>
+                    <div class="border-b border-white"></div>
+                    <div class="border-r border-white"></div>
+                    <div class="border-r border-white"></div>
+                    <div></div>
                 </div>
-                <!-- 4개 코너 앵커 가이드 -->
-                <div class="absolute -top-1 -left-1 w-4 h-4 border-t-3 border-l-3 border-[#244E3F]"></div>
-                <div class="absolute -top-1 -right-1 w-4 h-4 border-t-3 border-r-3 border-[#244E3F]"></div>
-                <div class="absolute -bottom-1 -left-1 w-4 h-4 border-b-3 border-l-3 border-[#244E3F]"></div>
-                <div class="absolute -bottom-1 -right-1 w-4 h-4 border-b-3 border-r-3 border-[#244E3F]"></div>
+                <!-- 중앙 드래그 이동 안내 십자 아이콘 -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-45">
+                    <i class="fa-solid fa-up-down-left-right text-white text-xl drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"></i>
+                </div>
+                <!-- 4개 코너 꼭지점 조절 핸들 (터치 영역 34px, 터치 드래그로 크기 조절) -->
+                <div id="crop-handle-tl" data-handle="tl" class="absolute -top-3.5 -left-3.5 w-7 h-7 bg-white border-2 border-emerald-700 rounded-full shadow-md flex items-center justify-center cursor-nwse-resize z-40 touch-none active:scale-125 transition-transform" title="좌상단 조절">
+                    <div class="w-2 h-2 bg-emerald-700 rounded-full pointer-events-none"></div>
+                </div>
+                <div id="crop-handle-tr" data-handle="tr" class="absolute -top-3.5 -right-3.5 w-7 h-7 bg-white border-2 border-emerald-700 rounded-full shadow-md flex items-center justify-center cursor-nesw-resize z-40 touch-none active:scale-125 transition-transform" title="우상단 조절">
+                    <div class="w-2 h-2 bg-emerald-700 rounded-full pointer-events-none"></div>
+                </div>
+                <div id="crop-handle-bl" data-handle="bl" class="absolute -bottom-3.5 -left-3.5 w-7 h-7 bg-white border-2 border-emerald-700 rounded-full shadow-md flex items-center justify-center cursor-nesw-resize z-40 touch-none active:scale-125 transition-transform" title="좌하단 조절">
+                    <div class="w-2 h-2 bg-emerald-700 rounded-full pointer-events-none"></div>
+                </div>
+                <div id="crop-handle-br" data-handle="br" class="absolute -bottom-3.5 -right-3.5 w-7 h-7 bg-white border-2 border-emerald-700 rounded-full shadow-md flex items-center justify-center cursor-nwse-resize z-40 touch-none active:scale-125 transition-transform" title="우하단 조절">
+                    <div class="w-2 h-2 bg-emerald-700 rounded-full pointer-events-none"></div>
+                </div>
             </div>
 
             <div id="lightbox-track"></div>
@@ -1048,14 +1074,11 @@
 
         <div class="w-full py-1.5 px-3 flex items-center justify-between z-50 bg-white/95 border-t border-gray-200 shadow-xs rounded-xl">
             <div class="flex items-center space-x-2">
-                <button type="button" onclick="zoomLightbox(-0.2)" class="w-7 h-7 rounded bg-gray-100 hover:bg-gray-200 active:scale-90 text-gray-700 flex items-center justify-center transition-all border border-gray-200" title="축소">
-                    <i class="fa-solid fa-minus text-[11px]"></i>
+                <button type="button" onclick="resetCropBoxToImage()" class="px-2.5 py-1 rounded bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 text-[11px] font-medium transition-all border border-gray-200 flex items-center space-x-1" title="틀 전체 맞춤">
+                    <i class="fa-solid fa-expand text-[10px]"></i>
+                    <span>틀 초기화</span>
                 </button>
-                <span id="lightbox-zoom-level" class="text-gray-800 font-mono text-xs select-none min-w-[38px] text-center font-bold">100%</span>
-                <button type="button" onclick="zoomLightbox(0.2)" class="w-7 h-7 rounded bg-gray-100 hover:bg-gray-200 active:scale-90 text-gray-700 flex items-center justify-center transition-all border border-gray-200" title="확대">
-                    <i class="fa-solid fa-plus text-[11px]"></i>
-                </button>
-                <button type="button" onclick="resetLightboxZoom()" class="px-2.5 py-1 rounded bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 text-[11px] font-medium transition-all border border-gray-200">초기화</button>
+                <span class="text-[10px] text-gray-400 select-none">꼭지점 드래그 조절</span>
             </div>
             <button type="button" onclick="cropAndSaveLightboxImage()" class="h-8 px-3.5 church-primary hover:opacity-90 active:scale-95 text-white rounded-lg flex items-center justify-center space-x-1.5 shadow-xs transition-all text-xs font-bold" title="교정박스 영역 그대로 피드에 저장">
                 <i class="fa-solid fa-crop-simple text-xs"></i>
@@ -4072,6 +4095,7 @@
         const expandedPhotoPosts = new Set();
         let postLayoutObserver = null;
 
+        // [사진 3회 연속 터치(트리플 탭) 완벽 감지 엔진]
         const photoTapCountMap = {};
         const photoTapTimerMap = {};
 
@@ -4087,7 +4111,8 @@
             const lastTap = photoTapRecord[key] || 0;
             const diff = now - lastTap;
 
-            if (!photoTapCountMap[key] || diff > 480) {
+            // 600ms 이내의 탭들을 연속 터치로 누적
+            if (!photoTapCountMap[key] || diff > 600) {
                 photoTapCountMap[key] = 1;
             } else {
                 photoTapCountMap[key]++;
@@ -4096,16 +4121,20 @@
 
             if (photoTapTimerMap[key]) {
                 clearTimeout(photoTapTimerMap[key]);
+                photoTapTimerMap[key] = null;
             }
 
-            // [요청 반영: 3번 터치(트리플 탭) 시에만 사진 편집/라이트박스 모달 오픈 - 1번 터치 오타/오작동 완벽 차단]
+            // [3번 터치 즉시 라이트박스 오픈: 햅틱 진동 및 즉각 오픈]
             if (photoTapCountMap[key] >= 3) {
                 photoTapCountMap[key] = 0;
+                if (navigator.vibrate) {
+                    try { navigator.vibrate(30); } catch(vErr) {}
+                }
                 openLightbox(postId, photoIdx);
                 return;
             }
 
-            // 1회 탭 또는 2회 탭 대기 (300ms 내 추가 탭 없으면 처리)
+            // 1회 터치 대기: 350ms 동안 추가 터치가 없을 때만 펼쳐보기 토글 (2회 터치 시에는 대기하여 3회 터치 유도)
             photoTapTimerMap[key] = setTimeout(() => {
                 const count = photoTapCountMap[key];
                 photoTapCountMap[key] = 0;
@@ -4116,7 +4145,7 @@
                         togglePostPhotoLayout(postId);
                     }
                 }
-            }, 300);
+            }, 350);
         };
 
         // 기존 함수명 호환성 유지
@@ -6668,11 +6697,12 @@
             });
 
             lightboxModal.classList.remove('hidden');
-            moveToLightboxSlide(photoIdx, false);
+            moveToLightboxSlide(photoIdx, false); setTimeout(() => { if (window.initCropBoxForActiveImage) initCropBoxForActiveImage(); }, 60);
             updateActiveImageTransform();
         };
 
         function moveToLightboxSlide(index, animate = true) {
+            setTimeout(() => { if (window.initCropBoxForActiveImage) initCropBoxForActiveImage(); }, 80);
             if (index < 0) index = 0;
             if (index >= currentLightboxImages.length) index = currentLightboxImages.length - 1;
             currentLightboxPhotoIdx = index;
@@ -6816,75 +6846,149 @@
             }
         };
 
-        const viewport = document.getElementById('lightbox-viewport');
-        if (viewport) {
-            let isPanningPhoto = false;
-            let panTouchStartX = 0;
-            let panTouchStartY = 0;
+        // [4각 꼭지점 조절 크롭 틀 상태 관리 및 제스처 엔진]
+        let cropBoxState = { left: 40, top: 40, width: 220, height: 220 };
+        let activeCropDrag = null; // null | 'move' | 'tl' | 'tr' | 'bl' | 'br'
+        let cropDragStart = { clientX: 0, clientY: 0, left: 0, top: 0, width: 0, height: 0 };
 
-            // 터치 기반 사진 상하좌우 이동 및 핀치 줌
-            viewport.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1) {
-                    isPanningPhoto = true;
-                    panTouchStartX = e.touches[0].clientX - currentLightboxPanX;
-                    panTouchStartY = e.touches[0].clientY - currentLightboxPanY;
-                } else if (e.touches.length === 2) {
-                    isPanningPhoto = false;
-                    lightboxInitialPinchDist = Math.hypot(
-                        e.touches[0].clientX - e.touches[1].clientX,
-                        e.touches[0].clientY - e.touches[1].clientY
-                    );
-                    lightboxInitialScale = currentLightboxScale;
+        function applyCropBoxDOM() {
+            const box = document.getElementById('lightbox-crop-box');
+            if (!box) return;
+            box.style.left = `${Math.round(cropBoxState.left)}px`;
+            box.style.top = `${Math.round(cropBoxState.top)}px`;
+            box.style.width = `${Math.round(cropBoxState.width)}px`;
+            box.style.height = `${Math.round(cropBoxState.height)}px`;
+        }
+
+        // 활성 사진 크기에 맞게 크롭 틀을 사진 중앙에 85% 크기로 초기화
+        window.initCropBoxForActiveImage = function() {
+            const activeImg = getActiveImageEl();
+            const viewport = document.getElementById('lightbox-viewport');
+            if (!activeImg || !viewport) return;
+
+            // 사진은 화면 중앙에 편안하게 고정 (위치 0,0 고정)
+            currentLightboxPanX = 0;
+            currentLightboxPanY = 0;
+            currentLightboxScale = 1.0;
+            activeImg.style.transform = `rotate(${currentLightboxRotationAngle}deg)`;
+            activeImg.style.filter = `brightness(${currentLightboxBrightness}%) contrast(${currentLightboxContrast}%)`;
+
+            const vpRect = viewport.getBoundingClientRect();
+            const imgRect = activeImg.getBoundingClientRect();
+
+            const imgL = Math.max(0, imgRect.left - vpRect.left);
+            const imgT = Math.max(0, imgRect.top - vpRect.top);
+            const imgW = Math.max(80, imgRect.width);
+            const imgH = Math.max(80, imgRect.height);
+
+            const boxW = Math.max(80, Math.round(imgW * 0.85));
+            const boxH = Math.max(80, Math.round(imgH * 0.85));
+            const boxL = Math.round(imgL + (imgW - boxW) / 2);
+            const boxT = Math.round(imgT + (imgH - boxH) / 2);
+
+            cropBoxState = { left: boxL, top: boxT, width: boxW, height: boxH };
+            applyCropBoxDOM();
+        };
+
+        window.resetCropBoxToImage = function() {
+            initCropBoxForActiveImage();
+            showNotification("크롭 틀이 사진 전체 크기로 초기화되었습니다.");
+        };
+
+        const cropBoxEl = document.getElementById('lightbox-crop-box');
+        const lightboxVpEl = document.getElementById('lightbox-viewport');
+
+        if (cropBoxEl && lightboxVpEl) {
+            const onCropPointerDown = (e) => {
+                if (e.isPrimary === false) return;
+                const target = e.target;
+                const handle = target.getAttribute('data-handle') || (target.closest('[data-handle]') ? target.closest('[data-handle]').getAttribute('data-handle') : null);
+                
+                activeCropDrag = handle ? handle : 'move';
+                try {
+                    cropBoxEl.setPointerCapture(e.pointerId);
+                } catch(err) {}
+
+                cropDragStart = {
+                    clientX: e.clientX,
+                    clientY: e.clientY,
+                    left: cropBoxState.left,
+                    top: cropBoxState.top,
+                    width: cropBoxState.width,
+                    height: cropBoxState.height
+                };
+                e.stopPropagation();
+                e.preventDefault();
+            };
+
+            const onCropPointerMove = (e) => {
+                if (!activeCropDrag) return;
+                const activeImg = getActiveImageEl();
+                if (!activeImg || !lightboxVpEl) return;
+
+                const vpRect = lightboxVpEl.getBoundingClientRect();
+                const imgRect = activeImg.getBoundingClientRect();
+
+                const minL = Math.max(0, Math.round(imgRect.left - vpRect.left));
+                const minT = Math.max(0, Math.round(imgRect.top - vpRect.top));
+                const maxR = Math.round(minL + imgRect.width);
+                const maxB = Math.round(minT + imgRect.height);
+
+                const dx = e.clientX - cropDragStart.clientX;
+                const dy = e.clientY - cropDragStart.clientY;
+                const MIN_SIZE = 60;
+
+                if (activeCropDrag === 'move') {
+                    let nextL = cropDragStart.left + dx;
+                    let nextT = cropDragStart.top + dy;
+                    nextL = Math.max(minL, Math.min(maxR - cropDragStart.width, nextL));
+                    nextT = Math.max(minT, Math.min(maxB - cropDragStart.height, nextT));
+                    cropBoxState.left = nextL;
+                    cropBoxState.top = nextT;
+                } else if (activeCropDrag === 'tl') {
+                    let nextL = Math.max(minL, Math.min(cropDragStart.left + cropDragStart.width - MIN_SIZE, cropDragStart.left + dx));
+                    let nextT = Math.max(minT, Math.min(cropDragStart.top + cropDragStart.height - MIN_SIZE, cropDragStart.top + dy));
+                    cropBoxState.width = cropDragStart.width + (cropDragStart.left - nextL);
+                    cropBoxState.height = cropDragStart.height + (cropDragStart.top - nextT);
+                    cropBoxState.left = nextL;
+                    cropBoxState.top = nextT;
+                } else if (activeCropDrag === 'tr') {
+                    let nextR = Math.min(maxR, Math.max(cropDragStart.left + MIN_SIZE, cropDragStart.left + cropDragStart.width + dx));
+                    let nextT = Math.max(minT, Math.min(cropDragStart.top + cropDragStart.height - MIN_SIZE, cropDragStart.top + dy));
+                    cropBoxState.width = nextR - cropDragStart.left;
+                    cropBoxState.height = cropDragStart.height + (cropDragStart.top - nextT);
+                    cropBoxState.top = nextT;
+                } else if (activeCropDrag === 'bl') {
+                    let nextL = Math.max(minL, Math.min(cropDragStart.left + cropDragStart.width - MIN_SIZE, cropDragStart.left + dx));
+                    let nextB = Math.min(maxB, Math.max(cropDragStart.top + MIN_SIZE, cropDragStart.top + cropDragStart.height + dy));
+                    cropBoxState.width = cropDragStart.width + (cropDragStart.left - nextL);
+                    cropBoxState.height = nextB - cropDragStart.top;
+                    cropBoxState.left = nextL;
+                } else if (activeCropDrag === 'br') {
+                    let nextR = Math.min(maxR, Math.max(cropDragStart.left + MIN_SIZE, cropDragStart.left + cropDragStart.width + dx));
+                    let nextB = Math.min(maxB, Math.max(cropDragStart.top + MIN_SIZE, cropDragStart.top + cropDragStart.height + dy));
+                    cropBoxState.width = nextR - cropDragStart.left;
+                    cropBoxState.height = nextB - cropDragStart.top;
                 }
-            }, { passive: true });
 
-            viewport.addEventListener('touchmove', (e) => {
-                if (isPanningPhoto && e.touches.length === 1) {
-                    currentLightboxPanX = e.touches[0].clientX - panTouchStartX;
-                    currentLightboxPanY = e.touches[0].clientY - panTouchStartY;
-                    updateActiveImageTransform();
-                } else if (e.touches.length === 2 && lightboxInitialPinchDist > 0) {
-                    const currentDist = Math.hypot(
-                        e.touches[0].clientX - e.touches[1].clientX,
-                        e.touches[0].clientY - e.touches[1].clientY
-                    );
-                    const factor = currentDist / lightboxInitialPinchDist;
-                    let nextScale = lightboxInitialScale * factor;
-                    if (nextScale < 0.6) nextScale = 0.6;
-                    if (nextScale > 3.5) nextScale = 3.5;
-                    currentLightboxScale = parseFloat(nextScale.toFixed(2));
-                    updateActiveImageTransform();
-                }
-            }, { passive: true });
+                applyCropBoxDOM();
+                e.stopPropagation();
+                e.preventDefault();
+            };
 
-            viewport.addEventListener('touchend', (e) => {
-                if (e.touches.length === 0) {
-                    isPanningPhoto = false;
-                } else if (e.touches.length === 1) {
-                    isPanningPhoto = true;
-                    panTouchStartX = e.touches[0].clientX - currentLightboxPanX;
-                    panTouchStartY = e.touches[0].clientY - currentLightboxPanY;
-                }
-                lightboxInitialPinchDist = 0;
-            }, { passive: true });
+            const onCropPointerUp = (e) => {
+                if (!activeCropDrag) return;
+                try {
+                    cropBoxEl.releasePointerCapture(e.pointerId);
+                } catch(err) {}
+                activeCropDrag = null;
+                e.stopPropagation();
+            };
 
-            // 마우스 드래그 기반 상하좌우 이동 (PC 환경 지원)
-            let isMousePanning = false;
-            viewport.addEventListener('mousedown', (e) => {
-                if (e.button !== 0) return;
-                isMousePanning = true;
-                panTouchStartX = e.clientX - currentLightboxPanX;
-                panTouchStartY = e.clientY - currentLightboxPanY;
-            });
-            window.addEventListener('mousemove', (e) => {
-                if (!isMousePanning) return;
-                currentLightboxPanX = e.clientX - panTouchStartX;
-                currentLightboxPanY = e.clientY - panTouchStartY;
-                updateActiveImageTransform();
-            });
-            window.addEventListener('mouseup', () => {
-                isMousePanning = false;
-            });
+            cropBoxEl.addEventListener('pointerdown', onCropPointerDown);
+            lightboxVpEl.addEventListener('pointermove', onCropPointerMove);
+            lightboxVpEl.addEventListener('pointerup', onCropPointerUp);
+            lightboxVpEl.addEventListener('pointercancel', onCropPointerUp);
         }
 
         // [라이트박스 닫기: 마법봉/회전 등 수정 사항이 있을 때 닫기를 누르면 피드에 자동 저장]
@@ -6933,9 +7037,6 @@
                 const finalDataUrl = await getCroppedDataUrl(
                     activeImg,
                     cropBoxEl,
-                    currentLightboxPanX,
-                    currentLightboxPanY,
-                    currentLightboxScale,
                     currentLightboxRotationAngle,
                     currentLightboxBrightness,
                     currentLightboxContrast
@@ -7028,21 +7129,31 @@
             }
         }
 
-        function getCroppedDataUrl(activeImg, cropBoxEl, panX, panY, scale, angle, brightness = 100, contrast = 100) {
+        // [4각 꼭지점 조절 틀 기준 정밀 캔버스 크롭 엔진]
+        function getCroppedDataUrl(activeImg, cropBoxEl, angle, brightness = 100, contrast = 100) {
             return new Promise((resolve, reject) => {
                 const boxRect = cropBoxEl.getBoundingClientRect();
-                const renderedBaseW = activeImg.offsetWidth || 300;
-                const renderedBaseH = activeImg.offsetHeight || 300;
+                const imgRect = activeImg.getBoundingClientRect();
 
-                // 원본 해상도 보존 계수 (최대 2배로 조절하여 고화질 보존 및 Firestore 1MB 한도 완벽 준수)
-                const rawRatio = (activeImg.naturalWidth || 800) / renderedBaseW;
-                const pixelRatio = Math.max(1, Math.min(2.0, rawRatio));
+                // 렌더링된 사진 내부에서의 크롭 틀 상대 좌표 계산
+                const relX = Math.max(0, boxRect.left - imgRect.left);
+                const relY = Math.max(0, boxRect.top - imgRect.top);
+                const relW = Math.min(imgRect.width - relX, boxRect.width);
+                const relH = Math.min(imgRect.height - relY, boxRect.height);
 
-                let canvasW = Math.round(boxRect.width * pixelRatio);
-                let canvasH = Math.round(boxRect.height * pixelRatio);
+                // 원본 naturalWidth/Height 비율로 매핑
+                const scaleX = (activeImg.naturalWidth || 800) / (imgRect.width || 1);
+                const scaleY = (activeImg.naturalHeight || 800) / (imgRect.height || 1);
 
-                // 최대 960px로 제한하여 메모리 및 문서 용량 최적화
+                const srcX = Math.max(0, Math.round(relX * scaleX));
+                const srcY = Math.max(0, Math.round(relY * scaleY));
+                const srcW = Math.max(10, Math.round(relW * scaleX));
+                const srcH = Math.max(10, Math.round(relH * scaleY));
+
+                // 캔버스 최대 크기 960px 제한 (Firestore 1MB 한도 안전 보장)
                 const maxDim = 960;
+                let canvasW = srcW;
+                let canvasH = srcH;
                 if (canvasW > maxDim || canvasH > maxDim) {
                     if (canvasW > canvasH) {
                         canvasH = Math.round((canvasH * maxDim) / canvasW);
@@ -7061,43 +7172,36 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(0, 0, canvasW, canvasH);
 
-                const scaleX = canvasW / boxRect.width;
-                const scaleY = canvasH / boxRect.height;
-
-                const renderImageToCanvas = (sourceImg) => {
+                const renderToCanvas = (sourceImg) => {
                     try {
-                        ctx.save();
-                        ctx.translate(canvasW / 2, canvasH / 2);
-                        ctx.translate(panX * scaleX, panY * scaleY);
-                        ctx.rotate((angle * Math.PI) / 180);
-                        ctx.scale(scale, scale);
-
-                        const drawW = renderedBaseW * scaleX;
-                        const drawH = renderedBaseH * scaleY;
-                        ctx.drawImage(sourceImg, -drawW / 2, -drawH / 2, drawW, drawH);
-                        ctx.restore();
-
-                        // 직접 픽셀 조작으로 밝기 및 대비 영구 적용
-                        try {
-                            applyBrightnessContrastPixels(ctx, canvasW, canvasH, brightness, contrast);
-                        } catch(e) {
-                            console.warn("픽셀 밝기/대비 보정 건너뜀:", e);
+                        if (angle !== 0) {
+                            ctx.save();
+                            ctx.translate(canvasW / 2, canvasH / 2);
+                            ctx.rotate((angle * Math.PI) / 180);
+                            ctx.drawImage(sourceImg, srcX, srcY, srcW, srcH, -canvasW / 2, -canvasH / 2, canvasW, canvasH);
+                            ctx.restore();
+                        } else {
+                            ctx.drawImage(sourceImg, srcX, srcY, srcW, srcH, 0, 0, canvasW, canvasH);
                         }
 
-                        // JPEG 0.78 품질로 압축 (용량 60~100KB, 화질 선명, Firestore 1MB 한도 완전 안전)
+                        // 밝기/대비 픽셀 직접 조작 반영
+                        try {
+                            applyBrightnessContrastPixels(ctx, canvasW, canvasH, brightness, contrast);
+                        } catch(e) {}
+
+                        // JPEG 0.78 품질 압축
                         resolve(canvas.toDataURL('image/jpeg', 0.78));
-                    } catch (err) {
+                    } catch(err) {
                         reject(err);
                     }
                 };
 
                 const img = new Image();
                 img.crossOrigin = "anonymous";
-                img.onload = () => renderImageToCanvas(img);
+                img.onload = () => renderToCanvas(img);
                 img.onerror = () => {
-                    // CORS 발생 시 이미 DOM에 로드된 activeImg로 직접 렌더링 폴백
                     try {
-                        renderImageToCanvas(activeImg);
+                        renderToCanvas(activeImg);
                     } catch(fallbackErr) {
                         reject(fallbackErr);
                     }
@@ -7105,7 +7209,7 @@
 
                 img.src = activeImg.src;
                 if (img.complete && img.naturalWidth > 0) {
-                    renderImageToCanvas(img);
+                    renderToCanvas(img);
                 }
             });
         }
@@ -7132,11 +7236,37 @@
             const now = Date.now();
             if (now - globalLastTouchEndTime <= 320) {
                 const target = e.target;
-                if (!target.closest('input, textarea, [contenteditable="true"], .select-text')) {
+                // 사진 및 피드 카드는 연타(3회 탭) 감지를 위해 e.preventDefault 제외!
+                if (!target.closest('input, textarea, [contenteditable="true"], .select-text, img, .continuous-photo-item, .photo-block-item')) {
                     e.preventDefault();
                 }
             }
             globalLastTouchEndTime = now;
+        }, { passive: false });
+
+        // [사파리 가로 스와이프 내비게이션 및 webkitBlobResource 에러 원천 방어]
+        let globalTouchStartX = 0;
+        let globalTouchStartY = 0;
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches && e.touches.length === 1) {
+                globalTouchStartX = e.touches[0].clientX;
+                globalTouchStartY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches && e.touches.length === 1) {
+                const dx = Math.abs(e.touches[0].clientX - globalTouchStartX);
+                const dy = Math.abs(e.touches[0].clientY - globalTouchStartY);
+                // 가로 슬라이드가 세로 스크롤보다 크고 8px 이상 움직였을 때 사파리 히스토리 내비게이션(뒤로가기/앞으로가기) 차단
+                if (dx > dy && dx > 8) {
+                    if (!e.target.closest('#lightbox-modal, #font-chips-container, #selected-images-grid, #bookmark-calendar-popup, #feed-bookmark-indicator, .touch-none')) {
+                        if (e.cancelable) {
+                            e.preventDefault();
+                        }
+                    }
+                }
+            }
         }, { passive: false });
 
         document.addEventListener('dblclick', function (e) {
