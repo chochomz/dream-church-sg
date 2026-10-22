@@ -378,9 +378,9 @@
                     </div>
 
                     <!-- 전체 PDF 생성 버튼: 붉은색 제거, 은은하고 연한 톤 적용 -->
-                    <button onclick="requestAllFeedPdfPreview()" class="h-[26px] px-2 hover:bg-emerald-50/80 text-gray-700 hover:text-emerald-900 text-[10.5px] font-medium flex items-center space-x-1 active:scale-95 transition-all" title="피드 전체 사진과 글(댓글 포함) PDF로 저장/공유">
+                    <button onclick="requestAllFeedPdfPreview()" class="h-[26px] px-2 hover:bg-emerald-50/80 text-gray-700 hover:text-emerald-900 text-[10.5px] font-medium flex items-center space-x-1 active:scale-95 transition-all" title="피드 전체 사진과 글(댓글 포함) PDF 백업 저장/공유">
                         <i class="fa-solid fa-book-open text-[9.5px] text-gray-500"></i>
-                        <span>전체PDF</span>
+                        <span>PDF 백업</span>
                     </button>
                 </div>
             </div>
@@ -471,7 +471,7 @@
     <div id="feed-bookmark-indicator" 
          class="fixed z-40 select-none pointer-events-auto flex items-center cursor-grab active:cursor-grabbing touch-none bookmark-side-right bookmark-hidden"
          style="top: 140px; touch-action: none;"
-         title="책갈피 (드래그 이동 / 날짜 또는 📅 터치 시 월 달력 열기)">
+         title="책갈피 (드래그 이동 / 날짜 또는 달력 아이콘 터치 시 월 달력 열기)">
         <div id="feed-bookmark-ribbon" 
              class="relative w-[36px] py-2 px-0.5 rounded-l-xl border-y border-l flex flex-col items-center justify-between min-h-[96px] space-y-1 text-center"
              style="background-color: rgba(254, 243, 199, 0.22); border-color: rgba(245, 158, 11, 0.24); color: #5B2506; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
@@ -492,14 +492,14 @@
             <!-- 위치 정보 (1/5) -->
             <span id="feed-bookmark-pos" class="text-[9.5px] font-black font-mono tracking-tighter whitespace-nowrap pointer-events-none shrink-0" style="color: #5B2506;">1/1</span>
             
-            <!-- 원터치 버튼 묶음: 월 달력(📅) & 새로운 댓글(💬) -->
+            <!-- 원터치 버튼 묶음: 월 달력 & 새로운 댓글(💬) -->
             <div class="flex flex-col items-center space-y-1 pointer-events-auto shrink-0 select-none">
                 <!-- 월 달력 열기 원터치 버튼 -->
                 <button type="button" onclick="event.stopPropagation(); toggleBookmarkCalendar(event)" 
                         id="feed-bookmark-calendar-btn" 
-                        class="w-5 h-5 rounded-full bg-amber-600/85 hover:bg-amber-700 text-white flex items-center justify-center text-[9px] font-bold shadow-2xs active:scale-90 transition-transform pointer-events-auto shrink-0 select-none" 
+                        class="w-5 h-5 rounded-full bg-amber-600/85 hover:bg-amber-700 text-white flex items-center justify-center text-[10px] font-bold shadow-2xs active:scale-90 transition-transform pointer-events-auto shrink-0 select-none" 
                         title="월 달력 열기 (화면 내 드래그 이동 가능)">
-                    📅
+                    <i class="fa-regular fa-calendar-days text-[10px]"></i>
                 </button>
 
                 <!-- 새로운 댓글 모아보기 원터치 버튼 -->
@@ -539,7 +539,7 @@
 
     <!-- [책갈피 연동 센스 미니 월 달력 팝업 (월요일 한눈에 확인 & 화면 내 드래그 앤 드롭 이동)] -->
     <div id="bookmark-calendar-popup" 
-         class="fixed z-50 pointer-events-auto hidden select-none shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md border-2 border-emerald-600/80 ring-1 ring-black/5 p-3 w-[252px] transition-all duration-300 transform opacity-0 scale-90"
+         class="fixed z-50 pointer-events-auto hidden select-none shadow-2xl rounded-2xl bg-white/85 backdrop-blur-md border-2 ring-1 ring-black/5 p-3 w-[252px] transition-all duration-300 transform opacity-0 scale-90" style="touch-action: none; background-color: rgba(255, 255, 255, 0.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);"
          style="touch-action: none;">
         <!-- 상단 헤더: 드래그 핸들 (헤더 잡고 화면 내 드래그 앤 드롭 이동) -->
         <div id="bookmark-calendar-header" class="flex items-center justify-between pb-2 mb-2 border-b border-gray-100 cursor-grab active:cursor-grabbing select-none touch-none" style="touch-action: none;">
@@ -601,7 +601,7 @@
             <div class="flex items-center justify-between pb-2 border-b church-border shrink-0 gap-1">
                 <div class="flex items-center space-x-1.5 shrink-0">
                     <i class="fa-solid fa-book-open church-primary-text text-sm"></i>
-                    <h3 class="text-xs font-bold text-gray-800 whitespace-nowrap">전체 PDF</h3>
+                    <h3 class="text-xs font-bold text-gray-800 whitespace-nowrap">PDF 백업</h3>
                 </div>
                 <!-- 세로 저장 / 가로 저장(2개씩) 선택 탭 -->
                 <div class="inline-flex items-center rounded-lg bg-gray-100 p-0.5 border border-gray-200 select-none shrink-0">
@@ -653,7 +653,7 @@
                 <!-- 1. 내 기기에 저장 -->
                 <button type="button" id="all-pdf-save-btn" onclick="handleAllPdfSaveClick()" 
                         class="flex-[1.3] py-2.5 px-2 church-primary hover:opacity-90 text-white rounded-xl text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center justify-center space-x-1" 
-                        title="전체 목장 이야기 PDF를 내 기기에 저장">
+                        title="전체 목장 이야기 PDF 백업을 내 기기에 저장">
                     <i class="fa-solid fa-floppy-disk text-xs"></i>
                     <span>내 기기에 저장</span>
                 </button>
@@ -661,7 +661,7 @@
                 <!-- 2. 공유 (공유 기능 바로 열림) -->
                 <button type="button" id="all-pdf-share-btn" onclick="handleAllPdfShareClick()" 
                         class="flex-1 py-2.5 px-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center justify-center space-x-1" 
-                        title="전체 목장 이야기 PDF 공유하기">
+                        title="전체 목장 이야기 PDF 백업 공유하기">
                     <i class="fa-solid fa-share-nodes text-xs"></i>
                     <span>공유</span>
                 </button>
@@ -1199,7 +1199,7 @@
 
             // 4초 타임아웃 적용 (스토리지 지연/권한오류 시 글쓰기 먹통 방지)
             const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error("Storage timeout")), 4000)
+                setTimeout(() => reject(new Error("Storage timeout")), 12000)
             );
 
             const uploadPromise = (async () => {
@@ -2369,8 +2369,8 @@
                         const canvas = document.createElement('canvas');
                         let width = img.width;
                         let height = img.height;
-                        // 3장~5장 첨부 시에도 Firestore 1MB 문서 한도를 절대 넘지 않도록 720px / 0.68 품질로 최적화
-                        const maxDim = 720;
+                        // 5장 첨부 시에도 1MB 한도를 초과하지 않도록 640px / 0.65 품질로 정밀 압축
+                        const maxDim = 640;
 
                         if (width > height) {
                             if (width > maxDim) {
@@ -2389,7 +2389,7 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        const compressed = canvas.toDataURL('image/jpeg', 0.68);
+                        const compressed = canvas.toDataURL('image/jpeg', 0.65);
                         callback(compressed);
                     } catch (err) {
                         console.warn("Canvas 압축 오류, 원본 폴백:", err);
@@ -2411,6 +2411,17 @@
             document.getElementById('post-multi-file-input').click();
         };
 
+        // [용량 사전 계산: 5장 첨부 시 1MB 한도 방어를 위한 최대 안전 예산 (680KB)]
+        const MAX_TOTAL_IMAGES_BYTES = 680 * 1024;
+
+        function calculateCurrentSelectedImagesBytes() {
+            let total = 0;
+            selectedImagesList.forEach(img => {
+                if (typeof img === 'string') total += img.length;
+            });
+            return total;
+        }
+
         window.handleFilesSelect = function(event) {
             const files = event.target.files;
             if (!files || files.length === 0) return;
@@ -2421,15 +2432,37 @@
                 return;
             }
 
+            // 파일 크기 사전 합산 검사
+            let incomingRawSize = 0;
             const toProcess = Array.from(files).slice(0, remaining);
+            toProcess.forEach(f => { incomingRawSize += f.size; });
+
+            const currentBytes = calculateCurrentSelectedImagesBytes();
+            if (currentBytes > MAX_TOTAL_IMAGES_BYTES) {
+                showNotification('현재 첨부된 사진 용량이 안전 한도에 도달했습니다.');
+                event.target.value = '';
+                return;
+            }
+
             let done = 0;
+            let addedCount = 0;
             toProcess.forEach(file => {
                 processImageFile(file, (result) => {
-                    if (result) selectedImagesList.push(result);
                     done++;
+                    if (result) {
+                        const estimatedNewTotal = calculateCurrentSelectedImagesBytes() + result.length;
+                        if (estimatedNewTotal > MAX_TOTAL_IMAGES_BYTES && selectedImagesList.length >= 3) {
+                            showNotification('안전한 문서 용량(1MB 이하) 유지를 위해 일부 사진 추가가 제한되었습니다.');
+                        } else {
+                            selectedImagesList.push(result);
+                            addedCount++;
+                        }
+                    }
                     if (done === toProcess.length) {
                         renderImagePreviews();
-                        showNotification(`사진 ${done}장이 등록되었습니다.`);
+                        if (addedCount > 0) {
+                            showNotification(`사진 ${addedCount}장이 등록되었습니다.`);
+                        }
                     }
                 });
             });
@@ -3379,6 +3412,11 @@
                     posEl.style.color = theme.text;
                 }
             }
+            const calPopup = document.getElementById('bookmark-calendar-popup');
+            if (calPopup) {
+                calPopup.style.borderColor = theme.badge;
+                calPopup.style.backgroundColor = 'rgba(255, 255, 255, 0.88)';
+            }
         }
 
         // 왼손잡이 / 오른손잡이 책갈피 좌우 위치 및 라운딩 동적 적용
@@ -4034,6 +4072,9 @@
         const expandedPhotoPosts = new Set();
         let postLayoutObserver = null;
 
+        const photoTapCountMap = {};
+        const photoTapTimerMap = {};
+
         window.handlePhotoClick = function(postId, photoIdx, event) {
             if (event) {
                 if (event.target && event.target.closest && event.target.closest('button, textarea, input, [id^="caption-editor-"]')) {
@@ -4046,35 +4087,36 @@
             const lastTap = photoTapRecord[key] || 0;
             const diff = now - lastTap;
 
-            const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
-            const count = post ? (Array.isArray(post.images) ? post.images.length : (post.imageUrl ? 1 : 0)) : 1;
-            const container = document.getElementById(`post-photos-${postId}`);
-            const isExpanded = container && container.getAttribute('data-view-mode') === 'expanded';
-
-            if (diff > 0 && diff < 360) {
-                // 더블 탭: 즉시 라이트박스(수정/교정) 모달 오픈
-                if (singleTapTimers[key]) {
-                    clearTimeout(singleTapTimers[key]);
-                    delete singleTapTimers[key];
-                }
-                delete photoTapRecord[key];
-                openLightbox(postId, photoIdx);
+            if (!photoTapCountMap[key] || diff > 480) {
+                photoTapCountMap[key] = 1;
             } else {
-                photoTapRecord[key] = now;
-                if (singleTapTimers[key]) {
-                    clearTimeout(singleTapTimers[key]);
-                }
-                singleTapTimers[key] = setTimeout(() => {
-                    delete singleTapTimers[key];
-                    // 1장이거나 이미 1열로 펼쳐진 상태에서는 한 번 터치로 바로 수정(라이트박스) 화면 오픈!
-                    if (count === 1 || isExpanded) {
-                        openLightbox(postId, photoIdx);
-                    } else {
-                        // 2열 격자 상태에서는 1회 터치 시 1열 펼쳐보기 전환
+                photoTapCountMap[key]++;
+            }
+            photoTapRecord[key] = now;
+
+            if (photoTapTimerMap[key]) {
+                clearTimeout(photoTapTimerMap[key]);
+            }
+
+            // [요청 반영: 3번 터치(트리플 탭) 시에만 사진 편집/라이트박스 모달 오픈 - 1번 터치 오타/오작동 완벽 차단]
+            if (photoTapCountMap[key] >= 3) {
+                photoTapCountMap[key] = 0;
+                openLightbox(postId, photoIdx);
+                return;
+            }
+
+            // 1회 탭 또는 2회 탭 대기 (300ms 내 추가 탭 없으면 처리)
+            photoTapTimerMap[key] = setTimeout(() => {
+                const count = photoTapCountMap[key];
+                photoTapCountMap[key] = 0;
+                if (count === 1) {
+                    const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+                    const pCount = post ? (Array.isArray(post.images) ? post.images.length : (post.imageUrl ? 1 : 0)) : 1;
+                    if (pCount > 1) {
                         togglePostPhotoLayout(postId);
                     }
-                }, 280);
-            }
+                }
+            }, 300);
         };
 
         // 기존 함수명 호환성 유지
@@ -4153,7 +4195,7 @@
                     }
                 }
 
-                if (btnText) btnText.innerText = "펼쳐보기";
+                if (btnText) btnText.innerText = "펼쳐보기 & 3터치";
                 if (btnIcon) {
                     btnIcon.className = "fa-solid fa-expand text-[8.5px]";
                 }
@@ -4207,31 +4249,39 @@
 
         const feedScrollEl = document.getElementById('feed-container');
         if (feedScrollEl) {
+            let scrollRafPending = false;
             feedScrollEl.addEventListener('scroll', () => {
                 if (isBookmarkDragging) return; // 책갈피 드래그 중 스크롤 상호 간섭 차단
                 closeAllHeaderQuickMenu();
                 closeAllActionMenus();
                 closeAllExportMenus();
-                // [요청 반영]: 스크롤 시 화면 밖(뷰포트)을 벗어난 댓글 작성창 자동 닫기 (입력 중인 글은 임시 보관)
-                document.querySelectorAll('[id^="inline-comment-row-"]:not(.hidden)').forEach(row => {
-                    const pId = row.id.replace("inline-comment-row-", "");
-                    const card = document.getElementById(`post-card-${pId}`);
-                    if (card) {
-                        const cardRect = card.getBoundingClientRect();
-                        const containerRect = feedScrollEl.getBoundingClientRect();
-                        if (cardRect.bottom < containerRect.top - 20 || cardRect.top > containerRect.bottom + 20) {
-                            const input = document.getElementById(`inline-comment-input-${pId}`);
-                            if (input && input.value.trim().length > 0) {
-                                commentDrafts[pId] = {
-                                    text: input.value,
-                                    updatedAt: Date.now()
-                                };
+
+                if (!scrollRafPending) {
+                    scrollRafPending = true;
+                    requestAnimationFrame(() => {
+                        scrollRafPending = false;
+                        // 스크롤 시 화면 밖을 벗어난 댓글 작성창 정리
+                        document.querySelectorAll('[id^="inline-comment-row-"]:not(.hidden)').forEach(row => {
+                            const pId = row.id.replace("inline-comment-row-", "");
+                            const card = document.getElementById(`post-card-${pId}`);
+                            if (card && feedScrollEl) {
+                                const cardRect = card.getBoundingClientRect();
+                                const containerRect = feedScrollEl.getBoundingClientRect();
+                                if (cardRect.bottom < containerRect.top - 20 || cardRect.top > containerRect.bottom + 20) {
+                                    const input = document.getElementById(`inline-comment-input-${pId}`);
+                                    if (input && input.value.trim().length > 0) {
+                                        commentDrafts[pId] = {
+                                            text: input.value,
+                                            updatedAt: Date.now()
+                                        };
+                                    }
+                                    row.classList.add("hidden");
+                                    if (input) input.blur();
+                                }
                             }
-                            row.classList.add("hidden");
-                            if (input) input.blur();
-                        }
-                    }
-                });
+                        });
+                    });
+                }
                 // 스크롤 시작 시 책갈피 슬라이드 노출 & 정보 갱신
                 showBookmark();
 
@@ -5404,13 +5454,13 @@
                 let pdf = null;
 
                 if (currentAllPdfMode === 'landscape') {
-                    // 가로 저장 (Landscape A4: 297mm x 210mm)
+                    // [가로 2열 여백 최소화]: 상하좌우 여백을 4mm로 대폭 축소하여 페이지 가득 사진과 댓글 밀착 배치
                     pdf = new jsPDF('l', 'mm', 'a4');
                     const pageWidth = 297;
                     const pageHeight = 210;
-                    const margin = 10;
-                    const contentWidth = pageWidth - (margin * 2); // 277mm
-                    const contentHeight = pageHeight - (margin * 2); // 190mm
+                    const margin = 4;
+                    const contentWidth = pageWidth - (margin * 2); // 289mm
+                    const contentHeight = pageHeight - (margin * 2); // 202mm
 
                     // continuousContainer 내부의 각 pageContainer를 캡처
                     const childPages = Array.from(continuousContainer.children).slice(1); // 헤더카드 제외
@@ -5444,7 +5494,7 @@
                         pdf.addImage(pageImgData, 'JPEG', posX, posY, imgMmWidth, imgMmHeight);
                     }
 
-                    generatedAllPdfFileName = `목장이야기전체_가로2열_${formatFileDate(new Date())}.pdf`;
+                    generatedAllPdfFileName = `목장이야기_PDF백업_가로2열_${formatFileDate(new Date())}.pdf`;
                 } else {
                     // 세로 저장 (Portrait A4: 210mm x 297mm)
                     pdf = new jsPDF('p', 'mm', 'a4');
@@ -5495,7 +5545,7 @@
                         currentY += imgMmHeight + 3.5;
                     }
 
-                    generatedAllPdfFileName = `목장이야기전체_세로_${formatFileDate(new Date())}.pdf`;
+                    generatedAllPdfFileName = `목장이야기_PDF백업_세로_${formatFileDate(new Date())}.pdf`;
                 }
 
                 generatedAllPdfBlob = pdf.output('blob');
@@ -5557,7 +5607,7 @@
             a.click();
             document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 1000);
-            showNotification("전체 목장 이야기 PDF가 내 기기에 저장되었습니다!");
+            showNotification("전체 목장 이야기 PDF 백업이 내 기기에 저장되었습니다!");
         };
 
         window.shareAllPdfFile = async function() {
@@ -5701,7 +5751,7 @@
             let mediaSectionHtml = '';
             if (imgArray.length > 0) {
                 const count = imgArray.length;
-                let gridClass = 'grid gap-1.5 w-full';
+                let gridClass = 'grid gap-1.5 w-full items-stretch';
                 if (count === 1) {
                     gridClass += ' grid-cols-1';
                 } else {
@@ -5728,13 +5778,13 @@
                     }
 
                     return `
-                        <div id="photo-block-${post.id}-${i}" data-grid-colspan="${itemColSpan}" class="${itemColSpan} flex flex-col photo-block-item rounded-xl overflow-hidden border border-gray-200/80 bg-gray-50/70 shadow-2xs relative transition-all duration-200">
-                            <div class="w-full relative flex items-center justify-center bg-gray-100 overflow-hidden">
+                        <div id="photo-block-${post.id}-${i}" data-grid-colspan="${itemColSpan}" class="${itemColSpan} flex flex-col h-full justify-between photo-block-item rounded-xl overflow-hidden border border-gray-200/80 bg-gray-50/70 shadow-2xs relative transition-all duration-200">
+                            <div class="w-full flex-1 relative flex items-center justify-center bg-gray-100 overflow-hidden min-h-[140px]">
                                 <img id="feed-photo-img-${post.id}-${i}" src="${url}" alt="목장 사진 ${i+1}" loading="lazy" 
                                      onclick="handlePhotoClick('${post.id}', ${i}, event)" 
                                      data-grid-height="${imgHeightClass}"
                                      style="object-position: center 20%;"
-                                     class="w-full ${imgHeightClass} object-cover select-none continuous-photo-item block transition-all duration-200">
+                                     class="w-full h-full min-h-[140px] ${imgHeightClass} object-cover select-none continuous-photo-item block transition-all duration-200">
                                 
                                 <button type="button" 
                                         onpointerdown="event.stopPropagation();" 
@@ -5748,7 +5798,7 @@
                                 </button>
                             </div>
 
-                            <div id="caption-display-${post.id}-${i}" class="photo-caption-text ${caption ? '' : 'hidden'} text-left px-1.5 py-0.5 bg-white border-t border-gray-100 text-[11px] leading-snug">
+                            <div id="caption-display-${post.id}-${i}" class="photo-caption-text ${caption ? '' : 'hidden'} mt-auto text-left px-1.5 py-0.5 bg-white border-t border-gray-100 text-[11px] leading-snug">
                                 <div class="flex items-start space-x-1">
                                     <i class="fa-regular fa-comment-dots text-emerald-600 text-[9.5px] mt-0.5 shrink-0"></i>
                                     <span class="flex-1 whitespace-pre-wrap break-words overflow-wrap-anywhere text-gray-800 text-[11px] leading-snug">${escapeHtml(caption)}</span>
@@ -5782,7 +5832,7 @@
                                 <button type="button" id="photo-layout-btn-${post.id}" onclick="event.stopPropagation(); togglePostPhotoLayout('${post.id}')" 
                                         class="no-export px-2 py-0.5 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-600 hover:text-emerald-800 border border-gray-200 shadow-2xs text-[9.5px] font-medium flex items-center space-x-1 active:scale-95 transition-all" title="사진 보기 방식 전환">
                                     <i id="photo-layout-icon-${post.id}" class="fa-solid fa-expand text-[8.5px]"></i>
-                                    <span id="photo-layout-text-${post.id}">펼쳐보기</span>
+                                    <span id="photo-layout-text-${post.id}">펼쳐보기 &amp; 3터치</span>
                                 </button>
                             </div>
                         ` : ''}
@@ -5877,13 +5927,14 @@
                                 <span class="text-xs">${prayersCount}</span>
                             </button>
 
-                            <div class="flex items-center space-x-1 text-gray-500 select-none" title="목장 댓글">
-                                <i class="fa-regular fa-comment-dots text-sm"></i>
+                            <button type="button" onclick="event.stopPropagation(); toggleInlineCommentInput('${post.id}', event)" 
+                                    class="flex items-center space-x-1.5 text-gray-500 hover:text-emerald-700 active:scale-95 transition-all select-none group" 
+                                    title="댓글 작성 및 확인">
+                                <span class="relative inline-flex items-center justify-center">
+                                    <i class="fa-regular fa-comment text-sm group-hover:text-emerald-600 transition-colors"></i>
+                                    <i class="fa-solid fa-plus text-[6.5px] absolute -top-1 -right-1 bg-emerald-600 text-white rounded-full w-2.5 h-2.5 flex items-center justify-center font-bold shadow-2xs"></i>
+                                </span>
                                 <span class="text-xs font-semibold" data-comment-count>${commentCount}</span>
-                            </div>
-
-                            <button type="button" onclick="event.stopPropagation(); toggleInlineCommentInput('${post.id}', event)" class="w-5 h-5 rounded-full bg-gray-100 hover:bg-emerald-50 text-gray-500 hover:text-emerald-700 flex items-center justify-center text-xs font-bold active:scale-90 transition-transform" title="댓글 바로 달기">
-                                <i class="fa-solid fa-plus text-[10px]"></i>
                             </button>
                         </div>
 
