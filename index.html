@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>우리들의 목장 이야기 - 세종꿈의교회 23목장</title>
     <!-- Pretendard 기본 웹폰트 (초기 렌더링 최적화 병렬 로드) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
@@ -522,7 +522,6 @@
             <!-- 리본 끝단 쐐기 핀 -->
             <div id="feed-bookmark-wedge" class="absolute -left-0.5 top-1/2 -translate-y-1/2 w-0.5 h-3 rounded-r-xs opacity-60 pointer-events-none" style="background-color: #D97706;"></div>
         </div>
-    </div>
     </div>
 
     <!-- [새로운 댓글 꺾쇠 릴레이 내비게이터 캡슐] -->
@@ -1086,7 +1085,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager, memoryLocalCache, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         let currentUser = "목장가족";
@@ -1185,15 +1184,21 @@
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             try {
-                // [IndexedDB 오프라인 영구 캐시: 재방문 시 0.1초 만에 피드 즉시 렌더링]
+                // [사파리/모바일 안정화: WebKit IndexedDB 락업 방지 싱글탭 + 에러 시 메모리 캐시 안전 폴백]
                 db = initializeFirestore(app, {
                     localCache: persistentLocalCache({
-                        tabManager: persistentMultipleTabManager()
+                        tabManager: persistentSingleTabManager()
                     })
                 });
             } catch (dbErr) {
-                console.warn("Firestore persistentLocalCache fallback:", dbErr);
-                db = getFirestore(app);
+                console.warn("Firestore persistentLocalCache fallback to memory:", dbErr);
+                try {
+                    db = initializeFirestore(app, {
+                        localCache: memoryLocalCache()
+                    });
+                } catch (memErr) {
+                    db = getFirestore(app);
+                }
             }
             storage = getStorage(app);
         } catch (e) {
@@ -1810,7 +1815,7 @@
             }
         }
 
-        window.handleFeedSearchKeyDown = functionwindow.handleFeedSearchKeyDown = function(event) {
+        window.handleFeedSearchKeyDown = function(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 if (event.shiftKey) {
