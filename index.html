@@ -51,35 +51,34 @@
         }
         .animate-sway-welcome { display: inline-block; animation: swayWelcome 3.5s ease-in-out infinite; transform-origin: center center; }
 
-        /* [IMG_1042.png 원본 이미지 100% 반영 및 십자가/목장 위치 기준 핀치 스플릿 게이트] */
+        /* [IMG_1042.png 원본 이미지 100% 반영] */
         #auth-gate {
             position: fixed; inset: 0; z-index: 999;
             background-color: #ffffff;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden; touch-action: none; transition: opacity 0.5s ease;
+            overflow: hidden; touch-action: auto;
+            /* 위로 휙 올라가는 애니메이션 속성 */
+            transition: transform 0.6s cubic-bezier(0.5, 0, 0.2, 1), opacity 0.6s ease;
         }
 
         .gate-img-layer {
             position: absolute; inset: 0;
-            /* 대문자, 소문자, 확장자 대문자까지 모두 알아서 찾도록 다중 적용! (가짜 회색 이미지 삭제) */
             background-image: url('IMG_1042.png'), url('img_1042.png'), url('IMG_1042.PNG'), url('img_1042.PNG');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            will-change: transform;
-            transition: transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
         }
 
-        #gate-top { clip-path: inset(0 0 35% 0); }
-        #gate-bottom { clip-path: inset(65% 0 0 0); }
+        #gate-top { clip-path: inset(0 0 50% 0); }
+        #gate-bottom { clip-path: inset(50% 0 0 0); cursor: pointer; }
 
-        /* 십자가와 '꿈의 목장' 사이 갈라진 틈에 나타나는 아담한 로그인 박스 (테두리 및 배경 삭제) */
+        /* 갈라진 사이에 나타나는 텍스트 없는 미니 가로 로그인 창 (배경/선 제거) */
         #code-auth-box {
             position: absolute; left: 50%; top: 65%;
-            transform: translate(-50%, -50%) scale(0.85);
+            transform: translate(-50%, -50%);
             z-index: 30; opacity: 0; pointer-events: none;
             display: flex; gap: 8px; align-items: center; justify-content: center;
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            transition: opacity 0.3s ease;
         }
 
         #feed-container { -webkit-overflow-scrolling: touch; overflow-y: auto; scrollbar-width: thin; }
@@ -131,108 +130,50 @@
 
     <script>
         const authGate = document.getElementById('auth-gate');
-        const gateTop = document.getElementById('gate-top');
         const gateBottom = document.getElementById('gate-bottom');
         const codeAuthBox = document.getElementById('code-auth-box');
 
-        let initialPinchDist = 0;
-        let currentProgress = 0;
-        let isSuccessfullyOpen = false;
+        let tapCount = 0;
+        let tapResetTimer = null;
 
-        authGate.addEventListener('touchstart', (e) => {
-            if (isSuccessfullyOpen) return;
-            if (e.touches.length === 2) {
-                initialPinchDist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
+        // 1. 하단(꿈의 목장) 영역 5회 터치 감지 (벌리기 제스처 삭제)
+        gateBottom.addEventListener('click', () => {
+            tapCount++;
+            if (tapCount >= 5) {
+                // 5회 터치 시 로그인 창 표시
+                codeAuthBox.style.opacity = '1';
+                codeAuthBox.style.pointerEvents = 'auto';
+                setTimeout(() => {
+                    const codeInput = document.getElementById('input-mokjang-code');
+                    if (codeInput) codeInput.focus();
+                }, 100);
             }
+
+            // 1.5초 내에 연속으로 터치하지 않으면 카운트 초기화
+            clearTimeout(tapResetTimer);
+            tapResetTimer = setTimeout(() => {
+                tapCount = 0;
+            }, 1500); 
         });
-
-        authGate.addEventListener('touchmove', (e) => {
-            if (isSuccessfullyOpen) return;
-            if (e.touches.length === 2 && initialPinchDist > 0) {
-                const currentDist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-                const diff = currentDist - initialPinchDist;
-                currentProgress = Math.max(0, Math.min(1, diff / 120));
-                updateGateTransform(currentProgress);
-            }
-        });
-
-        authGate.addEventListener('touchend', (e) => {
-            if (isSuccessfullyOpen) return;
-            if (e.touches.length < 2 && initialPinchDist > 0) {
-                initialPinchDist = 0;
-                if (currentProgress < 0.42) {
-                    animateSnapBack();
-                } else {
-                    animateFullyOpen();
-                }
-            }
-        });
-
-        function updateGateTransform(progress) {
-            const maxSplitPx = 35; // 딱 코드/이름 창 높이 정도만 살짝 벌어지게 수정
-            const translateY = progress * maxSplitPx;
-
-            gateTop.style.transform = `translateY(-${translateY}px)`;
-            gateBottom.style.transform = `translateY(${translateY}px)`;
-
-            codeAuthBox.style.opacity = progress;
-            codeAuthBox.style.transform = `translate(-50%, -50%) scale(${0.85 + 0.15 * progress})`;
-        }
-
-        function animateSnapBack() {
-            gateTop.style.transition = 'transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1)';
-            gateBottom.style.transition = 'transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1)';
-            codeAuthBox.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
-
-            currentProgress = 0;
-            updateGateTransform(0);
-
-            setTimeout(() => {
-                gateTop.style.transition = 'none';
-                gateBottom.style.transition = 'none';
-                codeAuthBox.style.transition = 'none';
-            }, 350);
-        }
-
-        function animateFullyOpen() {
-            isSuccessfullyOpen = true;
-            gateTop.style.transition = 'transform 0.4s ease';
-            gateBottom.style.transition = 'transform 0.4s ease';
-            codeAuthBox.style.transition = 'all 0.4s ease';
-
-            const maxSplitPx = 35; // 딱 코드/이름 창 높이 정도만 살짝 벌어지게 수정
-            gateTop.style.transform = `translateY(-${maxSplitPx}px)`;
-            gateBottom.style.transform = `translateY(${maxSplitPx}px)`;
-            codeAuthBox.style.opacity = '1';
-            codeAuthBox.style.transform = 'translate(-50%, -50%) scale(1)';
-            
-            setTimeout(() => {
-                const codeInput = document.getElementById('input-mokjang-code');
-                if (codeInput) codeInput.focus();
-            }, 300);
-        }
 
         function checkAutoLogin() {
             const code = document.getElementById('input-mokjang-code').value.trim();
             const name = document.getElementById('input-member-name').value.trim();
             
-            // 코드 및 이름이 각각 2글자 이상 입력되면 입장 버튼 없이 자동으로 입장
-            if (code.length >= 2 && name.length >= 2) {
+            // 2. 가상 코드 1111, 1111 입력 시 즉시 입장 처리
+            if (code === '1111' && name === '1111') {
                 handleMemberLogin(name);
             }
         }
 
         function handleMemberLogin(userName) {
+            // 3. 이미지가 위쪽으로 휙! 올라가면서 사라지는 애니메이션
+            authGate.style.transform = 'translateY(-100%)';
             authGate.style.opacity = '0';
+            
             setTimeout(() => {
                 authGate.style.display = 'none';
-            }, 500);
+            }, 600);
 
             const displayEl = document.getElementById('header-user-display');
             if (displayEl) {
