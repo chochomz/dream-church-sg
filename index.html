@@ -30,16 +30,6 @@
         .font-songmyung { font-family: 'Song Myung', serif !important; }
         .font-dohyeon { font-family: 'Do Hyeon', sans-serif !important; }
         .font-gamja { font-family: 'Gamja Flower', cursive !important; }
-        .font-roboto { font-family: 'Roboto', sans-serif !important; }
-        .font-montserrat { font-family: 'Montserrat', sans-serif !important; }
-        .font-poppins { font-family: 'Poppins', sans-serif !important; }
-        .font-playfair { font-family: 'Playfair Display', serif !important; }
-        .font-cinzel { font-family: 'Cinzel', serif !important; }
-        .font-oswald { font-family: 'Oswald', sans-serif !important; }
-        .font-dancing { font-family: 'Dancing Script', cursive !important; }
-        .font-caveat { font-family: 'Caveat', cursive !important; }
-        .font-pacifico { font-family: 'Pacifico', cursive !important; }
-        .font-greatvibes { font-family: 'Great Vibes', cursive !important; }
 
         html, body {
             width: 100%; height: 100%; max-width: 100%; overflow: hidden;
@@ -73,72 +63,65 @@
         }
         .animate-sway-welcome { display: inline-block; animation: swayWelcome 3.5s ease-in-out infinite; transform-origin: center center; }
 
-        @keyframes penLiveMotion {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            15% { transform: rotate(-14deg) translateY(-2px) scale(1.08); }
-            30% { transform: rotate(8deg) translateY(1px) scale(0.96); }
-            45% { transform: rotate(-6deg) translateY(-1px) scale(1.03); }
-            60% { transform: rotate(0deg) scale(1); }
-        }
-        .animate-pen-live { animation: penLiveMotion 4s ease-in-out infinite; transform-origin: bottom right; }
-
-        /* [IMG_1035.png 기반 제스처 인증 게이트 & 중앙 가로 갈라짐 + 빛 + 코드박스 애니메이션] */
+        /* [IMG_1035.png 전체 화면 Contain + 실시간 두 손가락 핀치 스플릿 인증 게이트] */
         #auth-gate {
             position: fixed; inset: 0; z-index: 999;
+            background-color: #0b0718; /* 레터박스 여백 어두운 톤 */
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; touch-action: none; transition: opacity 0.5s ease;
+        }
+
+        .gate-img-layer {
+            position: absolute; inset: 0;
             background-image: url('IMG_1035.png');
-            background-size: cover;
+            background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            overflow: hidden; transition: opacity 0.6s ease;
+            will-change: transform;
+            transition: transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
         }
 
-        /* 중앙 가로 갈라지는 분할 컨테이너 */
-        .gate-split-container {
-            position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
+        #gate-top {
+            clip-path: inset(0 0 50% 0);
         }
-        .gate-half {
-            position: absolute. width: 100%; height: 50%; left: 0; overflow: hidden; transition: transform 0.9s cubic-bezier(0.77, 0, 0.175, 1);
-            background-image: url('IMG_1035.png'); background-size: cover; background-repeat: no-repeat;
+        #gate-bottom {
+            clip-path: inset(50% 0 0 0);
         }
-        .gate-top-half { top: 0; background-position: center top; border-bottom: 1.5px solid rgba(255,255,255,0.4); }
-        .gate-bottom-half { bottom: 0; background-position: center bottom; border-top: 1.5px solid rgba(255,255,255,0.4); }
 
-        /* 열릴 때 상하로 갈라지는 클래스 */
-        .gate-split-active .gate-top-half { transform: translateY(-100%); }
-        .gate-split-active .gate-bottom-half { transform: translateY(100%); }
-
-        /* 중앙 가로 빛 광채 (가르면서 빛 발산) */
+        /* 중앙 가로 빛 광채 (벌어질 때 나타남) */
         #gate-center-beam {
             position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: #ffffff;
-            box-shadow: 0 0 35px 15px rgba(255, 255, 255, 0.85), 0 0 70px 30px rgba(139, 92, 246, 0.6);
-            opacity: 0; z-index: 25; transition: all 0.5s ease;
+            box-shadow: 0 0 30px 10px rgba(255, 255, 255, 0.8), 0 0 60px 25px rgba(139, 92, 246, 0.5);
+            opacity: 0; z-index: 25; pointer-events: none; transform: translateY(-50%);
+            transition: opacity 0.2s ease;
         }
-        .gate-split-active #gate-center-beam { opacity: 1; height: 12px; transform: scaleY(3); }
 
-        /* 안에서 벌어지며 나타나는 사각 박스 (코드박스, 이름) */
+        /* 벌어진 사이에 정확히 위치하는 사각 로그인 박스 */
         #code-auth-box {
-            position: absolute. z-index: 30; opacity: 0; transform: scale(0.5) translateY(20px); pointer-events: none;
-            transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s;
+            position: absolute; left: 50%; top: 50%;
+            transform: translate(-50%, -50%) scale(0.85);
+            z-index: 30; opacity: 0; pointer-events: none; width: 88%; max-width: 320px;
+            background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(16px);
+            padding: 22px; border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 25px rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            transition: opacity 0.2s ease, transform 0.2s ease;
         }
-        #code-auth-box.active { opacity: 1; transform: scale(1) translateY(0); pointer-events: auto; }
 
-        /* 가이드 텍스트 및 터치 영역 */
+        /* 제스처 안내 가이드 */
         .gate-guide-overlay {
-            position: absolute; bottom: 48px; left: 0; right: 0; z-index: 20; text-align: center; pointer-events: none;
-            transition: opacity 0.3s ease;
+            position: absolute; bottom: 36px; left: 0; right: 0; z-index: 20; text-align: center; pointer-events: none;
         }
         .gate-guide-badge {
-            display: inline-block; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.25);
-            color: #fef08a; padding: 8px 18px; border-radius: 9999px; font-size: 12px; font-weight: 700;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4); animation: pulseGlow 2s infinite ease-in-out;
+            display: inline-block; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(6px); border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fef08a; padding: 7px 16px; border-radius: 9999px; font-size: 11.5px; font-weight: 700;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: pulseGlow 2s infinite ease-in-out;
         }
         @keyframes pulseGlow {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(250, 204, 21, 0.4); }
-            50% { transform: scale(1.03); box-shadow: 0 0 25px rgba(250, 204, 21, 0.7); }
+            0%, 100% { transform: scale(1); box-shadow: 0 0 12px rgba(250, 204, 21, 0.4); }
+            50% { transform: scale(1.03); box-shadow: 0 0 20px rgba(250, 204, 21, 0.7); }
         }
 
-        /* 기타 UI 스타일 */
         #feed-container { -webkit-overflow-scrolling: touch; overflow-y: auto; scrollbar-width: thin; }
         #feed-container::-webkit-scrollbar { width: 4px; }
         #feed-container::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.15); border-radius: 4px; }
@@ -146,48 +129,46 @@
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
 
-    <!-- [IMG_1035.png 배경 기반 3단계 제스처 & 중앙 가로 갈라짐 인증 게이트] -->
+    <!-- [제스처 인증 게이트 (IMG_1035.png 전체 화면 Contain + 두 손가락 핀치 스플릿)] -->
     <div id="auth-gate">
-        <div class="gate-split-container" id="gate-container">
-            <!-- 상단 분할 영역 (IMG_1035.png 상단 배경) -->
-            <div class="gate-half gate-top-half" id="gate-top"></div>
-            <!-- 하단 분할 영역 (IMG_1035.png 하단 배경) -->
-            <div class="gate-half gate-bottom-half" id="gate-bottom"></div>
+        <!-- 상단 이미지 반쪽 -->
+        <div class="gate-img-layer" id="gate-top"></div>
+        <!-- 하단 이미지 반쪽 -->
+        <div class="gate-img-layer" id="gate-bottom"></div>
 
-            <!-- 중앙 가로 빛 광채 라인 -->
-            <div id="gate-center-beam"></div>
+        <!-- 중앙 가로 빛 -->
+        <div id="gate-center-beam"></div>
 
-            <!-- 중앙 가로 갈라진 틈에서 빛과 함께 벌어져 나오는 사각 박스 (코드박스, 이름) -->
-            <div id="code-auth-box" class="w-[90%] max-w-xs bg-white/92 backdrop-blur-2xl p-6 rounded-3xl shadow-[0_0_50px_rgba(255,255,255,0.9)] border-2 border-white/80 text-gray-800">
-                <div class="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
-                    <div class="flex items-center space-x-1.5">
-                        <span class="text-lg">🌿</span>
-                        <h3 class="text-sm font-black text-emerald-900 tracking-tight">꿈의 목장 인증</h3>
-                    </div>
-                    <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">23목장</span>
+        <!-- 벌어진 사이에 나타나는 로그인 박스 -->
+        <div id="code-auth-box">
+            <div class="flex items-center justify-between pb-2.5 mb-3 border-b border-gray-100">
+                <div class="flex items-center space-x-1.5">
+                    <span class="text-base">🌿</span>
+                    <h3 class="text-sm font-black text-emerald-900 tracking-tight">꿈의 목장 로그인</h3>
                 </div>
-
-                <div class="space-y-3 text-left">
-                    <div>
-                        <label class="block text-[11px] font-bold text-gray-700 mb-1">목장 코드 (예: 23목장)</label>
-                        <input type="text" id="input-mokjang-code" placeholder="코드를 입력하세요" class="w-full px-3 py-2 rounded-xl border border-emerald-200 text-xs bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-gray-700 mb-1">목원 이름</label>
-                        <input type="text" id="input-member-name" placeholder="성함을 입력하세요" class="w-full px-3 py-2 rounded-xl border border-emerald-200 text-xs bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs">
-                    </div>
-                    <button type="button" onclick="handleMemberLogin()" class="w-full py-2.5 church-primary hover:opacity-95 text-white rounded-xl text-xs font-bold shadow-md active:scale-95 transition-all mt-1 flex items-center justify-center space-x-1">
-                        <span>목장 이야기 입장하기</span>
-                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                    </button>
-                </div>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">23목장</span>
             </div>
 
-            <!-- 하단 제스처 가이드 배지 (두 손가락 벌리기 또는 터치) -->
-            <div class="gate-guide-overlay" id="gate-guide-badge-box">
-                <div class="gate-guide-badge">
-                    ✨ 두 손가락으로 벌리거나 터치하여 목장을 열어주세요
+            <div class="space-y-3 text-left">
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-700 mb-1">목장 코드 (예: 23목장)</label>
+                    <input type="text" id="input-mokjang-code" placeholder="코드를 입력하세요" class="w-full px-3 py-2 rounded-xl border border-emerald-200 text-xs bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs">
                 </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-gray-700 mb-1">목원 이름</label>
+                    <input type="text" id="input-member-name" placeholder="성함을 입력하세요" class="w-full px-3 py-2 rounded-xl border border-emerald-200 text-xs bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-2xs">
+                </div>
+                <button type="button" onclick="handleMemberLogin()" class="w-full py-2.5 church-primary hover:opacity-95 text-white rounded-xl text-xs font-bold shadow-md active:scale-95 transition-all mt-1 flex items-center justify-center space-x-1">
+                    <span>목장 이야기 입장하기</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 하단 안내 배지 -->
+        <div class="gate-guide-overlay" id="gate-guide-badge-box">
+            <div class="gate-guide-badge">
+                ✨ 두 손가락으로 문구를 터치한 뒤 살짝 벌려주세요 (조금 벌리다 놓으면 합쳐집니다)
             </div>
         </div>
     </div>
@@ -219,40 +200,20 @@
     </main>
 
     <script>
-        // [제스처 및 중앙 가로 갈라짐 + 빛 + 사각 박스 등장 인터랙션]
+        // [실시간 두 손가락 핀치 스플릿 & 스냅백(합쳐짐) 인터랙션]
         const authGate = document.getElementById('auth-gate');
-        const gateContainer = document.getElementById('gate-container');
+        const gateTop = document.getElementById('gate-top');
+        const gateBottom = document.getElementById('gate-bottom');
+        const centerBeam = document.getElementById('gate-center-beam');
         const codeAuthBox = document.getElementById('code-auth-box');
         const guideBadgeBox = document.getElementById('gate-guide-badge-box');
 
-        let isGateOpened = false;
-
-        function triggerGateOpen() {
-            if (isGateOpened) return;
-            isGateOpened = true;
-
-            // 1. 가이드 배지 페이드아웃
-            if (guideBadgeBox) guideBadgeBox.style.opacity = '0';
-
-            // 2. 상하 분할 및 중앙 빛 광채 애니메이션 클래스 부여
-            gateContainer.classList.add('gate-split-active');
-
-            // 3. 중앙 틈새에서 사각 박스(코드 및 이름)가 빛과 함께 벌어져 등장
-            setTimeout(() => {
-                codeAuthBox.classList.add('active');
-            }, 350);
-        }
-
-        // 화면 터치 또는 클릭 시 열림 트리거 (테스트 및 모바일 편의성)
-        authGate.addEventListener('click', (e) => {
-            if (!codeAuthBox.contains(e.target)) {
-                triggerGateOpen();
-            }
-        });
-
-        // 두 손가락 핀치-줌(벌리기) 제스처 감지
         let initialPinchDist = 0;
-        window.addEventListener('touchstart', (e) => {
+        let currentProgress = 0; // 0 (닫힘) ~ 1 (완전 열림)
+        let isSuccessfullyOpen = false;
+
+        authGate.addEventListener('touchstart', (e) => {
+            if (isSuccessfullyOpen) return;
             if (e.touches.length === 2) {
                 initialPinchDist = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
@@ -261,18 +222,81 @@
             }
         });
 
-        window.addEventListener('touchmove', (e) => {
+        authGate.addEventListener('touchmove', (e) => {
+            if (isSuccessfullyOpen) return;
             if (e.touches.length === 2 && initialPinchDist > 0) {
                 const currentDist = Math.hypot(
                     e.touches[0].clientX - e.touches[1].clientX,
                     e.touches[0].clientY - e.touches[1].clientY
                 );
-                if (currentDist - initialPinchDist > 65) {
-                    triggerGateOpen();
-                    initialPinchDist = 0;
+                const diff = currentDist - initialPinchDist;
+                // 벌린 거리(최대 130px)를 0~1 진행도로 매핑
+                currentProgress = Math.max(0, Math.min(1, diff / 130));
+                updateGateTransform(currentProgress);
+            }
+        });
+
+        authGate.addEventListener('touchend', (e) => {
+            if (isSuccessfullyOpen) return;
+            if (e.touches.length < 2 && initialPinchDist > 0) {
+                initialPinchDist = 0;
+                // 임계치(0.45) 이상 벌리지 못하고 손을 떼면 -> 다시 합쳐짐 (스냅백)
+                if (currentProgress < 0.45) {
+                    animateSnapBack();
+                } else {
+                    // 임계치 이상 벌리고 놓으면 -> 완전히 열림 상태 고정
+                    animateFullyOpen();
                 }
             }
         });
+
+        function updateGateTransform(progress) {
+            const maxSplitPx = 110; // 최대 상하 벌어짐 픽셀
+            const translateY = progress * maxSplitPx;
+
+            gateTop.style.transform = `translateY(-${translateY}px)`;
+            gateBottom.style.transform = `translateY(${translateY}px)`;
+
+            centerBeam.style.opacity = progress;
+            codeAuthBox.style.opacity = progress;
+            codeAuthBox.style.transform = `translate(-50%, -50%) scale(${0.8 + 0.2 * progress})`;
+
+            if (guideBadgeBox) {
+                guideBadgeBox.style.opacity = `${1 - progress}`;
+            }
+        }
+
+        function animateSnapBack() {
+            gateTop.style.transition = 'transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1)';
+            gateBottom.style.transition = 'transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1)';
+            codeAuthBox.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+            centerBeam.style.transition = 'opacity 0.25s ease';
+
+            currentProgress = 0;
+            updateGateTransform(0);
+
+            setTimeout(() => {
+                gateTop.style.transition = 'none';
+                gateBottom.style.transition = 'none';
+                codeAuthBox.style.transition = 'none';
+                centerBeam.style.transition = 'none';
+            }, 350);
+        }
+
+        function animateFullyOpen() {
+            isSuccessfullyOpen = true;
+            gateTop.style.transition = 'transform 0.4s ease';
+            gateBottom.style.transition = 'transform 0.4s ease';
+            codeAuthBox.style.transition = 'all 0.4s ease';
+
+            const maxSplitPx = 110;
+            gateTop.style.transform = `translateY(-${maxSplitPx}px)`;
+            gateBottom.style.transform = `translateY(${maxSplitPx}px)`;
+            centerBeam.style.opacity = '1';
+            codeAuthBox.style.opacity = '1';
+            codeAuthBox.style.transform = 'translate(-50%, -50%) scale(1)';
+            if (guideBadgeBox) guideBadgeBox.style.opacity = '0';
+        }
 
         function handleMemberLogin() {
             const code = document.getElementById('input-mokjang-code').value.trim();
@@ -282,11 +306,10 @@
                 return;
             }
 
-            // 인증 완료 후 게이트 페이드아웃
             authGate.style.opacity = '0';
             setTimeout(() => {
                 authGate.style.display = 'none';
-            }, 600);
+            }, 500);
 
             const displayEl = document.getElementById('header-user-display');
             if (displayEl) {
@@ -295,7 +318,7 @@
         }
 
         function openHelpModal() {
-            alert("📖 [꿈의 목장 사용설명서]\n- 배경의 교회 로고와 문구를 두 손가락으로 벌리거나 터치하면 중앙에서 인증 박스가 나타납니다.\n- 코드와 이름을 입력하고 입장해 주세요.");
+            alert("📖 [꿈의 목장 사용설명서]\n- 배경 이미지를 두 손가락으로 터치한 뒤 바깥쪽으로 살짝 벌려보세요.\n- 조금 벌리다 손을 떼면 원위치로 합쳐지고, 충분히 벌리면 로그인창이 고정됩니다.");
         }
 
         function escapeHtml(str) {
