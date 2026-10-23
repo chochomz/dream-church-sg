@@ -56,9 +56,9 @@
             position: fixed; inset: 0; z-index: 999;
             background-color: #ffffff;
             display: flex; align-items: center; justify-content: center;
-            overflow: hidden; touch-action: auto;
-            /* 위로 휙 올라가는 애니메이션 속성 */
-            transition: transform 0.6s cubic-bezier(0.5, 0, 0.2, 1), opacity 0.6s ease;
+            overflow: hidden; touch-action: none; /* 모바일 스크롤 흔들림 방지 고정 */
+            /* 위로 스르륵 올라가는 애니메이션 (속도를 1.5초로 늦추어 천천히 보이도록) */
+            transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1);
         }
 
         .gate-img-layer {
@@ -81,6 +81,11 @@
             transition: opacity 0.3s ease;
         }
 
+        /* iOS 모바일 키보드 줌 방지 (16px 고정으로 화면 틀어짐/삐딱해짐 방지) */
+        #code-auth-box input {
+            font-size: 16px !important;
+        }
+
         #feed-container { -webkit-overflow-scrolling: touch; overflow-y: auto; scrollbar-width: thin; }
         #feed-container::-webkit-scrollbar { width: 4px; }
         #feed-container::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.15); border-radius: 4px; }
@@ -97,8 +102,8 @@
 
         <!-- 갈라진 사이에 나타나는 텍스트 없는 미니 가로 로그인 창 -->
         <div id="code-auth-box">
-            <input type="text" id="input-mokjang-code" oninput="checkAutoLogin()" placeholder="코드" maxlength="6" class="w-[65px] px-2 py-1.5 rounded-full bg-white border border-dashed border-gray-400 text-center text-gray-900 focus:outline-none text-[13px] font-bold">
-            <input type="text" id="input-member-name" oninput="checkAutoLogin()" placeholder="이름" maxlength="6" class="w-[65px] px-2 py-1.5 rounded-full bg-white border border-dashed border-gray-400 text-center text-gray-900 focus:outline-none text-[13px] font-bold">
+            <input type="text" id="input-mokjang-code" oninput="checkAutoLogin()" placeholder="코드" maxlength="4" class="w-[70px] px-2 py-1.5 rounded-full bg-white border border-dashed border-gray-400 text-center text-gray-900 focus:outline-none font-bold">
+            <input type="text" id="input-member-name" oninput="checkAutoLogin()" placeholder="이름" maxlength="4" class="w-[70px] px-2 py-1.5 rounded-full bg-white border border-dashed border-gray-400 text-center text-gray-900 focus:outline-none font-bold">
         </div>
     </div>
 
@@ -157,23 +162,33 @@
         });
 
         function checkAutoLogin() {
-            const code = document.getElementById('input-mokjang-code').value.trim();
-            const name = document.getElementById('input-member-name').value.trim();
+            const codeInput = document.getElementById('input-mokjang-code');
+            const nameInput = document.getElementById('input-member-name');
+            const code = codeInput.value.trim();
+            const name = nameInput.value.trim();
             
-            // 2. 가상 코드 1111, 1111 입력 시 즉시 입장 처리
+            // 2. 코드 4자리 입력 완료 시 자동으로 이름 칸으로 커서 이동
+            if (code.length === 4 && document.activeElement === codeInput) {
+                nameInput.focus();
+            }
+
+            // 3. 가상 코드 1111, 1111 입력 시 즉시 입장 처리
             if (code === '1111' && name === '1111') {
+                // 모바일에서 키보드를 내려 메인 화면이 삐딱해지는 현상 방지
+                codeInput.blur();
+                nameInput.blur();
                 handleMemberLogin(name);
             }
         }
 
         function handleMemberLogin(userName) {
-            // 3. 이미지가 위쪽으로 휙! 올라가면서 사라지는 애니메이션
+            // 4. 이미지가 위쪽으로 천천히 밀려 올라가는 애니메이션 (투명해지지 않고 그대로 올라감)
             authGate.style.transform = 'translateY(-100%)';
-            authGate.style.opacity = '0';
             
+            // 1.5초(1500ms) 애니메이션이 끝난 후 숨김 처리
             setTimeout(() => {
                 authGate.style.display = 'none';
-            }, 600);
+            }, 1500);
 
             const displayEl = document.getElementById('header-user-display');
             if (displayEl) {
