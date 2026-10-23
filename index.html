@@ -84,11 +84,16 @@
 
         /* 갈라진 사이에 나타나는 텍스트 없는 미니 가로 로그인 창 (배경/선 제거) */
         #code-auth-box {
-            position: absolute; left: 50%; top: 65%;
+            position: absolute; left: 50%; top: 72%; /* 위치를 조금 내림 (65% -> 72%) */
             transform: translate(-50%, -50%);
             z-index: 30; opacity: 0; pointer-events: none;
-            display: flex; gap: 8px; align-items: center; justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             transition: opacity 0.3s ease;
+            /* 하나의 긴 둥근형 바탕 및 점선 테두리 */
+            background-color: #ffffff;
+            border: 1px dashed #9ca3af;
+            border-radius: 9999px;
+            padding: 6px 12px;
         }
 
         /* iOS 모바일 키보드 줌 방지 (16px 고정으로 화면 틀어짐/삐딱해짐 방지) */
@@ -112,8 +117,10 @@
 
         <!-- 갈라진 사이에 나타나는 텍스트 없는 미니 가로 로그인 창 -->
         <div id="code-auth-box">
-            <input type="text" id="input-mokjang-code" oninput="checkAutoLogin()" placeholder="코드" maxlength="4" class="w-[70px] px-2 py-1.5 rounded-full bg-white border border-dashed border-gray-400 text-center text-gray-900 focus:outline-none font-bold">
-            <input type="text" id="input-member-name" oninput="checkAutoLogin()" placeholder="이름" maxlength="4" class="w-[70px] px-2 py-1.5 rounded-full bg-white border border-dashed border-gray-400 text-center text-gray-900 focus:outline-none font-bold">
+            <input type="text" id="input-mokjang-code" oninput="checkAutoLogin()" placeholder="코드" maxlength="4" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
+            <!-- 구분 세로선 -->
+            <div class="w-px h-3.5 bg-gray-400 mx-1"></div>
+            <input type="text" id="input-member-name" oninput="checkAutoLogin()" placeholder="이름" maxlength="4" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
         </div>
     </div>
 
