@@ -61,7 +61,8 @@
 
         .gate-img-layer {
             position: absolute; inset: 0;
-            background-image: url('IMG_1042.png'), url('https://placehold.co/400x800/0b0718/ffffff?text=IMG_1042.png+(Local)');
+            /* 대문자, 소문자, 확장자 대문자까지 모두 알아서 찾도록 다중 적용! (가짜 회색 이미지 삭제) */
+            background-image: url('IMG_1042.png'), url('img_1042.png'), url('IMG_1042.PNG'), url('img_1042.PNG');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
