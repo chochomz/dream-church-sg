@@ -96,10 +96,10 @@
         <!-- 하단 이미지 반쪽 (꿈의 목장 포함) -->
         <div class="gate-img-layer" id="gate-bottom"></div>
 
-        <!-- 갈라진 사이에 나타나는 텍스트 없는 미니 가로 로그인 창 (테두리, 가로선, 버튼 완전 삭제) -->
+        <!-- 갈라진 사이에 나타나는 텍스트 없는 미니 가로 로그인 창 -->
         <div id="code-auth-box">
-            <input type="text" id="input-mokjang-code" oninput="checkAutoLogin()" placeholder="코드" maxlength="6" class="w-[65px] px-3 py-2 rounded-xl bg-white/90 text-center text-gray-900 focus:outline-none shadow-md text-[13px] font-bold">
-            <input type="text" id="input-member-name" oninput="checkAutoLogin()" placeholder="이름" maxlength="6" class="w-[65px] px-3 py-2 rounded-xl bg-white/90 text-center text-gray-900 focus:outline-none shadow-md text-[13px] font-bold">
+            <input type="text" id="input-mokjang-code" oninput="checkAutoLogin()" placeholder="코드" maxlength="6" class="w-[65px] px-2 py-1.5 rounded-lg bg-white border border-dashed border-gray-400 text-center text-gray-900 focus:outline-none focus:border-solid focus:border-emerald-500 text-[13px] font-bold shadow-sm">
+            <input type="text" id="input-member-name" oninput="checkAutoLogin()" placeholder="이름" maxlength="6" class="w-[65px] px-2 py-1.5 rounded-lg bg-white border border-dashed border-gray-400 text-center text-gray-900 focus:outline-none focus:border-solid focus:border-emerald-500 text-[13px] font-bold shadow-sm">
         </div>
     </div>
 
@@ -175,7 +175,7 @@
         });
 
         function updateGateTransform(progress) {
-            const maxSplitPx = 100;
+            const maxSplitPx = 35; // 딱 코드/이름 창 높이 정도만 살짝 벌어지게 수정
             const translateY = progress * maxSplitPx;
 
             gateTop.style.transform = `translateY(-${translateY}px)`;
@@ -206,7 +206,7 @@
             gateBottom.style.transition = 'transform 0.4s ease';
             codeAuthBox.style.transition = 'all 0.4s ease';
 
-            const maxSplitPx = 100;
+            const maxSplitPx = 35; // 딱 코드/이름 창 높이 정도만 살짝 벌어지게 수정
             gateTop.style.transform = `translateY(-${maxSplitPx}px)`;
             gateBottom.style.transform = `translateY(${maxSplitPx}px)`;
             codeAuthBox.style.opacity = '1';
