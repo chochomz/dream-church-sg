@@ -1,24 +1,405 @@
--AI 코드 개발 작업 규칙
-역할
-너는 내 소스코드를 수정하는 개발 보조 AI다. 아래 규칙은 이 대화의 모든 작업에 항상 적용한다.
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <title>우리들의 목장 이야기 - 세종꿈의교회 꿈의 목장</title>
+    <!-- [모바일 속도 최적화: 외부 리소스 사전 연결 & DNS 프리페치] -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+    <link rel="dns-prefetch" href="https://firebasestorage.googleapis.com">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%233B5D50'/%3E%3Cpath d='M16 7v18M10 13h12' stroke='%23ffffff' stroke-width='2.8' stroke-linecap='round'/%3E%3C/svg%3E">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#3B5D50">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        html, body {
+            width: 100%; height: 100%; max-width: 100%; overflow: hidden;
+            font-family: 'Pretendard', sans-serif; background-color: #0b0718; color: #222222;
+            -webkit-tap-highlight-color: transparent; touch-action: pan-y;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        header { padding-top: max(env(safe-area-inset-top, 0px), 0px); }
+        .church-primary { background-color: #3B5D50; }
+        .church-primary-text { color: #3B5D50; }
+        .church-accent { background-color: #E8F0EC; }
+        .church-border { border-color: #E5E7EB; }
 
--규칙
-1. 지시한 부분만 수정 (절대 규칙)
-내가 지시한 사항만 수정한다.
-지시하지 않은 문자, 텍스트, 기능은 AI 임의로 수정하지 않는다. 예외 없이 금지한다.
-오류 때문에 우회 코딩이 부득이하게 필요하면, 코드를 바꾸기 전에 이유와 방법을 설명하고 내 컨펌을 먼저 받는다.
-2. 사전 분석
-작업 전에 지시한 사항이 이미 소스에 적용되어 있는지 먼저 확인한다.
-기존 코드와 서로 충돌하는 부분이 없는지 분석한 뒤 결과를 알려준다.
-3. 속도와 개선 제안
-작업 속도가 느려지지 않도록 군더더기 없이 진행한다.
-개발 중 이해가 안 되는 부분이나 비효율적인 부분이 생기면, 더 나은 방법을 제안한다. 단, 제안만 하고 내가 승인하기 전에는 적용하지 않는다.
-4. 중단 시 백업
-토큰 한도, 세션 종료, 기타 오류로 작업이 중단되거나 멈출 상황이면, 그 시점까지 진행한 작업을 코드로 정리해 제공한다.
-이를 최종 백업으로 사용할 수 있게 한다.
-5. 이해 확인 후 진행
-내가 프롬프트(지시)를 주면 반드시 먼저 이해한 내용을 요약해서 피드백한다.
-내 컨펌을 받은 뒤에 작업을 시작한다.
-시작 방법
+        @keyframes dreamShimmerSlow {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .dream-shimmer-text {
+            background: linear-gradient(90deg, #111827 0%, #1f2937 32%, #ffffff 50%, #1f2937 68%, #111827 100%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: dreamShimmerSlow 7s ease-in-out infinite;
+            display: inline-block;
+        }
 
-위 규칙을 이해했다면, 규칙별로 이해한 내용을 짧게 피드백한 뒤 첫 지시를 기다린다.
+        @keyframes swayWelcome {
+            0%, 100% { transform: rotate(0deg) translateY(0); }
+            25% { transform: rotate(-2deg) translateY(-0.5px); }
+            75% { transform: rotate(2deg) translateY(0.5px); }
+        }
+        .animate-sway-welcome { display: inline-block; animation: swayWelcome 3.5s ease-in-out infinite; transform-origin: center center; }
+
+        /* 살짝 내려갔다가 천천히 올라가는 애니메이션 추가 */
+        @keyframes dipAndSlideUp {
+            0% { transform: translateY(0); }
+            20% { transform: translateY(30px); }  /* 밑으로 살짝 내려감 */
+            100% { transform: translateY(-100%); } /* 천천히 위로 밀려 올라감 */
+        }
+        .gate-open-active {
+            animation: dipAndSlideUp 3.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        /* [IMG_1042.png 원본 이미지 100% 반영] */
+        #auth-gate {
+            position: fixed; inset: 0; z-index: 999;
+            background-color: #ffffff;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; touch-action: none; /* 모바일 스크롤 흔들림 방지 고정 */
+            /* 위로 스르륵 올라가는 애니메이션 (속도를 1.5초로 늦추어 천천히 보이도록) */
+            transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .gate-img-layer {
+            position: absolute; inset: 0;
+            background-image: url('img_1042.png'), url('IMG_1042.png'), url('IMG_1042.PNG');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        #gate-top { clip-path: inset(0 0 50% 0); }
+        #gate-bottom { clip-path: inset(50% 0 0 0); cursor: pointer; }
+
+        /* 갈라진 사이에 나타나는 텍스트 없는 미니 가로 로그인 창 (배경/선 제거) */
+        #code-auth-box {
+            position: absolute; left: 50%; top: 72%; /* 위치를 조금 내림 (65% -> 72%) */
+            transform: translate(-50%, -50%);
+            z-index: 30; opacity: 0; pointer-events: none;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.3s ease;
+            /* 하나의 긴 둥근형 바탕 및 점선 테두리 */
+            background-color: #ffffff;
+            border: 1px dashed #9ca3af;
+            border-radius: 9999px;
+            padding: 6px 12px;
+        }
+
+        /* iOS 모바일 키보드 줌 방지 (16px 고정으로 화면 틀어짐/삐딱해짐 방지) */
+        #code-auth-box input {
+            font-size: 16px !important;
+        }
+
+        /* 로그인 창 위치에서 피어나 세종꿈의교회와 꿈의 목장 사이를 유영하는 6개 단어 스타일 */
+        #floating-words-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            pointer-events: none;
+            overflow: hidden;
+            transition: opacity 0.6s ease;
+        }
+        .floating-grace-word {
+            position: absolute;
+            left: 50%;
+            top: 72%;
+            transform: translate(-50%, -50%) scale(0);
+            color: #9e6b72;
+            font-size: clamp(19px, 5.2vw, 24px);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+            user-select: none;
+            pointer-events: none;
+            opacity: 0;
+            text-shadow: 0 1px 6px rgba(255, 255, 255, 0.9);
+            will-change: transform, left, top, opacity;
+        }
+
+        /* 하트 흩날리는 애니메이션 추가 (조금 더 천천히 몽글몽글 올라가도록 수정) */
+        @keyframes floatHeart {
+            0% { transform: translateY(0) scale(0.6); opacity: 0; }
+            25% { opacity: 0.6; } 
+            75% { opacity: 0.3; } 
+            100% { transform: translateY(-110vh) scale(1.3); opacity: 0; }
+        }
+        .floating-heart {
+            position: fixed;
+            bottom: -50px;
+            color: #ff7799; 
+            filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.6));
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+        }
+
+        #feed-container { -webkit-overflow-scrolling: touch; overflow-y: auto; scrollbar-width: thin; }
+        #feed-container::-webkit-scrollbar { width: 4px; }
+        #feed-container::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.15); border-radius: 4px; }
+    </style>
+</head>
+<body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
+
+    <!-- [제스처 인증 게이트 (원본 단독 노출 + 십자가/목장 핀치 스플릿)] -->
+    <div id="auth-gate">
+        <!-- 상단 이미지 반쪽 (십자가 포함) -->
+        <div class="gate-img-layer" id="gate-top"></div>
+        <!-- 하단 이미지 반쪽 (꿈의 목장 포함) -->
+        <div class="gate-img-layer" id="gate-bottom"></div>
+
+        <!-- 세종꿈의교회와 꿈의 목장 사이를 유영하는 6개 단어 레이어 -->
+        <div id="floating-words-layer"></div>
+
+        <!-- 갈라진 사이에 나타나는 텍스트 없는 미니 가로 로그인 창 -->
+        <div id="code-auth-box">
+            <input type="text" id="input-mokjang-code" oninput="checkAutoLogin()" placeholder="코드" maxlength="4" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
+            <!-- 구분 세로선 -->
+            <div class="w-px h-3.5 bg-gray-400 mx-1"></div>
+            <input type="text" id="input-member-name" oninput="checkAutoLogin()" placeholder="이름" maxlength="4" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
+        </div>
+    </div>
+
+    <!-- [상단 헤더] -->
+    <header class="h-[52px] shrink-0 bg-white border-b church-border shadow-2xs px-4 flex items-center justify-between w-full z-30 relative max-w-md mx-auto">
+        <div class="w-8 shrink-0 flex items-center justify-start"></div>
+        <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center">
+            <h1 class="text-[17.5px] font-black tracking-tight leading-tight truncate whitespace-nowrap dream-shimmer-text" id="header-mokjang-title">
+                세종꿈의교회 23목장
+            </h1>
+            <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none" id="header-user-display">목장 가족님 환영합니다</p>
+        </div>
+        <div class="shrink-0 relative flex items-center justify-end w-8">
+            <button onclick="openHelpModal()" class="w-7 h-7 rounded-full flex items-center justify-center church-accent church-primary-text border border-emerald-200/80 shadow-2xs text-xs font-bold" title="도움말">
+                <i class="fa-solid fa-question text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- [메인 피드 영역] -->
+    <main class="w-full max-w-md mx-auto flex-1 overflow-y-auto px-1 py-0.5" id="feed-container">
+        <div class="w-full px-2 pt-4 pb-2 text-center space-y-2">
+            <div class="bg-white rounded-2xl border church-border p-4 shadow-2xs">
+                <h3 class="text-sm font-bold text-gray-800">🌿 꿈의 목장 피드</h3>
+                <p class="text-xs text-gray-500 mt-1">로그인이 완료되었습니다. 따뜻한 이야기를 나눠보세요.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const authGate = document.getElementById('auth-gate');
+        const gateBottom = document.getElementById('gate-bottom');
+        const codeAuthBox = document.getElementById('code-auth-box');
+        const floatingWordsLayer = document.getElementById('floating-words-layer');
+
+        // 6가지 단어 (믿음, 소망, 사랑, 감사, 찬송, 기도) 유영 애니메이션
+        const GRACE_WORDS = ['믿음', '소망', '사랑', '감사', '찬송', '기도'];
+        const floatingWordItems = [];
+        let floatingAnimId = null;
+        let isFloatingWordsActive = true;
+
+        function initFloatingWords() {
+            if (!floatingWordsLayer) return;
+            floatingWordsLayer.innerHTML = '';
+            floatingWordItems.length = 0;
+            const now = performance.now();
+
+            GRACE_WORDS.forEach((word, idx) => {
+                const el = document.createElement('span');
+                el.className = 'floating-grace-word';
+                el.textContent = word;
+                floatingWordsLayer.appendChild(el);
+
+                // 세종꿈의교회(약 57%)와 꿈의 목장(약 75%) 사이 공간(top 60% ~ 71.5%, left 26% ~ 74%)에서 랜덤 유영
+                const targetX = 32 + (idx % 3) * 18 + (Math.random() * 10 - 5);
+                const targetY = 61.5 + Math.floor(idx / 3) * 6.5 + (Math.random() * 4 - 2);
+
+                floatingWordItems.push({
+                    el,
+                    spawnTime: now + idx * 240,
+                    spawnDuration: 1500,
+                    x: targetX,
+                    y: targetY,
+                    vx: (Math.random() * 0.022 + 0.01) * (Math.random() < 0.5 ? 1 : -1),
+                    vy: (Math.random() * 0.016 + 0.007) * (Math.random() < 0.5 ? 1 : -1),
+                    scalePhase: Math.random() * Math.PI * 2,
+                    scaleSpeed: 0.0014 + Math.random() * 0.0008,
+                    swayPhase: Math.random() * Math.PI * 2,
+                    swaySpeed: 0.0011 + Math.random() * 0.0006
+                });
+            });
+
+            function animateWords(timestamp) {
+                if (!isFloatingWordsActive) return;
+
+                floatingWordItems.forEach((item) => {
+                    const elapsed = timestamp - item.spawnTime;
+                    if (elapsed < 0) return;
+
+                    if (elapsed < item.spawnDuration) {
+                        // 로그인 창 위치(50%, 72%)에서 서서히 튀어나와 커지며 목표 공간으로 이동
+                        const p = elapsed / item.spawnDuration;
+                        const easeOut = 1 - Math.pow(1 - p, 3);
+                        const curX = 50 + (item.x - 50) * easeOut;
+                        const curY = 72 + (item.y - 72) * easeOut;
+                        const curScale = 0.2 + 0.8 * easeOut;
+                        item.el.style.left = `${curX}%`;
+                        item.el.style.top = `${curY}%`;
+                        item.el.style.opacity = `${Math.min(0.88, p * 0.95)}`;
+                        item.el.style.transform = `translate(-50%, -50%) scale(${curScale.toFixed(3)})`;
+                    } else {
+                        // 세종꿈의교회와 꿈의 목장 사이 공간에서 서서히 유영하며 겹치기도 하고 작아졌다 커졌다 반복
+                        item.x += item.vx;
+                        item.y += item.vy;
+
+                        // 좌우 경계 (26% ~ 74%) 반사 및 미세 랜덤 변화
+                        if (item.x < 26) { item.x = 26; item.vx = Math.abs(item.vx) * (0.9 + Math.random() * 0.2); }
+                        if (item.x > 74) { item.x = 74; item.vx = -Math.abs(item.vx) * (0.9 + Math.random() * 0.2); }
+
+                        // 상하 경계: 세종꿈의교회 하단(60%) ~ 꿈의 목장 상단(71.5%) 사이 공간 유지
+                        if (item.y < 60) { item.y = 60; item.vy = Math.abs(item.vy) * (0.9 + Math.random() * 0.2); }
+                        if (item.y > 71.5) { item.y = 71.5; item.vy = -Math.abs(item.vy) * (0.9 + Math.random() * 0.2); }
+
+                        // 서서히 작아졌다 커지는 호흡 스케일 (0.76 ~ 1.12) 및 투명도 변화
+                        const wave = Math.sin(timestamp * item.scaleSpeed + item.scalePhase);
+                        const curScale = 0.94 + wave * 0.18;
+                        const curOpacity = 0.78 + wave * 0.14;
+                        const swayDeg = Math.sin(timestamp * item.swaySpeed + item.swayPhase) * 3.5;
+
+                        item.el.style.left = `${item.x.toFixed(2)}%`;
+                        item.el.style.top = `${item.y.toFixed(2)}%`;
+                        item.el.style.opacity = `${curOpacity.toFixed(2)}`;
+                        item.el.style.transform = `translate(-50%, -50%) scale(${curScale.toFixed(3)}) rotate(${swayDeg.toFixed(2)}deg)`;
+                    }
+                });
+
+                floatingAnimId = requestAnimationFrame(animateWords);
+            }
+
+            floatingAnimId = requestAnimationFrame(animateWords);
+        }
+
+        function stopFloatingWords() {
+            if (!isFloatingWordsActive) return;
+            isFloatingWordsActive = false;
+            if (floatingWordsLayer) {
+                floatingWordsLayer.style.opacity = '0';
+                setTimeout(() => {
+                    if (floatingAnimId) cancelAnimationFrame(floatingAnimId);
+                }, 650);
+            }
+        }
+
+        initFloatingWords();
+
+        let tapCount = 0;
+        let tapResetTimer = null;
+
+        // 1. 하단(꿈의 목장) 영역 5회 터치 감지 (벌리기 제스처 삭제)
+        gateBottom.addEventListener('click', () => {
+            tapCount++;
+            if (tapCount >= 5) {
+                // 5회 터치 시 로그인 창 표시 및 떠다니는 단어 서서히 페이드아웃
+                stopFloatingWords();
+                codeAuthBox.style.opacity = '1';
+                codeAuthBox.style.pointerEvents = 'auto';
+                setTimeout(() => {
+                    const codeInput = document.getElementById('input-mokjang-code');
+                    if (codeInput) codeInput.focus();
+                }, 100);
+            }
+
+            // 1.5초 내에 연속으로 터치하지 않으면 카운트 초기화
+            clearTimeout(tapResetTimer);
+            tapResetTimer = setTimeout(() => {
+                tapCount = 0;
+            }, 1500); 
+        });
+
+        function checkAutoLogin() {
+            const codeInput = document.getElementById('input-mokjang-code');
+            const nameInput = document.getElementById('input-member-name');
+            const code = codeInput.value.trim();
+            const name = nameInput.value.trim();
+            
+            // 2. 코드 4자리 입력 완료 시 자동으로 이름 칸으로 커서 이동
+            if (code.length === 4 && document.activeElement === codeInput) {
+                nameInput.focus();
+            }
+
+            // 3. 가상 코드 1111, 1111 입력 시 즉시 입장 처리
+            if (code === '1111' && name === '1111') {
+                // 모바일에서 키보드를 내려 메인 화면이 삐딱해지는 현상 방지
+                codeInput.blur();
+                nameInput.blur();
+                handleMemberLogin(name);
+            }
+        }
+
+        function handleMemberLogin(userName) {
+            // 4. 이미지가 살짝 밑으로 내려갔다가 위쪽으로 매우 천천히 밀려 올라가는 애니메이션 (3.2초로 더 부드럽고 길게)
+            authGate.style.transition = 'transform 3.2s cubic-bezier(0.25, 1, 0.5, 1)';
+            authGate.classList.add('gate-open-active');
+            
+            // 연한 하트가 천천히 여유롭게 흩날리는 효과 실행
+            createHearts();
+
+            // 애니메이션이 완전히 끝난 후 숨김 처리 (시간 여유 확보)
+            setTimeout(() => {
+                authGate.style.display = 'none';
+            }, 3200);
+
+            const displayEl = document.getElementById('header-user-display');
+            if (displayEl) {
+                const finalName = userName || document.getElementById('input-member-name').value.trim();
+                displayEl.innerHTML = `${escapeHtml(finalName)}님 <span class="text-emerald-500 font-semibold">환영합니다</span>`;
+            }
+        }
+
+        function openHelpModal() {
+            // 도움말 기능 (필요시 모달 연동)
+        }
+
+        // 하트 생성 함수 (천천히 몽글몽글 올라가도록 시간 연장)
+        function createHearts() {
+            const heartCount = 30; // 하트 개수
+            for (let i = 0; i < heartCount; i++) {
+                const heart = document.createElement('i');
+                heart.className = 'fa-solid fa-heart floating-heart';
+                
+                const left = Math.random() * 100; // 화면 가로 0~100%
+                const size = Math.random() * 16 + 12; // 크기 12~28px
+                const duration = Math.random() * 1.2 + 2.8; // 애니메이션 시간 2.8~4초로 천천히
+                const delay = Math.random() * 0.8; // 출발 지연시간 0~0.8초
+                
+                heart.style.left = `${left}vw`;
+                heart.style.fontSize = `${size}px`;
+                heart.style.animation = `floatHeart ${duration}s ease-out ${delay}s forwards`;
+                
+                document.body.appendChild(heart);
+                
+                setTimeout(() => {
+                    heart.remove();
+                }, (duration + delay) * 1000 + 100);
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, function(match) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match];
+            });
+        }
+    </script>
+</body>
+</html>
