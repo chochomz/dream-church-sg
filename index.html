@@ -4,6 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <title>우리들의 목장 이야기 - 세종꿈의교회 23목장</title>
+    <!-- [모바일 속도 최적화: 외부 리소스 사전 연결 & DNS 프리페치] -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+    <link rel="dns-prefetch" href="https://firebasestorage.googleapis.com">
+    <!-- [PWA & 모바일 브라우저 최적화 메타 & 인라인 SVG 파비콘] -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%233B5D50'/%3E%3Cpath d='M16 7v18M10 13h12' stroke='%23ffffff' stroke-width='2.8' stroke-linecap='round'/%3E%3C/svg%3E">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#3B5D50">
     <!-- Pretendard 기본 웹폰트 (초기 렌더링 최적화 병렬 로드) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
     <!-- Tailwind CSS CDN -->
@@ -47,6 +59,10 @@
             color: #222222;
             -webkit-tap-highlight-color: transparent;
             touch-action: pan-y;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        header {
+            padding-top: max(env(safe-area-inset-top, 0px), 0px);
         }
 
         .church-primary { background-color: #3B5D50; }
@@ -743,6 +759,11 @@
             <div>
                 <h4 class="text-sm font-bold text-gray-800">목장 이야기 안전 등록 중</h4>
                 <p class="text-[11px] text-gray-500 mt-0.5">안전한 보관을 위해 5단계 작업을 순서대로 진행합니다.</p>
+            </div>
+
+            <!-- 시각적 프로그레스 바 (0% ~ 100%) -->
+            <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden shadow-inner my-0.5">
+                <div id="upload-progress-bar" class="bg-emerald-600 h-1.5 rounded-full transition-all duration-300 ease-out" style="width: 20%;"></div>
             </div>
 
             <!-- 5단계 진행 상태표 -->
@@ -2963,8 +2984,14 @@
         function setUploadProgressStage(activeStage, descText) {
             const modal = document.getElementById('upload-progress-modal');
             const descEl = document.getElementById('upload-stage-status-desc');
+            const bar = document.getElementById('upload-progress-bar');
             if (modal) modal.classList.remove('hidden');
             if (descEl && descText) descEl.innerText = descText;
+
+            const percentMap = [0, 20, 42, 68, 88, 100];
+            if (bar && percentMap[activeStage]) {
+                bar.style.width = `${percentMap[activeStage]}%`;
+            }
 
             for (let i = 1; i <= 5; i++) {
                 const el = document.getElementById(`upload-stage-${i}`);
@@ -4487,7 +4514,7 @@
                 const caption = photoCaptions[i] || '';
                 return `
                     <div class="w-full flex flex-col border border-gray-100 rounded-xl overflow-hidden bg-gray-50/70 shadow-2xs">
-                        <img src="${url}" alt="사진 ${i+1}" class="w-full ${maxH} object-cover block mx-auto">
+                        <img src="${url}" alt="사진 ${i+1}" class="w-full ${maxH} object-cover block mx-auto" loading="lazy" decoding="async">
                         ${caption ? `<div class="p-1 bg-gray-50 text-[10px] text-gray-700 leading-snug border-t border-gray-100 text-left"><i class="fa-regular fa-comment-dots text-emerald-600 mr-1 text-[9px]"></i>${escapeHtml(caption)}</div>` : ''}
                     </div>
                 `;
@@ -5708,7 +5735,7 @@
                     return `
                         <div id="photo-block-${post.id}-${i}" data-grid-colspan="${itemColSpan}" class="${itemColSpan} h-full flex flex-col justify-between photo-block-item rounded-xl overflow-hidden border border-gray-200/80 bg-gray-50/70 shadow-2xs relative transition-all duration-200">
                             <div class="w-full relative flex items-center justify-center bg-gray-100 overflow-hidden shrink-0">
-                                <img id="feed-photo-img-${post.id}-${i}" src="${url}" alt="목장 사진 ${i+1}" loading="lazy" 
+                                <img id="feed-photo-img-${post.id}-${i}" src="${url}" alt="목장 사진 ${i+1}" loading="lazy" decoding="async" 
                                      onclick="handlePhotoClick('${post.id}', ${i}, event)" 
                                      data-grid-height="${imgHeightClass}"
                                      style="object-position: center 20%; touch-action: manipulation; -webkit-touch-callout: none; user-select: none;"
@@ -6855,6 +6882,7 @@
         window.closeLightbox = function(isAutoSaveAllowed = false) {
             lightboxModal.classList.add('hidden');
             lightboxTrack.innerHTML = '';
+            currentLightboxImages = []; // 모바일 메모리 즉시 해제
             currentLightboxPostId = null;
             currentLightboxPhotoIdx = 0;
             currentLightboxRotationAngle = 0;
