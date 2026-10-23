@@ -51,6 +51,16 @@
         }
         .animate-sway-welcome { display: inline-block; animation: swayWelcome 3.5s ease-in-out infinite; transform-origin: center center; }
 
+        /* 살짝 내려갔다가 천천히 올라가는 애니메이션 추가 */
+        @keyframes dipAndSlideUp {
+            0% { transform: translateY(0); }
+            20% { transform: translateY(30px); }  /* 밑으로 살짝 내려감 */
+            100% { transform: translateY(-100%); } /* 천천히 위로 밀려 올라감 */
+        }
+        .gate-open-active {
+            animation: dipAndSlideUp 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
         /* [IMG_1042.png 원본 이미지 100% 반영] */
         #auth-gate {
             position: fixed; inset: 0; z-index: 999;
@@ -182,13 +192,13 @@
         }
 
         function handleMemberLogin(userName) {
-            // 4. 이미지가 위쪽으로 천천히 밀려 올라가는 애니메이션 (투명해지지 않고 그대로 올라감)
-            authGate.style.transform = 'translateY(-100%)';
+            // 4. 이미지가 살짝 밑으로 내려갔다가 위쪽으로 매우 천천히 밀려 올라가는 애니메이션
+            authGate.classList.add('gate-open-active');
             
-            // 1.5초(1500ms) 애니메이션이 끝난 후 숨김 처리
+            // 2.8초(2800ms) 애니메이션이 끝난 후 숨김 처리
             setTimeout(() => {
                 authGate.style.display = 'none';
-            }, 1500);
+            }, 2800);
 
             const displayEl = document.getElementById('header-user-display');
             if (displayEl) {
