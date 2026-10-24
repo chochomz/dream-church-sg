@@ -1219,13 +1219,30 @@
         import { getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager, memoryLocalCache, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-        // [기존 로그인, 사용자 식별 및 관리자 권한 체계 연동 (항목 1-1, 2-1)]
+        // [기존 로그인, 사용자 식별 및 관리자 권한 체계 연동 (항목 1-1, 2-1: URL 파라미터 + localStorage + Firestore 연동)]
         let currentUser = "목장가족";
         let currentMokjangShort = "23목장";
         let currentMokjang = "세종꿈의교회 23목장";
         let isCurrentUserAdmin = false;
 
         try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramUser = urlParams.get('user');
+            const paramMokjang = urlParams.get('mokjang');
+            const paramAdmin = urlParams.get('admin');
+
+            if (paramUser && paramUser.trim()) {
+                localStorage.setItem('mokjang_user_name', paramUser.trim());
+            }
+            if (paramMokjang && paramMokjang.trim()) {
+                const cleanParamM = paramMokjang.trim().replace(/^세종꿈의교회\s*/, '');
+                localStorage.setItem('mokjang_short_name', cleanParamM);
+                localStorage.setItem('mokjang_name', `세종꿈의교회 ${cleanParamM}`);
+            }
+            if (paramAdmin !== null) {
+                localStorage.setItem('mokjang_is_admin', (paramAdmin === '1' || paramAdmin === 'true') ? 'true' : 'false');
+            }
+
             const savedName = localStorage.getItem('mokjang_user_name');
             if (savedName && savedName.trim()) currentUser = savedName.trim();
             const savedMokjang = localStorage.getItem('mokjang_short_name') || localStorage.getItem('mokjang_name');
