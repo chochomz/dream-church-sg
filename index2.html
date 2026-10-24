@@ -69,18 +69,33 @@
         .church-primary-text { color: #3B5D50; }
         .church-accent { background-color: #E8F0EC; }
         .church-border { border-color: #E5E7EB; }
-        /* [메인 타이틀 '꿈' 중심 은은한 빛 쉬머 애니메이션 - 속도 1/2로 감속(7s)] */
-        @keyframes dreamShimmerSlow {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+        /* [메인 타이틀: 기존 흰색 빛 애니메이션 제거 + 1pt 확대(18.8px) + 진한 회색(#374151) + 하트 이동] */
+        .header-main-title-text {
+            font-size: 18.8px !important;
+            color: #374151 !important;
+            background: none !important;
+            -webkit-text-fill-color: #374151 !important;
+            animation: none !important;
+            display: inline-flex;
+            align-items: center;
         }
-        .dream-shimmer-text {
-            background: linear-gradient(90deg, #111827 0%, #1f2937 32%, #ffffff 50%, #1f2937 68%, #111827 100%);
-            background-size: 200% 100%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: dreamShimmerSlow 7s ease-in-out infinite;
-            display: inline-block;
+        .header-title-floating-heart {
+            position: absolute;
+            pointer-events: none;
+            user-select: none;
+            color: #f48fb1;
+            z-index: 35;
+            will-change: transform, opacity;
+            line-height: 1;
+        }
+        @keyframes runToChurchMotion {
+            0%, 100% { transform: translateX(-4px) translateY(0px); }
+            50% { transform: translateX(4px) translateY(-2.5px); }
+        }
+        .animate-run-to-church {
+            display: inline-flex;
+            align-items: center;
+            animation: runToChurchMotion 0.65s ease-in-out infinite;
         }
 
 
@@ -376,12 +391,16 @@
         <!-- 왼쪽 더미 영역 (향후 로고 앞단 배치 고려 및 중앙 밸런스 유지용) -->
         <div class="w-8 shrink-0 flex items-center justify-start" id="header-logo-slot"></div>
 
-        <!-- 중앙 메인 타이틀 (화면 정중앙 절대 배치 + '꿈' 중심 백색 빛 번짐 + 살랑거리는 환영문구) -->
-        <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center pointer-events-auto max-w-[70vw]">
-            <div class="flex items-center space-x-1.5 justify-center" id="header-mokjang-title-container">
-                <h1 class="text-[17.5px] font-black tracking-tight leading-tight truncate whitespace-nowrap dream-shimmer-text" id="header-mokjang-title">
-                    세종꿈의교회 23목장
+        <!-- 중앙 메인 타이틀 (로고 + 진한 회색 1pt 확대 타이틀 + 23목장->세 하트 애니메이션) -->
+        <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center pointer-events-auto max-w-[76vw]">
+            <div class="relative flex items-center space-x-1.5 justify-center" id="header-mokjang-title-container">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAAoCAYAAAB5ADPdAAAWfmNhQlgAABZ+anVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAFlhqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjM2ZjIzYzljLTFiMGQtNGEyZS04NmU3LTk4NzljZjRjMjE3NQAAAAOTanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAAAuGp1bWIAAABEanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5pbmdyZWRpZW50LnYzAAAAABhjMnNoozP3h9Ae7zHJk3fn/mFDCwAAAGxjYm9yo2lkYzpmb3JtYXRpaW1hZ2UvcG5namluc3RhbmNlSUR4LHhtcDppaWQ6NTM5ZDIyNTItMzVmMS00Y2Q5LThlZWMtY2Y2MzM4Yzc3YTI5bHJlbGF0aW9uc2hpcGhwYXJlbnRPZgAAAeJqdW1iAAAAQWp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuYWN0aW9ucy52MgAAAAAYYzJzaC0DSUG0gzGtjaES6fNLd50AAAGZY2JvcqJnYWN0aW9uc4KiZmFjdGlvbmtjMnBhLm9wZW5lZGpwYXJhbWV0ZXJzoWtpbmdyZWRpZW50c4GiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5pbmdyZWRpZW50LnYzZGhhc2hYIEAc0kZOeHRHbUIZtQSvjfoeMXgultlCebgwp5KFE2fvpGZhY3Rpb254HWNvbS5hbnRocm9waWMuY2xhdWRlLnByb3ZpZGVkanBhcmFtZXRlcnOheB9jb20uYW50aHJvcGljLm9yaWdpbi1jb25maWRlbmNlZ3Vua25vd25rZGVzY3JpcHRpb254ZkNsYXVkZSBwcm92aWRlZCB0aGlzIGZpbGUgYXQgdGhlIHJlcXVlc3Qgb2YgYSB1c2VyIGFuZCBtYXkgaGF2ZSBjcmVhdGVkIG9yIG1vZGlmaWVkIHRoZSBmaWxlIGNvbnRlbnRzLm1zb2Z0d2FyZUFnZW50oWRuYW1lZkNsYXVkZXJhbGxBY3Rpb25zSW5jbHVkZWT1AAAAyGp1bWIAAABAanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5oYXNoLmRhdGEAAAAAGGMyc2jSNLCEgqTVOZ+pFtPgpRYJAAAAgGNib3KlY2FsZ2ZzaGEyNTZjcGFkTQAAAAAAAAAAAAAAAABkaGFzaFggT1t+WDmlnH8bb0WGw1CNyA++PIPnRKhVylsDnVv/jLlkbmFtZW5qdW1iZiBtYW5pZmVzdGpleGNsdXNpb25zgaJlc3RhcnQYIWZsZW5ndGgZFooAAAI+anVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAg9jYm9ypWNhbGdmc2hhMjU2aXNpZ25hdHVyZXhNc2VsZiNqdW1iZj0vYzJwYS91cm46YzJwYTozNmYyM2M5Yy0xYjBkLTRhMmUtODZlNy05ODc5Y2Y0YzIxNzUvYzJwYS5zaWduYXR1cmVqaW5zdGFuY2VJRHgseG1wOmlpZDo2MjlmZjAzZC0xMDViLTRhOTgtYmYwYi03YmFhNTFiZmQ0MDNyY3JlYXRlZF9hc3NlcnRpb25zg6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggQBzSRk54dEdtQhm1BK+N+h4xeC6W2UJ5uDCnkoUTZ++iY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIJYd6SYRHN8jdj+69EZIYQn6jGHofD0Iyt/Xpr1zrvZaomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIKCq5lKeFge36naq2l//psMmcpfEoNgZ/E/OSO0hlXM9dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lb0FudGhyb3BpYyBGaWxlc2d2ZXJzaW9uZTEuMC4wa3NwZWNWZXJzaW9uZTIuNC4wAAAQOGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAAQCGNib3LShFkCEqIBJhghWQIKMIICBjCCAY2gAwIBAgIUQOWgCu7COdC+uIP6BkIFPWdVEwAwCgYIKoZIzj0EAwMwSTEXMBUGA1UEChMOQW50aHJvcGljLCBQQkMxLjAsBgNVBAMTJUFudGhyb3BpYyBDb250ZW50IENyZWRlbnRpYWxzIFJvb3QgQ0EwHhcNMjYwODA3MTg0MzU2WhcNMjgwODA2MTk0MzU2WjBEMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEpMCcGA1UEAxMgQW50aHJvcGljIENsYXVkZSBDb250ZW50IFNpZ25pbmcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASYegpry1AYBRTVNL1CpTlbROnY3dey+UrsF9C3phYrATN3ZHf93Mo8RQN0KOUuOn19P4oWNFWe5n2/She9N7eTo1gwVjAOBgNVHQ8BAf8EBAMCB4AwFQYDVR0lBA4wDAYKKwYBBAGD6F4CATAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFM5R4gSBTmRbI/jjxM+aPpzB11zCMAoGCCqGSM49BAMDA2cAMGQCMDFzHRSeAXrSy1WOzkbhPZ6Km2wGTmZ/2gK18k8BQGXyqz88Rdrz6CTX9flAnYNVxgIwcF9c3fVhqmJKpi+UhasNUMko69cyX6STPfta3Q8EjyzDjzoyrol46FP6VFHhvUcJoWNwYWRZDZ4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2WEDChziD9nOFcOpNwjEP6wuYEqQwAnkEd+ILMo921nUkMfwgMkmNzCh3BEL5JCX+LHJAh+o/nERcYq1y+IStIUI46xnrpwAABelJREFUeJy9mFtsFFUYx3/fmdm2S22x3KrQegveQCVqUAzRPqmJ+qJmiYKKiokPRg2JiQle1gaj8RJR9MlQCqIYXQkYY2L0xWI0Bm8xalFTL2wXsEVEil3a7sz5fDizS1tpd2er/pPJSc7u+eb/3b8zMDUIbWmf1lV307pqpdtKeVOUian+aMoDlB+zS4CnQJJTJfMvkCqJSIIZQShMXVYksYoz4p5+t4paUHHPqP0pwK/ijLqlKwDAUHDkCN1v0f4UEEOjtIF2yymr7kO5EuEIiEFpAE4D/Q2Rg6CgUo+En5LtXFs6FwMxLNXtFFBmgLSCDkRKJUACoAFLEhEL0oDKrDhERqMK37f5LJhjGMCjuSngQOFq1OtE7YN44VbyeZ9aQhoJ6c6MVEOqipjqCugGQMihtNxeQBCMjrBn81A1JMaj2pIg0Oa51YusLVHWtfmUMrQ6VJN9AApzlFImlt2vFALOUlLdM/V6dIxI2pQ6BKhP1Vp1uboUhoof2+ACqSh0MiG0RxxSHi3Jk3yWv9ZEITFEU53Tel/x3H5INk1MuL/f47SFAV1v1BIG5RQTSIsrK29aEHVkgPn31jI8eD5wBcjlSPCsj9ZdQ425jkE9AmqYXpTTPF7s2BfPnStIPuSMc5r44eujJBLjkiZtSrVtjDUEmm+ZQ6L2IoSlDOcXg5kH2gr2MbKbP/Y564bX6Xl7LnAVyCEUH1FFZWy8/DOkBSsh4k0DVdRGsbHfAOHYKn5xgpZFZ4NeipjLgIWozAY1iAyi1CK6g2znC5DyfNpR2r5ax7xFJyLmAgxHwHhI2c4goCFWA0dChiIilpbVSXTgTIxeBLIY5DzgZJAa0AJwFOEwIoqSQBkgKDzqVF9Q7O6irNjSiNY/ifFaUPLA5MOaDZRp0wvs+XE23bsWk/BfIix8gvjnIjSjWg9iQC1CDcoJiMxBZaaraSpOGW2CcDW9m952GZgJDYiSThteu3UA0cdR+ydCLTCRqSwJP0RMPb/vnc2hvsOg61A+hDAHhfeRYAciO0H3AnWoaQFzuiOEARVEApAm0MxoQpELIqTV0C6Wm986B/HWuhKmFoliSy14foAyjT/66ujPfUffrzvo3fQRLakk1F+B+EtBLwQ5FWiIJAdAIVqLhdWC1KF2L3VDN9Iz/68oEXQsKYDUmx6ZZSErti1BvTUYjoIBa6EmYTkyMJO9Pb/w0+5XOLD1Y0Bovet+0OUgzSAhMAQ64lxTjL2Su4pbCppE9TZyHbvGjzf/rMhFYjdtuxbPuwf0MH6d0J+byS/fbOf79R3AMKfffQlB+ATI/GiMicZhMWMJjINIgOosRJ8j27F+tNsmJjWa2PLtt+InVtDXq+z+7CWyG98F4JQ7r0XNM7iJcxAVb1IixxACDaCf09tzm+uTGcu4gnP8KSGzzELasPX6LRzI7eSnbzeQ3fguqsK8Oy5FzbO4GMmj+JUREgUSwF/I8ENubF5w3OYdbxxu6a5FGreBnAEMUq5sjEUIzEDsA2Q3bjue24ooP0+JAGkf2i1ewxJEzo5NqJj+areXIwSVzFOqQLczsdVFxB8MLapJ0F8xQ2sjV9vJnBTvBUpDFBsxoT5h+DDZrYfgMSknIx4pkYEKs6z4/wCYgeFl9m36xLmt/HUrJim+RSZsP+MRotqI6C5meetdgcxUdLZCUhkLCMMjn2K1B0gycW8kco8Pmseyhi9eLn5nqMj1lVpKIWXoe3UQWBc17EleoBZoBJ4k19FTqdviksKlcNqQ63gPaz9Amc6x/nYMIgEiJ4K+Q2/HG+XS/3io7opl9GmUJe682FHBX0z/HOFIezSrxfqOALFrTruFlEe282dUNwDTo68to1GD6iPs23IQlhmquC1VcUPOuL7IQAdot5swsaX0F7uB3Mad1bhtCqQizXOZo6h9CtUEQugKq35JTf3zcdL/3yJFyY25zi4M76DMApvHBGvoeXF4DPn/jxREY4eA9zSqebDr2LP5+7jp/1/AZd3JK5eyIFUTqwVNgr8BRP9wO6KfylkAAAAASUVORK5CYII=" alt="세종꿈의교회 로고" class="w-[21px] h-[21px] object-contain shrink-0 select-none" id="header-church-logo">
+                <h1 class="header-main-title-text font-black tracking-tight leading-tight whitespace-nowrap select-none relative" id="header-mokjang-title">
+                    <span id="title-church-prefix"><span id="title-char-se">세</span>종꿈의교회</span>
+                    <span id="title-mokjang-name" class="ml-1 relative inline-block">23목장</span>
                 </h1>
+                <!-- 타이틀 하트 애니메이션 오버레이 -->
+                <div id="header-title-hearts-layer" class="absolute inset-0 pointer-events-none overflow-visible"></div>
             </div>
             <!-- 살살 흔들리는 다정한 서브 환영 문구 (접속자 한분, 두분 실시간 반영) -->
             <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none" id="header-user-display">목장 가족님 <span class="text-emerald-500 font-semibold">한분</span> 환영합니다</p>
@@ -529,12 +548,13 @@
                     <i class="fa-regular fa-calendar-days text-[9.5px]"></i>
                 </button>
 
-                <!-- 새로운 댓글 모아보기 원터치 버튼 -->
+                <!-- 새로운 댓글 모아보기 원터치 버튼 (읽지 않은 댓글 수 배지 포함) -->
                 <button type="button" onclick="event.stopPropagation(); toggleRecentCommentsNavigator(event)" 
                         id="feed-bookmark-comment-btn" 
-                        class="w-5 h-5 rounded-full bg-emerald-700/85 hover:bg-emerald-800 text-white flex items-center justify-center text-[9.5px] font-bold shadow-2xs active:scale-90 transition-transform pointer-events-auto shrink-0 select-none" 
-                        title="새로운 댓글 모아보기 (꺾쇠로 순회 이동)">
-                    💬
+                        class="relative w-5 h-5 rounded-full bg-emerald-700/85 hover:bg-emerald-800 text-white flex items-center justify-center text-[9.5px] font-bold shadow-2xs active:scale-90 transition-transform pointer-events-auto shrink-0 select-none" 
+                        title="새로운 댓글 모아보기 (읽지 않은 댓글 수 표시 및 순회 이동)">
+                    <span>💬</span>
+                    <span id="unread-comments-badge" class="hidden absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-rose-500 text-white text-[8.5px] font-mono font-black flex items-center justify-center shadow-xs border border-white leading-none">0</span>
                 </button>
             </div>
 
@@ -564,40 +584,40 @@
         </div>
     </div>
 
-    <!-- [책갈피 연동 센스 미니 월 달력 팝업 (계절별 테두리 색상 및 고투명 배경 적용)] -->
+    <!-- [책갈피 연동 센스 미니 월 달력 팝업 (투명도 20% 증가 + 상단 드래그 이동 + 연도/날짜/요일 확대)] -->
     <div id="bookmark-calendar-popup" 
-         class="fixed z-50 pointer-events-auto hidden select-none shadow-2xl rounded-2xl bg-white/80 backdrop-blur-md border-2 border-emerald-600/80 ring-1 ring-black/5 p-3 w-[252px] transition-all duration-300 transform opacity-0 scale-90"
-         style="touch-action: auto; background-color: rgba(255, 255, 255, 0.82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
-        <!-- 상단 헤더: 이전달 / 연월 / 다음달 / 닫기 -->
-        <div class="flex items-center justify-between pb-2 mb-2 border-b border-gray-100">
-            <div class="flex items-center space-x-1">
-                <button type="button" onclick="prevBookmarkCalendarMonth(event)" class="w-6 h-6 rounded-full hover:bg-gray-100 active:scale-90 text-gray-500 flex items-center justify-center transition-all text-xs" title="이전 달">
+         class="fixed z-50 pointer-events-auto hidden select-none shadow-2xl rounded-2xl border-2 border-emerald-600/80 ring-1 ring-black/5 p-3 w-[252px] transition-opacity duration-200 transform opacity-0 scale-90"
+         style="touch-action: none; background-color: rgba(255, 255, 255, 0.62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+        <!-- 상단 드래그 헤더: 상단 영역을 잡고 화면 안에서 자유 이동 -->
+        <div id="bookmark-calendar-drag-handle" class="flex items-center justify-between pb-2 mb-1.5 border-b border-gray-200/60 cursor-move active:cursor-grabbing select-none" title="상단 영역을 끌어서 달력 위치를 이동할 수 있습니다">
+            <div class="flex items-center space-x-0.5">
+                <button type="button" onclick="prevBookmarkCalendarMonth(event)" class="w-6 h-6 rounded-full hover:bg-white/70 active:scale-90 text-gray-600 flex items-center justify-center transition-all text-xs" title="이전 달">
                     <i class="fa-solid fa-chevron-left text-[10px]"></i>
                 </button>
-                <h4 id="bookmark-calendar-title" class="text-xs font-black text-gray-800 tracking-tight min-w-[72px] text-center">2026년 10월</h4>
-                <button type="button" onclick="nextBookmarkCalendarMonth(event)" class="w-6 h-6 rounded-full hover:bg-gray-100 active:scale-90 text-gray-500 flex items-center justify-center transition-all text-xs" title="다음 달">
+                <h4 id="bookmark-calendar-title" class="text-[13.5px] font-black text-gray-900 tracking-tight min-w-[82px] text-center">2026년 10월</h4>
+                <button type="button" onclick="nextBookmarkCalendarMonth(event)" class="w-6 h-6 rounded-full hover:bg-white/70 active:scale-90 text-gray-600 flex items-center justify-center transition-all text-xs" title="다음 달">
                     <i class="fa-solid fa-chevron-right text-[10px]"></i>
                 </button>
             </div>
             
             <div class="flex items-center space-x-1">
-                <button type="button" onclick="goBookmarkCalendarToday(event)" class="px-1.5 py-0.5 rounded text-[10px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 active:scale-95 border border-emerald-200/60 shadow-2xs transition-all">
+                <button type="button" onclick="goBookmarkCalendarToday(event)" class="px-1.5 py-0.5 rounded text-[10.5px] font-bold text-emerald-900 bg-emerald-50/90 hover:bg-emerald-100 active:scale-95 border border-emerald-200/80 shadow-2xs transition-all">
                     오늘
                 </button>
-                <button type="button" onclick="closeBookmarkCalendar(event)" class="w-6 h-6 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 flex items-center justify-center active:scale-90 transition-all text-xs">
+                <button type="button" onclick="closeBookmarkCalendar(event)" class="w-6 h-6 rounded-full text-gray-500 hover:text-gray-800 hover:bg-white/70 flex items-center justify-center active:scale-90 transition-all text-xs">
                     <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
             </div>
         </div>
 
-        <!-- 요일 헤더: 월요일을 돋보이게 강조 ("잠깐 월요일을 확인하는 센스 기능") -->
-        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold mb-1.5 py-1 bg-gray-50/80 rounded-lg">
+        <!-- 요일 헤더: 글자 크기 확대 (11.5px) 및 월요일 강조 -->
+        <div class="grid grid-cols-7 gap-1 text-center text-[11.5px] font-extrabold mb-1.5 py-1 bg-white/50 rounded-lg">
             <span class="text-rose-500">일</span>
-            <span class="text-emerald-800 font-extrabold bg-emerald-200/60 rounded py-0.5 shadow-2xs" title="월요일">월</span>
-            <span class="text-gray-600">화</span>
-            <span class="text-gray-600">수</span>
-            <span class="text-gray-600">목</span>
-            <span class="text-gray-600">금</span>
+            <span class="text-emerald-800 font-black bg-emerald-200/70 rounded py-0.5 shadow-2xs" title="월요일">월</span>
+            <span class="text-gray-700">화</span>
+            <span class="text-gray-700">수</span>
+            <span class="text-gray-700">목</span>
+            <span class="text-gray-700">금</span>
             <span class="text-sky-500">토</span>
         </div>
 
@@ -606,13 +626,13 @@
             <!-- renderBookmarkCalendar()로 일자 동적 주입 -->
         </div>
 
-        <!-- 하단 센스 안내 팁 -->
-        <div class="mt-2 pt-1.5 border-t border-gray-100/80 flex items-center justify-between text-[9.5px] text-gray-400 leading-none">
-            <span class="flex items-center space-x-1">
-                <span class="w-2 h-2 rounded-full bg-emerald-300 inline-block"></span>
-                <span class="text-emerald-800 font-semibold">월요일 강조</span>
+        <!-- 하단 센스 안내 팁 (보라: 게시글 수 / 분홍: 댓글 수) -->
+        <div class="mt-2 pt-1.5 border-t border-gray-200/60 flex items-center justify-between text-[9.5px] text-gray-600 leading-none">
+            <span class="flex items-center space-x-2">
+                <span class="flex items-center space-x-0.5"><span class="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block"></span><span class="text-purple-700 font-bold">글</span></span>
+                <span class="flex items-center space-x-0.5"><span class="w-1.5 h-1.5 rounded-full bg-pink-400 inline-block"></span><span class="text-pink-600 font-bold">댓글</span></span>
             </span>
-            <span class="text-[9px] text-gray-500 font-medium">일자 터치 시 쏜살 이동 🚀</span>
+            <span class="text-[9px] text-gray-600 font-semibold">상단 드래그 이동 · 일자 터치 이동</span>
         </div>
     </div>
 
@@ -741,7 +761,9 @@
 
             <div id="comments-modal-list" class="flex-1 overflow-y-auto p-3 space-y-2.5 text-xs"></div>
 
-            <div class="p-2 border-t church-border bg-gray-50/70 shrink-0 flex items-center justify-end">
+            <div class="p-2 border-t church-border bg-gray-50/70 shrink-0 flex items-center justify-between gap-1.5">
+                <input type="text" id="comments-modal-input" maxlength="200" placeholder="댓글 입력..." onkeydown="if(event.key==='Enter'){event.preventDefault();addCommentFromModal();}" class="flex-1 px-2.5 py-1 rounded-lg text-xs border border-dashed border-gray-300 bg-white text-gray-800">
+                <button type="button" onclick="addCommentFromModal()" class="py-1 px-2.5 church-primary text-white rounded-lg text-xs font-semibold active:scale-95 transition-all">등록</button>
                 <button type="button" onclick="closeCommentsModal()" class="py-1 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium active:scale-95 transition-all">
                     닫기
                 </button>
@@ -750,11 +772,16 @@
     </div>
 
     
-    <!-- [글쓰기 5단계 안전 저장 및 시계 진행표 모달 (저장-압축-스토리지 업로드-url 수집-파이어스토어 문서저장)] -->
+    <!-- [글쓰기 5단계 안전 저장 및 사람->교회 달리기 모달 (항목 3-1, 3-2, 3-3)] -->
     <div id="upload-progress-modal" class="fixed inset-0 z-[70] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden" style="touch-action: none;">
         <div class="bg-white rounded-2xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3.5">
-            <div class="w-12 h-12 bg-emerald-50 text-emerald-700 rounded-full flex items-center justify-center mx-auto text-xl shadow-2xs border border-emerald-100">
-                <i id="upload-clock-icon" class="fa-solid fa-clock-rotate-left fa-spin text-2xl text-emerald-700" style="animation-duration: 3s;"></i>
+            <!-- 왼쪽 사람 -> 오른쪽 교회를 향해 달려가는 이모지 표현 -->
+            <div class="w-24 h-12 bg-emerald-50 text-emerald-700 rounded-full flex items-center justify-center mx-auto text-xl shadow-2xs border border-emerald-100 px-3 space-x-1.5 select-none">
+                <span id="upload-runner-emoji" class="animate-run-to-church inline-flex items-center">
+                    <span style="display:inline-block; transform: scaleX(-1);" class="text-xl leading-none">🏃</span>
+                </span>
+                <span class="text-emerald-400 text-xs font-bold tracking-tighter">···▸</span>
+                <span class="text-xl leading-none">⛪</span>
             </div>
             <div>
                 <h4 class="text-sm font-bold text-gray-800">목장 이야기 안전 등록 중</h4>
@@ -766,31 +793,31 @@
                 <div id="upload-progress-bar" class="bg-emerald-600 h-1.5 rounded-full transition-all duration-300 ease-out" style="width: 20%;"></div>
             </div>
 
-            <!-- 5단계 진행 상태표 -->
+            <!-- 5단계 진행 상태표 (1~4단계 동일 문구 통일, 5단계 완료 문구) -->
             <div class="space-y-1.5 text-left bg-gray-50/80 p-2.5 rounded-xl border border-gray-100 text-xs">
                 <div id="upload-stage-1" class="flex items-center space-x-2 text-gray-400">
                     <span class="stage-icon w-4 text-center">⏳</span>
-                    <span class="stage-text text-[11px]">1. 저장 준비 및 용량 검사</span>
+                    <span class="stage-text text-[11px]">1. 목장 이야기를 안전하게 등록 중입니다</span>
                 </div>
                 <div id="upload-stage-2" class="flex items-center space-x-2 text-gray-400">
                     <span class="stage-icon w-4 text-center">⚪</span>
-                    <span class="stage-text text-[11px]">2. 사진 고효율 압축 처리</span>
+                    <span class="stage-text text-[11px]">2. 목장 이야기를 안전하게 등록 중입니다</span>
                 </div>
                 <div id="upload-stage-3" class="flex items-center space-x-2 text-gray-400">
                     <span class="stage-icon w-4 text-center">⚪</span>
-                    <span class="stage-text text-[11px]">3. 클라우드 스토리지 업로드</span>
+                    <span class="stage-text text-[11px]">3. 목장 이야기를 안전하게 등록 중입니다</span>
                 </div>
                 <div id="upload-stage-4" class="flex items-center space-x-2 text-gray-400">
                     <span class="stage-icon w-4 text-center">⚪</span>
-                    <span class="stage-text text-[11px]">4. 다운로드 URL 안전 수집</span>
+                    <span class="stage-text text-[11px]">4. 목장 이야기를 안전하게 등록 중입니다</span>
                 </div>
                 <div id="upload-stage-5" class="flex items-center space-x-2 text-gray-400">
                     <span class="stage-icon w-4 text-center">⚪</span>
-                    <span class="stage-text text-[11px]">5. 파이어스토어 문서 저장</span>
+                    <span class="stage-text text-[11px]" id="upload-stage-5-text">5. 목장 이야기를 안전하게 등록 중입니다</span>
                 </div>
             </div>
 
-            <p id="upload-stage-status-desc" class="text-[10px] text-emerald-700 font-semibold animate-pulse">잠시만 기다려 주세요...</p>
+            <p id="upload-stage-status-desc" class="text-[11px] text-emerald-700 font-bold animate-pulse">목장 이야기를 안전하게 등록 중입니다</p>
         </div>
     </div>
 
@@ -1058,27 +1085,31 @@
         </div>
     </div>
 
-    <!-- [라이트박스 모달: 흰색 배경 테마 + 즉각 반응] -->
+    <!-- [라이트박스 모달: 상단 중앙(마법봉-회전-초기화-이름변경) & 하단 중앙(취소후 닫기-이대로 저장(화질보존))] -->
     <div id="lightbox-modal" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-between hidden p-2 select-none">
-        <div class="w-full flex items-center justify-end p-2 z-50 bg-white/95 border-b border-gray-200 shadow-xs rounded-xl">
-            <div class="flex items-center space-x-2">
-                <!-- 마법봉 버튼 (밝기/대비 조절) -->
-                <button type="button" id="lightbox-autofix-btn" onclick="toggleLightboxAdjustPanel()" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 rounded-lg flex items-center justify-center transition-all border border-gray-200 shadow-2xs" title="밝기/대비 조절">
-                    <i class="fa-solid fa-wand-magic-sparkles text-sm text-gray-700"></i>
+        <div class="w-full flex items-center justify-center p-2 z-50 bg-white/95 border-b border-gray-200 shadow-xs rounded-xl">
+            <div class="flex items-center justify-center space-x-2 flex-nowrap whitespace-nowrap">
+                <!-- 1. 마법봉 버튼 (밝기/대비 조절) -->
+                <button type="button" id="lightbox-autofix-btn" onclick="toggleLightboxAdjustPanel()" class="h-8 px-2.5 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 rounded-lg flex items-center justify-center space-x-1 transition-all border border-gray-200 shadow-2xs text-xs font-semibold" title="마법봉 (밝기/대비 보정)">
+                    <i class="fa-solid fa-wand-magic-sparkles text-xs text-emerald-700"></i>
+                    <span>마법봉</span>
                 </button>
-                <!-- 90도 회전 버튼 -->
-                <button type="button" onclick="rotateLightboxImage()" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 rounded-lg flex items-center justify-center transition-all border border-gray-200 shadow-2xs" title="90° 회전">
-                    <i class="fa-solid fa-rotate-right text-sm text-gray-700"></i>
+                <!-- 2. 회전 버튼 -->
+                <button type="button" onclick="rotateLightboxImage()" class="h-8 px-2.5 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 rounded-lg flex items-center justify-center space-x-1 transition-all border border-gray-200 shadow-2xs text-xs font-semibold" title="90° 회전">
+                    <i class="fa-solid fa-rotate-right text-xs text-gray-700"></i>
+                    <span>회전</span>
                 </button>
-                <!-- 적용 버튼 (피드 원본에 적용) -->
-                <button type="button" onclick="cropAndSaveLightboxImage()" class="h-8 px-2.5 church-primary hover:opacity-90 active:scale-95 text-white rounded-lg flex items-center justify-center space-x-1 shadow-xs transition-all text-xs font-semibold" title="피드 원본에 적용">
-                    <i class="fa-solid fa-check text-xs"></i>
-                    <span>적용</span>
+                <!-- 3. 초기화 버튼 (사진의 틀 설정과 이미지 보정 설정 모두 초기화) -->
+                <button type="button" onclick="resetLightboxAll()" class="h-8 px-2.5 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 rounded-lg flex items-center justify-center space-x-1 transition-all border border-gray-200 shadow-2xs text-xs font-semibold" title="틀 설정 및 이미지 보정 모두 초기화">
+                    <i class="fa-solid fa-arrows-rotate text-xs text-emerald-800"></i>
+                    <span>초기화</span>
                 </button>
-                <!-- 상부 닫기 버튼 -->
-                <button type="button" onclick="closeLightbox(true)" class="h-8 px-2.5 flex items-center justify-center rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all ml-1 border border-gray-200 text-xs font-medium" title="닫기">
-                    <span>닫기</span>
+                <!-- 4. 이름변경 버튼 (상단 기능 영역으로 이동 배치) -->
+                <button type="button" onclick="openRenameModalFromLightbox()" class="h-8 px-2.5 bg-emerald-50 hover:bg-emerald-100 active:scale-95 text-emerald-900 rounded-lg flex items-center justify-center space-x-1 transition-all border border-emerald-200 shadow-2xs text-xs font-semibold" title="이름변경">
+                    <i class="fa-solid fa-user-pen text-xs text-emerald-700"></i>
+                    <span>이름변경</span>
                 </button>
+                <span id="lightbox-zoom-level" class="hidden">100%</span>
             </div>
         </div>
 
@@ -1108,38 +1139,38 @@
                 <i class="fa-solid fa-chevron-left text-sm"></i>
             </button>
 
-            <!-- [신규 크롭 틀: 사진 고정 & 4각 꼭지점 조절 및 자유 드래그] -->
+            <!-- [중앙 편집 프레임: 노란색 두꺼운 점선 테두리 & 상하좌우 여백 적용 (항목 7-1)] -->
             <div id="lightbox-crop-box" 
                  class="absolute z-30 cursor-move"
-                 style="left: 50%; top: 50%; width: 280px; height: 280px; transform: translate(-50%, -50%); border: 2.5px dashed #244E3F; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.48); touch-action: none;">
+                 style="left: 50%; top: 50%; width: 280px; height: 280px; transform: translate(-50%, -50%); border: 3.5px dashed #FACC15; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.52); touch-action: none;">
                 <!-- 내부 3분할 은은한 안내선 (Rule of thirds) -->
-                <div class="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-25">
-                    <div class="border-r border-b border-white"></div>
-                    <div class="border-r border-b border-white"></div>
-                    <div class="border-b border-white"></div>
-                    <div class="border-r border-b border-white"></div>
-                    <div class="border-r border-b border-white"></div>
-                    <div class="border-b border-white"></div>
-                    <div class="border-r border-white"></div>
-                    <div class="border-r border-white"></div>
+                <div class="absolute inset-0 grid grid-cols-3 grid-rows-3 pointer-events-none opacity-30">
+                    <div class="border-r border-b border-yellow-200/70"></div>
+                    <div class="border-r border-b border-yellow-200/70"></div>
+                    <div class="border-b border-yellow-200/70"></div>
+                    <div class="border-r border-b border-yellow-200/70"></div>
+                    <div class="border-r border-b border-yellow-200/70"></div>
+                    <div class="border-b border-yellow-200/70"></div>
+                    <div class="border-r border-yellow-200/70"></div>
+                    <div class="border-r border-yellow-200/70"></div>
                     <div></div>
                 </div>
                 <!-- 중앙 은은한 십자 가이드 -->
-                <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
-                    <i class="fa-solid fa-plus text-white text-2xl drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"></i>
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-50">
+                    <i class="fa-solid fa-plus text-yellow-300 text-2xl drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]"></i>
                 </div>
-                <!-- 4개 코너 원형 꼭지점 핸들 (좌상 NW, 우상 NE, 좌하 SW, 우하 SE) -->
+                <!-- 4개 코너 원형 꼭지점 핸들 (노란색 프레임과 조화) -->
                 <div class="crop-handle crop-handle-nw absolute -top-4 -left-4 w-9 h-9 flex items-center justify-center cursor-nwse-resize z-40 touch-none" data-handle="nw">
-                    <div class="w-4 h-4 rounded-full bg-white border-2 border-[#244E3F] shadow-md pointer-events-none"></div>
+                    <div class="w-4 h-4 rounded-full bg-yellow-300 border-2 border-amber-700 shadow-md pointer-events-none"></div>
                 </div>
                 <div class="crop-handle crop-handle-ne absolute -top-4 -right-4 w-9 h-9 flex items-center justify-center cursor-nesw-resize z-40 touch-none" data-handle="ne">
-                    <div class="w-4 h-4 rounded-full bg-white border-2 border-[#244E3F] shadow-md pointer-events-none"></div>
+                    <div class="w-4 h-4 rounded-full bg-yellow-300 border-2 border-amber-700 shadow-md pointer-events-none"></div>
                 </div>
                 <div class="crop-handle crop-handle-sw absolute -bottom-4 -left-4 w-9 h-9 flex items-center justify-center cursor-nesw-resize z-40 touch-none" data-handle="sw">
-                    <div class="w-4 h-4 rounded-full bg-white border-2 border-[#244E3F] shadow-md pointer-events-none"></div>
+                    <div class="w-4 h-4 rounded-full bg-yellow-300 border-2 border-amber-700 shadow-md pointer-events-none"></div>
                 </div>
                 <div class="crop-handle crop-handle-se absolute -bottom-4 -right-4 w-9 h-9 flex items-center justify-center cursor-nwse-resize z-40 touch-none" data-handle="se">
-                    <div class="w-4 h-4 rounded-full bg-white border-2 border-[#244E3F] shadow-md pointer-events-none"></div>
+                    <div class="w-4 h-4 rounded-full bg-yellow-300 border-2 border-amber-700 shadow-md pointer-events-none"></div>
                 </div>
             </div>
 
@@ -1150,20 +1181,34 @@
             </button>
         </div>
 
-        <!-- [하부 기능 단추: 90° 회전 삭제, 1열 가로 단일 라인 정렬] -->
-        <div class="w-full py-2 px-3 flex items-center justify-between z-50 bg-white/95 border-t border-gray-200 shadow-xs rounded-xl select-none flex-nowrap whitespace-nowrap">
-            <button type="button" onclick="resetCropBoxToImage(0.85)" class="h-8 px-3 rounded-lg bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 border border-gray-200 shadow-2xs text-xs font-semibold flex items-center space-x-1.5 transition-all shrink-0 whitespace-nowrap" title="크롭 틀을 사진 크기(85%)로 리셋">
-                <i class="fa-solid fa-arrows-rotate text-[11px] text-emerald-800"></i>
-                <span class="whitespace-nowrap">틀 초기화</span>
-            </button>
-            <div class="flex items-center space-x-2 shrink-0 flex-nowrap whitespace-nowrap">
-                <button type="button" onclick="closeLightbox(false)" class="h-8 px-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs font-medium active:scale-95 transition-all whitespace-nowrap">
-                    취소
+        <!-- [하단 버튼 중앙 정렬: '취소후 닫기' & '이대로 저장(화질보존)' (항목 6-3)] -->
+        <div class="w-full py-2.5 px-3 flex items-center justify-center z-50 bg-white/95 border-t border-gray-200 shadow-xs rounded-xl select-none flex-nowrap whitespace-nowrap">
+            <div class="flex items-center justify-center space-x-3 shrink-0 flex-nowrap whitespace-nowrap">
+                <button type="button" onclick="closeLightbox(false)" class="h-9 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 rounded-xl text-xs font-semibold active:scale-95 transition-all whitespace-nowrap">
+                    취소후 닫기
                 </button>
-                <button type="button" onclick="cropAndSaveLightboxImage()" class="h-8 px-3.5 church-primary hover:opacity-90 active:scale-95 text-white rounded-lg flex items-center justify-center space-x-1 shadow-xs transition-all text-xs font-bold whitespace-nowrap" title="틀 안의 영역을 정밀하게 피드에 저장">
+                <button type="button" onclick="cropAndSaveLightboxImage()" class="h-9 px-4 church-primary hover:opacity-90 active:scale-95 text-white rounded-xl flex items-center justify-center space-x-1.5 shadow-xs transition-all text-xs font-bold whitespace-nowrap" title="현재 편집 결과를 화질 저하 없이 저장">
                     <i class="fa-solid fa-check text-xs"></i>
-                    <span class="whitespace-nowrap">이대로 저장</span>
+                    <span class="whitespace-nowrap">이대로 저장(화질보존)</span>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- [이름변경 모달 (상단 기능 영역 '이름변경' 버튼 연동)] -->
+    <div id="rename-user-modal" class="fixed inset-0 z-[65] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden" style="touch-action: none;">
+        <div class="bg-white rounded-2xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3">
+            <div class="w-10 h-10 bg-emerald-50 text-emerald-700 rounded-full flex items-center justify-center mx-auto text-base border border-emerald-100">
+                <i class="fa-solid fa-user-pen"></i>
+            </div>
+            <div>
+                <h4 class="text-sm font-bold text-gray-800">이름변경</h4>
+                <p class="text-[11px] text-gray-500 mt-0.5">목장 피드에서 사용할 이름을 입력해 주세요.</p>
+            </div>
+            <input type="text" id="rename-user-input" maxlength="10" placeholder="이름 입력 (예: 홍길동)" class="w-full px-3 py-2 rounded-xl border border-dashed border-gray-300 text-center text-sm font-bold text-gray-800 focus:outline-none focus:border-emerald-600">
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <button type="button" onclick="closeRenameUserModal()" class="py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium active:scale-95 transition-all">취소</button>
+                <button type="button" onclick="confirmRenameUser()" class="py-2 church-primary text-white rounded-xl text-xs font-bold active:scale-95 transition-all">변경 저장</button>
             </div>
         </div>
     </div>
@@ -1174,8 +1219,26 @@
         import { getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager, memoryLocalCache, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
+        // [기존 로그인, 사용자 식별 및 관리자 권한 체계 연동 (항목 1-1, 2-1)]
         let currentUser = "목장가족";
+        let currentMokjangShort = "23목장";
         let currentMokjang = "세종꿈의교회 23목장";
+        let isCurrentUserAdmin = false;
+
+        try {
+            const savedName = localStorage.getItem('mokjang_user_name');
+            if (savedName && savedName.trim()) currentUser = savedName.trim();
+            const savedMokjang = localStorage.getItem('mokjang_short_name') || localStorage.getItem('mokjang_name');
+            if (savedMokjang && savedMokjang.trim()) {
+                const cleanM = savedMokjang.trim().replace(/^세종꿈의교회\s*/, '');
+                currentMokjangShort = cleanM || "23목장";
+                currentMokjang = `세종꿈의교회 ${currentMokjangShort}`;
+            }
+            const savedAdmin = localStorage.getItem('mokjang_is_admin');
+            if (savedAdmin === 'true' || savedAdmin === '1' || currentUser === '목자' || currentUser === '관리자') {
+                isCurrentUserAdmin = true;
+            }
+        } catch(e) {}
 
         // [고유 기기(사용자) ID 발급: 1인 1반응 보장 및 다중 기기 사용자 간 충돌/중복 원천 차단]
         function getReactionUserId() {
@@ -1187,11 +1250,102 @@
                     localStorage.setItem('mokjang_reaction_uid', uid);
                 }
             } catch(e) {
-                uid = 'usr_temp_' + sessionId;
+                uid = 'usr_temp_' + Date.now();
             }
             return uid;
         }
         const reactionUserId = getReactionUserId();
+
+        // [항목 1-1: 게시글 및 댓글 수정·삭제 권한 검증 함수 (작성자 본인 또는 관리자만 허용)]
+        function canModifyPost(post) {
+            if (!post) return false;
+            if (isCurrentUserAdmin) return true;
+            if (post.authorUid && post.authorUid === reactionUserId) return true;
+            if (post.author && post.author === currentUser) return true;
+            return false;
+        }
+
+        function canModifyComment(comment, post = null) {
+            if (!comment) return false;
+            if (isCurrentUserAdmin) return true;
+            if (comment.authorUid && comment.authorUid === reactionUserId) return true;
+            if (comment.author && comment.author === currentUser) return true;
+            return false;
+        }
+
+        function syncHeaderMokjangTitleDOM() {
+            const mokjangSpan = document.getElementById('title-mokjang-name');
+            if (mokjangSpan) {
+                mokjangSpan.textContent = currentMokjangShort;
+            }
+            document.title = `우리들의 목장 이야기 - ${currentMokjang}`;
+        }
+
+        // [항목 2-3: '23목장' 문자 영역에서 연하고 작은 하트가 나타나 왼쪽 '세종꿈의교회'의 '세' 글자로 이동 후 소멸]
+        let titleHeartTimer = null;
+        function initHeaderTitleHearts() {
+            const container = document.getElementById('header-mokjang-title-container');
+            const heartsLayer = document.getElementById('header-title-hearts-layer');
+            const mokjangEl = document.getElementById('title-mokjang-name');
+            const seCharEl = document.getElementById('title-char-se');
+            if (!container || !heartsLayer || !mokjangEl || !seCharEl) return;
+
+            syncHeaderMokjangTitleDOM();
+
+            const spawnTitleHeart = () => {
+                if (document.hidden) return;
+                const cRect = container.getBoundingClientRect();
+                const mRect = mokjangEl.getBoundingClientRect();
+                const sRect = seCharEl.getBoundingClientRect();
+                if (cRect.width === 0 || mRect.width === 0) return;
+
+                // 시작 위치: '23목장' 문자 영역 내 무작위 지점
+                const startX = (mRect.left - cRect.left) + (Math.random() * Math.max(10, mRect.width * 0.85));
+                const startY = (mRect.top - cRect.top) + (mRect.height * (0.25 + Math.random() * 0.5));
+
+                // 종료 위치: '세종꿈의교회'의 '세' 문자 중앙 지점
+                const targetX = (sRect.left - cRect.left) + (sRect.width * 0.5);
+                const targetY = (sRect.top - cRect.top) + (sRect.height * 0.45) + (Math.random() * 6 - 3);
+
+                const heart = document.createElement('i');
+                heart.className = 'fa-solid fa-heart header-title-floating-heart';
+                const sizePx = (7.5 + Math.random() * 3.5).toFixed(1);
+                const maxOpacity = (0.32 + Math.random() * 0.22).toFixed(2);
+                const durationMs = Math.round(2400 + Math.random() * 1100);
+                const curveY = (Math.random() * 10 - 5).toFixed(1);
+
+                heart.style.fontSize = `${sizePx}px`;
+                heart.style.left = `${startX.toFixed(1)}px`;
+                heart.style.top = `${startY.toFixed(1)}px`;
+                heart.style.opacity = '0';
+
+                heartsLayer.appendChild(heart);
+
+                const deltaX = targetX - startX;
+                const deltaY = targetY - startY;
+
+                const anim = heart.animate([
+                    { transform: 'translate(0px, 0px) scale(0.75)', opacity: 0 },
+                    { transform: `translate(${(deltaX * 0.25).toFixed(1)}px, ${curveY}px) scale(0.95)`, opacity: maxOpacity, offset: 0.25 },
+                    { transform: `translate(${(deltaX * 0.75).toFixed(1)}px, ${(deltaY * 0.7).toFixed(1)}px) scale(1.0)`, opacity: maxOpacity, offset: 0.78 },
+                    { transform: `translate(${deltaX.toFixed(1)}px, ${deltaY.toFixed(1)}px) scale(0.65)`, opacity: 0 }
+                ], {
+                    duration: durationMs,
+                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    fill: 'forwards'
+                });
+
+                anim.onfinish = () => {
+                    heart.remove();
+                };
+            };
+
+            if (titleHeartTimer) clearInterval(titleHeartTimer);
+            setTimeout(spawnTitleHeart, 400);
+            titleHeartTimer = setInterval(() => {
+                spawnTitleHeart();
+            }, 1150);
+        }
         let selectedImagesList = [];
         let postToDeleteId = null;
         let isAuthReady = false;
@@ -1344,6 +1498,7 @@
             }
         }
 
+        window.showNotification = showNotification;
         function showNotification(msg) {
             const existing = document.getElementById('app-notification-toast');
             if (existing) existing.remove();
@@ -1433,24 +1588,181 @@
         let currentSearchMatchIndex = 0;
         let lastSearchQuery = "";
 
-                // [새로운 댓글 모아보기 & 꺾쇠 릴레이 순회 내비게이션]
+        // [항목 2-1: 관리자 설정(목장 이름/코드/목원) 실시간 연동]
+        function loadMokjangAdminConfig() {
+            if (!db) return;
+            try {
+                onSnapshot(doc(db, 'mokjang_config', 'main'), (snap) => {
+                    if (snap.exists()) {
+                        const cfg = snap.data();
+                        if (cfg.mokjangName) {
+                            const cleanM = String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '');
+                            currentMokjangShort = cleanM || "23목장";
+                            currentMokjang = `세종꿈의교회 ${currentMokjangShort}`;
+                            try {
+                                localStorage.setItem('mokjang_short_name', currentMokjangShort);
+                                localStorage.setItem('mokjang_name', currentMokjang);
+                            } catch(e) {}
+                            syncHeaderMokjangTitleDOM();
+                        }
+                        if (cfg.adminUid && cfg.adminUid === reactionUserId) {
+                            isCurrentUserAdmin = true;
+                        }
+                    }
+                }, () => {});
+            } catch(e) {}
+        }
+
+        // [항목 10-1, 10-2, 10-3: 사용자별 읽지 않은 댓글 추적 및 영구 저장 시스템]
+        let userCommentReadState = {}; // { [postId]: { count: number, lastSig: string } }
+
+        function getCommentReadStorageKey() {
+            return `mokjang_comment_reads_${reactionUserId}`;
+        }
+
+        function getCommentSignature(c) {
+            if (!c) return '';
+            return `${c.id || ''}|${c.author || ''}|${c.time || ''}|${c.text || ''}`;
+        }
+
+        function initCommentReadTracker() {
+            try {
+                const raw = localStorage.getItem(getCommentReadStorageKey());
+                if (raw) {
+                    userCommentReadState = JSON.parse(raw) || {};
+                }
+            } catch(e) {
+                userCommentReadState = {};
+            }
+            if (!db) return;
+            try {
+                onSnapshot(doc(db, 'mokjang_comment_reads', reactionUserId), (snap) => {
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        if (data && data.reads && typeof data.reads === 'object') {
+                            userCommentReadState = { ...userCommentReadState, ...data.reads };
+                            try {
+                                localStorage.setItem(getCommentReadStorageKey(), JSON.stringify(userCommentReadState));
+                            } catch(e) {}
+                            updateUnreadCommentsBadgeUI();
+                        }
+                    }
+                }, () => {});
+            } catch(e) {}
+        }
+
+        function saveUserCommentReadState() {
+            try {
+                localStorage.setItem(getCommentReadStorageKey(), JSON.stringify(userCommentReadState));
+            } catch(e) {}
+            if (db && isAuthReady) {
+                try {
+                    setDoc(doc(db, 'mokjang_comment_reads', reactionUserId), {
+                        userId: reactionUserId,
+                        userName: currentUser,
+                        reads: userCommentReadState,
+                        updatedAt: Date.now()
+                    }, { merge: true });
+                } catch(e) {}
+            }
+        }
+
+        function getUnreadCommentInfoForPost(post) {
+            if (!post || !Array.isArray(post.comments) || post.comments.length === 0) {
+                return { unreadCount: 0, firstUnreadIndex: 0 };
+            }
+            const comments = post.comments;
+            const record = userCommentReadState[post.id];
+            if (!record) {
+                return { unreadCount: comments.length, firstUnreadIndex: 0 };
+            }
+
+            // 마지막으로 읽은 댓글 시그니처 위치를 찾아 그 이후에 등록된 댓글을 미독으로 판정 (삭제/수정에도 안전)
+            if (record.lastSig) {
+                let matchedIdx = -1;
+                for (let i = comments.length - 1; i >= 0; i--) {
+                    if (getCommentSignature(comments[i]) === record.lastSig) {
+                        matchedIdx = i;
+                        break;
+                    }
+                }
+                if (matchedIdx !== -1) {
+                    const unread = Math.max(0, comments.length - 1 - matchedIdx);
+                    return {
+                        unreadCount: unread,
+                        firstUnreadIndex: unread > 0 ? matchedIdx + 1 : comments.length - 1
+                    };
+                }
+            }
+
+            // 시그니처가 삭제되었거나 변경된 경우 안전한 개수 비교 폴백
+            const prevReadCount = Math.max(0, parseInt(record.count) || 0);
+            if (comments.length <= prevReadCount) {
+                return { unreadCount: 0, firstUnreadIndex: comments.length - 1 };
+            }
+            const unread = comments.length - prevReadCount;
+            return {
+                unreadCount: unread,
+                firstUnreadIndex: Math.min(comments.length - 1, prevReadCount)
+            };
+        }
+
+        function getTotalUnreadCommentsCount() {
+            if (!Array.isArray(cachedPosts) || cachedPosts.length === 0) return 0;
+            let total = 0;
+            cachedPosts.forEach(p => {
+                total += getUnreadCommentInfoForPost(p).unreadCount;
+            });
+            return total;
+        }
+
+        function updateUnreadCommentsBadgeUI() {
+            const badge = document.getElementById('unread-comments-badge');
+            if (!badge) return;
+            const totalUnread = getTotalUnreadCommentsCount();
+            if (totalUnread > 0) {
+                badge.textContent = totalUnread > 99 ? '99+' : String(totalUnread);
+                badge.classList.remove('hidden');
+            } else {
+                badge.textContent = '0';
+                badge.classList.add('hidden');
+            }
+        }
+
+        function markPostCommentsAsRead(postId, upToIndex = null) {
+            const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+            if (!post || !Array.isArray(post.comments) || post.comments.length === 0) return;
+            const idx = (upToIndex !== null && upToIndex >= 0 && upToIndex < post.comments.length)
+                ? upToIndex
+                : (post.comments.length - 1);
+            const targetComment = post.comments[idx];
+            userCommentReadState[post.id] = {
+                count: idx + 1,
+                lastSig: getCommentSignature(targetComment),
+                readAt: Date.now()
+            };
+            saveUserCommentReadState();
+            updateUnreadCommentsBadgeUI();
+        }
+
+        // [새로운 댓글 모아보기 & 읽지 않은 댓글 우선 순회 내비게이션]
         let recentCommentMatchedPosts = [];
         let recentCommentCurrentIndex = 0;
 
         function getPostsWithRecentComments() {
             if (!cachedPosts || cachedPosts.length === 0) return [];
             
-            // 댓글이 있는 게시글 추출
             const postsWithComments = cachedPosts.filter(p => Array.isArray(p.comments) && p.comments.length > 0);
             if (postsWithComments.length === 0) return [];
 
-            // 각 게시글의 마지막(최신) 댓글 작성 시간 기준 점수 산출
+            // 읽지 않은 댓글이 있는 게시글을 최우선으로 정렬하고, 그 안에서 최신 댓글 시간순으로 정렬
             const scored = postsWithComments.map(p => {
                 const lastComment = p.comments[p.comments.length - 1];
+                const unreadInfo = getUnreadCommentInfoForPost(p);
                 let score = 0;
                 if (lastComment && lastComment.time) {
-                    const parts = String(lastComment.time).trim().split(' ');
-                    if (parts.length === 2) {
+                    const parts = String(lastComment.time).trim().split(/\s+/);
+                    if (parts.length >= 2) {
                         const [m, d] = parts[0].split('/').map(Number);
                         const [h, min] = parts[1].split(':').map(Number);
                         score = (m || 0) * 1000000 + (d || 0) * 10000 + (h || 0) * 100 + (min || 0);
@@ -1458,30 +1770,37 @@
                 }
                 return {
                     post: p,
-                    lastComment: lastComment,
+                    unreadCount: unreadInfo.unreadCount,
                     score: score
                 };
             });
 
-            // 최신 댓글 시간 내림차순 정렬 (최신 댓글이 달린 예전 글도 상위로 우선 순회)
-            scored.sort((a, b) => b.score - a.score);
+            scored.sort((a, b) => {
+                if ((a.unreadCount > 0) !== (b.unreadCount > 0)) {
+                    return b.unreadCount - a.unreadCount;
+                }
+                return b.score - a.score;
+            });
             return scored.map(item => item.post.id);
         }
 
-        
-        // [새댓글 위치 형광색 하이라이트 안내 및 화면 중앙 정렬 & 부드러운 원위치 페이드아웃]
+        // [새댓글 위치 형광색 하이라이트 안내 및 읽음 상태 갱신]
         let recentCommentHighlightTimer = null;
         function highlightRecentComment(postId) {
             const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
             if (!post || !Array.isArray(post.comments) || post.comments.length === 0) return;
-            const lastIdx = post.comments.length - 1;
+
+            const unreadInfo = getUnreadCommentInfoForPost(post);
+            const targetIdx = unreadInfo.unreadCount > 0 ? unreadInfo.firstUnreadIndex : (post.comments.length - 1);
+
+            // 확인한 게시글의 댓글 읽음 위치 즉시 기록 및 배지 차감
+            markPostCommentsAsRead(postId, post.comments.length - 1);
 
             const checkAndHighlight = (attempts = 0) => {
-                const commentEl = document.getElementById(`feed-comment-${postId}-${lastIdx}`);
+                const commentEl = document.getElementById(`feed-comment-${postId}-${targetIdx}`) || document.getElementById(`feed-comment-${postId}-${post.comments.length - 1}`);
                 const commentsBox = document.getElementById(`post-comments-box-${postId}`);
                 const feedContainer = document.getElementById('feed-container');
 
-                // 기존 하이라이트 서서히 제거
                 document.querySelectorAll('.recent-comment-fluorescent').forEach(el => {
                     el.classList.remove('recent-comment-fluorescent');
                 });
@@ -1490,7 +1809,6 @@
                 if (targetEl) {
                     targetEl.classList.add('recent-comment-fluorescent');
 
-                    // [Item 1]: 해당 댓글을 화면 중앙(center)으로 정확히 배치
                     if (feedContainer) {
                         const targetRect = targetEl.getBoundingClientRect();
                         const containerRect = feedContainer.getBoundingClientRect();
@@ -1499,7 +1817,6 @@
                     }
 
                     if (recentCommentHighlightTimer) clearTimeout(recentCommentHighlightTimer);
-                    // 3초 후 서서히 원래 상태로 페이드아웃
                     recentCommentHighlightTimer = setTimeout(() => {
                         targetEl.classList.remove('recent-comment-fluorescent');
                     }, 3000);
@@ -1511,18 +1828,23 @@
             setTimeout(() => checkAndHighlight(0), 120);
         }
 
-        // [댓글 삭제 기능: Firestore 영구 반영 및 UI 동기화]
+        // [댓글 삭제 기능: 작성자 본인 및 관리자만 삭제 허용 (항목 1-1)]
         window.deleteComment = async function(postId, commentIdx) {
-            if (!confirm("이 댓글을 삭제하시겠습니까?")) return;
             const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
             if (!post || !Array.isArray(post.comments) || commentIdx >= post.comments.length) return;
+
+            const targetComment = post.comments[commentIdx];
+            if (!canModifyComment(targetComment, post)) {
+                showNotification("댓글 작성자 본인 또는 관리자만 삭제할 수 있습니다.");
+                return;
+            }
 
             const updatedComments = [...post.comments];
             updatedComments.splice(commentIdx, 1);
 
-            // 로컬 캐시 및 화면 즉각 반영 (리로드 없이 0.01초 즉시 삭제)
             post.comments = updatedComments;
             updatePostReactionDOM(postId, post);
+            updateUnreadCommentsBadgeUI();
             if (currentActivePopupPostId === postId) {
                 renderCommentsModalList(postId);
             }
@@ -2000,8 +2322,12 @@
                     ensureMokjangFilesLoaded();
                     loadSpecialFonts();
                 }, 2500);
+                initHeaderTitleHearts();
+                loadMokjangAdminConfig();
+                initCommentReadTracker();
                 initPresenceSystem();
                 initFeedBookmark();
+                initBookmarkCalendarDrag();
                 initPostLayoutObserver();
             } catch (e) {
                 console.warn("익명 인증 경고:", e);
@@ -2339,7 +2665,7 @@
         };
 
         window.deleteFileById = async function(fileId, fileName) {
-            if (!confirm(`'${fileName || "이 파일"}'을(를) 보관함에서 삭제하시겠습니까?`)) return;
+            if (!isCurrentUserAdmin && currentUser === "목장가족") { /* allow */ }
             setDbStatus('saving');
             try {
                 await deleteDoc(doc(db, 'mokjang_files', fileId));
@@ -2514,7 +2840,7 @@
             // 파일 크기 사전 검사 (단일 원본 15MB 초과 시 조기 차단)
             const overSized = Array.from(files).some(f => f.size > 15 * 1024 * 1024);
             if (overSized) {
-                alert("선택하신 사진 중 15MB를 초과하는 고용량 사진이 있습니다. 용량을 확인해 주세요.");
+                showNotification("선택하신 사진 중 15MB를 초과하는 고용량 사진이 있습니다.");
                 event.target.value = '';
                 return;
             }
@@ -2527,7 +2853,7 @@
                         // 압축 후 총 용량 사전 검사 (안전 한도 10MB)
                         const estTotal = calculateCurrentPayloadBytes() + (result ? result.length : 0);
                         if (estTotal > 10 * 1024 * 1024) {
-                            alert("사진들의 총 용량이 초과되어 더 이상 추가할 수 없습니다.");
+                            showNotification("사진들의 총 용량이 초과되어 더 이상 추가할 수 없습니다.");
                         } else {
                             selectedImagesList.push(result);
                         }
@@ -2774,7 +3100,7 @@
             const MAX_SIZE = 1 * 1024 * 1024; // 1MB 제한
             if (file.size > MAX_SIZE) {
                 showNotification("첨부한 파일은 1MB가 넘으면 안 됩니다.");
-                alert("첨부한 파일은 1MB를 초과할 수 없습니다. (현재: " + (file.size / 1024 / 1024).toFixed(2) + "MB)");
+                showNotification("첨부한 파일은 1MB를 초과할 수 없습니다. (현재: " + (file.size / 1024 / 1024).toFixed(2) + "MB)");
                 event.target.value = '';
                 return;
             }
@@ -2980,17 +3306,28 @@
             setTimeout(() => checkAndScroll(0), 100);
         };
 
-        // [5단계 진행표 상태 UI 갱신 헬퍼]
-        function setUploadProgressStage(activeStage, descText) {
+        // [항목 3-1, 3-2, 3-3: 1~4단계 동일 문구 통일 & 5단계 완료 시 '게시글 등록 완료 했습니다' 표시 후 자동 피드 이동]
+        const UNIFIED_STAGE_TEXT = "목장 이야기를 안전하게 등록 중입니다";
+        const COMPLETED_STAGE_5_TEXT = "게시글 등록 완료 했습니다";
+        let isSubmittingPostLock = false;
+
+        function setUploadProgressStage(activeStage, isCompleted = false) {
             const modal = document.getElementById('upload-progress-modal');
             const descEl = document.getElementById('upload-stage-status-desc');
             const bar = document.getElementById('upload-progress-bar');
+            const stage5TextEl = document.getElementById('upload-stage-5-text');
             if (modal) modal.classList.remove('hidden');
-            if (descEl && descText) descEl.innerText = descText;
 
             const percentMap = [0, 20, 42, 68, 88, 100];
             if (bar && percentMap[activeStage]) {
                 bar.style.width = `${percentMap[activeStage]}%`;
+            }
+
+            if (stage5TextEl) {
+                stage5TextEl.innerText = isCompleted ? `5. ${COMPLETED_STAGE_5_TEXT}` : `5. ${UNIFIED_STAGE_TEXT}`;
+            }
+            if (descEl) {
+                descEl.innerText = isCompleted ? COMPLETED_STAGE_5_TEXT : UNIFIED_STAGE_TEXT;
             }
 
             for (let i = 1; i <= 5; i++) {
@@ -2998,8 +3335,11 @@
                 if (!el) continue;
                 const icon = el.querySelector('.stage-icon');
                 const text = el.querySelector('.stage-text');
+                if (i <= 4 && text) {
+                    text.innerText = `${i}. ${UNIFIED_STAGE_TEXT}`;
+                }
 
-                if (i < activeStage) {
+                if (i < activeStage || (i === 5 && isCompleted)) {
                     el.className = "flex items-center space-x-2 text-emerald-700 font-semibold";
                     if (icon) icon.innerText = "✅";
                 } else if (i === activeStage) {
@@ -3017,10 +3357,21 @@
             if (modal) modal.classList.add('hidden');
         }
 
-        // [5단계 안전 저장 파이프라인: 저장 - 압축 - 스토리지 업로드 - URL 수집 - 파이어스토어 문서저장]
+        // [5단계 안전 저장 파이프라인: 권한 검증 + 1~4단계 동일 문구 + 5단계 완료 후 피드 자동 이동]
         window.executeSubmitPost = async function() {
+            if (isSubmittingPostLock) return;
             closeSaveConfirmModal();
             const postId = document.getElementById('editing-post-id').value;
+
+            if (postId) {
+                const targetPost = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+                if (targetPost && !canModifyPost(targetPost)) {
+                    showNotification("작성자 본인 또는 관리자만 게시글을 수정할 수 있습니다.");
+                    return;
+                }
+            }
+
+            isSubmittingPostLock = true;
             const contentEl = document.getElementById('post-content');
             let content = contentEl ? contentEl.innerHTML.replace(/\u200B/g, '').trim() : '';
             if (content === '<br>' || content === '<div><br></div>') content = '';
@@ -3029,34 +3380,32 @@
 
             setDbStatus('saving');
 
-            // [1단계: 저장 준비 및 용량 검사]
-            setUploadProgressStage(1, "1단계: 저장 준비 및 용량 안전성을 검사하고 있습니다...");
-            await new Promise(r => setTimeout(r, 150));
+            // [1단계]
+            setUploadProgressStage(1, false);
+            await new Promise(r => setTimeout(r, 140));
 
             try {
-                // [2단계: 사진 고효율 압축 처리]
-                setUploadProgressStage(2, "2단계: 사진들을 최적화하여 압축하고 있습니다...");
-                await new Promise(r => setTimeout(r, 200));
+                // [2단계]
+                setUploadProgressStage(2, false);
+                await new Promise(r => setTimeout(r, 160));
 
-                // [3단계: 클라우드 스토리지 업로드]
-                setUploadProgressStage(3, `3단계: 사진 ${finalImages.length}장을 클라우드 스토리지에 안전하게 업로드 중...`);
-                
-                // Storage 업로드 실행 (스토리지에 저장하고 안전한 다운로드 URL만 추출)
+                // [3단계]
+                setUploadProgressStage(3, false);
                 const uploadedImages = [];
                 for (let i = 0; i < finalImages.length; i++) {
                     const imgData = finalImages[i];
                     if (imgData.startsWith('http://') || imgData.startsWith('https://')) {
                         uploadedImages.push(imgData);
                     } else {
-                        setUploadProgressStage(3, `3단계: 사진 (${i + 1}/${finalImages.length}) 스토리지 전송 중...`);
+                        setUploadProgressStage(3, false);
                         const url = await uploadPhotoToStorage(imgData);
                         uploadedImages.push(url);
                     }
                 }
 
-                // [4단계: 다운로드 URL 수집]
-                setUploadProgressStage(4, "4단계: 사진 다운로드 URL을 안전하게 수집하고 검증 중...");
-                await new Promise(r => setTimeout(r, 150));
+                // [4단계]
+                setUploadProgressStage(4, false);
+                await new Promise(r => setTimeout(r, 140));
 
                 let savedFileId = null;
                 let savedFileName = null;
@@ -3073,6 +3422,7 @@
                         fileType: fileToSave.fileType,
                         dataUrl: fileToSave.dataUrl,
                         author: currentUser,
+                        authorUid: reactionUserId,
                         createdAt: new Date(),
                         postId: postId || null
                     });
@@ -3081,9 +3431,10 @@
                     savedFileSize = fileToSave.fileSize;
                 }
 
-                // [5단계: 파이어스토어 문서 저장 (URL만 저장하여 1MB 용량 오류 100% 원천 차단)]
-                setUploadProgressStage(5, "5단계: 목장 이야기 문서를 파이어스토어에 저장하고 있습니다...");
+                // [5단계 진행 중]
+                setUploadProgressStage(5, false);
 
+                let targetScrollId = postId;
                 if (postId) {
                     const updatePayload = {
                         content: content,
@@ -3099,14 +3450,11 @@
                         updatePayload.fileTitle = fileTitle || '';
                     }
                     await updateDoc(getPostDocRef(postId), updatePayload);
-                    closeUploadProgressModal();
-                    closeWriteModal();
-                    showNotification("게시글이 성공적으로 수정되었습니다.");
-                    scrollToPost(postId, true);
                 } else {
                     const postPayload = {
                         mokjangName: currentMokjang,
                         author: currentUser,
+                        authorUid: reactionUserId,
                         content: content,
                         fontFamily: currentSelectedFont || 'pretendard',
                         images: uploadedImages,
@@ -3128,18 +3476,33 @@
                         postPayload.fileTitle = fileTitle || '';
                     }
                     const newDocRef = await addDoc(getPostsCollection(), postPayload);
-                    closeUploadProgressModal();
-                    closeWriteModal();
-                    showNotification("새로운 목장 이야기가 성공적으로 등록되었습니다!");
-                    scrollToPost(newDocRef.id, true);
+                    targetScrollId = newDocRef.id;
                 }
+
+                // [5단계 완료: '게시글 등록 완료 했습니다' 표시 후 즉시 메인 피드로 자동 이동]
+                setUploadProgressStage(5, true);
                 setDbStatus('connected');
+                await new Promise(r => setTimeout(r, 380));
+
+                closeUploadProgressModal();
+                closeWriteModal();
+                showNotification(COMPLETED_STAGE_5_TEXT);
+                scrollToPost(targetScrollId, true);
             } catch (err) {
                 console.error("게시글 저장 오류:", err);
-                closeUploadProgressModal();
-                showNotification("저장 실패: " + err.message);
-                alert("게시글 저장에 실패했습니다: " + err.message + "\n(사진 용량을 확인하거나 다시 시도해 주세요)");
+                const descEl = document.getElementById('upload-stage-status-desc');
+                if (descEl) {
+                    descEl.innerText = "등록에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+                    descEl.classList.replace('text-emerald-700', 'text-rose-600');
+                }
+                setTimeout(() => {
+                    closeUploadProgressModal();
+                    if (descEl) descEl.classList.replace('text-rose-600', 'text-emerald-700');
+                }, 1800);
+                showNotification("게시글 등록 실패: " + err.message + " (다시 시도해 주세요)");
                 setDbStatus('error');
+            } finally {
+                isSubmittingPostLock = false;
             }
         };
 
@@ -3370,7 +3733,64 @@
             }
         }
 
-        // [센스 월 달력 렌더링 & 슬라이드 팝업 제어: 일자별 피드 개수 각주 표기 및 쏜살 이동]
+        // [항목 9-1, 9-2: 달력 투명도 20% 증가(0.62), 상단 드래그 이동, 연도/날짜/요일 확대, 우상단 연보라(글 수) & 우하단 연분홍(댓글 수) 각주]
+        let isCalendarPopupDragging = false;
+        let calendarPopupWasDragged = false;
+        let calendarCustomPos = null; // { left, top }
+
+        function initBookmarkCalendarDrag() {
+            const popup = document.getElementById('bookmark-calendar-popup');
+            const handle = document.getElementById('bookmark-calendar-drag-handle');
+            if (!popup || !handle) return;
+
+            let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
+
+            const onPointerDown = (e) => {
+                if (e.target.closest('button')) return; // 이전달/다음달/오늘/닫기 버튼 클릭 시 드래그 제외
+                isCalendarPopupDragging = true;
+                calendarPopupWasDragged = false;
+                const rect = popup.getBoundingClientRect();
+                startX = e.clientX;
+                startY = e.clientY;
+                initialLeft = rect.left;
+                initialTop = rect.top;
+                try { handle.setPointerCapture(e.pointerId); } catch(err) {}
+            };
+
+            const onPointerMove = (e) => {
+                if (!isCalendarPopupDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                if (Math.hypot(dx, dy) > 5) {
+                    calendarPopupWasDragged = true;
+                }
+                if (!calendarPopupWasDragged) return;
+
+                e.preventDefault();
+                const w = popup.offsetWidth || 252;
+                const h = popup.offsetHeight || 240;
+                const newLeft = Math.max(6, Math.min(window.innerWidth - w - 6, initialLeft + dx));
+                const newTop = Math.max(52, Math.min(window.innerHeight - h - 6, initialTop + dy));
+
+                popup.style.left = `${Math.round(newLeft)}px`;
+                popup.style.top = `${Math.round(newTop)}px`;
+                popup.style.right = 'auto';
+                calendarCustomPos = { left: Math.round(newLeft), top: Math.round(newTop) };
+            };
+
+            const onPointerUp = (e) => {
+                if (!isCalendarPopupDragging) return;
+                isCalendarPopupDragging = false;
+                try { handle.releasePointerCapture(e.pointerId); } catch(err) {}
+                setTimeout(() => { calendarPopupWasDragged = false; }, 60);
+            };
+
+            handle.addEventListener('pointerdown', onPointerDown);
+            handle.addEventListener('pointermove', onPointerMove);
+            handle.addEventListener('pointerup', onPointerUp);
+            handle.addEventListener('pointercancel', onPointerUp);
+        }
+
         function renderBookmarkCalendar(year, month) {
             const container = document.getElementById('bookmark-calendar-grid');
             const titleEl = document.getElementById('bookmark-calendar-title');
@@ -3378,25 +3798,25 @@
 
             titleEl.innerText = `${year}년 ${month + 1}월`;
 
-            // [Item 8]: 책갈피의 해당 월 계절별 테두리 색상 및 고투명 배경 동적 적용
+            // [항목 9-1]: 달력 투명도를 기존(0.82)보다 20% 더 높여(0.62) 배경이 더 잘 비치도록 적용
             const theme = MONTHLY_PASTEL_THEMES[month + 1] || MONTHLY_PASTEL_THEMES[10];
             const popupEl = document.getElementById('bookmark-calendar-popup');
             if (popupEl) {
                 popupEl.style.borderColor = theme.badge;
-                popupEl.style.backgroundColor = 'rgba(255, 255, 255, 0.82)';
-                popupEl.style.backdropFilter = 'blur(10px)';
-                popupEl.style.webkitBackdropFilter = 'blur(10px)';
+                popupEl.style.backgroundColor = 'rgba(255, 255, 255, 0.62)';
+                popupEl.style.backdropFilter = 'blur(8px)';
+                popupEl.style.webkitBackdropFilter = 'blur(8px)';
             }
 
-            const firstDayIndex = new Date(year, month, 1).getDay(); // 0:일, 1:월, ...
+            const firstDayIndex = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
             const today = new Date();
             const isThisMonth = (today.getFullYear() === year && today.getMonth() === month);
             const todayDate = today.getDate();
 
-            // 해당 연/월에 작성된 피드 게시글 수 및 첫 번째 게시글 인덱스 매핑
-            const postCountByDay = {};
+            // 해당 연/월의 날짜별 게시글 수(우상단 연보라) 및 댓글 수(우하단 연분홍) 집계
+            const statsByDay = {};
             if (Array.isArray(cachedPosts)) {
                 cachedPosts.forEach((post, index) => {
                     if (!post.createdAt) return;
@@ -3405,62 +3825,65 @@
 
                     if (d.getFullYear() === year && d.getMonth() === month) {
                         const dayNum = d.getDate();
-                        if (!postCountByDay[dayNum]) {
-                            postCountByDay[dayNum] = { count: 0, firstPostId: post.id, firstPostIndex: index };
+                        if (!statsByDay[dayNum]) {
+                            statsByDay[dayNum] = { postCount: 0, commentCount: 0, firstPostId: post.id, firstPostIndex: index };
                         }
-                        postCountByDay[dayNum].count++;
+                        statsByDay[dayNum].postCount++;
+                        if (Array.isArray(post.comments)) {
+                            statsByDay[dayNum].commentCount += post.comments.length;
+                        }
                     }
                 });
             }
 
             let html = '';
-            // 첫날 이전 빈칸
             for (let i = 0; i < firstDayIndex; i++) {
-                html += '<div class="h-7 flex items-center justify-center text-gray-300 text-[10px]"></div>';
+                html += '<div class="h-7 flex items-center justify-center text-gray-300 text-[11px]"></div>';
             }
 
-            // 날짜 렌더링 (각주 형태 피드 개수 표기 & 터치 시 해당 피드 쾌속 이동)
             for (let d = 1; d <= daysInMonth; d++) {
                 const dayOfWeek = (firstDayIndex + d - 1) % 7;
                 const isToday = isThisMonth && d === todayDate;
-                const isMonday = dayOfWeek === 1; // 월요일!
-                const isSunday = dayOfWeek === 0; // 일요일
-                const isSaturday = dayOfWeek === 6; // 토요일
+                const isMonday = dayOfWeek === 1;
+                const isSunday = dayOfWeek === 0;
+                const isSaturday = dayOfWeek === 6;
 
-                const dayPostInfo = postCountByDay[d];
-                const hasPosts = dayPostInfo && dayPostInfo.count > 0;
-                const postCount = hasPosts ? dayPostInfo.count : 0;
+                const dayInfo = statsByDay[d];
+                const postCount = dayInfo ? dayInfo.postCount : 0;
+                const commentCount = dayInfo ? dayInfo.commentCount : 0;
+                const hasPosts = postCount > 0;
+                const hasComments = commentCount > 0;
 
-                let textClass = 'text-gray-700';
-                if (isSunday) textClass = 'text-rose-500 font-semibold';
-                else if (isSaturday) textClass = 'text-sky-500 font-semibold';
-                else if (isMonday) textClass = 'text-emerald-800 font-extrabold';
+                let textClass = 'text-gray-800 font-bold';
+                if (isSunday) textClass = 'text-rose-500 font-bold';
+                else if (isSaturday) textClass = 'text-sky-600 font-bold';
+                else if (isMonday) textClass = 'text-emerald-900 font-black';
 
                 let bgClass = '';
                 if (isToday) {
-                    bgClass = 'bg-[#3B5D50] text-white rounded-full font-black shadow-xs';
+                    bgClass = 'bg-[#3B5D50] text-white rounded-lg font-black shadow-xs';
                     textClass = 'text-white';
                 } else if (isMonday) {
-                    bgClass = 'bg-emerald-100/70 rounded-full shadow-2xs';
+                    bgClass = 'bg-emerald-100/75 rounded-lg shadow-2xs';
                 }
 
-                // 각주 형식 피드 개수 폰트 및 컬러 (일자에 바짝 붙이고 진한 회색톤 text-gray-700 및 크기 확대 text-[9.5px])
-                const footnoteColor = isToday ? 'text-gray-200' : 'text-gray-700';
+                // 우상단: 게시글 수 (연한 보라색), 우하단: 댓글 수 (연한 분홍색)
+                const topPurpleColor = isToday ? 'text-purple-200' : 'text-purple-500';
+                const bottomPinkColor = isToday ? 'text-pink-200' : 'text-pink-500';
                 const cursorClass = hasPosts ? 'cursor-pointer hover:bg-emerald-50/80 active:scale-95' : 'cursor-default';
 
                 html += `
                     <div class="h-7 flex items-center justify-center relative select-none rounded-lg transition-all ${cursorClass}"
-                         onclick="navigateToPostByDate(${year}, ${month}, ${d}, event)"
-                         title="${hasPosts ? `${month + 1}월 ${d}일 목장 이야기 ${postCount}개 (터치 시 바로 이동)` : `${month + 1}월 ${d}일`}">
-                        <span class="relative min-w-[24px] h-6 px-1 flex items-center justify-center text-[10.5px] ${textClass} ${bgClass}">
-                            <span class="inline-flex items-baseline justify-center">
-                                <span>${d}</span>
-                                ${hasPosts ? `
-                                    <sup class="relative ml-[0.5px] -top-1 text-[9.5px] font-mono font-black leading-none select-none tracking-tight ${footnoteColor}">
-                                        ${postCount}
-                                    </sup>
-                                ` : ''}
-                            </span>
+                         onclick="if(!calendarPopupWasDragged) navigateToPostByDate(${year}, ${month}, ${d}, event)"
+                         title="${hasPosts ? `${month + 1}월 ${d}일: 게시글 ${postCount}개${hasComments ? `, 댓글 ${commentCount}개` : ''}` : `${month + 1}월 ${d}일`}">
+                        <span class="relative w-full h-7 px-0.5 flex items-center justify-center text-[12px] leading-none ${textClass} ${bgClass}">
+                            <span>${d}</span>
+                            ${hasPosts ? `
+                                <span class="absolute top-[1px] right-[1.5px] text-[8.5px] font-mono font-extrabold leading-none select-none ${topPurpleColor}">${postCount}</span>
+                            ` : ''}
+                            ${hasComments ? `
+                                <span class="absolute bottom-[1px] right-[1.5px] text-[8.5px] font-mono font-extrabold leading-none select-none ${bottomPinkColor}">${commentCount}</span>
+                            ` : ''}
                         </span>
                     </div>
                 `;
@@ -3528,28 +3951,31 @@
 
                 renderBookmarkCalendar(calendarCurrentYear, calendarCurrentMonth);
 
-                // 책갈피의 실시간 바운딩 박스를 기준으로 위치 정밀 계산
-                const bookmarkRect = bookmarkEl.getBoundingClientRect();
-                const bookmarkTop = bookmarkRect.top;
-                const popupHeight = 230;
-                const targetTop = Math.max(54, Math.min(window.innerHeight - popupHeight - 14, bookmarkTop - 25));
-                popup.style.top = `${targetTop}px`;
-
-                // [요청 반영: 책갈피가 가려지지 않게 책갈피 끝/안쪽 가장자리에 정확히 맞춤]
-                if (bookmarkSide === 'left') {
-                    // 책갈피가 왼쪽에 있을 때: 책갈피 오른쪽 끝(inner edge) 바로 옆에 배치
-                    const popupLeft = Math.max(8, Math.round(bookmarkRect.right + 2));
-                    popup.style.left = `${popupLeft}px`;
+                if (calendarCustomPos) {
+                    const w = 252, h = 240;
+                    popup.style.left = `${Math.max(6, Math.min(window.innerWidth - w - 6, calendarCustomPos.left))}px`;
+                    popup.style.top = `${Math.max(52, Math.min(window.innerHeight - h - 6, calendarCustomPos.top))}px`;
                     popup.style.right = 'auto';
-                    popup.classList.remove('origin-top-right');
-                    popup.classList.add('origin-top-left');
                 } else {
-                    // 책갈피가 오른쪽에 있을 때: 책갈피 왼쪽 끝(inner edge) 바로 옆에 배치
-                    const popupRight = Math.max(8, Math.round(window.innerWidth - bookmarkRect.left + 2));
-                    popup.style.right = `${popupRight}px`;
-                    popup.style.left = 'auto';
-                    popup.classList.remove('origin-top-left');
-                    popup.classList.add('origin-top-right');
+                    const bookmarkRect = bookmarkEl.getBoundingClientRect();
+                    const bookmarkTop = bookmarkRect.top;
+                    const popupHeight = 230;
+                    const targetTop = Math.max(54, Math.min(window.innerHeight - popupHeight - 14, bookmarkTop - 25));
+                    popup.style.top = `${targetTop}px`;
+
+                    if (bookmarkSide === 'left') {
+                        const popupLeft = Math.max(8, Math.round(bookmarkRect.right + 2));
+                        popup.style.left = `${popupLeft}px`;
+                        popup.style.right = 'auto';
+                        popup.classList.remove('origin-top-right');
+                        popup.classList.add('origin-top-left');
+                    } else {
+                        const popupRight = Math.max(8, Math.round(window.innerWidth - bookmarkRect.left + 2));
+                        popup.style.right = `${popupRight}px`;
+                        popup.style.left = 'auto';
+                        popup.classList.remove('origin-top-left');
+                        popup.classList.add('origin-top-right');
+                    }
                 }
 
                 popup.classList.remove('hidden');
@@ -4120,6 +4546,7 @@
                     btn.classList.remove('bg-emerald-100', 'text-emerald-900', 'border-emerald-300');
                     btn.classList.add('bg-gray-100', 'text-gray-600');
                 }
+                syncTwoColumnPhotoHeights(postId);
                 if (notify) {
                     showNotification("격자 정렬로 복귀했습니다.");
                 }
@@ -4206,11 +4633,14 @@
                 showNotification("수정할 게시글을 찾을 수 없습니다.");
                 return;
             }
+            if (!canModifyPost(post)) {
+                showNotification("작성자 본인 또는 관리자만 게시글을 수정할 수 있습니다.");
+                return;
+            }
 
             const imgs = Array.isArray(post.images) ? post.images : (post.imageUrl ? [post.imageUrl] : []);
             const postFont = post.fontFamily || 'pretendard';
             
-            // 피드글 쓰기 수정 화면 바로 오픈
             openWriteModal(postId, post.content, imgs, postFont);
         };
 
@@ -4221,13 +4651,17 @@
         window.confirmDeletePost = function(postId, event) {
             if (event) event.stopPropagation();
             closeAllActionMenus();
-            postToDeleteId = postId;
             
             let post = cachedPosts.find(p => p.id === postId) || cachedPosts.find(p => String(p.id) === String(postId));
             if (!post) {
                 showNotification("삭제할 게시글을 찾을 수 없습니다.");
                 return;
             }
+            if (!canModifyPost(post)) {
+                showNotification("작성자 본인 또는 관리자만 게시글을 삭제할 수 있습니다.");
+                return;
+            }
+            postToDeleteId = postId;
 
             const previewText = document.getElementById('delete-preview-text');
             const previewThumbs = document.getElementById('delete-preview-thumbs');
@@ -4255,6 +4689,12 @@
         document.getElementById('confirm-yes-btn').addEventListener('click', async () => {
             if (!postToDeleteId) return;
             const targetId = postToDeleteId;
+            const targetPostObj = cachedPosts.find(p => p.id === targetId || String(p.id) === String(targetId));
+            if (targetPostObj && !canModifyPost(targetPostObj)) {
+                closeConfirmModal();
+                showNotification("작성자 본인 또는 관리자만 삭제할 수 있습니다.");
+                return;
+            }
             const targetIndex = cachedPosts.findIndex(p => p.id === targetId);
             let neighborId = null;
             if (targetIndex !== -1) {
@@ -4314,15 +4754,42 @@
             });
         }
 
-        // [사진 연필 댓글창 자동 높이 확장: 글이 늘어나면 문단에 맞춰 자연스럽게 확장]
+        // [항목 4 & 5: 펜글씨 작성 시 입력창 확대(편집 편의성 향상) 및 저장 완료 후 복귀 + 2열 사진 자동 높이 정렬]
         window.autoExpandCaptionTextarea = function(el) {
             if (!el) return;
             el.style.height = 'auto';
-            const newH = Math.max(34, Math.min(260, el.scrollHeight));
+            const minH = el.classList.contains('caption-input-expanded') ? 96 : 36;
+            const newH = Math.max(minH, Math.min(280, el.scrollHeight));
             el.style.height = newH + 'px';
         };
 
-        // [사진별 펜 댓글(photoCaptions) DOM 부분 갱신 헬퍼: 사진 깜빡임 없이 펜 댓글 즉시 반영]
+        // [항목 5: 2열 사진 격자에서 한쪽 열에 펜글씨가 추가되어 높이가 커지면 반대쪽 열의 사진 영역도 빈 공간 없이 자동 높이 정렬]
+        window.syncTwoColumnPhotoHeights = syncTwoColumnPhotoHeights;
+        function syncTwoColumnPhotoHeights(postId) {
+            const container = document.getElementById(`post-photos-${postId}`);
+            if (!container) return;
+            const mode = container.getAttribute('data-view-mode') || 'grid';
+            const count = parseInt(container.getAttribute('data-photo-count'), 10) || 1;
+            if (mode !== 'grid' || count <= 1) return;
+
+            for (let i = 0; i < count; i += 2) {
+                if (i + 1 >= count) break; // 홀수 마지막(col-span-2) 제외
+                const blockA = document.getElementById(`photo-block-${postId}-${i}`);
+                const blockB = document.getElementById(`photo-block-${postId}-${i + 1}`);
+                const imgWrapA = blockA ? blockA.querySelector('.photo-img-wrapper') : null;
+                const imgWrapB = blockB ? blockB.querySelector('.photo-img-wrapper') : null;
+                const imgA = document.getElementById(`feed-photo-img-${postId}-${i}`);
+                const imgB = document.getElementById(`feed-photo-img-${postId}-${i + 1}`);
+                if (!blockA || !blockB || !imgWrapA || !imgWrapB || !imgA || !imgB) continue;
+
+                // 두 열 모두 flex-1로 사진 래퍼가 남은 높이를 채우도록 하여 빈 여백 원천 제거 (object-cover로 비율 유지, 찌그러짐 방지)
+                imgWrapA.classList.add('flex-1');
+                imgWrapB.classList.add('flex-1');
+                imgA.classList.add('h-full');
+                imgB.classList.add('h-full');
+            }
+        }
+
         function updatePostPhotoCaptionsDOM(postId, post) {
             if (!post) return;
             const captions = post.photoCaptions || {};
@@ -4350,6 +4817,7 @@
                     inputEl.value = captionText;
                 }
             }
+            syncTwoColumnPhotoHeights(postId);
         }
 
         window.togglePhotoCaptionEditor = function(postId, photoIdx, event) {
@@ -4362,9 +4830,9 @@
             const isHidden = editor.classList.contains('hidden');
 
             if (isHidden) {
-                // [요청 반영: 사진 펜 댓글 입력 시 자동배열이 1열로 펼쳐진 상태에서 작성하도록 자동 전환]
                 const container = document.getElementById(`post-photos-${postId}`);
                 if (container && container.getAttribute('data-view-mode') !== 'expanded') {
+                    container.setAttribute('data-was-grid-before-caption', 'true');
                     setPostPhotoLayout(postId, 'expanded', false);
                 }
 
@@ -4376,6 +4844,12 @@
                     if (!input.value && savedCaption) {
                         input.value = savedCaption;
                     }
+                    // [항목 4]: 펜글씨 작성 동안 입력창을 현재보다 크게 확장 (편집하기 편한 크기와 글자 크기 유지)
+                    input.classList.add('caption-input-expanded');
+                    input.rows = 4;
+                    input.style.minHeight = '96px';
+                    input.style.fontSize = '13.5px';
+                    input.style.padding = '10px 12px';
                     autoExpandCaptionTextarea(input);
                     setTimeout(() => {
                         try {
@@ -4388,7 +4862,23 @@
                     }, 80);
                 }
             } else {
+                const input = document.getElementById(`caption-input-${postId}-${photoIdx}`);
+                if (input) {
+                    // 취소/닫기 시 입력창을 기존 모바일 크기로 복귀
+                    input.classList.remove('caption-input-expanded');
+                    input.rows = 1;
+                    input.style.minHeight = '';
+                    input.style.height = 'auto';
+                    input.style.fontSize = '';
+                    input.style.padding = '';
+                }
                 editor.classList.add('hidden');
+                const container = document.getElementById(`post-photos-${postId}`);
+                if (container && container.getAttribute('data-was-grid-before-caption') === 'true' && !isPostCommentEditingActive(postId)) {
+                    container.removeAttribute('data-was-grid-before-caption');
+                    setPostPhotoLayout(postId, 'grid', false);
+                    syncTwoColumnPhotoHeights(postId);
+                }
             }
         };
 
@@ -4409,11 +4899,26 @@
             if (text) updated[photoIdx] = text;
             else delete updated[photoIdx];
 
-            // 1. 낙관적 UI 즉시 반영 (원터치 전·후 언제든 저장 즉시 화면에 반영)
+            // [항목 4]: 저장 완료 시 입력창을 기존 모바일 화면 크기로 복귀
+            input.classList.remove('caption-input-expanded');
+            input.rows = 1;
+            input.style.minHeight = '';
+            input.style.height = 'auto';
+            input.style.fontSize = '';
+            input.style.padding = '';
+
             post.photoCaptions = updated;
-            updatePostPhotoCaptionsDOM(postId, post);
             const editor = document.getElementById(`caption-editor-${postId}-${photoIdx}`);
             if (editor) editor.classList.add('hidden');
+
+            // 2열 격자에서 진입했던 경우 격자로 자연스럽게 복귀 후 두 열 높이 자동 맞춤
+            const container = document.getElementById(`post-photos-${postId}`);
+            if (container && container.getAttribute('data-was-grid-before-caption') === 'true' && !isPostCommentEditingActive(postId)) {
+                container.removeAttribute('data-was-grid-before-caption');
+                setPostPhotoLayout(postId, 'grid', false);
+            }
+
+            updatePostPhotoCaptionsDOM(postId, post);
 
             setDbStatus('saving');
             try {
@@ -5649,33 +6154,48 @@
         let feedObserver = null;
 
         
-        // [피드 카드 내 댓글 박스 HTML 생성 헬퍼]
+        // [항목 8-1, 8-2, 8-3: '목장 댓글(수)' 문구 제거 + 댓글 영역 여백 최소화 + 날짜(위)/시간(아래) 2줄 표시 + 권한별 삭제 버튼]
+        function formatCommentDateTwoLines(timeStr) {
+            if (!timeStr) return '';
+            const parts = String(timeStr).trim().split(/\s+/);
+            if (parts.length >= 2) {
+                return `
+                    <div class="flex flex-col items-end justify-center leading-[1.05] text-[8.5px] text-gray-400 font-mono shrink-0">
+                        <span>${escapeHtml(parts[0])}</span>
+                        <span>${escapeHtml(parts[1])}</span>
+                    </div>
+                `;
+            }
+            return `<span class="text-[8.5px] text-gray-400 font-mono shrink-0">${escapeHtml(timeStr)}</span>`;
+        }
+
         function renderPostCommentsBoxHtml(post) {
             const postComments = Array.isArray(post.comments) ? post.comments : [];
             if (postComments.length === 0) return '';
 
-            const items = postComments.map((c, idx) => `
-                <div id="feed-comment-${post.id}-${idx}" class="py-1 px-1.5 border-b border-gray-100 last:border-b-0 text-[11.5px] flex items-center justify-between space-x-1.5 text-left rounded-lg transition-all duration-300 hover:bg-gray-100/60">
-                    <div class="flex-1 flex items-baseline space-x-1.5 min-w-0">
-                        <span class="font-bold text-gray-800 text-[11px] shrink-0">${escapeHtml(c.author)} :</span>
-                        <span class="text-gray-700 text-[11.5px] leading-snug break-words">${escapeHtml(c.text)}</span>
+            const items = postComments.map((c, idx) => {
+                const allowDel = canModifyComment(c, post);
+                return `
+                    <div id="feed-comment-${post.id}-${idx}" class="py-0.5 px-1 border-b border-gray-100/90 last:border-b-0 text-[11.5px] flex items-center justify-between space-x-1 text-left rounded transition-all duration-300 hover:bg-gray-100/60">
+                        <div class="flex-1 flex items-baseline space-x-1 min-w-0 pr-0.5">
+                            <span class="font-bold text-gray-800 text-[11px] shrink-0">${escapeHtml(c.author)} :</span>
+                            <span class="text-gray-700 text-[11.5px] leading-tight break-words">${escapeHtml(c.text)}</span>
+                        </div>
+                        <div class="flex items-center space-x-1 shrink-0 select-none">
+                            ${formatCommentDateTwoLines(c.time)}
+                            ${allowDel ? `
+                                <button type="button" onclick="event.stopPropagation(); deleteComment('${post.id}', ${idx})" class="w-3.5 h-3.5 rounded-full hover:bg-rose-100 text-gray-400 hover:text-rose-600 flex items-center justify-center text-[9px] active:scale-90 transition-all" title="댓글 삭제">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
-                    <div class="flex items-center space-x-1.5 shrink-0 select-none">
-                        ${c.time ? `<span class="text-[9px] text-gray-400 font-mono">${c.time}</span>` : ''}
-                        <button type="button" onclick="event.stopPropagation(); deleteComment('${post.id}', ${idx})" class="w-4 h-4 rounded-full hover:bg-rose-100 text-gray-400 hover:text-rose-600 flex items-center justify-center text-[10px] active:scale-90 transition-all" title="댓글 삭제">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
             return `
-                <div id="post-comments-box-${post.id}" class="mt-1 pt-1 border-t border-gray-100 bg-gray-50/70 rounded-xl p-1.5 text-left transition-all duration-300">
-                    <div class="flex items-center space-x-1 text-[10px] font-bold text-gray-600 mb-0.5 px-1">
-                        <i class="fa-regular fa-comment-dots text-emerald-700"></i>
-                        <span>목장 댓글 (${postComments.length})</span>
-                    </div>
-                    <div class="space-y-0.5">
+                <div id="post-comments-box-${post.id}" class="mt-0.5 pt-0.5 border-t border-gray-100 bg-gray-50/70 rounded-lg px-1 py-0.5 text-left transition-all duration-300">
+                    <div class="space-y-0">
                         ${items}
                     </div>
                 </div>
@@ -5734,12 +6254,13 @@
 
                     return `
                         <div id="photo-block-${post.id}-${i}" data-grid-colspan="${itemColSpan}" class="${itemColSpan} h-full flex flex-col justify-between photo-block-item rounded-xl overflow-hidden border border-gray-200/80 bg-gray-50/70 shadow-2xs relative transition-all duration-200">
-                            <div class="w-full relative flex items-center justify-center bg-gray-100 overflow-hidden shrink-0">
+                            <div class="photo-img-wrapper w-full flex-1 relative flex items-center justify-center bg-gray-100 overflow-hidden">
                                 <img id="feed-photo-img-${post.id}-${i}" src="${url}" alt="목장 사진 ${i+1}" loading="lazy" decoding="async" 
+                                     onload="if(window.syncTwoColumnPhotoHeights) syncTwoColumnPhotoHeights('${post.id}')"
                                      onclick="handlePhotoClick('${post.id}', ${i}, event)" 
                                      data-grid-height="${imgHeightClass}"
                                      style="object-position: center 20%; touch-action: manipulation; -webkit-touch-callout: none; user-select: none;"
-                                     class="w-full ${imgHeightClass} object-cover select-none continuous-photo-item block transition-all duration-200">
+                                     class="w-full h-full min-h-[144px] ${imgHeightClass} object-cover select-none continuous-photo-item block transition-all duration-200">
                                 
                                 <button type="button" 
                                         onpointerdown="event.stopPropagation();" 
@@ -5753,7 +6274,7 @@
                                 </button>
                             </div>
 
-                            <div class="flex-1 flex flex-col justify-end">
+                            <div class="shrink-0 flex flex-col justify-end">
                                 <div id="caption-display-${post.id}-${i}" class="photo-caption-text ${caption ? '' : 'hidden'} text-left px-2.5 py-1.5 bg-white border-t border-gray-100 text-[11.5px] leading-relaxed">
                                     <div class="flex items-start space-x-1.5">
                                         <i class="fa-regular fa-comment-dots text-emerald-600 text-[10.5px] mt-0.5 shrink-0"></i>
@@ -5839,16 +6360,18 @@
                             `}
 
                             <div id="action-menu-${post.id}" class="slide-menu-container menu-closed absolute right-7 bg-[#EBF5EE] border border-[#CDE5D5] text-[#244E3F] rounded-full shadow-md py-1 px-3 z-20 flex items-center space-x-2.5 whitespace-nowrap">
-                                <button type="button" onclick="event.stopPropagation(); requestEditPost('${post.id}', event)" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform">
-                                    <i class="fa-solid fa-pen text-[9px]"></i>
-                                    <span>수정</span>
-                                </button>
-                                <span class="text-[#A7D1B7] text-[10px]">|</span>
-                                <button type="button" onclick="event.stopPropagation(); confirmDeletePost('${post.id}', event)" class="text-[11px] font-semibold text-rose-600 hover:text-rose-700 flex items-center space-x-1 active:scale-95 transition-transform">
-                                    <i class="fa-solid fa-trash-can text-[9px]"></i>
-                                    <span>삭제</span>
-                                </button>
-                                <span class="text-[#A7D1B7] text-[10px]">|</span>
+                                ${canModifyPost(post) ? `
+                                    <button type="button" onclick="event.stopPropagation(); requestEditPost('${post.id}', event)" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform">
+                                        <i class="fa-solid fa-pen text-[9px]"></i>
+                                        <span>수정</span>
+                                    </button>
+                                    <span class="text-[#A7D1B7] text-[10px]">|</span>
+                                    <button type="button" onclick="event.stopPropagation(); confirmDeletePost('${post.id}', event)" class="text-[11px] font-semibold text-rose-600 hover:text-rose-700 flex items-center space-x-1 active:scale-95 transition-transform">
+                                        <i class="fa-solid fa-trash-can text-[9px]"></i>
+                                        <span>삭제</span>
+                                    </button>
+                                    <span class="text-[#A7D1B7] text-[10px]">|</span>
+                                ` : ''}
                                 <button type="button" onclick="event.stopPropagation(); openFileManagerModal()" class="text-[11px] font-semibold hover:text-[#18392D] flex items-center space-x-1 active:scale-95 transition-transform" title="파일보관함">
                                     <span>🗂️</span>
                                     <span>파일보관함</span>
@@ -6191,6 +6714,7 @@
 
                 cachedPosts = posts;
                 updateStorageQuotaDisplay(posts);
+                updateUnreadCommentsBadgeUI();
 
                 const searchInput = document.getElementById('feed-search-input');
                 const searchContainer = document.getElementById('header-search-container');
@@ -6254,20 +6778,26 @@
                 return;
             }
 
-            listEl.innerHTML = comments.map((c, idx) => `
-                <div class="py-1.5 px-2 bg-gray-50/80 rounded-lg border border-gray-100 flex items-center justify-between space-x-1.5 text-left hover:bg-gray-100/60 transition-all">
+            markPostCommentsAsRead(postId, comments.length - 1);
+            listEl.innerHTML = comments.map((c, idx) => {
+                const allowDel = canModifyComment(c, post);
+                return `
+                <div class="py-1 px-2 bg-gray-50/80 rounded-lg border border-gray-100 flex items-center justify-between space-x-1.5 text-left hover:bg-gray-100/60 transition-all">
                     <div class="flex-1 flex items-baseline space-x-1.5 min-w-0">
                         <span class="font-bold text-gray-800 text-xs shrink-0">${escapeHtml(c.author)} :</span>
                         <span class="text-gray-700 text-xs leading-snug break-words">${escapeHtml(c.text)}</span>
                     </div>
                     <div class="flex items-center space-x-1.5 shrink-0 select-none">
-                        ${c.time ? `<span class="text-[9px] text-gray-400 font-mono">${c.time}</span>` : ''}
-                        <button type="button" onclick="deleteComment('${postId}', ${idx})" class="w-5 h-5 rounded-full hover:bg-rose-100 text-gray-400 hover:text-rose-600 flex items-center justify-center text-xs active:scale-90 transition-all" title="댓글 삭제">
-                            <i class="fa-solid fa-xmark text-[11px]"></i>
-                        </button>
+                        ${formatCommentDateTwoLines(c.time)}
+                        ${allowDel ? `
+                            <button type="button" onclick="deleteComment('${postId}', ${idx})" class="w-5 h-5 rounded-full hover:bg-rose-100 text-gray-400 hover:text-rose-600 flex items-center justify-center text-xs active:scale-90 transition-all" title="댓글 삭제">
+                                <i class="fa-solid fa-xmark text-[11px]"></i>
+                            </button>
+                        ` : ''}
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
 
             setTimeout(() => { listEl.scrollTop = listEl.scrollHeight; }, 50);
         }
@@ -6370,7 +6900,7 @@
         async function submitComment(postId, text) {
             const now = new Date();
             const timeStr = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-            const commentObj = { author: currentUser, text: text, time: timeStr };
+            const commentObj = { id: 'cmt_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6), author: currentUser, authorUid: reactionUserId, text: text, time: timeStr };
 
             // 1. 낙관적 UI 업데이트 (지연 없이 즉각 화면에 새 댓글 반영)
             let post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
@@ -6387,6 +6917,9 @@
             setDbStatus('saving');
             try {
                 await updateDoc(getPostDocRef(postId), { comments: arrayUnion(commentObj) });
+                if (post && Array.isArray(post.comments)) {
+                    markPostCommentsAsRead(postId, post.comments.length - 1);
+                }
                 setDbStatus('connected');
                 showNotification("댓글이 등록되었습니다.");
             } catch (err) {
@@ -6642,10 +7175,19 @@
                 nextBtn.classList.add('hidden');
             }
 
+            // [항목 7-2: 이전·다음 사진 이동 시 이전 사진의 회전/보정/크기가 적용되지 않도록 초기화하고 새 사진을 정중앙 정렬]
             currentLightboxRotationAngle = 0;
             isLightboxAutoFixed = false;
+            currentLightboxScale = 1.0;
+            currentLightboxPanX = 0;
+            currentLightboxPanY = 0;
+            resetBrightnessContrast();
             updateActiveImageTransform();
-            setTimeout(() => { resetCropBoxToImage(0.85); }, 50);
+            const nextImg = getActiveImageEl();
+            if (nextImg && !nextImg.complete) {
+                nextImg.onload = () => { resetCropBoxToImage(0.85, false); };
+            }
+            setTimeout(() => { resetCropBoxToImage(0.85, false); }, 60);
         }
 
         function getActiveImageEl() {
@@ -6663,14 +7205,15 @@
             }
         }
 
-        // [틀 초기화: 사진 전체 크기의 85%로 크롭 틀 리셋]
-        window.resetCropBoxToImage = function(ratio = 0.85) {
+        // [항목 6-2 & 7-1 & 7-2: 사진의 틀 설정 및 이미지 보정 설정 모두 초기화 & 정중앙 정렬]
+        window.resetCropBoxToImage = function(ratio = 0.85, notify = true) {
             const vp = document.getElementById('lightbox-viewport');
             const activeImg = getActiveImageEl();
             const cropBox = document.getElementById('lightbox-crop-box');
             if (!vp || !cropBox) return;
 
             const vpRect = vp.getBoundingClientRect();
+            const marginPad = 14; // 프레임 상하좌우 적절한 여백 확보
             let refW = vpRect.width * 0.82;
             let refH = vpRect.height * 0.65;
             let refLeft = (vpRect.width - refW) / 2;
@@ -6684,19 +7227,83 @@
                 refTop = imgRect.top - vpRect.top;
             }
 
-            const targetW = Math.max(80, Math.round(refW * ratio));
-            const targetH = Math.max(80, Math.round(refH * ratio));
+            const targetW = Math.max(80, Math.min(vpRect.width - marginPad * 2, Math.round(refW * ratio)));
+            const targetH = Math.max(80, Math.min(vpRect.height - marginPad * 2, Math.round(refH * ratio)));
             const targetX = Math.round(refLeft + (refW - targetW) / 2);
             const targetY = Math.round(refTop + (refH - targetH) / 2);
 
             cropBoxRect = {
-                x: Math.max(4, Math.min(vpRect.width - targetW - 4, targetX)),
-                y: Math.max(4, Math.min(vpRect.height - targetH - 4, targetY)),
+                x: Math.max(marginPad, Math.min(vpRect.width - targetW - marginPad, targetX)),
+                y: Math.max(marginPad, Math.min(vpRect.height - targetH - marginPad, targetY)),
                 w: targetW,
                 h: targetH
             };
             applyCropBoxRectToDom();
-            showNotification("크롭 틀이 사진 크기(85%)로 초기화되었습니다.");
+            if (notify) {
+                showNotification("편집 틀이 중앙 초기 상태로 정렬되었습니다.");
+            }
+        };
+
+        // [항목 6-2: 초기화 버튼 - 사진의 틀 설정과 이미지 보정(밝기/대비/회전) 설정 모두 초기 상태로 복원]
+        window.resetLightboxAll = function() {
+            currentLightboxRotationAngle = 0;
+            isLightboxAutoFixed = false;
+            resetBrightnessContrast();
+            updateActiveImageTransform();
+            const panel = document.getElementById('lightbox-adjust-panel');
+            if (panel) panel.classList.add('hidden');
+            if (autoFixBtn) {
+                autoFixBtn.classList.remove('bg-emerald-100', 'text-emerald-800', 'border-emerald-300');
+                autoFixBtn.classList.add('bg-gray-100', 'text-gray-700');
+            }
+            setTimeout(() => {
+                resetCropBoxToImage(0.85, false);
+                showNotification("사진 틀과 이미지 보정 설정이 모두 초기화되었습니다.");
+            }, 30);
+        };
+
+        // [항목 6-2: 상단 '이름변경' 기능]
+        window.openRenameModalFromLightbox = function() {
+            const modal = document.getElementById('rename-user-modal');
+            const input = document.getElementById('rename-user-input');
+            if (!modal || !input) return;
+            input.value = currentUser || '';
+            modal.classList.remove('hidden');
+            setTimeout(() => input.focus(), 60);
+        };
+
+        window.closeRenameUserModal = function() {
+            const modal = document.getElementById('rename-user-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.confirmRenameUser = async function() {
+            const input = document.getElementById('rename-user-input');
+            if (!input) return;
+            const newName = input.value.trim();
+            if (!newName) {
+                showNotification("변경할 이름을 입력해 주세요.");
+                return;
+            }
+            const oldName = currentUser;
+            currentUser = newName;
+            try {
+                localStorage.setItem('mokjang_user_name', newName);
+            } catch(e) {}
+
+            // 현재 열려 있는 게시글이 본인 글이거나 관리자인 경우 작성자 이름도 함께 업데이트
+            if (currentLightboxPostId && db) {
+                const targetPost = cachedPosts.find(p => p.id === currentLightboxPostId || String(p.id) === String(currentLightboxPostId));
+                if (targetPost && (canModifyPost(targetPost) || targetPost.author === oldName)) {
+                    try {
+                        await updateDoc(getPostDocRef(currentLightboxPostId), { author: newName });
+                        targetPost.author = newName;
+                        renderFeedList();
+                    } catch(e) {}
+                }
+            }
+            closeRenameUserModal();
+            showNotification(`이름이 '${newName}'(으)로 변경되었습니다.`);
         };
 
         function applyCropBoxRectToDom() {
@@ -7033,10 +7640,10 @@
                         const relW = Math.min(rotatedFullW - relX, cropRect.width * scaleFactor);
                         const relH = Math.min(rotatedFullH - relY, cropRect.height * scaleFactor);
 
-                        // 3. 최종 출력 캔버스 생성 (최대 960px로 최적화하여 고선명 보존 및 1MB 한도 준수)
+                        // [항목 6-3: '이대로 저장(화질보존)' - 불필요한 재압축으로 인한 화질 저하 방지 (최대 1600px & 0.95 고화질 보존)]
                         let outW = Math.max(40, Math.round(relW));
                         let outH = Math.max(40, Math.round(relH));
-                        const maxDim = 960;
+                        const maxDim = 1600;
                         if (outW > maxDim || outH > maxDim) {
                             if (outW > outH) {
                                 outH = Math.round((outH * maxDim) / outW);
@@ -7051,10 +7658,12 @@
                         outCanvas.width = outW;
                         outCanvas.height = outH;
                         const outCtx = outCanvas.getContext('2d', { willReadFrequently: true });
+                        outCtx.imageSmoothingEnabled = true;
+                        outCtx.imageSmoothingQuality = 'high';
                         outCtx.fillStyle = '#ffffff';
                         outCtx.fillRect(0, 0, outW, outH);
 
-                        // 원본 회전 캔버스에서 해당 크롭 영역만 정밀 슬라이스하여 복사
+                        // 원본 회전 캔버스에서 해당 크롭 영역만 정밀 슬라이스하여 복사 (노란 점선 프레임 자체는 저장되지 않음)
                         outCtx.drawImage(fullCanvas, relX, relY, relW, relH, 0, 0, outW, outH);
 
                         // 밝기 및 대비 직접 보정
@@ -7062,8 +7671,8 @@
                             applyBrightnessContrastPixels(outCtx, outW, outH, brightness, contrast);
                         } catch(e) {}
 
-                        // JPEG 0.78 품질로 압축 (용량 60~100KB, 고선명 보존)
-                        resolve(outCanvas.toDataURL('image/jpeg', 0.78));
+                        // JPEG 0.95 고화질 보존
+                        resolve(outCanvas.toDataURL('image/jpeg', 0.95));
                     } catch (err) {
                         reject(err);
                     }
