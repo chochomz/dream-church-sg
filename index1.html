@@ -653,17 +653,30 @@
         };
 
         window.goToInitialGatePage = function() {
-            showToast('초기 로그인 화면(index.html)으로 연결됩니다.');
+            showToast('초기 로그인 화면(index.html)으로 이동합니다...');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 220);
         };
 
         window.goToMainFeedPageAsAdmin = function() {
+            const leaderName = mokjangConfig.leaderName || '목자';
+            const mokjangShort = mokjangConfig.mokjangName || '23목장';
+            const adminFlag = isLeaderAuthenticated ? '1' : '0';
             try {
-                localStorage.setItem('mokjang_user_name', mokjangConfig.leaderName || '목자');
-                localStorage.setItem('mokjang_short_name', mokjangConfig.mokjangName || '23목장');
-                localStorage.setItem('mokjang_name', `세종꿈의교회 ${mokjangConfig.mokjangName || '23목장'}`);
+                localStorage.setItem('mokjang_user_name', leaderName);
+                localStorage.setItem('mokjang_short_name', mokjangShort);
+                localStorage.setItem('mokjang_name', `세종꿈의교회 ${mokjangShort}`);
                 localStorage.setItem('mokjang_is_admin', isLeaderAuthenticated ? 'true' : 'false');
             } catch(e) {}
-            showToast('목자 권한이 저장되었습니다. 메인 피드(index2.html)로 연결됩니다.');
+            showToast('목자 권한으로 메인 피드(index2.html)로 이동합니다...');
+            setTimeout(() => {
+                const targetUrl = 'index2.html'
+                    + '?mokjang=' + encodeURIComponent(mokjangShort)
+                    + '&user=' + encodeURIComponent(leaderName)
+                    + '&admin=' + encodeURIComponent(adminFlag);
+                window.location.href = targetUrl;
+            }, 220);
         };
 
         initAdminPage();
