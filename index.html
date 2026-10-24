@@ -160,6 +160,18 @@
         <!-- 하단 이미지 반쪽 (꿈의 목장 포함) -->
         <div class="gate-img-layer" id="gate-bottom"></div>
 
+        <!-- 초기 화면 좌측 상단 ? 사용설명서 & 우측 상단 작은 열쇠(관리자) 버튼 -->
+        <div class="absolute top-3 left-3 z-40">
+            <button type="button" onclick="openHelpModal()" class="w-7 h-7 rounded-full flex items-center justify-center bg-white/85 hover:bg-white text-[#3B5D50] border border-gray-200/80 shadow-2xs text-xs font-bold active:scale-95 transition-all" title="사용설명서">
+                <i class="fa-solid fa-question text-xs"></i>
+            </button>
+        </div>
+        <div class="absolute top-3 right-3 z-40">
+            <button type="button" onclick="openAdminKeyModal()" class="w-7 h-7 rounded-full flex items-center justify-center bg-white/85 hover:bg-white text-amber-700 border border-amber-200/80 shadow-2xs text-xs font-bold active:scale-95 transition-all" title="목자(관리자) 페이지">
+                <i class="fa-solid fa-key text-[11px]"></i>
+            </button>
+        </div>
+
         <!-- 세종꿈의교회와 꿈의 목장 사이를 유영하는 6개 단어 레이어 -->
         <div id="floating-words-layer"></div>
 
@@ -197,6 +209,40 @@
             </div>
         </div>
     </main>
+
+    <!-- [좌측 상단 ? 사용설명서 모달] -->
+    <div id="gate-help-modal" class="fixed inset-0 z-[1005] bg-black/55 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-xs p-4 shadow-2xl border church-border text-left space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b church-border">
+                <div class="flex items-center space-x-1.5">
+                    <span class="w-6 h-6 rounded-full church-accent church-primary-text flex items-center justify-center text-xs font-bold">?</span>
+                    <h3 class="text-xs font-bold text-gray-800">꿈의 목장 입장 안내</h3>
+                </div>
+                <button type="button" onclick="closeHelpModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+            <div class="space-y-2 text-[11.5px] text-gray-700 leading-relaxed">
+                <p>1. 화면 하단 <strong>'꿈의 목장'</strong> 글씨 영역을 <strong>연속 5회 터치</strong>하면 로그인 입력창이 나타납니다.</p>
+                <p>2. 목자님께 안내받은 <strong>4자리 목장 코드</strong>와 <strong>본인 이름</strong>을 입력하면 하트가 피어나며 자동 입장됩니다.</p>
+            </div>
+            <button type="button" onclick="closeHelpModal()" class="w-full py-2 church-primary text-white rounded-xl text-xs font-bold active:scale-95 transition-all">확인</button>
+        </div>
+    </div>
+
+    <!-- [우측 상단 열쇠 관리자 안내 모달] -->
+    <div id="gate-admin-modal" class="fixed inset-0 z-[1005] bg-black/55 backdrop-blur-xs flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3">
+            <div class="w-10 h-10 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center mx-auto text-sm">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <div>
+                <h3 class="text-xs font-bold text-gray-800">목자(관리자) 전용 페이지</h3>
+                <p class="text-[11px] text-gray-500 mt-1 leading-relaxed">목장 코드 및 목원 명단 관리는 관리자 페이지(<strong>index1.html</strong>)에서 소셜 인증 후 이용할 수 있습니다.</p>
+            </div>
+            <button type="button" onclick="closeAdminKeyModal()" class="w-full py-2 church-primary text-white rounded-xl text-xs font-bold active:scale-95 transition-all">확인</button>
+        </div>
+    </div>
 
     <script>
         const authGate = document.getElementById('auth-gate');
@@ -339,9 +385,32 @@
                 nameInput.focus();
             }
 
-            // 3. 가상 코드 1111, 1111 입력 시 즉시 입장 처리
-            if (code === '1111' && name === '1111') {
-                // 모바일에서 키보드를 내려 메인 화면이 삐딱해지는 현상 방지
+            // 3. 관리자 설정 코드/목원 이름 또는 기본 코드(1111, 1111) 일치 시 즉시 입장 처리
+            let validCode = '1111';
+            let validMembers = ['1111'];
+            let mokjangShort = '23목장';
+            let leaderName = '목자';
+            try {
+                const rawCfg = localStorage.getItem('mokjang_config_backup');
+                if (rawCfg) {
+                    const cfg = JSON.parse(rawCfg);
+                    if (cfg.mokjangCode) validCode = String(cfg.mokjangCode).trim();
+                    if (Array.isArray(cfg.members) && cfg.members.length > 0) validMembers = cfg.members;
+                    if (cfg.mokjangName) mokjangShort = cfg.mokjangName;
+                    if (cfg.leaderName) leaderName = cfg.leaderName;
+                }
+            } catch(e) {}
+
+            const isDefaultMatch = (code === '1111' && name === '1111');
+            const isConfigMatch = (code === validCode && validMembers.includes(name));
+
+            if (isDefaultMatch || isConfigMatch) {
+                try {
+                    localStorage.setItem('mokjang_user_name', name);
+                    localStorage.setItem('mokjang_short_name', mokjangShort);
+                    localStorage.setItem('mokjang_name', `세종꿈의교회 ${mokjangShort}`);
+                    localStorage.setItem('mokjang_is_admin', (name === leaderName) ? 'true' : 'false');
+                } catch(e) {}
                 codeInput.blur();
                 nameInput.blur();
                 handleMemberLogin(name);
@@ -369,7 +438,20 @@
         }
 
         function openHelpModal() {
-            // 도움말 기능 (필요시 모달 연동)
+            const m = document.getElementById('gate-help-modal');
+            if (m) m.classList.remove('hidden');
+        }
+        function closeHelpModal() {
+            const m = document.getElementById('gate-help-modal');
+            if (m) m.classList.add('hidden');
+        }
+        function openAdminKeyModal() {
+            const m = document.getElementById('gate-admin-modal');
+            if (m) m.classList.remove('hidden');
+        }
+        function closeAdminKeyModal() {
+            const m = document.getElementById('gate-admin-modal');
+            if (m) m.classList.add('hidden');
         }
 
         // 하트 생성 함수 (천천히 몽글몽글 올라가도록 시간 연장)
