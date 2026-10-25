@@ -27,18 +27,6 @@
             -webkit-text-size-adjust: 100% !important;
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
-        header { padding-top: max(env(safe-area-inset-top, 0px), 0px); }
-        .church-primary { background-color: #3B5D50; }
-        .church-primary-text { color: #3B5D50; }
-        .church-accent { background-color: #E8F0EC; }
-        .church-border { border-color: #E5E7EB; }
-
-        @keyframes swayWelcome {
-            0%, 100% { transform: rotate(0deg) translateY(0); }
-            25% { transform: rotate(-2deg) translateY(-0.5px); }
-            75% { transform: rotate(2deg) translateY(0.5px); }
-        }
-        .animate-sway-welcome { display: inline-block; animation: swayWelcome 3.5s ease-in-out infinite; transform-origin: center center; }
 
         /* [게이트 바운드 & 심리스 슬라이드업 모션] */
         @keyframes dipAndSlideUpSeamless {
@@ -47,7 +35,7 @@
             100% { transform: translateY(-100%); }
         }
         .gate-open-active {
-            animation: dipAndSlideUpSeamless 3.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            animation: dipAndSlideUpSeamless 3.0s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
 
         #auth-gate {
@@ -85,7 +73,7 @@
         #code-auth-box input {
             font-size: 16px !important;
             -webkit-text-size-adjust: 100% !important;
-            caret-color: #6b7280 !important; /* 회색 깜빡이는 커서 */
+            caret-color: #6b7280 !important;
         }
 
         #floating-words-layer {
@@ -120,44 +108,13 @@
             filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.8));
             pointer-events: none; z-index: 1000; opacity: 0;
         }
-
-        /* [심리스 연동 백그라운드 메인 피드 컨테이너 미리보기 슬라이드업] */
-        #seamless-feed-preview {
-            position: fixed; inset: 0; z-index: 900;
-            background-color: #F8F9FA;
-            display: flex; flex-direction: column;
-            transform: translateY(100%);
-            transition: transform 3.2s cubic-bezier(0.25, 1, 0.5, 1);
-            will-change: transform;
-        }
-        #seamless-feed-preview.slide-up-active {
-            transform: translateY(0);
-        }
     </style>
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
 
-    <!-- [심리스 연동 메인 피드 뷰 (게이트 뒤에서 스르륵 함께 올라옴)] -->
-    <div id="seamless-feed-preview" class="w-full max-w-md mx-auto h-full flex flex-col shadow-2xl">
-        <header class="h-[52px] shrink-0 bg-white border-b church-border shadow-2xs px-4 flex items-center justify-between w-full z-30 relative">
-            <div class="w-8 shrink-0 flex items-center justify-start"></div>
-            <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center">
-                <div class="relative flex items-center space-x-1.5 justify-center">
-                    <h1 class="text-[18.8px] font-black tracking-tight leading-tight text-[#374151]">세종꿈의교회 <span class="text-emerald-700">23목장</span></h1>
-                </div>
-                <p class="text-[10px] text-gray-500 font-medium mt-0.5 animate-sway-welcome">목장 가족님 환영합니다</p>
-            </div>
-            <div class="w-8"></div>
-        </header>
-        <main class="flex-1 p-4 flex items-center justify-center text-center text-gray-500 text-xs">
-            <div class="space-y-2">
-                <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto text-lg animate-bounce">🌿</div>
-                <p class="font-bold text-gray-700">목장 나눔방으로 입장 중입니다...</p>
-            </div>
-        </main>
-    </div>
+    <!-- [작업 3 반영: 23목장 관련 불필요한 더미 프레임(#seamless-feed-preview) 완전 제거] -->
 
-    <!-- [제스처 인증 게이트 (원본 단독 노출 + 십자가/목장 핀치 스플릿)] -->
+    <!-- [제스처 인증 게이트] -->
     <div id="auth-gate">
         <div class="gate-img-layer" id="gate-top"></div>
         <div class="gate-img-layer" id="gate-bottom"></div>
@@ -180,11 +137,18 @@
     </div>
 
     <script>
+        // 주소창을 깔끔하게 유지 (index.html 노출 제거)
+        try {
+            if (window.location && window.location.pathname && window.location.pathname.endsWith('/index.html')) {
+                const cleanBase = window.location.pathname.replace(/index\.html$/, '');
+                window.history.replaceState({}, '', cleanBase || '/');
+            }
+        } catch (e) {}
+
         const authGate = document.getElementById('auth-gate');
         const gateBottom = document.getElementById('gate-bottom');
         const codeAuthBox = document.getElementById('code-auth-box');
         const floatingWordsLayer = document.getElementById('floating-words-layer');
-        const seamlessFeedPreview = document.getElementById('seamless-feed-preview');
 
         const GRACE_WORDS = ['믿음', '소망', '사랑', '감사', '찬송', '기도', '섬김', '양육', '전도', '예배'];
         const floatingWordItems = [];
@@ -298,7 +262,6 @@
             }, 1500); 
         });
 
-        // 코드 입력 시 숫자만 허용, 최대 4자리. 코드가 4자리 정확히 맞을 때만 진동 1회 발생 및 이름창으로 커서 이동
         window.handleCodeInput = function(input) {
             let clean = input.value.replace(/[^0-9]/g, '').slice(0, 4);
             if (input.value !== clean) input.value = clean;
@@ -315,7 +278,6 @@
             const isCodeCorrect = (clean === '1111' || clean === validCode);
 
             if (clean.length === 4 && isCodeCorrect && document.activeElement === input) {
-                // 코드 일치 시 진동 1회 발생
                 if (navigator.vibrate) {
                     try { navigator.vibrate(40); } catch(e) {}
                 }
@@ -325,7 +287,6 @@
             checkAutoLogin();
         };
 
-        // 이름 입력 시 한글만 허용, 최대 4글자
         window.handleNameInput = function(input) {
             let clean = input.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').slice(0, 4);
             if (input.value !== clean) input.value = clean;
@@ -340,7 +301,7 @@
 
             let validCode = window.liveMokjangConfig?.mokjangCode || '1111';
             let validMembers = Array.isArray(window.liveMokjangConfig?.members) ? window.liveMokjangConfig.members : ['1111'];
-            let mokjangShort = window.liveMokjangConfig?.mokjangName || '23목장';
+            let mokjangShort = window.liveMokjangConfig?.mokjangName || '';
             let leaderName = window.liveMokjangConfig?.leaderName || '목자';
             try {
                 const rawCfg = localStorage.getItem('mokjang_config_backup');
@@ -348,42 +309,40 @@
                     const cfg = JSON.parse(rawCfg);
                     if (cfg.mokjangCode) validCode = String(cfg.mokjangCode).trim();
                     if (Array.isArray(cfg.members) && cfg.members.length > 0) validMembers = cfg.members;
-                    if (cfg.mokjangName) mokjangShort = cfg.mokjangName;
-                    if (cfg.leaderName) leaderName = cfg.leaderName;
+                    if (cfg.mokjangName) mokjangShort = String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '');
+                    if (cfg.leaderName) leaderName = String(cfg.leaderName).trim();
                 }
             } catch(e) {}
 
             const isDefaultMatch = (code === '1111' && name === '1111');
-            const isConfigMatch = (code === validCode && validMembers.includes(name));
+            const isLeaderMatch = (code === validCode && name === leaderName);
+            const isMemberMatch = (code === validCode && validMembers.includes(name));
 
-            // 코드와 이름이 모두 정확히 일치할 때만 자동 로그인 승인
-            if (code.length === 4 && name.length >= 3 && (isDefaultMatch || isConfigMatch)) {
-                const isAdminFlag = (name === leaderName || name === '목자' || name === '관리자') ? '1' : '0';
+            // 코드(4자리)와 이름(2~4글자 이상, 목자 또는 등록된 일반 목원)이 일치할 때 로그인 승인
+            if (code.length === 4 && name.length >= 2 && (isDefaultMatch || isLeaderMatch || isMemberMatch)) {
+                const isLeaderRole = (name === leaderName || name === '목자' || name === '관리자');
+                const userRole = isLeaderRole ? 'leader' : 'member';
+                const isAdminFlag = isLeaderRole ? '1' : '0';
+
                 try {
                     localStorage.setItem('mokjang_user_name', name);
+                    localStorage.setItem('mokjang_user_role', userRole);
                     localStorage.setItem('mokjang_short_name', mokjangShort);
-                    localStorage.setItem('mokjang_name', `세종꿈의교회 ${mokjangShort}`);
-                    localStorage.setItem('mokjang_is_admin', (isAdminFlag === '1') ? 'true' : 'false');
+                    localStorage.setItem('mokjang_name', mokjangShort ? `세종꿈의교회 ${mokjangShort}` : '세종꿈의교회');
+                    localStorage.setItem('mokjang_is_admin', isLeaderRole ? 'true' : 'false');
                 } catch(e) {}
+
                 codeInput.blur();
                 nameInput.blur();
-                handleMemberLogin(name, mokjangShort, isAdminFlag);
+                handleMemberLogin(name, mokjangShort, isAdminFlag, userRole);
             }
         }
 
-        function handleMemberLogin(userName, mokjangShort = '23목장', isAdminFlag = '0') {
+        function handleMemberLogin(userName, mokjangShort = '', isAdminFlag = '0', userRole = 'member') {
             const finalName = userName || document.getElementById('input-member-name').value.trim() || '목장가족';
-            const finalMokjang = mokjangShort || '23목장';
-            const targetUrl = 'index2.html'
-                + '?mokjang=' + encodeURIComponent(finalMokjang)
-                + '&user=' + encodeURIComponent(finalName)
-                + '&admin=' + encodeURIComponent(isAdminFlag);
+            const finalMokjang = mokjangShort || '';
 
             authGate.classList.add('gate-open-active');
-            if (seamlessFeedPreview) {
-                seamlessFeedPreview.classList.add('slide-up-active');
-            }
-            
             createHearts();
 
             setTimeout(() => {
@@ -391,20 +350,26 @@
                     sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
                         target: 'index2.html',
                         authorizedFromIndex: true,
+                        userName: finalName,
+                        mokjangShort: finalMokjang,
+                        role: userRole,
+                        isAdmin: isAdminFlag === '1',
                         issuedAt: Date.now()
                     }));
                     sessionStorage.setItem('mokjang_authorized_session', 'index_verified');
                 } catch (e) {}
+
+                // [작업 4-나 반영]: URL에 파라미터를 노출하지 않고 깔끔하게 index2.html로 이동
                 try {
                     if (window.location && typeof window.location.replace === 'function') {
-                        window.location.replace(targetUrl);
+                        window.location.replace('index2.html');
                     } else {
-                        window.location.href = targetUrl;
+                        window.location.href = 'index2.html';
                     }
                 } catch (navErr) {
-                    window.location.href = targetUrl;
+                    window.location.href = 'index2.html';
                 }
-            }, 3000);
+            }, 2800);
         }
 
         let adminTapCount = 0;
