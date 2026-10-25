@@ -3915,7 +3915,22 @@
             container.innerHTML = html;
         }
 
-        // [해당 날짜 터치 시 피드로 쏜살같이 직행 이동]
+        // [달력 투명도 제어 헬퍼: 기본 상태(0.62) <-> 피드 이동 확인용 고투명 상태(0.18)]
+        function setBookmarkCalendarTranslucentMode(isTranslucent) {
+            const popupEl = document.getElementById('bookmark-calendar-popup');
+            if (!popupEl) return;
+            if (isTranslucent) {
+                popupEl.style.backgroundColor = 'rgba(255, 255, 255, 0.18)';
+                popupEl.style.backdropFilter = 'blur(1.5px)';
+                popupEl.style.webkitBackdropFilter = 'blur(1.5px)';
+            } else {
+                popupEl.style.backgroundColor = 'rgba(255, 255, 255, 0.62)';
+                popupEl.style.backdropFilter = 'blur(8px)';
+                popupEl.style.webkitBackdropFilter = 'blur(8px)';
+            }
+        }
+
+        // [해당 날짜 터치 시 피드로 이동 & 달력 투명도를 높여 이동된 피드글이 어렴풋이 보이도록 유지]
         window.navigateToPostByDate = function(year, month, day, event) {
             if (event) event.stopPropagation();
 
@@ -3944,12 +3959,12 @@
                 renderFeedList();
             }
 
-            // 달력 닫기
-            closeBookmarkCalendar();
+            // 달력을 닫지 않고 투명도를 높여(배경 알파값을 낮추어) 이동된 피드글이 어렴풋이 보이도록 전환
+            setBookmarkCalendarTranslucentMode(true);
 
-            // 해당 피드 위치로 쏜살같이 이동 및 산뜻한 하이라이트
+            // 해당 피드 위치로 이동 및 산뜻한 하이라이트
             scrollToPost(targetPost.id, true);
-            showNotification(`${month + 1}월 ${day}일 이야기로 쏜살같이 이동했습니다 🚀`);
+            showNotification(`${month + 1}월 ${day}일 이야기로 이동했습니다. (확인 후 달력을 닫으면 원래 투명도로 복귀합니다)`);
         };
 
         window.toggleBookmarkCalendar = function(event) {
@@ -4023,6 +4038,8 @@
             popup.classList.add('opacity-0', 'scale-90');
             setTimeout(() => {
                 popup.classList.add('hidden');
+                // 달력을 닫으면 원래 투명도로 복귀
+                setBookmarkCalendarTranslucentMode(false);
             }, 200);
 
             // 달력 닫은 후 1.6초 후 책갈피 자연스럽게 닫힘
