@@ -4,6 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>목자(관리자) 설정 - 세종꿈의교회 꿈의 목장</title>
+    <!-- [요구사항 5: 오직 index.html을 통해서만 입장 가능하도록 직접 링크 접근 원천 차단] -->
+    <script>
+        (function() {
+            try {
+                if (!window.location || window.location.protocol === 'blob:' || !window.location.href) {
+                    return;
+                }
+                var passRaw = sessionStorage.getItem('mokjang_entry_pass');
+                var authSession = sessionStorage.getItem('mokjang_authorized_session');
+                var isValid = false;
+                if (passRaw) {
+                    var pass = JSON.parse(passRaw);
+                    if (pass && (pass.target === 'index1.html' || pass.authorizedFromIndex)) {
+                        isValid = true;
+                    }
+                }
+                if (authSession === 'index_verified') {
+                    isValid = true;
+                }
+                if (!isValid) {
+                    var targetUrl = 'index.html';
+                    if (window.location.pathname) {
+                        var parts = window.location.pathname.split('/');
+                        parts.pop();
+                        targetUrl = parts.join('/') + '/index.html';
+                        if (!targetUrl.startsWith('/')) targetUrl = '/' + targetUrl;
+                    }
+                    if (targetUrl && typeof window.location.replace === 'function') {
+                        window.location.replace(targetUrl);
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                }
+            } catch (e) {
+                console.warn("Entry pass check skipped:", e);
+            }
+        })();
+    </script>
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,7 +63,7 @@
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
             background-color: #F8F9FA; color: #222222;
             -webkit-tap-highlight-color: transparent;
-            -webkit-text-size-adjust: 100%;
+            -webkit-text-size-adjust: 100% !important;
             touch-action: pan-y;
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
@@ -34,15 +72,16 @@
         .church-primary-text { color: #3B5D50; }
         .church-accent { background-color: #E8F0EC; }
         .church-border { border-color: #E5E7EB; }
+        /* [요구사항 4]: iOS/모바일 키보드 포커스 시 화면 자동 확대(줌) 방지 (16px 고정) */
         .dashed-input {
             background-color: #ffffff !important;
             color: #111827 !important;
             border: 1px dashed #94a3b8 !important;
             outline: none !important;
             box-sizing: border-box !important;
-            /* iOS / 모바일 키보드 포커스 시 화면 자동 확대(줌) 원천 차단 */
             font-size: 16px !important;
             line-height: 1.25 !important;
+            -webkit-text-size-adjust: 100% !important;
         }
         .dashed-input:focus {
             border: 1px dashed #3B5D50 !important;
@@ -61,11 +100,11 @@
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
 
-    <!-- [상단 헤더: 상단 ? 및 열쇠 표시 삭제, 중앙 로고+타이틀만 깔끔하게 배치] -->
+    <!-- [상단 헤더] -->
     <header class="h-[52px] shrink-0 bg-white border-b church-border shadow-2xs px-4 flex items-center justify-center w-full z-30 relative max-w-md mx-auto">
         <div class="flex flex-col items-center justify-center text-center pointer-events-auto max-w-[88vw]">
             <div class="flex items-center space-x-1.5 justify-center">
-                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAAoCAYAAAB5ADPdAAAWfmNhQlgAABZ+anVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAFlhqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjM2ZjIzYzljLTFiMGQtNGEyZS04NmU3LTk4NzljZjRjMjE3NQAAAAOTanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAAAuGp1bWIAAABEanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5pbmdyZWRpZW50LnYzAAAAABhjMnNoozP3h9Ae7zHJk3fn/mFDCwAAAGxjYm9yo2lkYzpmb3JtYXRpaW1hZ2UvcG5namluc3RhbmNlSUR4LHhtcDppaWQ6NTM5ZDIyNTItMzVmMS00Y2Q5LThlZWMtY2Y2MzM4Yzc3YTI5bHJlbGF0aW9uc2hpcGhwYXJlbnRPZgAAAeJqdW1iAAAAQWp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuYWN0aW9ucy52MgAAAAAYYzJzaC0DSUG0gzGtjaES6fNLd50AAAGZY2JvcqJnYWN0aW9uc4KiZmFjdGlvbmtjMnBhLm9wZW5lZGpwYXJhbWV0ZXJzoWtpbmdyZWRpZW50c4GiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5pbmdyZWRpZW50LnYzZGhhc2hYIEAc0kZOeHRHbUIZtQSvjfoeMXgultlCebgwp5KFE2fvpGZhY3Rpb254HWNvbS5hbnRocm9waWMuY2xhdWRlLnByb3ZpZGVkanBhcmFtZXRlcnOheB9jb20uYW50aHJvcGljLm9yaWdpbi1jb25maWRlbmNlZ3Vua25vd25rZGVzY3JpcHRpb254ZkNsYXVkZSBwcm92aWRlZCB0aGlzIGZpbGUgYXQgdGhlIHJlcXVlc3Qgb2YgYSB1c2VyIGFuZCBtYXkgaGF2ZSBjcmVhdGVkIG9yIG1vZGlmaWVkIHRoZSBmaWxlIGNvbnRlbnRzLm1zb2Z0d2FyZUFnZW50oWRuYW1lZkNsYXVkZXJhbGxBY3Rpb25zSW5jbHVkZWT1AAAAyGp1bWIAAABAanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5oYXNoLmRhdGEAAAAAGGMyc2jSNLCEgqTVOZ+pFtPgpRYJAAAAgGNib3KlY2FsZ2ZzaGEyNTZjcGFkTQAAAAAAAAAAAAAAAABkaGFzaFggT1t+WDmlnH8bb0WGw1CNyA++PIPnRKhVylsDnVv/jLlkbmFtZW5qdW1iZiBtYW5pZmVzdGpleGNsdXNpb25zgaJlc3RhcnQYIWZsZW5ndGgZFooAAAI+anVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAg9jYm9ypWNhbGdmc2hhMjU2aXNpZ25hdHVyZXhNc2VsZiNqdW1iZj0vYzJwYS91cm46YzJwYTozNmYyM2M5Yy0xYjBkLTRhMmUtODZlNy05ODc5Y2Y0YzIxNzUvYzJwYS5zaWduYXR1cmVqaW5zdGFuY2VJRHgseG1wOmlpZDo2MjlmZjAzZC0xMDViLTRhOTgtYmYwYi03YmFhNTFiZmQ0MDNyY3JlYXRlZF9hc3NlcnRpb25zg6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggQBzSRk54dEdtQhm1BK+N+h4xeC6W2UJ5uDCnkoUTZ++iY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIJYd6SYRHN8jdj+69EZIYQn6jGHofD0Iyt/Xpr1zrvZaomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIKCq5lKeFge36naq2l//psMmcpfEoNgZ/E/OSO0hlXM9dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lb0FudGhyb3BpYyBGaWxlc2d2ZXJzaW9uZTEuMC4wa3NwZWNWZXJzaW9uZTIuNC4wAAAQOGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAAQCGNib3LShFkCEqIBJhghWQIKMIICBjCCAY2gAwIBAgIUQOWgCu7COdC+uIP6BkIFPWdVEwAwCgYIKoZIzj0EAwMwSTEXMBUGA1UEChMOQW50aHJvcGljLCBQQkMxLjAsBgNVBAMTJUFudGhyb3BpYyBDb250ZW50IENyZWRlbnRpYWxzIFJvb3QgQ0EwHhcNMjYwODA3MTg0MzU2WhcNMjgwODA2MTk0MzU2WjBEMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEpMCcGA1UEAxMgQW50aHJvcGljIENsYXVkZSBDb250ZW50IFNpZ25pbmcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASYegpry1AYBRTVNL1CpTlbROnY3dey+UrsF9C3phYrATN3ZHf93Mo8RQN0KOUuOn19P4oWNFWe5n2/She9N7eTo1gwVjAOBgNVHQ8BAf8EBAMCB4AwFQYDVR0lBA4wDAYKKwYBBAGD6F4CATAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFM5R4gSBTmRbI/jjxM+aPpzB11zCMAoGCCqGSM49BAMDA2cAMGQCMDFzHRSeAXrSy1WOzkbhPZ6Km2wGTmZ/2gK18k8BQGXyqz88Rdrz6CTX9flAnYNVxgIwcF9c3fVhqmJKpi+UhasNUMko69cyX6STPfta3Q8EjyzDjzoyrol46FP6VFHhvUcJoWNwYWRZDZ4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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" alt="세종꿈의교회 로고" class="w-[21px] h-[21px] object-contain shrink-0">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAAoCAYAAAB5ADPdAAAWfmNhQlgAABZ+anVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAFlhqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjM2ZjIzYzljLTFiMGQtNGEyZS04NmU3LTk4NzljZjRjMjE3NQAAAAOTanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAAAuGp1bWIAAABEanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5pbmdyZWRpZW50LnYzAAAAABhjMnNoozP3h9Ae7zHJk3fn/mFDCwAAAGxjYm9yo2lkYzpmb3JtYXRpaW1hZ2UvcG5namluc3RhbmNlSUR4LHhtcDppaWQ6NTM5ZDIyNTItMzVmMS00Y2Q5LThlZWMtY2Y2MzM4Yzc3YTI5bHJlbGF0aW9uc2hpcGhwYXJlbnRPZgAAAeJqdW1iAAAAQWp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuYWN0aW9ucy52MgAAAAAYYzJzaC0DSUG0gzGtjaES6fNLd50AAAGZY2JvcqJnYWN0aW9uc4KiZmFjdGlvbmtjMnBhLm9wZW5lZGpwYXJhbWV0ZXJzoWtpbmdyZWRpZW50c4GiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5pbmdyZWRpZW50LnYzZGhhc2hYIEAc0kZOeHRHbUIZtQSvjfoeMXgultlCebgwp5KFE2fvpGZhY3Rpb254HWNvbS5hbnRocm9waWMuY2xhdWRlLnByb3ZpZGVkanBhcmFtZXRlcnOheB9jb20uYW50aHJvcGljLm9yaWdpbi1jb25maWRlbmNlZ3Vua25vd25rZGVzY3JpcHRpb254ZkNsYXVkZSBwcm92aWRlZCB0aGlzIGZpbGUgYXQgdGhlIHJlcXVlc3Qgb2YgYSB1c2VyIGFuZCBtYXkgaGF2ZSBjcmVhdGVkIG9yIG1vZGlmaWVkIHRoZSBmaWxlIGNvbnRlbnRzLm1zb2Z0d2FyZUFnZW50oWRuYW1lZkNsYXVkZXJhbGxBY3Rpb25zSW5jbHVkZWT1AAAAyGp1bWIAAABAanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5oYXNoLmRhdGEAAAAAGGMyc2jSNLCEgqTVOZ+pFtPgpRYJAAAAgGNib3KlY2FsZ2ZzaGEyNTZjcGFkTQAAAAAAAAAAAAAAAABkaGFzaFggT1t+WDmlnH8bb0WGw1CNyA++PIPnRKhVylsDnVv/jLlkbmFtZW5qdW1iZiBtYW5pZmVzdGpleGNsdXNpb25zgaJlc3RhcnQYIWZsZW5ndGgZFooAAAI+anVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAg9jYm9ypWNhbGdmc2hhMjU2aXNpZ25hdHVyZXhNc2VsZiNqdW1iZj0vYzJwYS91cm46YzJwYTozNmYyM2M5Yy0xYjBkLTRhMmUtODZlNy05ODc5Y2Y0YzIxNzUvYzJwYS5zaWduYXR1cmVqaW5zdGFuY2VJRHgseG1wOmlpZDo2MjlmZjAzZC0xMDViLTRhOTgtYmYwYi03YmFhNTFiZmQ0MDNyY3JlYXRlZF9hc3NlcnRpb25zg6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggQBzSRk54dEdtQhm1BK+N+h4xeC6W2UJ5uDCnkoUTZ++iY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIJYd6SYRHN8jdj+69EZIYQn6jGHofD0Iyt/Xpr1zrvZaomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIKCq5lKeFge36naq2l//psMmcpfEoNgZ/E/OSO0hlXM9dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lb0FudGhyb3BpYyBGaWxlc2d2ZXJzaW9uZTEuMC4wa3NwZWNWZXJzaW9uZTIuNC4wAAAQOGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAAQCGNib3LShFkCEqIBJhghWQIKMIICBjCCAY2gAwIBAgIUQOWgCu7COdC+uIP6BkIFPWdVEwAwCgYIKoZIzj0EAwMwSTEXMBUGA1UEChMOQW50aHJvcGljLCBQQkMxLjAsBgNVBAMTJUFudGhyb3BpYyBDb250ZW50IENyZWRlbnRpYWxzIFJvb3QgQ0EwHhcNMjYwODA3MTg0MzU2WhcNMjgwODA2MTk0MzU2WjBEMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEpMCcGA1UEAxMgQW50aHJvcGljIENsYXVkZSBDb250ZW50IFNpZ25pbmcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASYegpry1AYBRTVNL1CpTlbROnY3dey+UrsF9C3phYrATN3ZHf93Mo8RQN0KOUuOn19P4oWNFWe5n2/She9N7eTo1gwVjAOBgNVHQ8BAf8EBAMCB4AwFQYDVR0lBA4wDAYKKwYBBAGD6F4CATAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFM5R4gSBTmRbI/jjxM+aPpzB11zCMAoGCCqGSM49BAMDA2cAMGQCMDFzHRSeAXrSy1WOzkbhPZ6Km2wGTmZ/2gK18k8BQGXyqz88Rdrz6CTX9flAnYNVxgIwcF9c3fVhqmJKpi+UhasNUMko69cyX6STPfta3Q8EjyzDjzoyrol46FP6VFHhvUcJoWNwYWRZDZ4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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" alt="세종꿈의교회 로고" class="w-[21px] h-[21px] object-contain shrink-0">
                 <h1 class="text-[18.8px] font-black tracking-tight leading-tight truncate whitespace-nowrap text-[#374151]" id="admin-header-title">
                     세종꿈의교회 <span id="admin-header-mokjang">23목장</span>
                 </h1>
@@ -79,7 +118,7 @@
     <!-- [메인 컨테이너] -->
     <main class="w-full max-w-md mx-auto flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 space-y-3">
 
-        <!-- 1. 목자 단독 소셜 인증 카드 (구글 / 카카오 / 네이버 - 열쇠 아이콘 삭제 및 화면 맞춤 고정) -->
+        <!-- 1. 목자 단독 소셜 인증 카드 (구글 / 카카오 / 네이버) -->
         <section id="admin-auth-card" class="w-full bg-white rounded-2xl border church-border p-3.5 shadow-xs space-y-2.5 overflow-hidden">
             <div class="flex items-center justify-between gap-2 border-b border-gray-100 pb-2">
                 <div class="min-w-0 text-left">
@@ -89,23 +128,19 @@
                 <span id="admin-auth-badge" class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500 whitespace-nowrap">미인증</span>
             </div>
 
-            <!-- 미인증 상태: 소셜 로그인 버튼 (구글, 카카오, 네이버) -->
             <div id="social-login-panel" class="space-y-2 pt-0.5">
                 <p class="text-[11px] text-gray-600 text-left leading-relaxed break-keep">
                     최초 인증하시는 목자님의 계정이 이 목장의 <strong>유일한 관리자</strong>로 파이어베이스에 등록됩니다.
                 </p>
                 <div class="grid grid-cols-1 gap-2 pt-0.5">
-                    <!-- 구글 인증 -->
                     <button type="button" onclick="handleSocialAuth('google')" class="w-full py-2.5 px-3 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 active:scale-98 transition-all flex items-center justify-center space-x-2 shadow-2xs text-xs font-bold text-gray-700">
                         <i class="fa-brands fa-google text-rose-500 text-sm shrink-0"></i>
                         <span class="truncate">Google 계정으로 목자 인증</span>
                     </button>
-                    <!-- 카카오 인증 -->
                     <button type="button" onclick="handleSocialAuth('kakao')" class="w-full py-2.5 px-3 rounded-xl bg-[#FEE500] hover:opacity-95 active:scale-98 transition-all flex items-center justify-center space-x-2 shadow-2xs text-xs font-bold text-[#191919]">
                         <i class="fa-solid fa-comment text-[#191919] text-sm shrink-0"></i>
                         <span class="truncate">카카오 계정으로 목자 인증</span>
                     </button>
-                    <!-- 네이버 인증 -->
                     <button type="button" onclick="handleSocialAuth('naver')" class="w-full py-2.5 px-3 rounded-xl bg-[#03C75A] hover:opacity-95 active:scale-98 transition-all flex items-center justify-center space-x-2 shadow-2xs text-xs font-bold text-white">
                         <span class="font-black text-xs leading-none shrink-0">N</span>
                         <span class="truncate">네이버 계정으로 목자 인증</span>
@@ -113,7 +148,6 @@
                 </div>
             </div>
 
-            <!-- 인증 완료 상태 표시 -->
             <div id="authenticated-leader-panel" class="hidden bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-2.5 text-left space-y-1.5">
                 <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center space-x-1.5 min-w-0">
@@ -130,7 +164,7 @@
             </div>
         </section>
 
-        <!-- 2. 목장 기본 정보 & 4자리 목장 코드 관리 섹션 (틀 밖으로 문자가 나가지 않도록 고정) -->
+        <!-- 2. 목장 기본 정보 & 4자리 목장 코드 관리 섹션 -->
         <section id="mokjang-config-section" class="w-full bg-white rounded-2xl border church-border p-3.5 shadow-xs space-y-2.5 opacity-60 pointer-events-none transition-opacity duration-200 overflow-hidden">
             <div class="flex items-center justify-between gap-1.5 border-b border-gray-100 pb-2">
                 <h3 class="text-xs font-bold text-gray-800 flex items-center space-x-1.5 min-w-0 truncate">
@@ -162,7 +196,7 @@
             </button>
         </section>
 
-        <!-- 3. 목원 이름 명단 등록 및 관리 섹션 (이름 입력칸 폭 축소 & +추가 버튼 틀 안쪽 배치) -->
+        <!-- 3. 목원 이름 명단 등록 및 관리 섹션 -->
         <section id="mokjang-members-section" class="w-full bg-white rounded-2xl border church-border p-3.5 shadow-xs space-y-2.5 opacity-60 pointer-events-none transition-opacity duration-200 overflow-hidden">
             <div class="flex items-center justify-between gap-1.5 border-b border-gray-100 pb-2">
                 <h3 class="text-xs font-bold text-gray-800 flex items-center space-x-1.5 min-w-0 truncate">
@@ -172,7 +206,6 @@
                 <span class="shrink-0 text-[10px] text-gray-400 whitespace-nowrap">등록 목원 로그인</span>
             </div>
 
-            <!-- 목원 추가 입력창: 입력칸을 줄이고 +추가 버튼이 카드 틀 안쪽에 안정적으로 들어오도록 배치 -->
             <div class="flex items-center gap-1.5 w-full">
                 <input type="text" id="new-member-name-input" maxlength="8" placeholder="추가할 목원 이름" onkeydown="if(event.key==='Enter'){event.preventDefault();addMokjangMember();}" class="flex-1 min-w-0 w-auto px-2.5 py-1.5 rounded-xl font-semibold dashed-input">
                 <button type="button" onclick="addMokjangMember()" class="shrink-0 px-3 py-2 church-primary hover:opacity-95 active:scale-95 text-white rounded-xl text-xs font-bold whitespace-nowrap shadow-2xs flex items-center justify-center">
@@ -180,10 +213,7 @@
                 </button>
             </div>
 
-            <!-- 등록된 목원 목록 칩/리스트 -->
-            <div id="admin-member-list" class="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pt-1 w-full">
-                <!-- 동적 렌더링 -->
-            </div>
+            <div id="admin-member-list" class="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pt-1 w-full"></div>
         </section>
 
         <!-- 4. 오프라인 목원 안내 카드 & 페이지 이동 버튼 -->
@@ -203,7 +233,6 @@
                 <p>2. 나타나는 둥근 입력창 왼쪽에 목장코드 <strong>[<span id="guide-mokjang-code" class="text-emerald-700 font-mono">1111</span>]</strong>, 오른쪽에 <strong>[본인 이름]</strong>을 입력하면 하트가 피어나며 바로 입장됩니다!</p>
             </div>
 
-            <!-- 초기 화면 / 메인 피드로 이동 버튼 -->
             <div class="grid grid-cols-2 gap-2 pt-1">
                 <button type="button" onclick="goToInitialGatePage()" class="py-2.5 px-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl text-xs font-bold shadow-2xs active:scale-95 transition-all flex items-center justify-center space-x-1.5 min-w-0">
                     <i class="fa-solid fa-door-open text-gray-500 shrink-0"></i>
@@ -217,7 +246,7 @@
         </section>
     </main>
 
-    <!-- [카카오/네이버/구글 계정 목자 인증 창: 모바일 화면에 맞게 폭 고정 및 포커스 시 확대 방지(16px 고정)] -->
+    <!-- [소셜 계정 목자 인증 모달] -->
     <div id="social-auth-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center px-4 py-3 hidden" style="touch-action: none;">
         <div class="bg-white rounded-2xl w-full max-w-[310px] p-4 shadow-2xl border church-border text-center space-y-3 overflow-hidden box-border">
             <div id="social-modal-icon" class="w-11 h-11 rounded-full flex items-center justify-center mx-auto text-lg shadow-2xs"></div>
@@ -236,7 +265,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDKD5LUQL84ZuPH5UJrHBj7yAYDTabDWVA",
@@ -420,7 +449,7 @@
                         return;
                     }
                 } catch (popupErr) {
-                    // 팝업 제한 환경 시 화면 맞춤 인증 모달로 폴백
+                    // 팝업 환경 불가 시 모달 입력 폴백
                 }
             }
 
@@ -613,7 +642,11 @@
         window.goToInitialGatePage = function() {
             showToast('초기 로그인 화면(index.html)으로 이동합니다...');
             setTimeout(() => {
-                window.location.href = 'index.html';
+                try {
+                    window.location.href = 'index.html';
+                } catch(e) {
+                    window.location.replace('index.html');
+                }
             }, 220);
         };
 
@@ -629,13 +662,36 @@
             } catch(e) {}
             showToast('목자 권한으로 메인 피드(index2.html)로 이동합니다...');
             setTimeout(() => {
+                try {
+                    sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
+                        target: 'index2.html',
+                        authorizedFromIndex: true,
+                        issuedAt: Date.now()
+                    }));
+                    sessionStorage.setItem('mokjang_authorized_session', 'index_verified');
+                } catch(e) {}
                 const targetUrl = 'index2.html'
                     + '?mokjang=' + encodeURIComponent(mokjangShort)
                     + '&user=' + encodeURIComponent(leaderName)
                     + '&admin=' + encodeURIComponent(adminFlag);
-                window.location.href = targetUrl;
+                try {
+                    window.location.href = targetUrl;
+                } catch(e) {
+                    window.location.replace(targetUrl);
+                }
             }, 220);
         };
+
+        // [요구사항 4]: 키보드 내려갈 때 화면 자동 정렬
+        document.addEventListener('focusout', (e) => {
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    document.body.scrollTop = 0;
+                    document.documentElement.scrollTop = 0;
+                }, 60);
+            }
+        });
 
         initAdminPage();
     </script>
