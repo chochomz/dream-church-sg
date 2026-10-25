@@ -69,7 +69,7 @@
         #gate-top { clip-path: inset(0 0 50% 0); }
         #gate-bottom { clip-path: inset(50% 0 0 0); cursor: pointer; }
 
-        /* 갈라진 사이에 나타나는 미니 가로 로그인 창 (코드 최대 4자리, 이름 최대 4글자) */
+        /* 갈라진 사이에 나타나는 둥근 캡슐형 로그인 창 및 회색 깜빡이는 커서 */
         #code-auth-box {
             position: absolute; left: 50%; top: 70%;
             transform: translate(-50%, -50%);
@@ -85,6 +85,7 @@
         #code-auth-box input {
             font-size: 16px !important;
             -webkit-text-size-adjust: 100% !important;
+            caret-color: #6b7280 !important; /* 회색 깜빡이는 커서 */
         }
 
         #floating-words-layer {
@@ -168,7 +169,7 @@
 
         <div id="floating-words-layer"></div>
 
-        <!-- 갈라진 사이에 나타나는 미니 가로 로그인 창 -->
+        <!-- 갈라진 사이에 나타나는 둥근 캡슐형 로그인 창 -->
         <div id="code-auth-box">
             <!-- 코드는 숫자 최대 4자리 -->
             <input type="text" id="input-mokjang-code" oninput="handleCodeInput(this)" placeholder="코드" maxlength="4" inputmode="numeric" pattern="[0-9]*" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
@@ -297,19 +298,34 @@
             }, 1500); 
         });
 
-        // 코드 입력 시 숫자만 허용, 최대 4자리, 완료 시 이름창으로 커서 이동
+        // 코드 입력 시 숫자만 허용, 최대 4자리. 코드가 4자리 정확히 맞을 때만 진동 1회 발생 및 이름창으로 커서 이동
         window.handleCodeInput = function(input) {
             let clean = input.value.replace(/[^0-9]/g, '').slice(0, 4);
             if (input.value !== clean) input.value = clean;
             
-            if (clean.length === 4 && document.activeElement === input) {
+            let validCode = window.liveMokjangConfig?.mokjangCode || '1111';
+            try {
+                const rawCfg = localStorage.getItem('mokjang_config_backup');
+                if (rawCfg && !window.liveMokjangConfigLoaded) {
+                    const cfg = JSON.parse(rawCfg);
+                    if (cfg.mokjangCode) validCode = String(cfg.mokjangCode).trim();
+                }
+            } catch(e) {}
+
+            const isCodeCorrect = (clean === '1111' || clean === validCode);
+
+            if (clean.length === 4 && isCodeCorrect && document.activeElement === input) {
+                // 코드 일치 시 진동 1회 발생
+                if (navigator.vibrate) {
+                    try { navigator.vibrate(40); } catch(e) {}
+                }
                 const nameInput = document.getElementById('input-member-name');
                 if (nameInput) nameInput.focus();
             }
             checkAutoLogin();
         };
 
-        // 이름 입력 시 한글만 허용, 최대 4글자, 3~4글자 입력 시 자동 로그인
+        // 이름 입력 시 한글만 허용, 최대 4글자
         window.handleNameInput = function(input) {
             let clean = input.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').slice(0, 4);
             if (input.value !== clean) input.value = clean;
@@ -338,9 +354,10 @@
             } catch(e) {}
 
             const isDefaultMatch = (code === '1111' && name === '1111');
-            const isConfigMatch = (code === validCode && (validMembers.includes(name) || name.length >= 3));
+            const isConfigMatch = (code === validCode && validMembers.includes(name));
 
-            if (name.length >= 3 && code.length >= 4 && (isDefaultMatch || isConfigMatch)) {
+            // 코드와 이름이 모두 정확히 일치할 때만 자동 로그인 승인
+            if (code.length === 4 && name.length >= 3 && (isDefaultMatch || isConfigMatch)) {
                 const isAdminFlag = (name === leaderName || name === '목자' || name === '관리자') ? '1' : '0';
                 try {
                     localStorage.setItem('mokjang_user_name', name);
@@ -362,7 +379,6 @@
                 + '&user=' + encodeURIComponent(finalName)
                 + '&admin=' + encodeURIComponent(isAdminFlag);
 
-            // [핵심 요구사항]: 게이트 문이 위로 바운드되며 올라갈 때, index2.html 배경/피드가 바로 붙어서 함께 스르륵 올라오는 시각적 모션 구현
             authGate.classList.add('gate-open-active');
             if (seamlessFeedPreview) {
                 seamlessFeedPreview.classList.add('slide-up-active');
