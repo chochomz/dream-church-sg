@@ -261,7 +261,7 @@
                             const dx = item.x - other.x;
                             const dy = item.y - other.y;
                             const dist = Math.hypot(dx, dy);
-                            if (dist < 11) { // 너무 근접하면 밀어냄
+                            if (dist < 9) { // 너무 근접하면 밀어냄
                                 const angle = Math.atan2(dy, dx);
                                 item.x += Math.cos(angle) * 0.04;
                                 item.y += Math.sin(angle) * 0.04;
