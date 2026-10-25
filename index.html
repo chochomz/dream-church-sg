@@ -115,11 +115,11 @@
         .floating-grace-word {
             position: absolute;
             left: 50%;
-            top: 70%; /* '꿈의 목장' 위치 (약 78%)에서 출발 */
+            top: 72%;
             transform: translate(-50%, -50%) scale(0);
             font-family: 'Song Myung', serif;
             color: #c29ba1;
-            font-size: clamp(18px, 4.8vw, 22px);
+            font-size: clamp(19px, 5.2vw, 24px);
             font-weight: 400;
             letter-spacing: 0.06em;
             white-space: nowrap;
@@ -165,15 +165,17 @@
             <button type="button" onclick="goToAdminPage()" aria-label="관리자 페이지" class="w-10 h-10 rounded-full bg-transparent border-0 focus:outline-none active:scale-95 transition-all"></button>
         </div>
 
-        <!-- '꿈의 목장' '의'와 '목' 사이에서 피어나 유영하는 10개 단어 레이어 -->
+        <!-- 세종꿈의교회와 꿈의 목장 사이를 유영하는 10개 단어 레이어 -->
         <div id="floating-words-layer"></div>
 
         <!-- 갈라진 사이에 나타나는 텍스트 없는 미니 가로 로그인 창 -->
         <div id="code-auth-box">
-            <input type="text" id="input-mokjang-code" oninput="checkAutoLogin()" placeholder="코드" maxlength="4" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
+            <!-- 코드는 숫자 4자리 이상 입력 방지 (maxlength="4" 및 숫자 외 입력 차단) -->
+            <input type="text" id="input-mokjang-code" oninput="handleCodeInput(this)" placeholder="코드" maxlength="4" inputmode="numeric" pattern="[0-9]*" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
             <!-- 구분 세로선 -->
             <div class="w-px h-3.5 bg-gray-400 mx-1"></div>
-            <input type="text" id="input-member-name" oninput="checkAutoLogin()" placeholder="이름" maxlength="6" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
+            <!-- 이름은 한글 4글자 이상 입력 방지 (maxlength="4" 및 한글 외 문자 필터링) -->
+            <input type="text" id="input-member-name" oninput="handleNameInput(this)" placeholder="이름" maxlength="4" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
         </div>
     </div>
 
@@ -194,84 +196,73 @@
             floatingWordItems.length = 0;
             const now = performance.now();
 
-            // [요청 반영]: 단어들이 서로 겹치는 부분을 최소화하기 위해 그리드 형태의 간격 배치 및 고유 시작 좌표 부여
             GRACE_WORDS.forEach((word, idx) => {
                 const el = document.createElement('span');
                 el.className = 'floating-grace-word';
                 el.textContent = word;
                 floatingWordsLayer.appendChild(el);
 
-                // '의'와 '목' 사이(가로 중앙 50%, 세로 78%)에서 출발하도록 시작점 설정
-                const startX = 50 + (Math.random() * 8 - 4);
-                const startY = 70;
-
-                // 목표 유영 공간: '꿈의 목장' 주변 하단 영역 (top 71% ~ 83%, 세종꿈의교회 타이틀까지 올라가지 않도록 상단 제한)
-                const targetX = 22 + (idx % 5) * 14 + (Math.random() * 6 - 3);
-                const targetY = 72 + Math.floor(idx / 5) * 6 + (Math.random() * 4 - 2);
+                const targetX = 32 + (idx % 3) * 18 + (Math.random() * 10 - 5);
+                const targetY = 61.5 + Math.floor(idx / 3) * 6.5 + (Math.random() * 4 - 2);
 
                 floatingWordItems.push({
                     el,
-                    spawnTime: now + idx * 160, // 순차적으로 톡톡 튀어나오도록 딜레이 조정
-                    spawnDuration: 1200,
-                    startX: startX,
-                    startY: startY,
+                    spawnTime: now + idx * 240,
+                    spawnDuration: 1500,
                     x: targetX,
                     y: targetY,
-                    // 겹침을 방지하기 위한 미세 반발/유영 벡터
-                    vx: (Math.random() * 0.012 + 0.005) * (Math.random() < 0.5 ? 1 : -1),
-                    vy: (Math.random() * 0.008 + 0.003) * (Math.random() < 0.5 ? 1 : -1),
+                    vx: (Math.random() * 0.022 + 0.01) * (Math.random() < 0.5 ? 1 : -1),
+                    vy: (Math.random() * 0.016 + 0.007) * (Math.random() < 0.5 ? 1 : -1),
                     scalePhase: Math.random() * Math.PI * 2,
-                    scaleSpeed: 0.001 + Math.random() * 0.0005,
+                    scaleSpeed: 0.0014 + Math.random() * 0.0008,
                     swayPhase: Math.random() * Math.PI * 2,
-                    swaySpeed: 0.0008 + Math.random() * 0.0004
+                    swaySpeed: 0.0011 + Math.random() * 0.0006
                 });
             });
 
             function animateWords(timestamp) {
                 if (!isFloatingWordsActive) return;
 
-                floatingWordItems.forEach((item, index) => {
+                floatingWordItems.forEach((item) => {
                     const elapsed = timestamp - item.spawnTime;
                     if (elapsed < 0) return;
 
                     if (elapsed < item.spawnDuration) {
                         const p = elapsed / item.spawnDuration;
                         const easeOut = 1 - Math.pow(1 - p, 3);
-                        const curX = item.startX + (item.x - item.startX) * easeOut;
-                        const curY = item.startY + (item.y - item.startY) * easeOut;
+                        const curX = 50 + (item.x - 50) * easeOut;
+                        const curY = 72 + (item.y - 72) * easeOut;
                         const curScale = 0.2 + 0.8 * easeOut;
                         item.el.style.left = `${curX}%`;
                         item.el.style.top = `${curY}%`;
-                        item.el.style.opacity = `${Math.min(0.85, p * 0.95)}`;
+                        item.el.style.opacity = `${Math.min(0.88, p * 0.95)}`;
                         item.el.style.transform = `translate(-50%, -50%) scale(${curScale.toFixed(3)})`;
                     } else {
                         item.x += item.vx;
                         item.y += item.vy;
 
-                        // [핵심 제한]: 세종꿈의교회 타이틀까지 절대 올라가지 않도록 상하(70% ~ 85%) 및 좌우(18% ~ 82%) 철저 격리
-                        if (item.x < 18) { item.x = 18; item.vx = Math.abs(item.vx); }
-                        if (item.x > 82) { item.x = 82; item.vx = -Math.abs(item.vx); }
+                        if (item.x < 16) { item.x = 16; item.vx = Math.abs(item.vx) * (0.9 + Math.random() * 0.2); }
+                        if (item.x > 84) { item.x = 84; item.vx = -Math.abs(item.vx) * (0.9 + Math.random() * 0.2); }
 
-                        if (item.y < 70) { item.y = 70; item.vy = Math.abs(item.vy); } // 세종꿈의교회 영역 침범 원천 방지
-                        if (item.y > 85) { item.y = 85; item.vy = -Math.abs(item.vy); }
+                        if (item.y < 59) { item.y = 59; item.vy = Math.abs(item.vy) * (0.9 + Math.random() * 0.2); }
+                        if (item.y > 72.5) { item.y = 72.5; item.vy = -Math.abs(item.vy) * (0.9 + Math.random() * 0.2); }
 
-                        // 단어끼리 너무 가까워지면 살짝 밀어내는 충돌 방지(서로 겹치는 부분 최소화)
                         floatingWordItems.forEach((other, oIdx) => {
-                            if (index === oIdx) return;
+                            if (item === other) return;
                             const dx = item.x - other.x;
                             const dy = item.y - other.y;
                             const dist = Math.hypot(dx, dy);
-                            if (dist < 9) { // 너무 근접하면 밀어냄
+                            if (dist < 14) {
                                 const angle = Math.atan2(dy, dx);
-                                item.x += Math.cos(angle) * 0.04;
-                                item.y += Math.sin(angle) * 0.04;
+                                item.x += Math.cos(angle) * 0.08;
+                                item.y += Math.sin(angle) * 0.08;
                             }
                         });
 
                         const wave = Math.sin(timestamp * item.scaleSpeed + item.scalePhase);
-                        const curScale = 0.9 + wave * 0.15;
-                        const curOpacity = 0.72 + wave * 0.15;
-                        const swayDeg = Math.sin(timestamp * item.swaySpeed + item.swayPhase) * 3.0;
+                        const curScale = 0.94 + wave * 0.18;
+                        const curOpacity = 0.78 + wave * 0.14;
+                        const swayDeg = Math.sin(timestamp * item.swaySpeed + item.swayPhase) * 3.5;
 
                         item.el.style.left = `${item.x.toFixed(2)}%`;
                         item.el.style.top = `${item.y.toFixed(2)}%`;
@@ -319,6 +310,20 @@
                 tapCount = 0;
             }, 1500); 
         });
+
+        // 코드 입력 필터링 (숫자만, 최대 4자리)
+        window.handleCodeInput = function(input) {
+            let clean = input.value.replace(/[^0-9]/g, '').slice(0, 4);
+            if (input.value !== clean) input.value = clean;
+            checkAutoLogin();
+        };
+
+        // 이름 입력 필터링 (한글만, 최대 4글자)
+        window.handleNameInput = function(input) {
+            let clean = input.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').slice(0, 4);
+            if (input.value !== clean) input.value = clean;
+            checkAutoLogin();
+        };
 
         function checkAutoLogin() {
             const codeInput = document.getElementById('input-mokjang-code');
@@ -451,16 +456,6 @@
                 }, (duration + delay) * 1000 + 100);
             }
         }
-
-        document.addEventListener('focusout', (e) => {
-            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
-                setTimeout(() => {
-                    window.scrollTo(0, 0);
-                    document.body.scrollTop = 0;
-                    document.documentElement.scrollTop = 0;
-                }, 60);
-            }
-        });
     </script>
 
     <script type="module">
@@ -489,10 +484,6 @@
                         window.liveMokjangConfigLoaded = true;
                         try {
                             localStorage.setItem('mokjang_config_backup', JSON.stringify(data));
-                            if (data.mokjangName) {
-                                localStorage.setItem('mokjang_short_name', data.mokjangName);
-                                localStorage.setItem('mokjang_name', `세종꿈의교회 ${data.mokjangName}`);
-                            }
                         } catch (e) {}
                     }
                 });
