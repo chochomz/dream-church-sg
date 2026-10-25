@@ -2,8 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
-    <title>우리들의 목장 이야기 - 세종꿈의교회 23목장</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>우리들의 목장 이야기 - 세종꿈의교회</title>
     <!-- [모바일 속도 최적화: 외부 리소스 사전 연결 & DNS 프리페치] -->
     <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -139,6 +139,12 @@
             font-size: 16px !important;
             line-height: 1.35 !important;
             box-sizing: border-box !important;
+        }
+        #post-content,
+        #post-file-title,
+        #feed-search-input,
+        #rename-user-input {
+            font-size: 16px !important;
         }
         #comments-modal-input:focus,
         input[id^="inline-comment-input-"]:focus,
@@ -399,13 +405,13 @@
         <!-- 왼쪽 더미 영역 (향후 로고 앞단 배치 고려 및 중앙 밸런스 유지용) -->
         <div class="w-8 shrink-0 flex items-center justify-start" id="header-logo-slot"></div>
 
-        <!-- 중앙 메인 타이틀 (로고 + 진한 회색 1pt 확대 타이틀 + 23목장->세 하트 애니메이션) -->
+        <!-- 중앙 메인 타이틀 (로고 + 진한 회색 1pt 확대 타이틀 + 목장->세 하트 애니메이션) -->
         <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center pointer-events-auto max-w-[76vw]">
             <div class="relative flex items-center space-x-1.5 justify-center" id="header-mokjang-title-container">
                 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAAoCAYAAAB5ADPdAAAWfmNhQlgAABZ+anVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAFlhqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjM2ZjIzYzljLTFiMGQtNGEyZS04NmU3LTk4NzljZjRjMjE3NQAAAAOTanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAAAuGp1bWIAAABEanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5pbmdyZWRpZW50LnYzAAAAABhjMnNoozP3h9Ae7zHJk3fn/mFDCwAAAGxjYm9yo2lkYzpmb3JtYXRpaW1hZ2UvcG5namluc3RhbmNlSUR4LHhtcDppaWQ6NTM5ZDIyNTItMzVmMS00Y2Q5LThlZWMtY2Y2MzM4Yzc3YTI5bHJlbGF0aW9uc2hpcGhwYXJlbnRPZgAAAeJqdW1iAAAAQWp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuYWN0aW9ucy52MgAAAAAYYzJzaC0DSUG0gzGtjaES6fNLd50AAAGZY2JvcqJnYWN0aW9uc4KiZmFjdGlvbmtjMnBhLm9wZW5lZGpwYXJhbWV0ZXJzoWtpbmdyZWRpZW50c4GiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5pbmdyZWRpZW50LnYzZGhhc2hYIEAc0kZOeHRHbUIZtQSvjfoeMXgultlCebgwp5KFE2fvpGZhY3Rpb254HWNvbS5hbnRocm9waWMuY2xhdWRlLnByb3ZpZGVkanBhcmFtZXRlcnOheB9jb20uYW50aHJvcGljLm9yaWdpbi1jb25maWRlbmNlZ3Vua25vd25rZGVzY3JpcHRpb254ZkNsYXVkZSBwcm92aWRlZCB0aGlzIGZpbGUgYXQgdGhlIHJlcXVlc3Qgb2YgYSB1c2VyIGFuZCBtYXkgaGF2ZSBjcmVhdGVkIG9yIG1vZGlmaWVkIHRoZSBmaWxlIGNvbnRlbnRzLm1zb2Z0d2FyZUFnZW50oWRuYW1lZkNsYXVkZXJhbGxBY3Rpb25zSW5jbHVkZWT1AAAAyGp1bWIAAABAanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5oYXNoLmRhdGEAAAAAGGMyc2jSNLCEgqTVOZ+pFtPgpRYJAAAAgGNib3KlY2FsZ2ZzaGEyNTZjcGFkTQAAAAAAAAAAAAAAAABkaGFzaFggT1t+WDmlnH8bb0WGw1CNyA++PIPnRKhVylsDnVv/jLlkbmFtZW5qdW1iZiBtYW5pZmVzdGpleGNsdXNpb25zgaJlc3RhcnQYIWZsZW5ndGgZFooAAAI+anVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAg9jYm9ypWNhbGdmc2hhMjU2aXNpZ25hdHVyZXhNc2VsZiNqdW1iZj0vYzJwYS91cm46YzJwYTozNmYyM2M5Yy0xYjBkLTRhMmUtODZlNy05ODc5Y2Y0YzIxNzUvYzJwYS5zaWduYXR1cmVqaW5zdGFuY2VJRHgseG1wOmlpZDo2MjlmZjAzZC0xMDViLTRhOTgtYmYwYi03YmFhNTFiZmQ0MDNyY3JlYXRlZF9hc3NlcnRpb25zg6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggQBzSRk54dEdtQhm1BK+N+h4xeC6W2UJ5uDCnkoUTZ++iY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIJYd6SYRHN8jdj+69EZIYQn6jGHofD0Iyt/Xpr1zrvZaomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIKCq5lKeFge36naq2l//psMmcpfEoNgZ/E/OSO0hlXM9dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lb0FudGhyb3BpYyBGaWxlc2d2ZXJzaW9uZTEuMC4wa3NwZWNWZXJzaW9uZTIuNC4wAAAQOGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAAQCGNib3LShFkCEqIBJhghWQIKMIICBjCCAY2gAwIBAgIUQOWgCu7COdC+uIP6BkIFPWdVEwAwCgYIKoZIzj0EAwMwSTEXMBUGA1UEChMOQW50aHJvcGljLCBQQkMxLjAsBgNVBAMTJUFudGhyb3BpYyBDb250ZW50IENyZWRlbnRpYWxzIFJvb3QgQ0EwHhcNMjYwODA3MTg0MzU2WhcNMjgwODA2MTk0MzU2WjBEMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEpMCcGA1UEAxMgQW50aHJvcGljIENsYXVkZSBDb250ZW50IFNpZ25pbmcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASYegpry1AYBRTVNL1CpTlbROnY3dey+UrsF9C3phYrATN3ZHf93Mo8RQN0KOUuOn19P4oWNFWe5n2/She9N7eTo1gwVjAOBgNVHQ8BAf8EBAMCB4AwFQYDVR0lBA4wDAYKKwYBBAGD6F4CATAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFM5R4gSBTmRbI/jjxM+aPpzB11zCMAoGCCqGSM49BAMDA2cAMGQCMDFzHRSeAXrSy1WOzkbhPZ6Km2wGTmZ/2gK18k8BQGXyqz88Rdrz6CTX9flAnYNVxgIwcF9c3fVhqmJKpi+UhasNUMko69cyX6STPfta3Q8EjyzDjzoyrol46FP6VFHhvUcJoWNwYWRZDZ4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2WEDChziD9nOFcOpNwjEP6wuYEqQwAnkEd+ILMo921nUkMfwgMkmNzCh3BEL5JCX+LHJAh+o/nERcYq1y+IStIUI46xnrpwAABelJREFUeJy9mFtsFFUYx3/fmdm2S22x3KrQegveQCVqUAzRPqmJ+qJmiYKKiokPRg2JiQle1gaj8RJR9MlQCqIYXQkYY2L0xWI0Bm8xalFTL2wXsEVEil3a7sz5fDizS1tpd2er/pPJSc7u+eb/3b8zMDUIbWmf1lV307pqpdtKeVOUian+aMoDlB+zS4CnQJJTJfMvkCqJSIIZQShMXVYksYoz4p5+t4paUHHPqP0pwK/ijLqlKwDAUHDkCN1v0f4UEEOjtIF2yymr7kO5EuEIiEFpAE4D/Q2Rg6CgUo+En5LtXFs6FwMxLNXtFFBmgLSCDkRKJUACoAFLEhEL0oDKrDhERqMK37f5LJhjGMCjuSngQOFq1OtE7YN44VbyeZ9aQhoJ6c6MVEOqipjqCugGQMihtNxeQBCMjrBn81A1JMaj2pIg0Oa51YusLVHWtfmUMrQ6VJN9AApzlFImlt2vFALOUlLdM/V6dIxI2pQ6BKhP1Vp1uboUhoof2+ACqSh0MiG0RxxSHi3Jk3yWv9ZEITFEU53Tel/x3H5INk1MuL/f47SFAV1v1BIG5RQTSIsrK29aEHVkgPn31jI8eD5wBcjlSPCsj9ZdQ425jkE9AmqYXpTTPF7s2BfPnStIPuSMc5r44eujJBLjkiZtSrVtjDUEmm+ZQ6L2IoSlDOcXg5kH2gr2MbKbP/Y564bX6Xl7LnAVyCEUH1FFZWy8/DOkBSsh4k0DVdRGsbHfAOHYKn5xgpZFZ4NeipjLgIWozAY1iAyi1CK6g2znC5DyfNpR2r5ax7xFJyLmAgxHwHhI2c4goCFWA0dChiIilpbVSXTgTIxeBLIY5DzgZJAa0AJwFOEwIoqSQBkgKDzqVF9Q7O6irNjSiNY/ifFaUPLA5MOaDZRp0wvs+XE23bsWk/BfIix8gvjnIjSjWg9iQC1CDcoJiMxBZaaraSpOGW2CcDW9m952GZgJDYiSThteu3UA0cdR+ydCLTCRqSwJP0RMPb/vnc2hvsOg61A+hDAHhfeRYAciO0H3AnWoaQFzuiOEARVEApAm0MxoQpELIqTV0C6Wm986B/HWuhKmFoliSy14foAyjT/66ujPfUffrzvo3fQRLakk1F+B+EtBLwQ5FWiIJAdAIVqLhdWC1KF2L3VDN9Iz/68oEXQsKYDUmx6ZZSErti1BvTUYjoIBa6EmYTkyMJO9Pb/w0+5XOLD1Y0Bovet+0OUgzSAhMAQ64lxTjL2Su4pbCppE9TZyHbvGjzf/rMhFYjdtuxbPuwf0MH6d0J+byS/fbOf79R3AMKfffQlB+ATI/GiMicZhMWMJjINIgOosRJ8j27F+tNsmJjWa2PLtt+InVtDXq+z+7CWyG98F4JQ7r0XNM7iJcxAVb1IixxACDaCf09tzm+uTGcu4gnP8KSGzzELasPX6LRzI7eSnbzeQ3fguqsK8Oy5FzbO4GMmj+JUREgUSwF/I8ENubF5w3OYdbxxu6a5FGreBnAEMUq5sjEUIzEDsA2Q3bjue24ooP0+JAGkf2i1ewxJEzo5NqJj+areXIwSVzFOqQLczsdVFxB8MLapJ0F8xQ2sjV9vJnBTvBUpDFBsxoT5h+DDZrYfgMSknIx4pkYEKs6z4/wCYgeFl9m36xLmt/HUrJim+RSZsP+MRotqI6C5meetdgcxUdLZCUhkLCMMjn2K1B0gycW8kco8Pmseyhi9eLn5nqMj1lVpKIWXoe3UQWBc17EleoBZoBJ4k19FTqdviksKlcNqQ63gPaz9Amc6x/nYMIgEiJ4K+Q2/HG+XS/3io7opl9GmUJe682FHBX0z/HOFIezSrxfqOALFrTruFlEe282dUNwDTo68to1GD6iPs23IQlhmquC1VcUPOuL7IQAdot5swsaX0F7uB3Mad1bhtCqQizXOZo6h9CtUEQugKq35JTf3zcdL/3yJFyY25zi4M76DMApvHBGvoeXF4DPn/jxREY4eA9zSqebDr2LP5+7jp/1/AZd3JK5eyIFUTqwVNgr8BRP9wO6KfylkAAAAASUVORK5CYII=" alt="세종꿈의교회 로고" class="w-[21px] h-[21px] object-contain shrink-0 select-none" id="header-church-logo">
                 <h1 class="header-main-title-text font-black tracking-tight leading-tight whitespace-nowrap select-none relative" id="header-mokjang-title">
                     <span id="title-church-prefix"><span id="title-char-se">세</span>종꿈의교회</span>
-                    <span id="title-mokjang-name" class="ml-1 relative inline-block">23목장</span>
+                    <span id="title-mokjang-name" class="relative inline-block"></span>
                 </h1>
                 <!-- 타이틀 하트 애니메이션 오버레이 -->
                 <div id="header-title-hearts-layer" class="absolute inset-0 pointer-events-none overflow-visible"></div>
@@ -1227,8 +1233,8 @@
 
         // [기존 로그인, 사용자 식별 및 관리자 권한 체계 연동 (항목 1-1, 2-1: URL 파라미터 + localStorage + Firestore 연동)]
         let currentUser = "목장가족";
-        let currentMokjangShort = "23목장";
-        let currentMokjang = "세종꿈의교회 23목장";
+        let currentMokjangShort = "";
+        let currentMokjang = "세종꿈의교회";
         let isCurrentUserAdmin = false;
 
         try {
@@ -1243,7 +1249,7 @@
             if (paramMokjang && paramMokjang.trim()) {
                 const cleanParamM = paramMokjang.trim().replace(/^세종꿈의교회\s*/, '');
                 localStorage.setItem('mokjang_short_name', cleanParamM);
-                localStorage.setItem('mokjang_name', `세종꿈의교회 ${cleanParamM}`);
+                localStorage.setItem('mokjang_name', cleanParamM ? `세종꿈의교회 ${cleanParamM}` : '세종꿈의교회');
             }
             if (paramAdmin !== null) {
                 localStorage.setItem('mokjang_is_admin', (paramAdmin === '1' || paramAdmin === 'true') ? 'true' : 'false');
@@ -1254,8 +1260,10 @@
             const savedMokjang = localStorage.getItem('mokjang_short_name') || localStorage.getItem('mokjang_name');
             if (savedMokjang && savedMokjang.trim()) {
                 const cleanM = savedMokjang.trim().replace(/^세종꿈의교회\s*/, '');
-                currentMokjangShort = cleanM || "23목장";
-                currentMokjang = `세종꿈의교회 ${currentMokjangShort}`;
+                if (cleanM) {
+                    currentMokjangShort = cleanM;
+                    currentMokjang = `세종꿈의교회 ${currentMokjangShort}`;
+                }
             }
             const savedAdmin = localStorage.getItem('mokjang_is_admin');
             if (savedAdmin === 'true' || savedAdmin === '1' || currentUser === '목자' || currentUser === '관리자') {
@@ -1300,11 +1308,17 @@
             const mokjangSpan = document.getElementById('title-mokjang-name');
             if (mokjangSpan) {
                 mokjangSpan.textContent = currentMokjangShort;
+                if (currentMokjangShort) {
+                    mokjangSpan.classList.add('ml-1');
+                } else {
+                    mokjangSpan.classList.remove('ml-1');
+                }
             }
             document.title = `우리들의 목장 이야기 - ${currentMokjang}`;
         }
+        syncHeaderMokjangTitleDOM();
 
-        // [항목 2-3: '23목장' 문자 영역에서 연하고 작은 하트가 나타나 왼쪽 '세종꿈의교회'의 '세' 글자로 이동 후 소멸]
+        // [항목 2-3: 목장 문자 영역에서 연하고 작은 하트가 나타나 왼쪽 '세종꿈의교회'의 '세' 글자로 이동 후 소멸]
         let titleHeartTimer = null;
         function initHeaderTitleHearts() {
             const container = document.getElementById('header-mokjang-title-container');
@@ -1322,7 +1336,7 @@
                 const sRect = seCharEl.getBoundingClientRect();
                 if (cRect.width === 0 || mRect.width === 0) return;
 
-                // 시작 위치: '23목장' 문자 영역 내 무작위 지점
+                // 시작 위치: 목장 문자 영역 내 무작위 지점
                 const startX = (mRect.left - cRect.left) + (Math.random() * Math.max(10, mRect.width * 0.85));
                 const startY = (mRect.top - cRect.top) + (mRect.height * (0.25 + Math.random() * 0.5));
 
@@ -1620,8 +1634,8 @@
                         const cfg = snap.data();
                         if (cfg.mokjangName) {
                             const cleanM = String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '');
-                            currentMokjangShort = cleanM || "23목장";
-                            currentMokjang = `세종꿈의교회 ${currentMokjangShort}`;
+                            currentMokjangShort = cleanM || "";
+                            currentMokjang = currentMokjangShort ? `세종꿈의교회 ${currentMokjangShort}` : "세종꿈의교회";
                             try {
                                 localStorage.setItem('mokjang_short_name', currentMokjangShort);
                                 localStorage.setItem('mokjang_name', currentMokjang);
@@ -4765,42 +4779,15 @@
             }
         });
 
-                // [모바일 키보드 가림 방지: 입력창 터치 시 키보드 위로 부드럽게 위치 정렬]
+                // [입력창 포커스 시 화면 흔들림 및 강제 확대 원천 차단: 고정된 상태 유지]
         function scrollInputAboveKeyboard(el) {
-            if (!el) return;
-            setTimeout(() => {
-                try {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                } catch(e) {
-                    el.scrollIntoView();
-                }
-            }, 250);
+            // 화면이 강제로 위아래로 흔들리지 않도록 스크롤 이동을 수행하지 않고 고정 상태 유지
+            window.scrollTo(0, 0);
         }
 
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', () => {
-                const active = document.activeElement;
-                if (active && (
-                    active.id === 'comments-modal-input' ||
-                    (active.id && active.id.startsWith('inline-comment-input-')) ||
-                    (active.id && active.id.startsWith('caption-input-'))
-                )) {
-                    setTimeout(() => {
-                        try {
-                            active.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        } catch(e) {}
-                    }, 100);
-                }
-            });
-        }
-
-        // [항목 4 & 5: 펜글씨 작성 시 입력창 확대(편집 편의성 향상) 및 저장 완료 후 복귀 + 2열 사진 자동 높이 정렬]
+        // [펜글씨 작성 시 창이 과도하게 확대되어 화면이 흔들리지 않도록 고정 높이 유지]
         window.autoExpandCaptionTextarea = function(el) {
             if (!el) return;
-            el.style.height = 'auto';
-            const minH = el.classList.contains('caption-input-expanded') ? 96 : 36;
-            const newH = Math.max(minH, Math.min(280, el.scrollHeight));
-            el.style.height = newH + 'px';
         };
 
         // [항목 5: 2열 사진 격자에서 한쪽 열에 펜글씨가 추가되어 높이가 커지면 반대쪽 열의 사진 영역도 빈 공간 없이 자동 높이 정렬]
@@ -4870,12 +4857,6 @@
             const isHidden = editor.classList.contains('hidden');
 
             if (isHidden) {
-                const container = document.getElementById(`post-photos-${postId}`);
-                if (container && container.getAttribute('data-view-mode') !== 'expanded') {
-                    container.setAttribute('data-was-grid-before-caption', 'true');
-                    setPostPhotoLayout(postId, 'expanded', false);
-                }
-
                 editor.classList.remove('hidden');
                 const input = document.getElementById(`caption-input-${postId}-${photoIdx}`);
                 if (input) {
@@ -4884,41 +4865,20 @@
                     if (!input.value && savedCaption) {
                         input.value = savedCaption;
                     }
-                    // [항목 4]: 펜글씨 작성 동안 입력창을 현재보다 크게 확장 (편집하기 편한 크기와 글자 크기 유지)
-                    input.classList.add('caption-input-expanded');
-                    input.rows = 4;
-                    input.style.minHeight = '96px';
-                    input.style.fontSize = '13.5px';
-                    input.style.padding = '10px 12px';
-                    autoExpandCaptionTextarea(input);
+                    // 창 확대 및 레이아웃 흔들림 없이 고정된 상태 유지
+                    input.rows = 2;
                     setTimeout(() => {
                         try {
                             input.focus({ preventScroll: true });
                         } catch (e) {
                             input.focus();
                         }
-                        autoExpandCaptionTextarea(input);
-                        scrollInputAboveKeyboard(input);
-                    }, 80);
+                    }, 40);
                 }
+                syncTwoColumnPhotoHeights(postId);
             } else {
-                const input = document.getElementById(`caption-input-${postId}-${photoIdx}`);
-                if (input) {
-                    // 취소/닫기 시 입력창을 기존 모바일 크기로 복귀
-                    input.classList.remove('caption-input-expanded');
-                    input.rows = 1;
-                    input.style.minHeight = '';
-                    input.style.height = 'auto';
-                    input.style.fontSize = '';
-                    input.style.padding = '';
-                }
                 editor.classList.add('hidden');
-                const container = document.getElementById(`post-photos-${postId}`);
-                if (container && container.getAttribute('data-was-grid-before-caption') === 'true' && !isPostCommentEditingActive(postId)) {
-                    container.removeAttribute('data-was-grid-before-caption');
-                    setPostPhotoLayout(postId, 'grid', false);
-                    syncTwoColumnPhotoHeights(postId);
-                }
+                syncTwoColumnPhotoHeights(postId);
             }
         };
 
@@ -4939,24 +4899,9 @@
             if (text) updated[photoIdx] = text;
             else delete updated[photoIdx];
 
-            // [항목 4]: 저장 완료 시 입력창을 기존 모바일 화면 크기로 복귀
-            input.classList.remove('caption-input-expanded');
-            input.rows = 1;
-            input.style.minHeight = '';
-            input.style.height = 'auto';
-            input.style.fontSize = '';
-            input.style.padding = '';
-
             post.photoCaptions = updated;
             const editor = document.getElementById(`caption-editor-${postId}-${photoIdx}`);
             if (editor) editor.classList.add('hidden');
-
-            // 2열 격자에서 진입했던 경우 격자로 자연스럽게 복귀 후 두 열 높이 자동 맞춤
-            const container = document.getElementById(`post-photos-${postId}`);
-            if (container && container.getAttribute('data-was-grid-before-caption') === 'true' && !isPostCommentEditingActive(postId)) {
-                container.removeAttribute('data-was-grid-before-caption');
-                setPostPhotoLayout(postId, 'grid', false);
-            }
 
             updatePostPhotoCaptionsDOM(postId, post);
 
@@ -6872,12 +6817,6 @@
             if (isCurrentlyHidden) {
                 closeAllInlineCommentInputs();
 
-                // [요청 반영: 기본 댓글 작성 시에도 사진이 있는 게시글은 1열로 펼쳐진 상태에서 작성하도록 자동 전환]
-                const photoContainer = document.getElementById(`post-photos-${postId}`);
-                if (photoContainer && photoContainer.getAttribute('data-view-mode') !== 'expanded') {
-                    setPostPhotoLayout(postId, 'expanded', false);
-                }
-
                 row.classList.remove('hidden');
 
                 const input = document.getElementById(`inline-comment-input-${postId}`);
@@ -6899,8 +6838,7 @@
                         } catch (e) {
                             input.focus();
                         }
-                        scrollInputAboveKeyboard(input);
-                    }, 50);
+                    }, 40);
                     setTimeout(() => { isFocusingInlineComment = false; }, 800);
                 }
             } else {
