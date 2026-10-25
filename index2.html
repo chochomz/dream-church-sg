@@ -435,9 +435,12 @@
             transition: background-color 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         .recent-comment-fluorescent {
-            animation: fluorescentPulse 1.2s ease-in-out infinite;
-            border-radius: 8px !important;
-            transition: all 0.3s ease-in-out;
+            background-color: #fef08a !important;
+            color: #111827 !important;
+            padding: 1px 4px !important;
+            border-radius: 4px !important;
+            font-weight: 700 !important;
+            box-shadow: 0 1px 3px rgba(250, 204, 21, 0.45) !important;
         }
         mark.search-highlight {
             background-color: #fef08a !important;
@@ -467,7 +470,7 @@
         <!-- 중앙 메인 타이틀 -->
         <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center pointer-events-auto max-w-[76vw]">
             <div class="relative flex items-center space-x-1.5 justify-center" id="header-mokjang-title-container">
-                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%233B5D50'/%3E%3Cpath d='M16 7v18M10 13h12' stroke='%23ffffff' stroke-width='2.8' stroke-linecap='round'/%3E%3C/svg%3E" alt="세종꿈의교회 로고" class="w-[21px] h-[21px] object-contain shrink-0 select-none" id="header-church-logo">
+                <img src="logo20.png" alt="세종꿈의교회 로고" class="w-[21px] h-[21px] object-contain shrink-0 select-none" id="header-church-logo">
                 <h1 class="header-main-title-text font-black tracking-tight leading-tight whitespace-nowrap select-none relative" id="header-mokjang-title">
                     <span id="title-church-prefix"><span id="title-char-se">세</span>종꿈의교회</span>
                     <span id="title-mokjang-name" class="relative inline-block"></span>
@@ -476,7 +479,7 @@
                 <div id="header-title-hearts-layer" class="absolute inset-0 pointer-events-none overflow-visible"></div>
             </div>
             <!-- 서브 환영 문구 (로그인한 이름 및 접속자 수 표시) -->
-            <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none" id="header-user-display">목장 가족님 <span class="text-emerald-500 font-semibold">한분</span> 환영합니다</p>
+            <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none" id="header-user-display"><span class="text-emerald-600 font-semibold">한분</span> 입장 환영합니다</p>
         </div>
 
         <!-- 오른쪽 펜 트리거 & 왼쪽 슬라이드 메뉴 -->
@@ -1506,8 +1509,8 @@
             const el = document.getElementById('header-user-display');
             if (!el) return;
             const countText = getKoreanCountWord(lastOnlineCount);
-            const roleTag = isCurrentUserAdmin ? '👑목자' : '목원';
-            el.innerHTML = `<span class="text-gray-700 font-bold">${escapeHtml(currentUser)}</span><span class="text-[9px] text-gray-400 ml-0.5">(${roleTag})</span>님 · 가족 <span class="text-emerald-600 font-semibold">${countText}</span> 환영합니다`;
+            const roleTag = isCurrentUserAdmin ? '목자' : '목원';
+            el.innerHTML = `<span class="text-gray-700 font-bold">${escapeHtml(currentUser)}</span><span class="text-[9px] text-gray-500">(${roleTag})</span>님 <span class="text-emerald-600 font-semibold">${countText}</span> 입장 환영합니다`;
         }
 
         // 라이트박스 상태 관리
@@ -1940,46 +1943,62 @@
             }
         }
 
-        let recentCommentHighlightTimer = null;
+        let isRecentCommentScrolling = false;
+        let recentCommentScrollLockTimer = null;
+        function clearRecentCommentHighlight() {
+            document.querySelectorAll('.recent-comment-fluorescent').forEach(el => {
+                el.classList.remove('recent-comment-fluorescent');
+            });
+        }
         function highlightRecentComment(postId) {
             const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
             if (!post || !Array.isArray(post.comments) || post.comments.length === 0) return;
+
+            const postIdx = cachedPosts.findIndex(p => p.id === postId || String(p.id) === String(postId));
+            if (postIdx !== -1 && postIdx >= displayedFeedCount) {
+                displayedFeedCount = Math.min(cachedPosts.length, postIdx + FEED_BATCH_SIZE);
+                renderFeedList();
+            }
 
             const unreadInfo = getUnreadCommentInfoForPost(post);
             const targetIdx = unreadInfo.unreadCount > 0 ? unreadInfo.firstUnreadIndex : (post.comments.length - 1);
 
             markPostCommentsAsRead(postId, post.comments.length - 1);
 
+            isRecentCommentScrolling = true;
+            isNavigatingToPost = true;
+            if (recentCommentScrollLockTimer) clearTimeout(recentCommentScrollLockTimer);
+            recentCommentScrollLockTimer = setTimeout(() => {
+                isRecentCommentScrolling = false;
+                isNavigatingToPost = false;
+            }, 950);
+
             const checkAndHighlight = (attempts = 0) => {
                 const commentEl = document.getElementById(`feed-comment-${postId}-${targetIdx}`) || document.getElementById(`feed-comment-${postId}-${post.comments.length - 1}`);
-                const commentsBox = document.getElementById(`post-comments-box-${postId}`);
                 const feedContainer = document.getElementById('feed-container');
 
-                document.querySelectorAll('.recent-comment-fluorescent').forEach(el => {
-                    el.classList.remove('recent-comment-fluorescent');
-                });
+                if (commentEl) {
+                    clearRecentCommentHighlight();
+                    const textSpan = commentEl.querySelector('.comment-text-body') || commentEl;
+                    textSpan.classList.add('recent-comment-fluorescent');
 
-                const targetEl = commentEl || commentsBox;
-                if (targetEl) {
-                    targetEl.classList.add('recent-comment-fluorescent');
-
-                    if (feedContainer) {
-                        const targetRect = targetEl.getBoundingClientRect();
+                    const centerCommentInView = () => {
+                        if (!feedContainer) return;
+                        window.scrollTo(0, 0);
+                        const targetRect = commentEl.getBoundingClientRect();
                         const containerRect = feedContainer.getBoundingClientRect();
                         const targetScrollTop = feedContainer.scrollTop + (targetRect.top - containerRect.top) - (containerRect.height / 2) + (targetRect.height / 2);
                         feedContainer.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
-                    }
+                    };
 
-                    if (recentCommentHighlightTimer) clearTimeout(recentCommentHighlightTimer);
-                    recentCommentHighlightTimer = setTimeout(() => {
-                        targetEl.classList.remove('recent-comment-fluorescent');
-                    }, 3000);
+                    centerCommentInView();
+                    setTimeout(centerCommentInView, 220);
                 } else if (attempts < 15) {
                     setTimeout(() => checkAndHighlight(attempts + 1), 80);
                 }
             };
 
-            setTimeout(() => checkAndHighlight(0), 120);
+            setTimeout(() => checkAndHighlight(0), 80);
         }
 
         // [작업 4-다, 라: 일반 댓글 수정 및 삭제 기능 (본인 작성 댓글 또는 목자만 가능)]
@@ -2133,7 +2152,6 @@
 
             updateRecentCommentNavigatorLabel(matchedIds[0], 1, matchedIds.length);
             nav.classList.remove('hidden');
-            scrollToPost(matchedIds[0], true);
             highlightRecentComment(matchedIds[0]);
         };
 
@@ -2146,7 +2164,6 @@
 
             const targetPostId = recentCommentMatchedPosts[recentCommentCurrentIndex];
             updateRecentCommentNavigatorLabel(targetPostId, recentCommentCurrentIndex + 1, total);
-            scrollToPost(targetPostId, true);
             highlightRecentComment(targetPostId);
         };
 
@@ -2154,6 +2171,7 @@
             if (event) event.stopPropagation();
             const nav = document.getElementById('recent-comments-navigator');
             if (nav) nav.classList.add('hidden');
+            clearRecentCommentHighlight();
         };
 
         window.toggleHeaderSearch = function(event) {
@@ -4822,6 +4840,7 @@
         if (feedScrollEl) {
             feedScrollEl.addEventListener('scroll', () => {
                 if (isBookmarkDragging) return;
+                if (!isRecentCommentScrolling) clearRecentCommentHighlight();
                 closeAllHeaderQuickMenu();
                 closeAllActionMenus();
                 closeAllExportMenus();
@@ -5037,6 +5056,15 @@
             const isHidden = editor.classList.contains('hidden');
 
             if (isHidden) {
+                // 사진이 2장 이상이고 격자(grid) 상태라면 자동으로 펼쳐진 상태(expanded)로 전환
+                const photoContainer = document.getElementById(`post-photos-${postId}`);
+                if (photoContainer && (photoContainer.getAttribute('data-view-mode') || 'grid') === 'grid') {
+                    const pCount = parseInt(photoContainer.getAttribute('data-photo-count'), 10) || 1;
+                    if (pCount > 1) {
+                        setPostPhotoLayout(postId, 'expanded', false);
+                    }
+                }
+
                 editor.classList.remove('hidden');
                 const input = document.getElementById(`caption-input-${postId}-${photoIdx}`);
                 if (input) {
@@ -5045,15 +5073,23 @@
                     if (!input.value && info.text) {
                         input.value = info.text;
                     }
-                    input.placeholder = `${currentUser}님, 이 사진에 담긴 이야기를 입력해 보세요...`;
-                    input.rows = 2;
+                    input.placeholder = "사진 이야기 입력...";
+                    input.rows = 1;
                     setTimeout(() => {
+                        const feedContainer = document.getElementById('feed-container');
+                        const blockEl = document.getElementById(`photo-block-${postId}-${photoIdx}`);
+                        if (feedContainer && blockEl) {
+                            const bRect = blockEl.getBoundingClientRect();
+                            const cRect = feedContainer.getBoundingClientRect();
+                            const targetTop = feedContainer.scrollTop + (bRect.bottom - cRect.top) - (cRect.height * 0.62);
+                            feedContainer.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+                        }
                         try {
                             input.focus({ preventScroll: true });
                         } catch (e) {
                             input.focus();
                         }
-                    }, 40);
+                    }, 80);
                 }
                 syncTwoColumnPhotoHeights(postId);
             } else {
@@ -6298,7 +6334,7 @@
                     <div id="feed-comment-${post.id}-${idx}" class="py-0.5 px-1 border-b border-gray-100/90 last:border-b-0 text-[11.5px] flex items-center justify-between space-x-1 text-left rounded transition-all duration-300 hover:bg-gray-100/60">
                         <div class="flex-1 flex items-baseline space-x-1 min-w-0 pr-0.5">
                             <span class="font-bold text-gray-800 text-[11px] shrink-0">${escapeHtml(c.author)} :</span>
-                            <span class="text-gray-700 text-[11.5px] leading-tight break-words">${escapeHtml(c.text)}</span>
+                            <span class="comment-text-body text-gray-700 text-[11.5px] leading-tight break-words">${escapeHtml(c.text)}</span>
                         </div>
                         <div class="flex items-center space-x-1 shrink-0 select-none">
                             ${formatCommentDateTwoLines(c.time)}
@@ -6411,25 +6447,23 @@
                                     </div>
                                 </div>
 
-                                <div id="caption-editor-${post.id}-${i}" onclick="event.stopPropagation();" class="no-export hidden p-2 bg-white border-t border-dashed border-gray-200 rounded-b-xl shadow-2xs">
-                                    <div class="flex justify-between items-center mb-1 text-[10.5px] text-gray-700 font-semibold px-0.5">
-                                        <span class="flex items-center space-x-1"><i class="fa-solid fa-pencil text-emerald-700 text-[9px]"></i><span>사진 이야기 · <strong class="text-emerald-800">${escapeHtml(currentUser)}</strong></span></span>
-                                        <button type="button" onpointerdown="event.preventDefault(); event.stopPropagation();" onmousedown="event.preventDefault(); event.stopPropagation();" onclick="event.stopPropagation(); togglePhotoCaptionEditor('${post.id}', ${i}, event)" class="w-5 h-5 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100">
-                                            <i class="fa-solid fa-xmark text-xs"></i>
+                                <div id="caption-editor-${post.id}-${i}" onclick="event.stopPropagation();" class="no-export hidden w-full max-w-full box-border overflow-hidden p-1.5 bg-white border-t border-dashed border-gray-200 rounded-b-xl shadow-2xs">
+                                    <div class="flex justify-between items-center mb-1 text-[10px] text-gray-700 font-semibold px-0.5 w-full">
+                                        <span class="flex items-center space-x-1 truncate"><i class="fa-solid fa-pencil text-emerald-700 text-[8.5px]"></i><span class="truncate">사진 이야기 · <strong class="text-emerald-800">${escapeHtml(currentUser)}</strong></span></span>
+                                        <button type="button" onpointerdown="event.preventDefault(); event.stopPropagation();" onmousedown="event.preventDefault(); event.stopPropagation();" onclick="event.stopPropagation(); togglePhotoCaptionEditor('${post.id}', ${i}, event)" class="w-4 h-4 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 shrink-0">
+                                            <i class="fa-solid fa-xmark text-[10px]"></i>
                                         </button>
                                     </div>
-                                    <textarea id="caption-input-${post.id}-${i}" rows="2" maxlength="300" placeholder="${escapeHtml(currentUser)}님, 이 사진에 담긴 이야기를 입력해 보세요..." 
-                                              oninput="autoExpandCaptionTextarea(this)" 
-                                              class="w-full p-2 bg-white text-gray-900 placeholder-gray-400 rounded-lg border border-dashed border-gray-300 text-xs outline-none focus:outline-none focus:border-dashed focus:border-gray-400 resize-none shadow-2xs leading-relaxed transition-[height] duration-150">${escapeHtml(captionText)}</textarea>
-                                    <div class="flex justify-between items-center mt-1.5">
-                                        <button type="button" onpointerdown="event.preventDefault(); event.stopPropagation();" onmousedown="event.preventDefault(); event.stopPropagation();" onclick="event.stopPropagation(); deletePhotoCaption('${post.id}', ${i}, event)" class="px-2 py-1 text-[10.5px] bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-semibold transition-all">삭제</button>
-                                        <div class="flex space-x-1.5">
-                                            <button type="button" onpointerdown="event.preventDefault(); event.stopPropagation();" onmousedown="event.preventDefault(); event.stopPropagation();" onclick="event.stopPropagation(); togglePhotoCaptionEditor('${post.id}', ${i}, event)" class="px-2.5 py-1 text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg font-medium transition-all">취소</button>
-                                            <button type="button" onpointerdown="event.preventDefault(); event.stopPropagation();" onmousedown="event.preventDefault(); event.stopPropagation();" onclick="event.stopPropagation(); savePhotoCaption('${post.id}', ${i}, event)" class="px-3 py-1 text-[11px] church-primary hover:opacity-90 text-white font-semibold rounded-lg shadow-2xs active:scale-95 transition-all">저장</button>
-                                        </div>
+                                    <div class="flex items-center gap-1 w-full max-w-full box-border">
+                                        <textarea id="caption-input-${post.id}-${i}" rows="1" maxlength="300" placeholder="사진 이야기 입력..." 
+                                                  oninput="autoExpandCaptionTextarea(this)" 
+                                                  class="flex-1 min-w-0 w-full px-2 py-1 bg-white text-gray-900 placeholder-gray-400 rounded-lg border border-dashed border-gray-300 text-xs outline-none focus:outline-none focus:border-dashed focus:border-gray-400 resize-none shadow-2xs leading-snug box-border">${escapeHtml(captionText)}</textarea>
+                                        <button type="button" onpointerdown="event.preventDefault(); event.stopPropagation();" onmousedown="event.preventDefault(); event.stopPropagation();" onclick="event.stopPropagation(); savePhotoCaption('${post.id}', ${i}, event)" class="shrink-0 px-2.5 py-1.5 text-[11px] church-primary hover:opacity-90 text-white font-semibold rounded-lg shadow-2xs active:scale-95 transition-all whitespace-nowrap">저장</button>
+                                        <button type="button" onpointerdown="event.preventDefault(); event.stopPropagation();" onmousedown="event.preventDefault(); event.stopPropagation();" onclick="event.stopPropagation(); deletePhotoCaption('${post.id}', ${i}, event)" class="shrink-0 px-2 py-1.5 text-[10.5px] bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg font-semibold transition-all whitespace-nowrap">삭제</button>
                                     </div>
                                 </div>
                             </div>
+                        </div>
                         </div>
                     `;
                 }).join('');
@@ -6573,14 +6607,13 @@
                     </div>
 
                     <!-- [작업 4-마: 인라인 댓글 작성 시 현재 작성자 이름 표시] -->
-                    <div id="inline-comment-row-${post.id}" class="no-export mt-1.5 pt-1 border-t border-gray-100 hidden">
-                        <div class="flex space-x-1.5 items-center">
-                            <span class="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200 text-[10.5px] font-bold shrink-0">${escapeHtml(currentUser)}</span>
-                            <input type="text" id="inline-comment-input-${post.id}" maxlength="200" placeholder="${escapeHtml(currentUser)}님, 따뜻한 댓글을 남겨보세요..." 
+                    <div id="inline-comment-row-${post.id}" class="no-export mt-1.5 pt-1 border-t border-gray-100 hidden w-full max-w-full box-border overflow-hidden">
+                        <div class="flex items-center gap-1.5 w-full max-w-full box-border">
+                            <input type="text" id="inline-comment-input-${post.id}" maxlength="200" placeholder="따뜻한 댓글을 남겨보세요..." 
                                    oninput="handleDraftInput('${post.id}', this.value)"
                                    onkeydown="if(event.key==='Enter'){ event.preventDefault(); addCommentInline('${post.id}', event); }"
-                                   class="flex-1 px-2.5 py-1.5 border border-dashed border-gray-300 rounded-lg text-xs bg-white text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:border-dashed focus:border-emerald-600 shadow-2xs">
-                            <button type="button" onpointerdown="event.preventDefault();" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); addCommentInline('${post.id}', event)" class="px-3 py-1.5 church-primary hover:opacity-90 active:scale-95 text-white rounded-lg text-xs font-semibold whitespace-nowrap shadow-2xs transition-all flex items-center justify-center" title="댓글 등록">
+                                   class="flex-1 min-w-0 w-full px-2.5 py-1.5 border border-dashed border-gray-300 rounded-lg text-xs bg-white text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:border-dashed focus:border-emerald-600 shadow-2xs box-border">
+                            <button type="button" onpointerdown="event.preventDefault();" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); addCommentInline('${post.id}', event)" class="shrink-0 px-3 py-1.5 church-primary hover:opacity-90 active:scale-95 text-white rounded-lg text-xs font-semibold whitespace-nowrap shadow-2xs transition-all flex items-center justify-center" title="댓글 등록">
                                 <span>등록</span>
                             </button>
                         </div>
@@ -6959,7 +6992,7 @@
 
                 const input = document.getElementById(`inline-comment-input-${postId}`);
                 if (input) {
-                    input.placeholder = `${currentUser}님, 따뜻한 댓글을 남겨보세요...`;
+                    input.placeholder = "따뜻한 댓글을 남겨보세요...";
                     const draft = commentDrafts[postId];
                     if (draft) {
                         const elapsed = Date.now() - draft.updatedAt;
