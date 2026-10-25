@@ -220,6 +220,22 @@
             -webkit-backdrop-filter: blur(8px);
             transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.2s ease, border-radius 0.25s ease, transform 0.2s ease;
         }
+        /* 책갈피 달력 일자 클릭 시 이동한 피드 확인용 고투명 모드 */
+        #bookmark-calendar-popup {
+            transition: background-color 0.25s ease, backdrop-filter 0.25s ease, -webkit-backdrop-filter 0.25s ease, box-shadow 0.25s ease, opacity 0.2s ease, transform 0.2s ease;
+        }
+        #bookmark-calendar-popup.calendar-peek-mode {
+            background-color: rgba(255, 255, 255, 0.14) !important;
+            backdrop-filter: blur(1px) !important;
+            -webkit-backdrop-filter: blur(1px) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+        }
+        #bookmark-calendar-popup.calendar-peek-mode #bookmark-calendar-grid,
+        #bookmark-calendar-popup.calendar-peek-mode .grid-cols-7 {
+            background-color: rgba(255, 255, 255, 0.12) !important;
+            opacity: 0.52;
+            transition: opacity 0.25s ease, background-color 0.25s ease;
+        }
 
         /* 모달 터치 제어: all-pdf-preview-modal은 자유로운 상하 스크롤을 위해 제외 */
         #lightbox-modal, #write-modal, #confirm-modal, #save-confirm-modal, #edit-confirm-modal, #comments-popup-modal, #export-preview-modal {
@@ -3835,14 +3851,12 @@
 
             titleEl.innerText = `${year}년 ${month + 1}월`;
 
-            // [항목 9-1]: 달력 투명도를 기존(0.82)보다 20% 더 높여(0.62) 배경이 더 잘 비치도록 적용
+            // [항목 9-1]: 달력 투명도를 기존(0.82)보다 20% 더 높여(0.62) 배경이 더 잘 비치도록 적용 (피드 이동 확인 중에는 고투명 유지)
             const theme = MONTHLY_PASTEL_THEMES[month + 1] || MONTHLY_PASTEL_THEMES[10];
             const popupEl = document.getElementById('bookmark-calendar-popup');
             if (popupEl) {
                 popupEl.style.borderColor = theme.badge;
-                popupEl.style.backgroundColor = 'rgba(255, 255, 255, 0.62)';
-                popupEl.style.backdropFilter = 'blur(8px)';
-                popupEl.style.webkitBackdropFilter = 'blur(8px)';
+                setBookmarkCalendarTranslucentMode(isBookmarkCalendarTranslucent);
             }
 
             const firstDayIndex = new Date(year, month, 1).getDay();
@@ -3929,15 +3943,19 @@
             container.innerHTML = html;
         }
 
-        // [달력 투명도 제어 헬퍼: 기본 상태(0.62) <-> 피드 이동 확인용 고투명 상태(0.18)]
+        // [달력 투명도 제어 헬퍼: 기본 상태(0.62) <-> 피드 이동 확인용 고투명 상태(0.14)]
+        let isBookmarkCalendarTranslucent = false;
         function setBookmarkCalendarTranslucentMode(isTranslucent) {
+            isBookmarkCalendarTranslucent = !!isTranslucent;
             const popupEl = document.getElementById('bookmark-calendar-popup');
             if (!popupEl) return;
-            if (isTranslucent) {
-                popupEl.style.backgroundColor = 'rgba(255, 255, 255, 0.18)';
-                popupEl.style.backdropFilter = 'blur(1.5px)';
-                popupEl.style.webkitBackdropFilter = 'blur(1.5px)';
+            if (isBookmarkCalendarTranslucent) {
+                popupEl.classList.add('calendar-peek-mode');
+                popupEl.style.backgroundColor = 'rgba(255, 255, 255, 0.14)';
+                popupEl.style.backdropFilter = 'blur(1px)';
+                popupEl.style.webkitBackdropFilter = 'blur(1px)';
             } else {
+                popupEl.classList.remove('calendar-peek-mode');
                 popupEl.style.backgroundColor = 'rgba(255, 255, 255, 0.62)';
                 popupEl.style.backdropFilter = 'blur(8px)';
                 popupEl.style.webkitBackdropFilter = 'blur(8px)';
@@ -4001,6 +4019,7 @@
                     calendarCurrentMonth = now.getMonth();
                 }
 
+                setBookmarkCalendarTranslucentMode(false);
                 renderBookmarkCalendar(calendarCurrentYear, calendarCurrentMonth);
 
                 if (calendarCustomPos) {
@@ -4065,6 +4084,7 @@
 
         window.prevBookmarkCalendarMonth = function(event) {
             if (event) event.stopPropagation();
+            setBookmarkCalendarTranslucentMode(false);
             calendarCurrentMonth--;
             if (calendarCurrentMonth < 0) {
                 calendarCurrentMonth = 11;
@@ -4075,6 +4095,7 @@
 
         window.nextBookmarkCalendarMonth = function(event) {
             if (event) event.stopPropagation();
+            setBookmarkCalendarTranslucentMode(false);
             calendarCurrentMonth++;
             if (calendarCurrentMonth > 11) {
                 calendarCurrentMonth = 0;
@@ -4085,6 +4106,7 @@
 
         window.goBookmarkCalendarToday = function(event) {
             if (event) event.stopPropagation();
+            setBookmarkCalendarTranslucentMode(false);
             const now = new Date();
             calendarCurrentYear = now.getFullYear();
             calendarCurrentMonth = now.getMonth();
