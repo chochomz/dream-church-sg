@@ -98,7 +98,7 @@
             padding: 6px 12px;
         }
 
-        /* [요구사항 4]: iOS/모바일 키보드 줌 방지 (16px 고정) */
+        /* iOS/모바일 키보드 줌 방지 (16px 고정) */
         #code-auth-box input {
             font-size: 16px !important;
             -webkit-text-size-adjust: 100% !important;
@@ -119,7 +119,7 @@
             transform: translate(-50%, -50%) scale(0);
             font-family: 'Song Myung', serif;
             color: #c29ba1;
-            font-size: clamp(19px, 5.2vw, 24px);
+            font-size: clamp(18px, 4.8vw, 22px);
             font-weight: 400;
             letter-spacing: 0.06em;
             white-space: nowrap;
@@ -165,7 +165,7 @@
             <button type="button" onclick="goToAdminPage()" aria-label="관리자 페이지" class="w-10 h-10 rounded-full bg-transparent border-0 focus:outline-none active:scale-95 transition-all"></button>
         </div>
 
-        <!-- 세종꿈의교회와 꿈의 목장 사이를 유영하는 10개 단어 레이어 -->
+        <!-- 세종꿈의교회 타이틀을 연기처럼 감싸는 10개 단어 유영 레이어 -->
         <div id="floating-words-layer"></div>
 
         <!-- 갈라진 사이에 나타나는 텍스트 없는 미니 가로 로그인 창 -->
@@ -183,6 +183,7 @@
         const codeAuthBox = document.getElementById('code-auth-box');
         const floatingWordsLayer = document.getElementById('floating-words-layer');
 
+        // 10가지 은혜 단어 (송명체 적용)
         const GRACE_WORDS = ['믿음', '소망', '사랑', '감사', '찬송', '기도', '섬김', '양육', '전도', '예배'];
         const floatingWordItems = [];
         let floatingAnimId = null;
@@ -200,21 +201,23 @@
                 el.textContent = word;
                 floatingWordsLayer.appendChild(el);
 
-                const targetX = 32 + (idx % 3) * 18 + (Math.random() * 10 - 5);
-                const targetY = 61.5 + Math.floor(idx / 3) * 6.5 + (Math.random() * 4 - 2);
+                // [요청 반영]: 타이틀('세종꿈의교회') 왼쪽과 오른쪽 바깥 영역까지 부드럽게 감싸는 넓은 범위 (left 18% ~ 82%, top 57% ~ 72%)
+                const startX = 18 + (idx % 5) * 14 + (Math.random() * 8 - 4);
+                const startY = 58 + Math.floor(idx / 5) * 7 + (Math.random() * 4 - 2);
 
                 floatingWordItems.push({
                     el,
-                    spawnTime: now + idx * 240,
-                    spawnDuration: 1500,
-                    x: targetX,
-                    y: targetY,
-                    vx: (Math.random() * 0.022 + 0.01) * (Math.random() < 0.5 ? 1 : -1),
-                    vy: (Math.random() * 0.016 + 0.007) * (Math.random() < 0.5 ? 1 : -1),
+                    spawnTime: now + idx * 200,
+                    spawnDuration: 1400,
+                    x: startX,
+                    y: startY,
+                    // 부드럽고 우아하게 연기처럼 감싸는 유영 속도 벡터
+                    vx: (Math.random() * 0.018 + 0.008) * (Math.random() < 0.5 ? 1 : -1),
+                    vy: (Math.random() * 0.012 + 0.005) * (Math.random() < 0.5 ? 1 : -1),
                     scalePhase: Math.random() * Math.PI * 2,
-                    scaleSpeed: 0.0014 + Math.random() * 0.0008,
+                    scaleSpeed: 0.0012 + Math.random() * 0.0006,
                     swayPhase: Math.random() * Math.PI * 2,
-                    swaySpeed: 0.0011 + Math.random() * 0.0006
+                    swaySpeed: 0.0009 + Math.random() * 0.0005
                 });
             });
 
@@ -229,26 +232,27 @@
                         const p = elapsed / item.spawnDuration;
                         const easeOut = 1 - Math.pow(1 - p, 3);
                         const curX = 50 + (item.x - 50) * easeOut;
-                        const curY = 72 + (item.y - 72) * easeOut;
+                        const curY = 70 + (item.y - 70) * easeOut;
                         const curScale = 0.2 + 0.8 * easeOut;
                         item.el.style.left = `${curX}%`;
                         item.el.style.top = `${curY}%`;
-                        item.el.style.opacity = `${Math.min(0.88, p * 0.95)}`;
+                        item.el.style.opacity = `${Math.min(0.85, p * 0.95)}`;
                         item.el.style.transform = `translate(-50%, -50%) scale(${curScale.toFixed(3)})`;
                     } else {
                         item.x += item.vx;
                         item.y += item.vy;
 
-                        if (item.x < 26) { item.x = 26; item.vx = Math.abs(item.vx) * (0.9 + Math.random() * 0.2); }
-                        if (item.x > 74) { item.x = 74; item.vx = -Math.abs(item.vx) * (0.9 + Math.random() * 0.2); }
+                        // [핵심 제한]: 로고와 타이틀("세종꿈의교회") 바깥 좌우(16% ~ 84%)와 상하(56% ~ 73.5%)를 연기처럼 포근하게 감싸돌다 안쪽으로 부드럽게 유턴
+                        if (item.x < 16) { item.x = 16; item.vx = Math.abs(item.vx) * (0.85 + Math.random() * 0.25); }
+                        if (item.x > 84) { item.x = 84; item.vx = -Math.abs(item.vx) * (0.85 + Math.random() * 0.25); }
 
-                        if (item.y < 60) { item.y = 60; item.vy = Math.abs(item.vy) * (0.9 + Math.random() * 0.2); }
-                        if (item.y > 71.5) { item.y = 71.5; item.vy = -Math.abs(item.vy) * (0.9 + Math.random() * 0.2); }
+                        if (item.y < 56) { item.y = 56; item.vy = Math.abs(item.vy) * (0.85 + Math.random() * 0.25); }
+                        if (item.y > 73.5) { item.y = 73.5; item.vy = -Math.abs(item.vy) * (0.85 + Math.random() * 0.25); }
 
                         const wave = Math.sin(timestamp * item.scaleSpeed + item.scalePhase);
-                        const curScale = 0.94 + wave * 0.18;
-                        const curOpacity = 0.78 + wave * 0.14;
-                        const swayDeg = Math.sin(timestamp * item.swaySpeed + item.swayPhase) * 3.5;
+                        const curScale = 0.92 + wave * 0.2;
+                        const curOpacity = 0.75 + wave * 0.16;
+                        const swayDeg = Math.sin(timestamp * item.swaySpeed + item.swayPhase) * 4.2;
 
                         item.el.style.left = `${item.x.toFixed(2)}%`;
                         item.el.style.top = `${item.y.toFixed(2)}%`;
@@ -279,7 +283,6 @@
         let tapCount = 0;
         let tapResetTimer = null;
 
-        // 하단(꿈의 목장) 영역 5회 터치 시 로그인 창 등장
         gateBottom.addEventListener('click', () => {
             tapCount++;
             if (tapCount >= 5) {
@@ -353,7 +356,6 @@
             
             createHearts();
 
-            // [요구사항 5]: 정식 인증 토큰 발급 후 index2.html 이동
             setTimeout(() => {
                 try {
                     sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
@@ -431,7 +433,6 @@
             }
         }
 
-        // [요구사항 4]: 포커스 해제 시 화면 자동 정렬
         document.addEventListener('focusout', (e) => {
             if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
                 setTimeout(() => {
@@ -443,7 +444,6 @@
         });
     </script>
 
-    <!-- [파이어베이스 실시간 목장 설정(mokjang_config/main) 동기화] -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
