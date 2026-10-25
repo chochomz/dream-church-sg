@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>목자(관리자) 설정 - 세종꿈의교회 꿈의 목장</title>
-    <!-- [요구사항 5: 오직 index.html을 통해서만 입장 가능하도록 직접 링크 접근 원천 차단] -->
+    <!-- [작업 4-나: 오직 index.html을 통해서만 입장 가능하도록 직접 호출 시 리다이렉트 & 주소 가림] -->
     <script>
         (function() {
             try {
@@ -36,6 +36,12 @@
                     } else {
                         window.location.href = 'index.html';
                     }
+                    return;
+                }
+                // 브라우저 주소창에서 index1.html 및 파라미터 가림
+                if (window.history && typeof window.history.replaceState === 'function') {
+                    var cleanPath = window.location.pathname.replace(/index1\.html.*$/, '');
+                    window.history.replaceState({}, document.title, cleanPath || '/');
                 }
             } catch (e) {
                 console.warn("Entry pass check skipped:", e);
@@ -72,7 +78,6 @@
         .church-primary-text { color: #3B5D50; }
         .church-accent { background-color: #E8F0EC; }
         .church-border { border-color: #E5E7EB; }
-        /* [요구사항 4]: iOS/모바일 키보드 포커스 시 화면 자동 확대(줌) 방지 (16px 고정) */
         .dashed-input {
             background-color: #ffffff !important;
             color: #111827 !important;
@@ -106,11 +111,11 @@
             <div class="flex items-center space-x-1.5 justify-center">
                 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACUAAAAoCAYAAAB5ADPdAAAWfmNhQlgAABZ+anVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAFlhqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjM2ZjIzYzljLTFiMGQtNGEyZS04NmU3LTk4NzljZjRjMjE3NQAAAAOTanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAAAuGp1bWIAAABEanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5pbmdyZWRpZW50LnYzAAAAABhjMnNoozP3h9Ae7zHJk3fn/mFDCwAAAGxjYm9yo2lkYzpmb3JtYXRpaW1hZ2UvcG5namluc3RhbmNlSUR4LHhtcDppaWQ6NTM5ZDIyNTItMzVmMS00Y2Q5LThlZWMtY2Y2MzM4Yzc3YTI5bHJlbGF0aW9uc2hpcGhwYXJlbnRPZgAAAeJqdW1iAAAAQWp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuYWN0aW9ucy52MgAAAAAYYzJzaC0DSUG0gzGtjaES6fNLd50AAAGZY2JvcqJnYWN0aW9uc4KiZmFjdGlvbmtjMnBhLm9wZW5lZGpwYXJhbWV0ZXJzoWtpbmdyZWRpZW50c4GiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5pbmdyZWRpZW50LnYzZGhhc2hYIEAc0kZOeHRHbUIZtQSvjfoeMXgultlCebgwp5KFE2fvpGZhY3Rpb254HWNvbS5hbnRocm9waWMuY2xhdWRlLnByb3ZpZGVkanBhcmFtZXRlcnOheB9jb20uYW50aHJvcGljLm9yaWdpbi1jb25maWRlbmNlZ3Vua25vd25rZGVzY3JpcHRpb254ZkNsYXVkZSBwcm92aWRlZCB0aGlzIGZpbGUgYXQgdGhlIHJlcXVlc3Qgb2YgYSB1c2VyIGFuZCBtYXkgaGF2ZSBjcmVhdGVkIG9yIG1vZGlmaWVkIHRoZSBmaWxlIGNvbnRlbnRzLm1zb2Z0d2FyZUFnZW50oWRuYW1lZkNsYXVkZXJhbGxBY3Rpb25zSW5jbHVkZWT1AAAAyGp1bWIAAABAanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5oYXNoLmRhdGEAAAAAGGMyc2jSNLCEgqTVOZ+pFtPgpRYJAAAAgGNib3KlY2FsZ2ZzaGEyNTZjcGFkTQAAAAAAAAAAAAAAAABkaGFzaFggT1t+WDmlnH8bb0WGw1CNyA++PIPnRKhVylsDnVv/jLlkbmFtZW5qdW1iZiBtYW5pZmVzdGpleGNsdXNpb25zgaJlc3RhcnQYIWZsZW5ndGgZFooAAAI+anVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAg9jYm9ypWNhbGdmc2hhMjU2aXNpZ25hdHVyZXhNc2VsZiNqdW1iZj0vYzJwYS91cm46YzJwYTozNmYyM2M5Yy0xYjBkLTRhMmUtODZlNy05ODc5Y2Y0YzIxNzUvYzJwYS5zaWduYXR1cmVqaW5zdGFuY2VJRHgseG1wOmlpZDo2MjlmZjAzZC0xMDViLTRhOTgtYmYwYi03YmFhNTFiZmQ0MDNyY3JlYXRlZF9hc3NlcnRpb25zg6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggQBzSRk54dEdtQhm1BK+N+h4xeC6W2UJ5uDCnkoUTZ++iY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIJYd6SYRHN8jdj+69EZIYQn6jGHofD0Iyt/Xpr1zrvZaomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIKCq5lKeFge36naq2l//psMmcpfEoNgZ/E/OSO0hlXM9dGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lb0FudGhyb3BpYyBGaWxlc2d2ZXJzaW9uZTEuMC4wa3NwZWNWZXJzaW9uZTIuNC4wAAAQOGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAAQCGNib3LShFkCEqIBJhghWQIKMIICBjCCAY2gAwIBAgIUQOWgCu7COdC+uIP6BkIFPWdVEwAwCgYIKoZIzj0EAwMwSTEXMBUGA1UEChMOQW50aHJvcGljLCBQQkMxLjAsBgNVBAMTJUFudGhyb3BpYyBDb250ZW50IENyZWRlbnRpYWxzIFJvb3QgQ0EwHhcNMjYwODA3MTg0MzU2WhcNMjgwODA2MTk0MzU2WjBEMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEpMCcGA1UEAxMgQW50aHJvcGljIENsYXVkZSBDb250ZW50IFNpZ25pbmcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASYegpry1AYBRTVNL1CpTlbROnY3dey+UrsF9C3phYrATN3ZHf93Mo8RQN0KOUuOn19P4oWNFWe5n2/She9N7eTo1gwVjAOBgNVHQ8BAf8EBAMCB4AwFQYDVR0lBA4wDAYKKwYBBAGD6F4CATAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFM5R4gSBTmRbI/jjxM+aPpzB11zCMAoGCCqGSM49BAMDA2cAMGQCMDFzHRSeAXrSy1WOzkbhPZ6Km2wGTmZ/2gK18k8BQGXyqz88Rdrz6CTX9flAnYNVxgIwcF9c3fVhqmJKpi+UhasNUMko69cyX6STPfta3Q8EjyzDjzoyrol46FP6VFHhvUcJoWNwYWRZDZ4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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" alt="세종꿈의교회 로고" class="w-[21px] h-[21px] object-contain shrink-0">
                 <h1 class="text-[18.8px] font-black tracking-tight leading-tight truncate whitespace-nowrap text-[#374151]" id="admin-header-title">
-                    세종꿈의교회 <span id="admin-header-mokjang">23목장</span>
+                    세종꿈의교회 <span id="admin-header-mokjang"></span>
                 </h1>
             </div>
             <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none">
-                목자 전용 관리 페이지
+                목자 전용 관리 페이지 (권한 및 목원 관리)
             </p>
         </div>
     </header>
@@ -123,14 +128,14 @@
             <div class="flex items-center justify-between gap-2 border-b border-gray-100 pb-2">
                 <div class="min-w-0 text-left">
                     <h2 class="text-xs font-bold text-gray-800 truncate">목자(관리자) 단독 인증</h2>
-                    <p class="text-[10px] text-gray-400 truncate mt-0.5">파이어베이스에 등록된 목자 한 분만 관리할 수 있습니다</p>
+                    <p class="text-[10px] text-gray-400 truncate mt-0.5">파이어베이스에 등록된 목자 한 분만 전체 권한을 가집니다</p>
                 </div>
                 <span id="admin-auth-badge" class="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500 whitespace-nowrap">미인증</span>
             </div>
 
             <div id="social-login-panel" class="space-y-2 pt-0.5">
                 <p class="text-[11px] text-gray-600 text-left leading-relaxed break-keep">
-                    최초 인증하시는 목자님의 계정이 이 목장의 <strong>유일한 관리자</strong>로 파이어베이스에 등록됩니다.
+                    최초 인증하시는 목자님의 계정이 이 목장의 <strong>유일한 관리자(목자)</strong>로 파이어베이스에 등록됩니다.
                 </p>
                 <div class="grid grid-cols-1 gap-2 pt-0.5">
                     <button type="button" onclick="handleSocialAuth('google')" class="w-full py-2.5 px-3 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 active:scale-98 transition-all flex items-center justify-center space-x-2 shadow-2xs text-xs font-bold text-gray-700">
@@ -159,17 +164,17 @@
                     </button>
                 </div>
                 <p class="text-[10.5px] text-emerald-800 leading-snug break-keep">
-                    인증된 목자 계정으로 아래의 목장 코드와 목원 명단을 자유롭게 수정·저장할 수 있습니다.
+                    목자님은 피드의 모든 게시글·댓글·펜댓글 관리 권한을 가지며, 일반 목원은 본인이 작성한 글만 수정·삭제할 수 있습니다.
                 </p>
             </div>
         </section>
 
-        <!-- 2. 목장 기본 정보 & 4자리 목장 코드 관리 섹션 -->
+        <!-- 2. 목장 기본 정보 & 목자(관리자) 설정 섹션 -->
         <section id="mokjang-config-section" class="w-full bg-white rounded-2xl border church-border p-3.5 shadow-xs space-y-2.5 opacity-60 pointer-events-none transition-opacity duration-200 overflow-hidden">
             <div class="flex items-center justify-between gap-1.5 border-b border-gray-100 pb-2">
                 <h3 class="text-xs font-bold text-gray-800 flex items-center space-x-1.5 min-w-0 truncate">
                     <i class="fa-solid fa-sliders church-primary-text shrink-0"></i>
-                    <span class="truncate">목장 이름 및 입장 코드 설정</span>
+                    <span class="truncate">목장 이름 · 입장 코드 · 목자 지정</span>
                 </h3>
                 <span class="shrink-0 text-[10px] text-emerald-700 font-semibold whitespace-nowrap">실시간 연동</span>
             </div>
@@ -177,43 +182,46 @@
             <div class="grid grid-cols-2 gap-2 text-left w-full">
                 <div class="min-w-0 w-full">
                     <label class="block text-[10.5px] font-bold text-gray-600 mb-1 truncate">목장 이름 (타이틀)</label>
-                    <input type="text" id="admin-mokjang-name-input" maxlength="10" value="23목장" placeholder="예: 23목장" class="w-full min-w-0 px-2.5 py-1.5 rounded-xl font-bold dashed-input">
+                    <input type="text" id="admin-mokjang-name-input" maxlength="10" value="" placeholder="예: 사랑목장" class="w-full min-w-0 px-2.5 py-1.5 rounded-xl font-bold dashed-input">
                 </div>
                 <div class="min-w-0 w-full">
                     <label class="block text-[10.5px] font-bold text-gray-600 mb-1 truncate">목장 입장 코드 (4자리)</label>
-                    <input type="text" id="admin-mokjang-code-input" maxlength="4" value="1111" placeholder="4자리" class="w-full min-w-0 px-2.5 py-1.5 rounded-xl font-mono font-bold text-center dashed-input">
+                    <input type="text" id="admin-mokjang-code-input" maxlength="4" value="1111" inputmode="numeric" placeholder="4자리 숫자" class="w-full min-w-0 px-2.5 py-1.5 rounded-xl font-mono font-bold text-center dashed-input">
                 </div>
             </div>
 
             <div class="min-w-0 w-full">
-                <label class="block text-[10.5px] font-bold text-gray-600 mb-1 text-left truncate">목자(관리자) 이름</label>
-                <input type="text" id="admin-leader-name-input" maxlength="10" value="목자" placeholder="목자 이름 입력" class="w-full min-w-0 px-2.5 py-1.5 rounded-xl font-bold dashed-input">
+                <div class="flex items-center justify-between mb-1">
+                    <label class="block text-[10.5px] font-bold text-gray-600 text-left truncate">관리자(목자) 성함 — 전체 권한 부여</label>
+                    <span class="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 text-[9.5px] font-bold">👑 목자(관리자)</span>
+                </div>
+                <input type="text" id="admin-leader-name-input" maxlength="4" value="목자" placeholder="목자 성함 (한글 최대 4자)" class="w-full min-w-0 px-2.5 py-1.5 rounded-xl font-bold dashed-input">
             </div>
 
             <button type="button" onclick="saveMokjangConfigToFirestore()" class="w-full py-2.5 church-primary hover:opacity-95 active:scale-98 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center justify-center space-x-1.5">
                 <i class="fa-solid fa-floppy-disk text-xs shrink-0"></i>
-                <span class="truncate">목장 코드 및 기본 설정 저장</span>
+                <span class="truncate">목장 코드 및 목자(관리자) 설정 저장</span>
             </button>
         </section>
 
-        <!-- 3. 목원 이름 명단 등록 및 관리 섹션 -->
+        <!-- 3. 이용자(목자 / 일반 목원) 명단 등록 및 권한 분류 섹션 -->
         <section id="mokjang-members-section" class="w-full bg-white rounded-2xl border church-border p-3.5 shadow-xs space-y-2.5 opacity-60 pointer-events-none transition-opacity duration-200 overflow-hidden">
             <div class="flex items-center justify-between gap-1.5 border-b border-gray-100 pb-2">
                 <h3 class="text-xs font-bold text-gray-800 flex items-center space-x-1.5 min-w-0 truncate">
                     <i class="fa-solid fa-users church-primary-text shrink-0"></i>
-                    <span class="truncate">목원 이름 등록 및 관리 (<span id="member-count-text" class="text-emerald-700">0</span>명)</span>
+                    <span class="truncate">이용자 분류 및 목원 명단 (<span id="member-count-text" class="text-emerald-700">0</span>명)</span>
                 </h3>
-                <span class="shrink-0 text-[10px] text-gray-400 whitespace-nowrap">등록 목원 로그인</span>
+                <span class="shrink-0 text-[10px] text-gray-500 font-medium whitespace-nowrap">본인글만 수정·삭제</span>
             </div>
 
             <div class="flex items-center gap-1.5 w-full">
-                <input type="text" id="new-member-name-input" maxlength="8" placeholder="추가할 목원 이름" onkeydown="if(event.key==='Enter'){event.preventDefault();addMokjangMember();}" class="flex-1 min-w-0 w-auto px-2.5 py-1.5 rounded-xl font-semibold dashed-input">
+                <input type="text" id="new-member-name-input" maxlength="4" placeholder="추가할 일반 목원 이름 (한글 최대 4자)" onkeydown="if(event.key==='Enter'){event.preventDefault();addMokjangMember();}" class="flex-1 min-w-0 w-auto px-2.5 py-1.5 rounded-xl font-semibold dashed-input">
                 <button type="button" onclick="addMokjangMember()" class="shrink-0 px-3 py-2 church-primary hover:opacity-95 active:scale-95 text-white rounded-xl text-xs font-bold whitespace-nowrap shadow-2xs flex items-center justify-center">
-                    <i class="fa-solid fa-plus mr-1 text-[10px]"></i><span>추가</span>
+                    <i class="fa-solid fa-plus mr-1 text-[10px]"></i><span>목원 추가</span>
                 </button>
             </div>
 
-            <div id="admin-member-list" class="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pt-1 w-full"></div>
+            <div id="admin-member-list" class="grid grid-cols-2 gap-1.5 max-h-52 overflow-y-auto pt-1 w-full"></div>
         </section>
 
         <!-- 4. 오프라인 목원 안내 카드 & 페이지 이동 버튼 -->
@@ -228,7 +236,7 @@
                 </button>
             </div>
             <div id="offline-invite-preview" class="bg-white/90 rounded-xl p-2.5 border border-emerald-100 text-[11px] text-gray-700 space-y-1 leading-relaxed break-keep">
-                <p>🌿 <strong>세종꿈의교회 <span id="guide-mokjang-title">23목장</span> 나눔방 입장 방법</strong></p>
+                <p>🌿 <strong>세종꿈의교회 <span id="guide-mokjang-title"></span> 나눔방 입장 방법</strong></p>
                 <p>1. 첫 화면 하단 <strong>'꿈의 목장'</strong> 글씨 부분을 <strong>연속 5번 터치</strong>합니다.</p>
                 <p>2. 나타나는 둥근 입력창 왼쪽에 목장코드 <strong>[<span id="guide-mokjang-code" class="text-emerald-700 font-mono">1111</span>]</strong>, 오른쪽에 <strong>[본인 이름]</strong>을 입력하면 하트가 피어나며 바로 입장됩니다!</p>
             </div>
@@ -286,13 +294,13 @@
         }
 
         let mokjangConfig = {
-            mokjangName: "23목장",
+            mokjangName: "",
             mokjangCode: "1111",
             leaderName: "목자",
             adminProvider: "",
             adminIdentifier: "",
             adminUid: "",
-            members: ["1111", "목장가족"]
+            members: ["목자"]
         };
 
         let currentPendingProvider = "google";
@@ -367,18 +375,18 @@
 
         function renderAdminUI() {
             const headerMokjang = document.getElementById('admin-header-mokjang');
-            if (headerMokjang) headerMokjang.textContent = mokjangConfig.mokjangName || '23목장';
+            if (headerMokjang) headerMokjang.textContent = mokjangConfig.mokjangName || '';
 
             const nameInput = document.getElementById('admin-mokjang-name-input');
             const codeInput = document.getElementById('admin-mokjang-code-input');
             const leaderInput = document.getElementById('admin-leader-name-input');
-            if (nameInput && document.activeElement !== nameInput) nameInput.value = mokjangConfig.mokjangName || '23목장';
+            if (nameInput && document.activeElement !== nameInput) nameInput.value = mokjangConfig.mokjangName || '';
             if (codeInput && document.activeElement !== codeInput) codeInput.value = mokjangConfig.mokjangCode || '1111';
             if (leaderInput && document.activeElement !== leaderInput) leaderInput.value = mokjangConfig.leaderName || '목자';
 
             const guideTitle = document.getElementById('guide-mokjang-title');
             const guideCode = document.getElementById('guide-mokjang-code');
-            if (guideTitle) guideTitle.textContent = mokjangConfig.mokjangName || '23목장';
+            if (guideTitle) guideTitle.textContent = mokjangConfig.mokjangName || '';
             if (guideCode) guideCode.textContent = mokjangConfig.mokjangCode || '1111';
 
             const badge = document.getElementById('admin-auth-badge');
@@ -419,22 +427,37 @@
             const listEl = document.getElementById('admin-member-list');
             const countEl = document.getElementById('member-count-text');
             if (!listEl) return;
-            const members = Array.isArray(mokjangConfig.members) ? mokjangConfig.members : [];
-            if (countEl) countEl.textContent = String(members.length);
+            const leaderName = (mokjangConfig.leaderName || '목자').trim();
+            const rawMembers = Array.isArray(mokjangConfig.members) ? mokjangConfig.members : [];
+            // 목자를 제외한 순수 표시 목록 또는 전체 목록에 목자/일반목원 배지 부여
+            const allMembers = [...new Set([leaderName, ...rawMembers.filter(m => m && m !== '1111')])];
+            if (countEl) countEl.textContent = String(allMembers.length);
 
-            if (members.length === 0) {
+            if (allMembers.length === 0) {
                 listEl.innerHTML = `<div class="col-span-2 py-4 text-center text-xs text-gray-400">등록된 목원이 없습니다. 위 입력창에서 추가해 주세요.</div>`;
                 return;
             }
 
-            listEl.innerHTML = members.map((m, idx) => `
-                <div class="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-gray-50 border border-gray-200/80 text-xs min-w-0">
-                    <span class="font-bold text-gray-800 truncate mr-1">${m}</span>
-                    <button type="button" onclick="removeMokjangMember(${idx})" class="shrink-0 w-5 h-5 rounded-full hover:bg-rose-100 text-gray-400 hover:text-rose-600 flex items-center justify-center transition-all" title="목원 삭제">
-                        <i class="fa-solid fa-xmark text-[11px]"></i>
-                    </button>
-                </div>
-            `).join('');
+            listEl.innerHTML = allMembers.map((m) => {
+                const isLeader = (m === leaderName);
+                const roleBadge = isLeader
+                    ? `<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-extrabold shrink-0">👑 목자</span>`
+                    : `<span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9px] font-bold shrink-0">일반목원</span>`;
+
+                return `
+                    <div class="flex items-center justify-between px-2.5 py-1.5 rounded-xl ${isLeader ? 'bg-amber-50/60 border border-amber-200/90' : 'bg-gray-50 border border-gray-200/80'} text-xs min-w-0">
+                        <div class="flex items-center space-x-1 min-w-0 truncate mr-1">
+                            ${roleBadge}
+                            <span class="font-bold text-gray-800 truncate">${m}</span>
+                        </div>
+                        ${!isLeader ? `
+                            <button type="button" onclick="removeMokjangMemberByName('${m}')" class="shrink-0 w-5 h-5 rounded-full hover:bg-rose-100 text-gray-400 hover:text-rose-600 flex items-center justify-center transition-all" title="목원 삭제">
+                                <i class="fa-solid fa-xmark text-[11px]"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
         }
 
         window.handleSocialAuth = async function(provider) {
@@ -448,9 +471,7 @@
                         verifyAndCompleteSingleLeaderAuth('google', emailOrName);
                         return;
                     }
-                } catch (popupErr) {
-                    // 팝업 환경 불가 시 모달 입력 폴백
-                }
+                } catch (popupErr) {}
             }
 
             const modal = document.getElementById('social-auth-modal');
@@ -518,6 +539,7 @@
             try {
                 localStorage.setItem('mokjang_admin_authenticated', 'true');
                 localStorage.setItem('mokjang_is_admin', 'true');
+                localStorage.setItem('mokjang_user_role', 'leader');
                 localStorage.setItem('mokjang_user_name', mokjangConfig.leaderName || '목자');
             } catch(e) {}
 
@@ -531,6 +553,7 @@
             try {
                 localStorage.setItem('mokjang_admin_authenticated', 'false');
                 localStorage.setItem('mokjang_is_admin', 'false');
+                localStorage.setItem('mokjang_user_role', 'member');
             } catch(e) {}
             renderAdminUI();
             showToast('로그아웃 되었습니다.');
@@ -539,8 +562,8 @@
         async function persistConfigToFirestore() {
             try {
                 localStorage.setItem('mokjang_config_backup', JSON.stringify(mokjangConfig));
-                localStorage.setItem('mokjang_short_name', mokjangConfig.mokjangName);
-                localStorage.setItem('mokjang_name', `세종꿈의교회 ${mokjangConfig.mokjangName}`);
+                localStorage.setItem('mokjang_short_name', mokjangConfig.mokjangName || '');
+                localStorage.setItem('mokjang_name', mokjangConfig.mokjangName ? `세종꿈의교회 ${mokjangConfig.mokjangName}` : '세종꿈의교회');
             } catch(e) {}
 
             if (!db) return;
@@ -563,30 +586,32 @@
             const codeInput = document.getElementById('admin-mokjang-code-input');
             const leaderInput = document.getElementById('admin-leader-name-input');
 
-            const newMokjangName = (nameInput ? nameInput.value.trim() : '23목장').replace(/^세종꿈의교회\s*/, '') || '23목장';
+            const newMokjangName = (nameInput ? nameInput.value.trim() : '').replace(/^세종꿈의교회\s*/, '');
             const newCode = (codeInput ? codeInput.value.trim() : '1111') || '1111';
             const newLeader = (leaderInput ? leaderInput.value.trim() : '목자') || '목자';
 
-            if (newCode.length !== 4) {
-                showToast('목장 입장 코드는 4자리로 입력해 주세요.');
+            if (!/^[0-9]{4}$/.test(newCode)) {
+                showToast('목장 입장 코드는 숫자 4자리로 입력해 주세요.');
                 return;
             }
 
             mokjangConfig.mokjangName = newMokjangName;
             mokjangConfig.mokjangCode = newCode;
             mokjangConfig.leaderName = newLeader;
+            if (!Array.isArray(mokjangConfig.members)) mokjangConfig.members = [];
             if (!mokjangConfig.members.includes(newLeader)) {
                 mokjangConfig.members.unshift(newLeader);
             }
 
             try {
                 localStorage.setItem('mokjang_user_name', newLeader);
+                localStorage.setItem('mokjang_user_role', 'leader');
                 localStorage.setItem('mokjang_is_admin', 'true');
             } catch(e) {}
 
             await persistConfigToFirestore();
             renderAdminUI();
-            showToast(`'${newMokjangName}' 및 코드(${newCode}) 설정이 저장되었습니다.`);
+            showToast(`목장 설정 및 목자(${newLeader}) 권한이 저장되었습니다.`);
         };
 
         window.addMokjangMember = async function() {
@@ -596,14 +621,14 @@
             }
             const input = document.getElementById('new-member-name-input');
             if (!input) return;
-            const name = input.value.trim();
-            if (!name) {
-                showToast('추가할 목원 이름을 입력해 주세요.');
+            const name = input.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').trim().slice(0, 4);
+            if (!name || name.length < 2) {
+                showToast('목원 이름은 한글 2~4글자로 입력해 주세요.');
                 return;
             }
             if (!Array.isArray(mokjangConfig.members)) mokjangConfig.members = [];
             if (mokjangConfig.members.includes(name)) {
-                showToast('이미 등록된 목원 이름입니다.');
+                showToast('이미 등록된 이름입니다.');
                 return;
             }
             mokjangConfig.members.push(name);
@@ -612,20 +637,21 @@
             window.scrollTo(0, 0);
             await persistConfigToFirestore();
             renderAdminUI();
-            showToast(`목원 '${name}'님이 등록되었습니다.`);
+            showToast(`일반 목원 '${name}'님이 등록되었습니다.`);
         };
 
-        window.removeMokjangMember = async function(idx) {
+        window.removeMokjangMemberByName = async function(targetName) {
             if (!isLeaderAuthenticated) return;
-            if (!Array.isArray(mokjangConfig.members) || idx < 0 || idx >= mokjangConfig.members.length) return;
-            const removed = mokjangConfig.members.splice(idx, 1)[0];
+            if (!Array.isArray(mokjangConfig.members)) return;
+            mokjangConfig.members = mokjangConfig.members.filter(m => m !== targetName);
             await persistConfigToFirestore();
             renderAdminUI();
-            showToast(`'${removed}'님이 명단에서 제외되었습니다.`);
+            showToast(`'${targetName}'님이 명단에서 제외되었습니다.`);
         };
 
         window.copyOfflineInviteGuide = function() {
-            const text = `[세종꿈의교회 ${mokjangConfig.mokjangName} 나눔방 안내]\n1. 첫 화면 하단 '꿈의 목장' 글씨를 5번 터치하세요.\n2. 코드 칸에 [${mokjangConfig.mokjangCode}], 이름 칸에 [본인 이름]을 입력하시면 바로 입장됩니다!`;
+            const titleStr = mokjangConfig.mokjangName ? `세종꿈의교회 ${mokjangConfig.mokjangName}` : '세종꿈의교회 꿈의 목장';
+            const text = `[${titleStr} 나눔방 안내]\n1. 첫 화면 하단 '꿈의 목장' 글씨를 5번 터치하세요.\n2. 코드 칸에 [${mokjangConfig.mokjangCode}], 이름 칸에 [본인 이름]을 입력하시면 바로 입장됩니다!`;
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(() => showToast('오프라인 소개 안내문이 복사되었습니다.'));
             } else {
@@ -640,49 +666,50 @@
         };
 
         window.goToInitialGatePage = function() {
-            showToast('초기 로그인 화면(index.html)으로 이동합니다...');
+            showToast('초기 로그인 화면으로 이동합니다...');
             setTimeout(() => {
                 try {
-                    window.location.href = 'index.html';
-                } catch(e) {
                     window.location.replace('index.html');
+                } catch(e) {
+                    window.location.href = 'index.html';
                 }
             }, 220);
         };
 
         window.goToMainFeedPageAsAdmin = function() {
             const leaderName = mokjangConfig.leaderName || '목자';
-            const mokjangShort = mokjangConfig.mokjangName || '23목장';
-            const adminFlag = isLeaderAuthenticated ? '1' : '0';
+            const mokjangShort = mokjangConfig.mokjangName || '';
+            const isAdminBool = isLeaderAuthenticated;
             try {
                 localStorage.setItem('mokjang_user_name', leaderName);
+                localStorage.setItem('mokjang_user_role', isAdminBool ? 'leader' : 'member');
                 localStorage.setItem('mokjang_short_name', mokjangShort);
-                localStorage.setItem('mokjang_name', `세종꿈의교회 ${mokjangShort}`);
-                localStorage.setItem('mokjang_is_admin', isLeaderAuthenticated ? 'true' : 'false');
+                localStorage.setItem('mokjang_name', mokjangShort ? `세종꿈의교회 ${mokjangShort}` : '세종꿈의교회');
+                localStorage.setItem('mokjang_is_admin', isAdminBool ? 'true' : 'false');
             } catch(e) {}
-            showToast('목자 권한으로 메인 피드(index2.html)로 이동합니다...');
+            showToast(`${leaderName}(목자) 권한으로 메인 피드로 이동합니다...`);
             setTimeout(() => {
                 try {
                     sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
                         target: 'index2.html',
                         authorizedFromIndex: true,
+                        userName: leaderName,
+                        mokjangShort: mokjangShort,
+                        role: isAdminBool ? 'leader' : 'member',
+                        isAdmin: isAdminBool,
                         issuedAt: Date.now()
                     }));
                     sessionStorage.setItem('mokjang_authorized_session', 'index_verified');
                 } catch(e) {}
-                const targetUrl = 'index2.html'
-                    + '?mokjang=' + encodeURIComponent(mokjangShort)
-                    + '&user=' + encodeURIComponent(leaderName)
-                    + '&admin=' + encodeURIComponent(adminFlag);
+                // URL 파라미터 노출 없이 깔끔하게 이동
                 try {
-                    window.location.href = targetUrl;
+                    window.location.replace('index2.html');
                 } catch(e) {
-                    window.location.replace(targetUrl);
+                    window.location.href = 'index2.html';
                 }
             }, 220);
         };
 
-        // [요구사항 4]: 키보드 내려갈 때 화면 자동 정렬
         document.addEventListener('focusout', (e) => {
             if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
                 setTimeout(() => {
