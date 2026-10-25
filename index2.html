@@ -164,6 +164,7 @@
             -webkit-overflow-scrolling: touch;
             overflow-y: auto;
             scrollbar-width: thin;
+            padding-bottom: 48vh !important;
         }
         #feed-container::-webkit-scrollbar {
             width: 4px;
@@ -558,7 +559,7 @@
             </div>
 
             <!-- 날짜(월.일) 및 요일 (터치 시에도 달력 즉시 오픈) -->
-            <div onclick="event.stopPropagation(); toggleBookmarkCalendar(event)" 
+            <div onpointerdown="event.stopPropagation();" onclick="event.stopPropagation(); toggleBookmarkCalendar(event)" 
                  class="flex flex-col items-center leading-none text-center pointer-events-auto cursor-pointer shrink-0 py-0.5 rounded hover:bg-black/5 active:scale-95 transition-transform" 
                  title="월 달력 열기">
                 <span id="feed-bookmark-date" class="text-[9.5px] font-extrabold tracking-tight whitespace-nowrap" style="color: #78350F;">10.20</span>
@@ -571,7 +572,7 @@
             <!-- 원터치 버튼 묶음: 월 달력(📅) & 새로운 댓글(💬) -->
             <div class="flex flex-col items-center space-y-1 pointer-events-auto shrink-0 select-none">
                 <!-- 월 달력 열기 원터치 버튼 (아이콘) -->
-                <button type="button" onclick="event.stopPropagation(); toggleBookmarkCalendar(event)" 
+                <button type="button" onpointerdown="event.stopPropagation();" onclick="event.stopPropagation(); toggleBookmarkCalendar(event)" 
                         id="feed-bookmark-calendar-btn" 
                         class="w-5 h-5 rounded-full bg-amber-600/85 hover:bg-amber-700 text-white flex items-center justify-center text-[9px] font-bold shadow-2xs active:scale-90 transition-transform pointer-events-auto shrink-0 select-none" 
                         title="월 달력 열기 (화면 내 드래그 이동 가능)">
@@ -579,7 +580,7 @@
                 </button>
 
                 <!-- 새로운 댓글 모아보기 원터치 버튼 (읽지 않은 댓글 수 배지 포함) -->
-                <button type="button" onclick="event.stopPropagation(); toggleRecentCommentsNavigator(event)" 
+                <button type="button" onpointerdown="event.stopPropagation();" onclick="event.stopPropagation(); toggleRecentCommentsNavigator(event)" 
                         id="feed-bookmark-comment-btn" 
                         class="relative w-5 h-5 rounded-full bg-emerald-700/85 hover:bg-emerald-800 text-white flex items-center justify-center text-[9.5px] font-bold shadow-2xs active:scale-90 transition-transform pointer-events-auto shrink-0 select-none" 
                         title="새로운 댓글 모아보기 (읽지 않은 댓글 수 표시 및 순회 이동)">
@@ -617,9 +618,9 @@
     <!-- [책갈피 연동 센스 미니 월 달력 팝업 (투명도 20% 증가 + 상단 드래그 이동 + 연도/날짜/요일 확대)] -->
     <div id="bookmark-calendar-popup" 
          class="fixed z-50 pointer-events-auto hidden select-none shadow-2xl rounded-2xl border-2 border-emerald-600/80 ring-1 ring-black/5 p-3 w-[252px] transition-opacity duration-200 transform opacity-0 scale-90"
-         style="touch-action: none; background-color: rgba(255, 255, 255, 0.62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
+         style="touch-action: manipulation; background-color: rgba(255, 255, 255, 0.62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
         <!-- 상단 드래그 헤더: 상단 영역을 잡고 화면 안에서 자유 이동 -->
-        <div id="bookmark-calendar-drag-handle" class="flex items-center justify-between pb-2 mb-1.5 border-b border-gray-200/60 cursor-move active:cursor-grabbing select-none" title="상단 영역을 끌어서 달력 위치를 이동할 수 있습니다">
+        <div id="bookmark-calendar-drag-handle" style="touch-action: none;" class="flex items-center justify-between pb-2 mb-1.5 border-b border-gray-200/60 cursor-move active:cursor-grabbing select-none" title="상단 영역을 끌어서 달력 위치를 이동할 수 있습니다">
             <div class="flex items-center space-x-0.5">
                 <button type="button" onclick="prevBookmarkCalendarMonth(event)" class="w-6 h-6 rounded-full hover:bg-white/70 active:scale-90 text-gray-600 flex items-center justify-center transition-all text-xs" title="이전 달">
                     <i class="fa-solid fa-chevron-left text-[10px]"></i>
@@ -3318,25 +3319,39 @@
 
             isNavigatingToPost = true;
             if (navigationTimer) clearTimeout(navigationTimer);
-            navigationTimer = setTimeout(() => { isNavigatingToPost = false; }, 2000);
+            navigationTimer = setTimeout(() => { isNavigatingToPost = false; }, 2400);
+
+            const targetIdx = cachedPosts.findIndex(p => p.id === postId || String(p.id) === String(postId));
+            if (targetIdx !== -1 && targetIdx >= displayedFeedCount) {
+                displayedFeedCount = Math.min(cachedPosts.length, targetIdx + FEED_BATCH_SIZE);
+                renderFeedList();
+            }
+
+            const alignCardToTop = (useSmooth = true) => {
+                const targetCard = document.getElementById(`post-card-${postId}`);
+                if (!targetCard || !feedContainer) return false;
+
+                window.scrollTo(0, 0);
+                const cardRect = targetCard.getBoundingClientRect();
+                const containerRect = feedContainer.getBoundingClientRect();
+                const targetScrollTop = Math.max(0, feedContainer.scrollTop + (cardRect.top - containerRect.top) - 8);
+
+                if (useSmooth) {
+                    feedContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+                } else if (Math.abs((cardRect.top - containerRect.top) - 8) > 10) {
+                    feedContainer.scrollTop = targetScrollTop;
+                }
+                return true;
+            };
 
             const checkAndScroll = (attempts = 0) => {
-                const targetIdx = cachedPosts.findIndex(p => p.id === postId);
-                if (targetIdx !== -1 && targetIdx >= displayedFeedCount) {
-                    displayedFeedCount = Math.min(cachedPosts.length, targetIdx + FEED_BATCH_SIZE);
-                    renderFeedList();
-                }
-
                 const targetCard = document.getElementById(`post-card-${postId}`);
                 if (targetCard && feedContainer) {
-                    // 윈도우 전체 스크롤을 0으로 유지하여 브라우저 주소창/헤더 위치 고정보호
-                    window.scrollTo(0, 0);
+                    alignCardToTop(true);
 
-                    const cardRect = targetCard.getBoundingClientRect();
-                    const containerRect = feedContainer.getBoundingClientRect();
-                    // 헤더와 검색창 바로 아래 적절한 여백(8px)을 두고 부드럽게 내부 스크롤
-                    const targetScrollTop = feedContainer.scrollTop + (cardRect.top - containerRect.top) - 8;
-                    feedContainer.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
+                    // 사진 지연 로딩 등으로 높이가 변할 때 위치가 밀리지 않도록 2차·3차 정밀 보정
+                    setTimeout(() => alignCardToTop(false), 180);
+                    setTimeout(() => alignCardToTop(false), 380);
 
                     if (highlight) {
                         targetCard.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2');
@@ -3344,7 +3359,7 @@
                         targetCard.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-2', 'transition-all', 'duration-500');
                         setTimeout(() => {
                             targetCard.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2');
-                        }, 1800);
+                        }, 2200);
                     }
 
                     if (targetIdx !== -1) {
@@ -3352,11 +3367,11 @@
                         showBookmark();
                     }
                 } else if (attempts < 20) {
-                    setTimeout(() => checkAndScroll(attempts + 1), 80);
+                    setTimeout(() => checkAndScroll(attempts + 1), 60);
                 }
             };
 
-            setTimeout(() => checkAndScroll(0), 100);
+            requestAnimationFrame(() => checkAndScroll(0));
         };
 
         // [항목 3-1, 3-2, 3-3: 1~4단계 동일 문구 통일 & 5단계 완료 시 '게시글 등록 완료 했습니다' 표시 후 자동 피드 이동]
@@ -3687,14 +3702,29 @@
             12: { bg: 'rgba(254, 226, 226, 0.24)', border: 'rgba(239, 68, 68, 0.20)',   text: '#5F1212', subText: '#7F1D1D', badge: '#DC2626', icon: '🎄', season: '겨울' }  // 12월: 홀리데이레드
         };
 
-        function parseBookmarkDateInfo(timestamp) {
-            let d = new Date();
-            if (timestamp) {
-                const parsed = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-                if (!isNaN(parsed.getTime())) {
-                    d = parsed;
+        function safeParsePostDate(timestamp) {
+            if (!timestamp) return null;
+            if (timestamp instanceof Date) {
+                return isNaN(timestamp.getTime()) ? null : timestamp;
+            }
+            if (typeof timestamp.toDate === 'function') {
+                const d = timestamp.toDate();
+                return isNaN(d.getTime()) ? null : d;
+            }
+            if (typeof timestamp === 'object') {
+                const secs = timestamp.seconds ?? timestamp._seconds;
+                if (typeof secs === 'number') {
+                    const d = new Date(secs * 1000);
+                    return isNaN(d.getTime()) ? null : d;
                 }
             }
+            const parsed = new Date(timestamp);
+            if (!isNaN(parsed.getTime())) return parsed;
+            return null;
+        }
+
+        function parseBookmarkDateInfo(timestamp) {
+            let d = safeParsePostDate(timestamp) || new Date();
             const month = d.getMonth() + 1;
             const dateNum = d.getDate();
             const dayName = KOREAN_DAY_NAMES[d.getDay()] || '화';
@@ -3870,9 +3900,8 @@
             const statsByDay = {};
             if (Array.isArray(cachedPosts)) {
                 cachedPosts.forEach((post, index) => {
-                    if (!post.createdAt) return;
-                    const d = post.createdAt.toDate ? post.createdAt.toDate() : new Date(post.createdAt);
-                    if (isNaN(d.getTime())) return;
+                    const d = safeParsePostDate(post.createdAt);
+                    if (!d) return;
 
                     if (d.getFullYear() === year && d.getMonth() === month) {
                         const dayNum = d.getDate();
@@ -3921,11 +3950,12 @@
                 // 우상단: 게시글 수 (연한 보라색), 우하단: 댓글 수 (연한 분홍색)
                 const topPurpleColor = isToday ? 'text-purple-200' : 'text-purple-500';
                 const bottomPinkColor = isToday ? 'text-pink-200' : 'text-pink-500';
-                const cursorClass = hasPosts ? 'cursor-pointer hover:bg-emerald-50/80 active:scale-95' : 'cursor-default';
+                const cursorClass = hasPosts ? 'cursor-pointer hover:bg-emerald-50/80 active:scale-95' : 'cursor-pointer active:scale-95';
 
                 html += `
                     <div class="h-7 flex items-center justify-center relative select-none rounded-lg transition-all ${cursorClass}"
-                         onclick="if(!calendarPopupWasDragged) navigateToPostByDate(${year}, ${month}, ${d}, event)"
+                         onpointerup="handleCalendarDateCellTap(${year}, ${month}, ${d}, event)"
+                         onclick="handleCalendarDateCellTap(${year}, ${month}, ${d}, event)"
                          title="${hasPosts ? `${month + 1}월 ${d}일: 게시글 ${postCount}개${hasComments ? `, 댓글 ${commentCount}개` : ''}` : `${month + 1}월 ${d}일`}">
                         <span class="relative w-full h-7 px-0.5 flex items-center justify-center text-[12px] leading-none ${textClass} ${bgClass}">
                             <span>${d}</span>
@@ -3962,6 +3992,20 @@
             }
         }
 
+        // [모바일 pointerup & 데스크톱 click 중복 호출 방지 래퍼]
+        let lastCalendarCellTapTime = 0;
+        let lastCalendarSelectedKey = '';
+        let lastCalendarSelectedCycleIdx = 0;
+
+        window.handleCalendarDateCellTap = function(year, month, day, event) {
+            if (event) event.stopPropagation();
+            if (calendarPopupWasDragged) return;
+            const now = Date.now();
+            if (now - lastCalendarCellTapTime < 260) return;
+            lastCalendarCellTapTime = now;
+            navigateToPostByDate(year, month, day, event);
+        };
+
         // [해당 날짜 터치 시 피드로 이동 & 달력 투명도를 높여 이동된 피드글이 어렴풋이 보이도록 유지]
         window.navigateToPostByDate = function(year, month, day, event) {
             if (event) event.stopPropagation();
@@ -3971,19 +4015,35 @@
                 return;
             }
 
-            const targetIndex = cachedPosts.findIndex(post => {
-                if (!post.createdAt) return false;
-                const postDate = post.createdAt.toDate ? post.createdAt.toDate() : new Date(post.createdAt);
-                if (isNaN(postDate.getTime())) return false;
-                return postDate.getFullYear() === year && postDate.getMonth() === month && postDate.getDate() === day;
+            const matchedIndices = [];
+            cachedPosts.forEach((post, idx) => {
+                const postDate = safeParsePostDate(post.createdAt);
+                if (postDate && postDate.getFullYear() === year && postDate.getMonth() === month && postDate.getDate() === day) {
+                    matchedIndices.push(idx);
+                }
             });
 
-            if (targetIndex === -1) {
+            if (matchedIndices.length === 0) {
                 showNotification(`${month + 1}월 ${day}일에는 작성된 목장 이야기가 없습니다.`);
                 return;
             }
 
+            // 같은 날짜에 게시글이 여러 개일 경우 연속 터치 시 순차 이동
+            const dateKey = `${year}-${month}-${day}`;
+            if (lastCalendarSelectedKey === dateKey) {
+                lastCalendarSelectedCycleIdx = (lastCalendarSelectedCycleIdx + 1) % matchedIndices.length;
+            } else {
+                lastCalendarSelectedKey = dateKey;
+                lastCalendarSelectedCycleIdx = 0;
+            }
+
+            const targetIndex = matchedIndices[lastCalendarSelectedCycleIdx];
             const targetPost = cachedPosts[targetIndex];
+
+            // [핵심]: renderFeedList()가 이전 스크롤 위치로 되돌리지 못하도록 이동 플래그를 가장 먼저 활성화
+            isNavigatingToPost = true;
+            if (navigationTimer) clearTimeout(navigationTimer);
+            navigationTimer = setTimeout(() => { isNavigatingToPost = false; }, 2400);
 
             // 해당 글이 아직 점진적 렌더링 범위 밖이라면 즉시 확장 렌더링
             if (targetIndex >= displayedFeedCount) {
@@ -3996,7 +4056,8 @@
 
             // 해당 피드 위치로 이동 및 산뜻한 하이라이트
             scrollToPost(targetPost.id, true);
-            showNotification(`${month + 1}월 ${day}일 이야기로 이동했습니다. (확인 후 달력을 닫으면 원래 투명도로 복귀합니다)`);
+            const suffix = matchedIndices.length > 1 ? ` (${lastCalendarSelectedCycleIdx + 1}/${matchedIndices.length})` : '';
+            showNotification(`${month + 1}월 ${day}일 이야기로 이동했습니다${suffix}. (확인 후 달력을 닫으면 원래 투명도로 복귀합니다)`);
         };
 
         window.toggleBookmarkCalendar = function(event) {
@@ -4420,6 +4481,9 @@
             bookmarkEl.addEventListener('pointerdown', (e) => {
                 if (!e.isPrimary) return;
                 if (e.button !== undefined && e.button !== 0) return;
+                if (e.target.closest('button, [onclick*="toggleBookmarkCalendar"], [onclick*="toggleRecentCommentsNavigator"]')) {
+                    return;
+                }
                 try {
                     bookmarkEl.setPointerCapture(e.pointerId);
                 } catch(err) {}
