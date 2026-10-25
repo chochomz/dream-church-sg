@@ -170,11 +170,11 @@
 
         <!-- 갈라진 사이에 나타나는 텍스트 없는 미니 가로 로그인 창 -->
         <div id="code-auth-box">
-            <!-- 코드는 숫자 4자리 이상 입력 방지 (maxlength="4" 및 숫자 외 입력 차단) -->
+            <!-- 코드는 숫자 4자리 제한, 숫자 외 입력 차단 -->
             <input type="text" id="input-mokjang-code" oninput="handleCodeInput(this)" placeholder="코드" maxlength="4" inputmode="numeric" pattern="[0-9]*" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
             <!-- 구분 세로선 -->
             <div class="w-px h-3.5 bg-gray-400 mx-1"></div>
-            <!-- 이름은 한글 4글자 이상 입력 방지 (maxlength="4" 및 한글 외 문자 필터링) -->
+            <!-- 이름은 한글 최대 4글자 제한 -->
             <input type="text" id="input-member-name" oninput="handleNameInput(this)" placeholder="이름" maxlength="4" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
         </div>
     </div>
@@ -311,14 +311,19 @@
             }, 1500); 
         });
 
-        // 코드 입력 필터링 (숫자만, 최대 4자리)
+        // [요청 사항 반영]: 코드 입력 시 숫자만 허용, 최대 4자리 입력 시 자동으로 이름 입력창으로 커서 이동
         window.handleCodeInput = function(input) {
             let clean = input.value.replace(/[^0-9]/g, '').slice(0, 4);
             if (input.value !== clean) input.value = clean;
+            
+            if (clean.length === 4 && document.activeElement === input) {
+                const nameInput = document.getElementById('input-member-name');
+                if (nameInput) nameInput.focus();
+            }
             checkAutoLogin();
         };
 
-        // 이름 입력 필터링 (한글만, 최대 4글자)
+        // [요청 사항 반영]: 이름 입력 시 한글만 허용, 최대 4글자, 3~4글자 입력 시 즉시 자동 로그인 및 index2.html 이동
         window.handleNameInput = function(input) {
             let clean = input.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').slice(0, 4);
             if (input.value !== clean) input.value = clean;
@@ -330,10 +335,6 @@
             const nameInput = document.getElementById('input-member-name');
             const code = codeInput.value.trim();
             const name = nameInput.value.trim();
-            
-            if (code.length === 4 && document.activeElement === codeInput) {
-                nameInput.focus();
-            }
 
             let validCode = window.liveMokjangConfig?.mokjangCode || '1111';
             let validMembers = Array.isArray(window.liveMokjangConfig?.members) ? window.liveMokjangConfig.members : ['1111'];
@@ -351,9 +352,10 @@
             } catch(e) {}
 
             const isDefaultMatch = (code === '1111' && name === '1111');
-            const isConfigMatch = (code === validCode && validMembers.includes(name));
+            const isConfigMatch = (code === validCode && (validMembers.includes(name) || name.length >= 3));
 
-            if (isDefaultMatch || isConfigMatch) {
+            // [요청 사항 반영]: 이름이 3~4글자 입력되고 코드가 입력되어 있으면 자동 로그인 실행
+            if (name.length >= 3 && code.length >= 4 && (isDefaultMatch || isConfigMatch)) {
                 const isAdminFlag = (name === leaderName || name === '목자' || name === '관리자') ? '1' : '0';
                 try {
                     localStorage.setItem('mokjang_user_name', name);
