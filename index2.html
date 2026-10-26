@@ -385,8 +385,8 @@
             font-size: 13.5px;
             line-height: 1.4;
             color: #374151;
-            padding: 2px 6px 2px 6px;
-            margin-bottom: 4px;
+            padding: 2px 2px 2px 2px;
+            margin-bottom: 2px;
             background: transparent;
             word-break: break-word;
             overflow-wrap: anywhere;
@@ -475,19 +475,21 @@
     <header class="h-[52px] shrink-0 bg-white border-b church-border shadow-2xs px-4 flex items-center justify-between w-full z-30 relative max-w-md mx-auto">
         <div class="w-8 shrink-0 flex items-center justify-start" id="header-logo-slot"></div>
 
-        <!-- 중앙 메인 타이틀 -->
-        <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-center pointer-events-auto max-w-[76vw]">
-            <div class="relative flex items-center space-x-1.5 justify-center" id="header-mokjang-title-container">
-                <img src="logo20.png" alt="세종꿈의교회 로고" class="w-[21px] h-[21px] object-contain shrink-0 select-none" id="header-church-logo">
-                <h1 class="header-main-title-text font-black tracking-tight leading-tight whitespace-nowrap select-none relative" id="header-mokjang-title">
-                    <span id="title-church-prefix"><span id="title-char-se">세</span>종꿈의교회</span>
-                    <span id="title-mokjang-name" class="relative inline-block"></span>
-                </h1>
+        <!-- 중앙 메인 타이틀 ('세' 자와 하단 환영 문구 좌측 수직 라인 일치) -->
+        <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-auto max-w-[76vw]">
+            <div class="relative flex items-start space-x-1.5" id="header-mokjang-title-container">
+                <img src="logo20.png" alt="세종꿈의교회 로고" class="w-[21px] h-[21px] object-contain shrink-0 select-none mt-0.5" id="header-church-logo">
+                <div class="flex flex-col items-start text-left min-w-0">
+                    <h1 class="header-main-title-text font-black tracking-tight leading-tight whitespace-nowrap select-none relative" id="header-mokjang-title">
+                        <span id="title-church-prefix"><span id="title-char-se">세</span>종꿈의교회</span>
+                        <span id="title-mokjang-name" class="relative inline-block"></span>
+                    </h1>
+                    <!-- 서브 환영 문구 ('세' 자와 상하 같은 시작 라인으로 정렬) -->
+                    <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none text-left" id="header-user-display"><span class="text-emerald-600 font-semibold">한분</span> 입장 환영합니다</p>
+                </div>
                 <!-- 타이틀 하트 애니메이션 오버레이 -->
                 <div id="header-title-hearts-layer" class="absolute inset-0 pointer-events-none overflow-visible"></div>
             </div>
-            <!-- 서브 환영 문구 (로그인한 이름 및 접속자 수 표시) -->
-            <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none" id="header-user-display"><span class="text-emerald-600 font-semibold">한분</span> 입장 환영합니다</p>
         </div>
 
         <!-- 오른쪽 펜 트리거 & 왼쪽 슬라이드 메뉴 -->
@@ -632,10 +634,12 @@
         </div>
     </div>
 
-    <!-- [작업 4-마 반영: 새로운 댓글 꺾쇠 내비게이터 캡슐에 댓글 작성자 이름 표시] -->
+    <!-- [작업 4-마 반영: 새로운 댓글 꺾쇠 내비게이터 캡슐 (화면 내 자유 드래그 이동 지원)] -->
     <div id="recent-comments-navigator" 
-         class="hidden fixed z-45 flex items-center space-x-1.5 bg-white/95 backdrop-blur-md border border-emerald-600/70 rounded-full px-2.5 py-1 shadow-xl text-xs select-none transition-all duration-200">
-        <div class="flex items-center space-x-1 text-emerald-800 font-bold text-[11px] cursor-pointer" onclick="navigateRecentComments(1, event)">
+         style="touch-action: none;"
+         title="드래그하여 화면 원하는 위치로 이동할 수 있습니다"
+         class="hidden fixed z-45 flex items-center space-x-1.5 bg-white/95 backdrop-blur-md border border-emerald-600/70 rounded-full px-2.5 py-1 shadow-xl text-xs select-none cursor-move active:cursor-grabbing">
+        <div class="flex items-center space-x-1 text-emerald-800 font-bold text-[11px] cursor-move" onclick="if(!window.__recentNavWasDragged) navigateRecentComments(1, event)">
             <i class="fa-regular fa-comment-dots text-emerald-600 text-xs"></i>
             <span>새댓글</span>
             <span id="recent-comments-author" class="text-emerald-950 font-extrabold max-w-[64px] truncate"></span>
@@ -1764,6 +1768,15 @@
                     if (snap.exists()) {
                         const cfg = snap.data();
                         try {
+                            const localRaw = localStorage.getItem('mokjang_config_backup');
+                            if (localRaw) {
+                                const localParsed = JSON.parse(localRaw);
+                                if (localParsed.updatedAt && (!cfg.updatedAt || localParsed.updatedAt > cfg.updatedAt)) {
+                                    // 로컬 설정이 더 최신이면 파이어베이스에 최신 로컬 설정을 역동기화하고 덮어쓰기 방지
+                                    setDoc(doc(db, 'mokjang_config', 'main'), localParsed, { merge: true }).catch(() => {});
+                                    return;
+                                }
+                            }
                             localStorage.setItem('mokjang_config_backup', JSON.stringify(cfg));
                         } catch(e) {}
 
@@ -2250,6 +2263,68 @@
             }
         };
 
+        let recentCommentsCustomPos = null;
+        try {
+            const savedNavPos = localStorage.getItem('recent_comments_nav_pos');
+            if (savedNavPos) recentCommentsCustomPos = JSON.parse(savedNavPos);
+        } catch(e) {}
+
+        function initRecentCommentsNavigatorDrag() {
+            const nav = document.getElementById('recent-comments-navigator');
+            if (!nav) return;
+
+            let isDragging = false;
+            let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
+
+            const onPointerDown = (e) => {
+                if (e.target.closest('button')) return;
+                isDragging = true;
+                window.__recentNavWasDragged = false;
+                const rect = nav.getBoundingClientRect();
+                startX = e.clientX;
+                startY = e.clientY;
+                initialLeft = rect.left;
+                initialTop = rect.top;
+                try { nav.setPointerCapture(e.pointerId); } catch(err) {}
+            };
+
+            const onPointerMove = (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                if (Math.hypot(dx, dy) > 5) {
+                    window.__recentNavWasDragged = true;
+                }
+                if (!window.__recentNavWasDragged) return;
+
+                e.preventDefault();
+                const w = nav.offsetWidth || 180;
+                const h = nav.offsetHeight || 34;
+                const newLeft = Math.max(6, Math.min(window.innerWidth - w - 6, initialLeft + dx));
+                const newTop = Math.max(52, Math.min(window.innerHeight - h - 6, initialTop + dy));
+
+                nav.style.left = `${Math.round(newLeft)}px`;
+                nav.style.top = `${Math.round(newTop)}px`;
+                nav.style.right = 'auto';
+                recentCommentsCustomPos = { left: Math.round(newLeft), top: Math.round(newTop) };
+            };
+
+            const onPointerUp = (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                try { nav.releasePointerCapture(e.pointerId); } catch(err) {}
+                if (window.__recentNavWasDragged && recentCommentsCustomPos) {
+                    try { localStorage.setItem('recent_comments_nav_pos', JSON.stringify(recentCommentsCustomPos)); } catch(err) {}
+                }
+                setTimeout(() => { window.__recentNavWasDragged = false; }, 80);
+            };
+
+            nav.addEventListener('pointerdown', onPointerDown);
+            nav.addEventListener('pointermove', onPointerMove);
+            nav.addEventListener('pointerup', onPointerUp);
+            nav.addEventListener('pointercancel', onPointerUp);
+        }
+
         window.toggleRecentCommentsNavigator = function(event) {
             if (event) event.stopPropagation();
             const nav = document.getElementById('recent-comments-navigator');
@@ -2272,22 +2347,30 @@
             recentCommentMatchedPosts = matchedIds;
             recentCommentCurrentIndex = 0;
 
-            const bookmarkEl = document.getElementById('feed-bookmark-indicator');
-            const bookmarkRect = bookmarkEl ? bookmarkEl.getBoundingClientRect() : null;
-
-            if (bookmarkRect) {
-                const navTop = Math.max(56, Math.min(window.innerHeight - 50, bookmarkRect.top - 46));
-                nav.style.top = `${navTop}px`;
-                if (bookmarkSide === 'left') {
-                    nav.style.left = `${Math.max(10, Math.round(bookmarkRect.right + 6))}px`;
-                    nav.style.right = 'auto';
-                } else {
-                    nav.style.right = `${Math.max(10, Math.round(window.innerWidth - bookmarkRect.left + 6))}px`;
-                    nav.style.left = 'auto';
-                }
+            if (recentCommentsCustomPos && typeof recentCommentsCustomPos.left === 'number' && typeof recentCommentsCustomPos.top === 'number') {
+                const w = nav.offsetWidth || 180;
+                const h = nav.offsetHeight || 34;
+                nav.style.left = `${Math.max(6, Math.min(window.innerWidth - w - 6, recentCommentsCustomPos.left))}px`;
+                nav.style.top = `${Math.max(52, Math.min(window.innerHeight - h - 6, recentCommentsCustomPos.top))}px`;
+                nav.style.right = 'auto';
             } else {
-                nav.style.top = '64px';
-                nav.style.right = '16px';
+                const bookmarkEl = document.getElementById('feed-bookmark-indicator');
+                const bookmarkRect = bookmarkEl ? bookmarkEl.getBoundingClientRect() : null;
+
+                if (bookmarkRect) {
+                    const navTop = Math.max(56, Math.min(window.innerHeight - 50, bookmarkRect.top - 46));
+                    nav.style.top = `${navTop}px`;
+                    if (bookmarkSide === 'left') {
+                        nav.style.left = `${Math.max(10, Math.round(bookmarkRect.right + 6))}px`;
+                        nav.style.right = 'auto';
+                    } else {
+                        nav.style.right = `${Math.max(10, Math.round(window.innerWidth - bookmarkRect.left + 6))}px`;
+                        nav.style.left = 'auto';
+                    }
+                } else {
+                    nav.style.top = '64px';
+                    nav.style.right = '16px';
+                }
             }
 
             updateRecentCommentNavigatorLabel(matchedIds[0], 1, matchedIds.length);
@@ -2734,6 +2817,7 @@
                 initPresenceSystem();
                 initFeedBookmark();
                 initBookmarkCalendarDrag();
+                initRecentCommentsNavigatorDrag();
                 initPostLayoutObserver();
             } catch (e) {
                 console.warn("익명 인증 경고:", e);
@@ -5451,7 +5535,7 @@
                 return `
                     <div class="w-full flex flex-col border border-gray-100 rounded-xl overflow-hidden bg-gray-50/70 shadow-2xs">
                         <img src="${url}" alt="사진 ${i+1}" class="w-full ${maxH} object-cover block mx-auto" loading="lazy" decoding="async">
-                        ${capInfo.text ? `<div class="p-1 bg-gray-50 text-[10px] text-gray-700 leading-snug border-t border-gray-100 text-left"><i class="fa-regular fa-comment-dots text-emerald-600 mr-1 text-[9px]"></i><span class="font-bold text-emerald-900 mr-1">${escapeHtml(capInfo.author)} :</span>${escapeHtml(capInfo.text)}</div>` : ''}
+                        ${capInfo.text ? `<div class="px-1 py-0.5 bg-gray-50 text-[10px] text-gray-700 leading-snug border-t border-gray-100 text-left"><i class="fa-regular fa-comment-dots text-emerald-600 mr-0.5 text-[9px]"></i><span class="font-bold text-emerald-900 mr-0.5">${escapeHtml(capInfo.author)} :</span>${escapeHtml(capInfo.text)}</div>` : ''}
                     </div>
                 `;
             };
@@ -6649,12 +6733,12 @@
                             </div>
 
                             <div class="shrink-0 flex flex-col justify-end">
-                                <!-- [작업 4-라, 마: 펜 댓글 작성자 이름 및 내용 표시] -->
-                                <div id="caption-display-${post.id}-${i}" class="photo-caption-text ${captionText ? '' : 'hidden'} text-left px-2.5 py-1.5 bg-white border-t border-gray-100 text-[11.5px] leading-relaxed">
-                                    <div class="flex items-start space-x-1">
-                                        <i class="fa-regular fa-comment-dots text-emerald-600 text-[10.5px] mt-0.5 shrink-0"></i>
+                                <!-- [작업 4-라, 마: 펜 댓글 작성자 이름 및 내용 표시 (이모지와 글 좌우 여백 최소화)] -->
+                                <div id="caption-display-${post.id}-${i}" class="photo-caption-text ${captionText ? '' : 'hidden'} text-left px-1 py-1 bg-white border-t border-gray-100 text-[11.5px] leading-snug">
+                                    <div class="flex items-start space-x-0.5">
+                                        <i class="fa-regular fa-comment-dots text-emerald-600 text-[10px] mt-0.5 shrink-0"></i>
                                         <div class="flex-1 min-w-0 break-words overflow-wrap-anywhere">
-                                            <span class="caption-author-name font-bold text-emerald-900 mr-1">${escapeHtml(captionAuthor)} :</span>
+                                            <span class="caption-author-name font-bold text-emerald-900 mr-0.5">${escapeHtml(captionAuthor)} :</span>
                                             <span class="caption-body-text whitespace-pre-wrap text-gray-800">${escapeHtml(captionText)}</span>
                                         </div>
                                     </div>
