@@ -762,6 +762,7 @@
         };
 
         async function persistConfigToFirestore() {
+            mokjangConfig.updatedAt = Date.now();
             try {
                 localStorage.setItem('mokjang_config_backup', JSON.stringify(mokjangConfig));
                 localStorage.setItem('mokjang_short_name', mokjangConfig.mokjangName || '');
@@ -771,8 +772,7 @@
             if (!db) return;
             try {
                 await setDoc(doc(db, 'mokjang_config', 'main'), {
-                    ...mokjangConfig,
-                    updatedAt: Date.now()
+                    ...mokjangConfig
                 }, { merge: true });
             } catch(e) {
                 console.warn("Firestore save warning:", e);
@@ -912,7 +912,17 @@
             }
         };
 
-        window.goToInitialGatePage = function() {
+        window.goToInitialGatePage = async function() {
+            if (isDataUnlocked) {
+                const nameInput = document.getElementById('admin-mokjang-name-input');
+                if (nameInput) {
+                    const cleanM = nameInput.value.trim().replace(/^세종꿈의교회\s*/, '');
+                    if (cleanM !== mokjangConfig.mokjangName) {
+                        mokjangConfig.mokjangName = cleanM;
+                        await persistConfigToFirestore();
+                    }
+                }
+            }
             showToast('초기 로그인 화면으로 이동합니다...');
             setTimeout(() => {
                 try {
@@ -923,7 +933,17 @@
             }, 220);
         };
 
-        window.goToMainFeedPageAsAdmin = function() {
+        window.goToMainFeedPageAsAdmin = async function() {
+            if (isDataUnlocked) {
+                const nameInput = document.getElementById('admin-mokjang-name-input');
+                if (nameInput) {
+                    const cleanM = nameInput.value.trim().replace(/^세종꿈의교회\s*/, '');
+                    if (cleanM !== mokjangConfig.mokjangName) {
+                        mokjangConfig.mokjangName = cleanM;
+                        await persistConfigToFirestore();
+                    }
+                }
+            }
             const leaderName = mokjangConfig.leaderName || '목자';
             const mokjangShort = mokjangConfig.mokjangName || '';
             const isAdminBool = isDataUnlocked || isLeaderAuthenticated;
