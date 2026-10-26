@@ -1297,13 +1297,15 @@
         import { getFirestore, initializeFirestore, persistentLocalCache, persistentSingleTabManager, memoryLocalCache, collection, addDoc, onSnapshot, updateDoc, deleteDoc, doc, arrayUnion, arrayRemove, increment, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-        // [작업 4-가, 나, 다, 라: 로그인 세션 기반 사용자 이름 및 목자/일반목원 권한 체계 초기화]
+        // [작업 4-가, 나, 다, 라: 로그인 세션 기반 사용자 이름 및 목자/부목자/일반목원 권한 체계 초기화]
         let currentUser = "목장가족";
-        let currentUserRole = "member"; // 'leader' (목자) | 'member' (일반 목원)
+        let currentUserRole = "member"; // 'leader' (목자) | 'subleader' (부목자) | 'member' (일반 목원)
         let currentMokjangShort = "";
         let currentMokjang = "세종꿈의교회";
         let isCurrentUserAdmin = false;
         let configuredLeaderName = "목자";
+        let configuredSubLeaderName = "";
+        let configuredSubLeaders = [];
 
         try {
             // 1. index.html / index1.html에서 전달된 세션 패스 확인
@@ -1325,36 +1327,52 @@
                 }
             }
 
-            // 2. 로컬 백업 설정에서 목자 이름 확인
+            // 2. 로컬 백업 설정에서 목장 이름(타이틀) 및 목자·부목자 이름 확인
             const rawCfg = localStorage.getItem('mokjang_config_backup');
             if (rawCfg) {
                 const parsedCfg = JSON.parse(rawCfg);
                 if (parsedCfg.leaderName) {
                     configuredLeaderName = String(parsedCfg.leaderName).trim();
                 }
-                if (parsedCfg.mokjangName && !localStorage.getItem('mokjang_short_name')) {
-                    currentMokjangShort = String(parsedCfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '');
+                if (parsedCfg.subLeaderName) {
+                    configuredSubLeaderName = String(parsedCfg.subLeaderName).trim();
+                }
+                if (Array.isArray(parsedCfg.subLeaders)) {
+                    configuredSubLeaders = parsedCfg.subLeaders.map(s => String(s).trim()).filter(Boolean);
+                }
+                if (parsedCfg.mokjangName !== undefined) {
+                    const cfgM = String(parsedCfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '');
+                    currentMokjangShort = cfgM;
+                    currentMokjang = cfgM ? `세종꿈의교회 ${cfgM}` : '세종꿈의교회';
                 }
             }
 
             const savedName = localStorage.getItem('mokjang_user_name');
             if (savedName && savedName.trim()) currentUser = savedName.trim();
 
-            const savedMokjang = localStorage.getItem('mokjang_short_name') || localStorage.getItem('mokjang_name');
-            if (savedMokjang && savedMokjang.trim()) {
-                const cleanM = savedMokjang.trim().replace(/^세종꿈의교회\s*/, '');
-                if (cleanM && cleanM !== '23목장') {
-                    currentMokjangShort = cleanM;
-                    currentMokjang = `세종꿈의교회 ${currentMokjangShort}`;
-                } else if (cleanM === '23목장' && rawCfg && JSON.parse(rawCfg).mokjangName === '23목장') {
-                    currentMokjangShort = '23목장';
-                    currentMokjang = '세종꿈의교회 23목장';
+            if (!currentMokjangShort) {
+                const savedMokjang = localStorage.getItem('mokjang_short_name') || localStorage.getItem('mokjang_name');
+                if (savedMokjang && savedMokjang.trim()) {
+                    const cleanM = savedMokjang.trim().replace(/^세종꿈의교회\s*/, '');
+                    if (cleanM) {
+                        currentMokjangShort = cleanM;
+                        currentMokjang = `세종꿈의교회 ${currentMokjangShort}`;
+                    }
                 }
             }
 
             const savedAdmin = localStorage.getItem('mokjang_is_admin');
             const savedRole = localStorage.getItem('mokjang_user_role');
-            if (savedAdmin === 'true' || savedAdmin === '1' || savedRole === 'leader' || currentUser === configuredLeaderName || currentUser === '목자' || currentUser === '관리자') {
+            const isLeaderMatch = (currentUser === configuredLeaderName || currentUser === '목자' || currentUser === '관리자' || savedRole === 'leader');
+            const isSubLeaderMatch = (!isLeaderMatch && ((configuredSubLeaderName && currentUser === configuredSubLeaderName) || configuredSubLeaders.includes(currentUser) || currentUser === '부목자' || savedRole === 'subleader'));
+
+            if (isLeaderMatch) {
+                isCurrentUserAdmin = true;
+                currentUserRole = 'leader';
+            } else if (isSubLeaderMatch) {
+                isCurrentUserAdmin = true;
+                currentUserRole = 'subleader';
+            } else if (savedAdmin === 'true' || savedAdmin === '1') {
                 isCurrentUserAdmin = true;
                 currentUserRole = 'leader';
             } else {
@@ -1537,7 +1555,7 @@
             const el = document.getElementById('header-user-display');
             if (!el) return;
             const countText = getKoreanCountWord(lastOnlineCount);
-            const roleTag = isCurrentUserAdmin ? '목자' : '목원';
+            const roleTag = currentUserRole === 'leader' ? '목자' : (currentUserRole === 'subleader' ? '부목자' : '목원');
             el.innerHTML = `<span class="text-gray-700 font-bold">${escapeHtml(currentUser)}</span><span class="text-[9px] text-gray-500">(${roleTag})</span>님 <span class="text-emerald-600 font-semibold">${countText}</span> 입장 환영합니다`;
         }
 
@@ -1738,7 +1756,7 @@
         let currentSearchMatchIndex = 0;
         let lastSearchQuery = "";
 
-        // [작업 4-가, 다: index1.html에서 설정한 목장 정보 및 목자 권한 실시간 동기화]
+        // [작업 4-가, 다: index1.html에서 설정한 목장 정보 및 목자·부목자 권한 실시간 동기화]
         function loadMokjangAdminConfig() {
             if (!db) return;
             try {
@@ -1762,11 +1780,19 @@
                         if (cfg.leaderName) {
                             configuredLeaderName = String(cfg.leaderName).trim();
                         }
+                        configuredSubLeaderName = cfg.subLeaderName ? String(cfg.subLeaderName).trim() : "";
+                        configuredSubLeaders = Array.isArray(cfg.subLeaders) ? cfg.subLeaders.map(s => String(s).trim()).filter(Boolean) : [];
 
-                        // 로그인한 이름이 목자(leaderName)와 같으면 관리자(목자) 권한 부여, 아니면 일반 목원
-                        if (currentUser === configuredLeaderName || currentUser === '목자' || currentUser === '관리자') {
+                        // 로그인한 이름이 목자이면 leader(전체 권한), 부목자이면 subleader(전체 권한), 그 외는 일반 목원(member, 본인 것만 수정·삭제)
+                        const isLeader = (currentUser === configuredLeaderName || currentUser === '목자' || currentUser === '관리자');
+                        const isSubLeader = (!isLeader && ((configuredSubLeaderName && currentUser === configuredSubLeaderName) || configuredSubLeaders.includes(currentUser) || currentUser === '부목자'));
+
+                        if (isLeader) {
                             isCurrentUserAdmin = true;
                             currentUserRole = 'leader';
+                        } else if (isSubLeader) {
+                            isCurrentUserAdmin = true;
+                            currentUserRole = 'subleader';
                         } else {
                             isCurrentUserAdmin = false;
                             currentUserRole = 'member';
