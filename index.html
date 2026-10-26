@@ -28,14 +28,31 @@
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        /* [게이트 바운드 & 심리스 슬라이드업 모션] */
+        /* [게이트 바운드 & 심리스 슬라이드업 모션: index2가 간격 없이 바로 붙어 끌어 올라옴] */
         @keyframes dipAndSlideUpSeamless {
             0% { transform: translateY(0); }
             22% { transform: translateY(32px); }
             100% { transform: translateY(-100%); }
         }
+        @keyframes pullUpNextPageSeamless {
+            0% { transform: translateY(100%); }
+            22% { transform: translateY(calc(100% + 32px)); }
+            100% { transform: translateY(0%); }
+        }
         .gate-open-active {
             animation: dipAndSlideUpSeamless 3.0s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        #seamless-next-container {
+            position: fixed; inset: 0; z-index: 998;
+            width: 100%; height: 100%;
+            background-color: #F8F9FA;
+            transform: translateY(100%);
+            will-change: transform;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        #seamless-next-container.pull-up-active {
+            animation: pullUpNextPageSeamless 3.0s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
 
         #auth-gate {
@@ -112,7 +129,8 @@
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
 
-    <!-- [작업 3 반영: 23목장 관련 불필요한 더미 프레임(#seamless-feed-preview) 완전 제거] -->
+    <!-- [로그인 시 하트와 함께 간격 없이 끌어 올라오는 index2.html 컨테이너] -->
+    <div id="seamless-next-container"></div>
 
     <!-- [제스처 인증 게이트] -->
     <div id="auth-gate">
@@ -351,10 +369,7 @@
             const finalName = userName || document.getElementById('input-member-name').value.trim() || '목장가족';
             const finalMokjang = mokjangShort || '';
 
-            authGate.classList.add('gate-open-active');
-            createHearts();
-
-            setTimeout(() => {
+            const issuePass = () => {
                 try {
                     sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
                         target: 'index2.html',
@@ -368,8 +383,23 @@
                     }));
                     sessionStorage.removeItem('mokjang_authorized_session');
                 } catch (e) {}
+            };
 
-                // [작업 4-나 반영]: URL에 파라미터를 노출하지 않고 깔끔하게 index2.html로 이동
+            // 1. 게이트 바로 밑에 붙어 함께 끌어 올라올 index2.html 프리뷰 프레임 즉시 마운트
+            issuePass();
+            const nextContainer = document.getElementById('seamless-next-container');
+            if (nextContainer) {
+                nextContainer.innerHTML = '<iframe src="index2.html" class="w-full h-full border-0 pointer-events-none select-none" tabindex="-1"></iframe>';
+                nextContainer.classList.add('pull-up-active');
+            }
+
+            // 2. 게이트 슬라이드업과 하트 플로팅을 동시에 시작하여 빈 간격 없이 끌어 올라오게 함
+            authGate.classList.add('gate-open-active');
+            createHearts();
+
+            setTimeout(() => {
+                // 실제 페이지 전환 직전 새 1회용 통행증 재발급
+                issuePass();
                 try {
                     if (window.location && typeof window.location.replace === 'function') {
                         window.location.replace('index2.html');
@@ -379,7 +409,7 @@
                 } catch (navErr) {
                     window.location.href = 'index2.html';
                 }
-            }, 2800);
+            }, 2850);
         }
 
         let adminTapCount = 0;
@@ -469,6 +499,11 @@
                         window.liveMokjangConfigLoaded = true;
                         try {
                             localStorage.setItem('mokjang_config_backup', JSON.stringify(data));
+                            if (data.mokjangName !== undefined) {
+                                const cleanM = String(data.mokjangName).trim().replace(/^세종꿈의교회\s*/, '');
+                                localStorage.setItem('mokjang_short_name', cleanM);
+                                localStorage.setItem('mokjang_name', cleanM ? `세종꿈의교회 ${cleanM}` : '세종꿈의교회');
+                            }
                         } catch (e) {}
                     }
                 });
