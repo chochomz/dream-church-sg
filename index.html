@@ -303,35 +303,42 @@
 
             let validCode = window.liveMokjangConfig?.mokjangCode || '1111';
             let validMembers = Array.isArray(window.liveMokjangConfig?.members) ? window.liveMokjangConfig.members : ['1111'];
-            let mokjangShort = window.liveMokjangConfig?.mokjangName || '';
-            let leaderName = window.liveMokjangConfig?.leaderName || '목자';
+            let validSubLeaders = Array.isArray(window.liveMokjangConfig?.subLeaders) ? window.liveMokjangConfig.subLeaders : [];
+            let mokjangShort = window.liveMokjangConfig?.mokjangName ? String(window.liveMokjangConfig.mokjangName).trim().replace(/^세종꿈의교회\s*/, '') : '';
+            let leaderName = window.liveMokjangConfig?.leaderName ? String(window.liveMokjangConfig.leaderName).trim() : '목자';
+            let subLeaderName = window.liveMokjangConfig?.subLeaderName ? String(window.liveMokjangConfig.subLeaderName).trim() : '';
             try {
                 const rawCfg = localStorage.getItem('mokjang_config_backup');
                 if (rawCfg && !window.liveMokjangConfigLoaded) {
                     const cfg = JSON.parse(rawCfg);
                     if (cfg.mokjangCode) validCode = String(cfg.mokjangCode).trim();
                     if (Array.isArray(cfg.members) && cfg.members.length > 0) validMembers = cfg.members;
-                    if (cfg.mokjangName) mokjangShort = String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '');
+                    if (Array.isArray(cfg.subLeaders)) validSubLeaders = cfg.subLeaders;
+                    if (cfg.mokjangName !== undefined) mokjangShort = String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '');
                     if (cfg.leaderName) leaderName = String(cfg.leaderName).trim();
+                    if (cfg.subLeaderName) subLeaderName = String(cfg.subLeaderName).trim();
                 }
             } catch(e) {}
 
             const isDefaultMatch = (code === '1111' && name === '1111');
             const isLeaderMatch = (code === validCode && name === leaderName);
+            const isSubLeaderMatch = (code === validCode && ((subLeaderName && name === subLeaderName) || validSubLeaders.includes(name)));
             const isMemberMatch = (code === validCode && validMembers.includes(name));
 
-            // 코드(4자리)와 이름(2~4글자 이상, 목자 또는 등록된 일반 목원)이 일치할 때 로그인 승인
-            if (code.length === 4 && name.length >= 2 && (isDefaultMatch || isLeaderMatch || isMemberMatch)) {
+            // 코드(4자리)와 이름(2~4글자 이상, 목자·부목자 또는 등록된 일반 목원)이 일치할 때 로그인 승인
+            if (code.length === 4 && name.length >= 2 && (isDefaultMatch || isLeaderMatch || isSubLeaderMatch || isMemberMatch)) {
                 const isLeaderRole = (name === leaderName || name === '목자' || name === '관리자');
-                const userRole = isLeaderRole ? 'leader' : 'member';
-                const isAdminFlag = isLeaderRole ? '1' : '0';
+                const isSubLeaderRole = (!isLeaderRole && ((subLeaderName && name === subLeaderName) || validSubLeaders.includes(name) || name === '부목자'));
+                const userRole = isLeaderRole ? 'leader' : (isSubLeaderRole ? 'subleader' : 'member');
+                const hasFullPrivilege = (isLeaderRole || isSubLeaderRole);
+                const isAdminFlag = hasFullPrivilege ? '1' : '0';
 
                 try {
                     localStorage.setItem('mokjang_user_name', name);
                     localStorage.setItem('mokjang_user_role', userRole);
                     localStorage.setItem('mokjang_short_name', mokjangShort);
                     localStorage.setItem('mokjang_name', mokjangShort ? `세종꿈의교회 ${mokjangShort}` : '세종꿈의교회');
-                    localStorage.setItem('mokjang_is_admin', isLeaderRole ? 'true' : 'false');
+                    localStorage.setItem('mokjang_is_admin', hasFullPrivilege ? 'true' : 'false');
                 } catch(e) {}
 
                 codeInput.blur();
