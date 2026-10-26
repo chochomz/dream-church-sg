@@ -7,45 +7,55 @@
     <!-- [작업 4-나: 오직 index.html을 통해서만 입장 가능하도록 직접 링크 호출 시 index.html로 리다이렉트 & 주소 가림] -->
     <script>
         (function() {
+            var REQUIRED_TARGET = 'index2.html';
+            var isAllowed = false;
             try {
-                if (!window.location || window.location.protocol === 'blob:' || !window.location.href) {
-                    return;
-                }
+                if (!window.location || window.location.protocol === 'blob:' || !window.location.href) return;
+                // 1. 1회용 통행증을 읽자마자 0.001초 즉시 소각(삭제)하여 재사용 및 주소창 직접 입력 원천 차단
                 var passRaw = sessionStorage.getItem('mokjang_entry_pass');
-                var authSession = sessionStorage.getItem('mokjang_authorized_session');
-                var isValid = false;
+                sessionStorage.removeItem('mokjang_entry_pass');
+                sessionStorage.removeItem('mokjang_authorized_session');
+
                 if (passRaw) {
                     var pass = JSON.parse(passRaw);
-                    if (pass && (pass.target === 'index2.html' || pass.authorizedFromIndex)) {
-                        isValid = true;
+                    var elapsed = Date.now() - (pass.issuedAt || 0);
+                    // 목적지(target)가 정확히 일치하고, 발급 후 5초(5000ms) 이내인 유효한 1회용 토큰만 허용
+                    if (pass && pass.target === REQUIRED_TARGET && pass.token && elapsed >= 0 && elapsed < 5000) {
+                        isAllowed = true;
+                        window.__MOKJANG_VERIFIED_PASS__ = pass;
                     }
-                }
-                if (authSession === 'index_verified') {
-                    isValid = true;
-                }
-                if (!isValid) {
-                    var targetUrl = 'index.html';
-                    if (window.location.pathname) {
-                        var parts = window.location.pathname.split('/');
-                        parts.pop();
-                        targetUrl = parts.join('/') + '/index.html';
-                        if (!targetUrl.startsWith('/')) targetUrl = '/' + targetUrl;
-                    }
-                    if (targetUrl && typeof window.location.replace === 'function') {
-                        window.location.replace(targetUrl);
-                    } else {
-                        window.location.href = 'index.html';
-                    }
-                    return;
-                }
-                // 브라우저 주소창에서 index2.html 및 쿼리 파라미터를 즉시 가림
-                if (window.history && typeof window.history.replaceState === 'function') {
-                    var cleanPath = window.location.pathname.replace(/index2\.html.*$/, '');
-                    window.history.replaceState({}, document.title, cleanPath || '/');
                 }
             } catch (e) {
-                console.warn("Entry pass check skipped:", e);
+                isAllowed = false;
             }
+
+            if (!isAllowed) {
+                // 비정상 직접 링크 입력 시 화면이 0.1초도 노출되지 않도록 즉시 숨김 후 index.html로 강제 이동
+                try { document.documentElement.style.display = 'none'; } catch (e) {}
+                try {
+                    window.location.replace('index.html');
+                } catch (e) {
+                    window.location.href = 'index.html';
+                }
+                return;
+            }
+
+            // 2. 정상 진입 시 브라우저 주소창에서 index1.html / index2.html 파일명 및 파라미터 즉시 가림
+            try {
+                if (window.history && typeof window.history.replaceState === 'function') {
+                    var cleanPath = window.location.pathname.replace(/\/?(index1|index2|index)\.html.*$/i, '/');
+                    if (!cleanPath.startsWith('/')) cleanPath = '/' + cleanPath;
+                    window.history.replaceState(null, document.title, cleanPath);
+                }
+            } catch (e) {}
+
+            // 3. 브라우저 뒤로가기/앞으로가기 캐시(bfcache) 우회 진입 방지
+            window.addEventListener('pageshow', function(evt) {
+                if (evt.persisted) {
+                    try { document.documentElement.style.display = 'none'; } catch (e) {}
+                    window.location.replace('index.html');
+                }
+            });
         })();
     </script>
     <!-- [모바일 속도 최적화: 외부 리소스 사전 연결 & DNS 프리페치] -->
@@ -1278,9 +1288,8 @@
 
         try {
             // 1. index.html / index1.html에서 전달된 세션 패스 확인
-            const passRaw = sessionStorage.getItem('mokjang_entry_pass');
-            if (passRaw) {
-                const passObj = JSON.parse(passRaw);
+            const passObj = window.__MOKJANG_VERIFIED_PASS__ || null;
+            if (passObj) {
                 if (passObj.userName && passObj.userName.trim()) {
                     localStorage.setItem('mokjang_user_name', passObj.userName.trim());
                 }
