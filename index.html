@@ -139,10 +139,12 @@
     <script>
         // 주소창을 깔끔하게 유지 (index.html 노출 제거)
         try {
-            if (window.location && window.location.pathname && window.location.pathname.endsWith('/index.html')) {
-                const cleanBase = window.location.pathname.replace(/index\.html$/, '');
-                window.history.replaceState({}, '', cleanBase || '/');
+            if (window.history && typeof window.history.replaceState === 'function') {
+                const cleanBase = window.location.pathname.replace(/\/?index\.html.*$/i, '/');
+                window.history.replaceState(null, document.title, cleanBase || '/');
             }
+            sessionStorage.removeItem('mokjang_entry_pass');
+            sessionStorage.removeItem('mokjang_authorized_session');
         } catch (e) {}
 
         const authGate = document.getElementById('auth-gate');
@@ -350,13 +352,14 @@
                     sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
                         target: 'index2.html',
                         authorizedFromIndex: true,
+                        token: 'tk_' + Date.now() + '_' + Math.random().toString(36).slice(2),
                         userName: finalName,
                         mokjangShort: finalMokjang,
                         role: userRole,
                         isAdmin: isAdminFlag === '1',
                         issuedAt: Date.now()
                     }));
-                    sessionStorage.setItem('mokjang_authorized_session', 'index_verified');
+                    sessionStorage.removeItem('mokjang_authorized_session');
                 } catch (e) {}
 
                 // [작업 4-나 반영]: URL에 파라미터를 노출하지 않고 깔끔하게 index2.html로 이동
@@ -384,9 +387,10 @@
                     sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
                         target: 'index1.html',
                         authorizedFromIndex: true,
+                        token: 'tk_' + Date.now() + '_' + Math.random().toString(36).slice(2),
                         issuedAt: Date.now()
                     }));
-                    sessionStorage.setItem('mokjang_authorized_session', 'index_verified');
+                    sessionStorage.removeItem('mokjang_authorized_session');
                 } catch (e) {}
                 try {
                     if (window.location && typeof window.location.replace === 'function') {
