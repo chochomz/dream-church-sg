@@ -2,408 +2,229 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>세종꿈의교회 목장 게이트</title>
-    <script>
-        (function() {
-            try {
-                if (window.location.protocol !== 'file:') {
-                    var cleanPath = window.location.pathname.replace(/\/index\.html$/i, '/');
-                    window.history.replaceState(null, document.title, cleanPath);
-                }
-            } catch (e) {}
-        })();
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>우리들의 목장 이야기 - 세종꿈의교회 꿈의 목장</title>
+    <!-- [모바일 속도 최적화: 외부 리소스 사전 연결 & DNS 프리페치] -->
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+    <link rel="dns-prefetch" href="https://firebasestorage.googleapis.com">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%233B5D50'/%3E%3Cpath d='M16 7v18M10 13h12' stroke='%23ffffff' stroke-width='2.8' stroke-linecap='round'/%3E%3C/svg%3E">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#3B5D50">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Song+Myung&display=swap">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
-            /* PC/태블릿 좌우 여백용 은은한 배경 */
-            background: radial-gradient(circle at 50% 45%, #f5efe6 0%, #e8dfd1 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        html, body {
+            width: 100%; height: 100%; max-width: 100vw; overflow: hidden;
+            font-family: 'Pretendard', sans-serif; background-color: #F8F9FA; color: #222222;
+            -webkit-tap-highlight-color: transparent; touch-action: pan-y;
+            -webkit-text-size-adjust: 100% !important;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        /* 모든 기기(폰/태블릿/PC)에서 비율을 고정해 주는 중앙 스테이지 프레임 */
-        #gate-stage {
-            position: relative;
-            width: 100%;
-            max-width: 440px;
-            height: 100%;
-            max-height: 920px;
-            background: linear-gradient(180deg, #fdfbf7 0%, #f8f2e8 55%, #f3eadc 100%);
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(60, 45, 30, 0.12);
+        /* [게이트 바운드 & 심리스 슬라이드업 모션] */
+        @keyframes dipAndSlideUpSeamless {
+            0% { transform: translateY(0); }
+            22% { transform: translateY(32px); }
+            100% { transform: translateY(-100%); }
         }
-        @media (min-width: 500px) and (min-height: 740px) {
-            #gate-stage {
-                height: 94vh;
-                border-radius: 28px;
-                border: 1px solid rgba(255, 255, 255, 0.85);
-            }
+        .gate-open-active {
+            animation: dipAndSlideUpSeamless 3.0s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
 
-        /* 은은한 한지/빛 질감 오버레이 */
-        .stage-glow {
-            position: absolute;
-            inset: 0;
-            background:
-                radial-gradient(circle at 50% 24%, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 60%),
-                radial-gradient(circle at 50% 73%, rgba(226, 200, 175, 0.25) 0%, rgba(255, 255, 255, 0) 55%);
-            pointer-events: none;
-            z-index: 1;
+        #auth-gate {
+            position: fixed; inset: 0; z-index: 999;
+            background-color: #ffffff;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; touch-action: none;
+            will-change: transform;
         }
 
-        /* 상단 로고 + 세종꿈의교회 타이틀 배치 영역 */
-        .top-brand-area {
-            position: absolute;
-            top: 8.5%;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 84%;
-            max-width: 330px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            z-index: 6;
-            pointer-events: none;
-        }
-        .top-brand-logo {
-            width: 52px;
-            height: auto;
-            object-fit: contain;
-            flex-shrink: 0;
-            filter: drop-shadow(0 2px 6px rgba(30, 58, 110, 0.08));
-        }
-        .top-brand-title {
-            width: calc(100% - 64px);
-            max-width: 245px;
-            height: auto;
-            object-fit: contain;
+        .gate-img-layer {
+            position: absolute; inset: 0;
+            background-image: url('img_1042.png'), url('IMG_1042.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
-        /* 하단 '꿈의목장' 타이틀 이미지 배치 영역 */
-        .bottom-mokjang-area {
-            position: absolute;
-            top: 72%;
-            left: 50%;
+        #gate-top { clip-path: inset(0 0 50% 0); }
+        #gate-bottom { clip-path: inset(50% 0 0 0); cursor: pointer; }
+
+        /* 갈라진 사이에 나타나는 둥근 캡슐형 로그인 창 및 회색 깜빡이는 커서 */
+        #code-auth-box {
+            position: absolute; left: 50%; top: 70%;
             transform: translate(-50%, -50%);
-            width: 56%;
-            max-width: 215px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 6;
-            pointer-events: none;
-        }
-        .bottom-mokjang-img {
-            width: 100%;
-            height: auto;
-            object-fit: contain;
-            filter: drop-shadow(0 4px 12px rgba(143, 91, 93, 0.12));
-        }
-        .bottom-mokjang-line {
-            margin-top: 10px;
-            width: 48px;
-            height: 2px;
-            border-radius: 999px;
-            background: linear-gradient(90deg, transparent, rgba(143, 91, 93, 0.45), transparent);
+            z-index: 30; opacity: 0; pointer-events: none;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.3s ease;
+            background-color: #ffffff;
+            border: 1px dashed #9ca3af;
+            border-radius: 9999px;
+            padding: 6px 12px;
         }
 
-        /* 유영하는 10개 말씀 레이어 */
+        #code-auth-box input {
+            font-size: 16px !important;
+            -webkit-text-size-adjust: 100% !important;
+            caret-color: #6b7280 !important;
+        }
+
         #floating-words-layer {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 8;
-            overflow: hidden;
-            transition: opacity 0.45s ease;
+            position: absolute; inset: 0; z-index: 20;
+            pointer-events: none; overflow: hidden;
+            transition: opacity 0.6s ease;
         }
         .floating-grace-word {
-            position: absolute;
-            left: 50%;
-            top: 71%;
-            transform: translate(-50%, -50%) scale(0.2);
-            font-family: 'Noto Serif KR', serif;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            padding: 4px 8px;
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.95), 0 1px 4px rgba(143, 91, 93, 0.16);
+            position: absolute; left: 50%; top: 72%;
+            transform: translate(-50%, -50%) scale(0);
+            font-family: 'Song Myung', serif;
+            color: #c29ba1;
+            font-size: clamp(19px, 5.2vw, 24px);
+            font-weight: 400;
+            letter-spacing: 0.06em;
             white-space: nowrap;
-            opacity: 0;
-            will-change: left, top, transform, opacity;
-        }
-
-        /* 우측 상단 10회 터치 영역 (관리자 보안 페이지 이동) */
-        #admin-secret-trigger {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 96px;
-            height: 96px;
-            z-index: 40;
-            background: transparent;
-            cursor: default;
-        }
-
-        /* 하단 5회 터치 영역 (로그인 캡슐 호출) */
-        #bottom-secret-trigger {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 36%;
-            z-index: 20;
-            background: transparent;
-            cursor: pointer;
-        }
-
-        /* 하단 캡슐형 로그인 바 */
-        #capsule-login-wrapper {
-            position: absolute;
-            bottom: 13%;
-            left: 50%;
-            transform: translateX(-50%) translateY(16px);
-            z-index: 30;
-            width: 84%;
-            max-width: 280px;
-            opacity: 0;
+            user-select: none;
             pointer-events: none;
-            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        #capsule-login-wrapper.active {
-            opacity: 1;
-            pointer-events: auto;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        .capsule-bar {
-            display: flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: 9999px;
-            padding: 5px 12px;
-            box-shadow: 0 8px 26px rgba(90, 65, 50, 0.16), 0 0 0 1.5px rgba(143, 91, 93, 0.25);
-        }
-        .capsule-input {
-            background: transparent;
-            border: none;
-            outline: none;
-            font-size: 13px;
-            font-weight: 700;
-            color: #1f2937;
-            text-align: center;
-            padding: 5px 2px;
-        }
-        .capsule-input::placeholder {
-            color: #9ca3af;
-            font-weight: 500;
-        }
-        .capsule-divider {
-            width: 1.5px;
-            height: 16px;
-            background: #e5dcd3;
-            margin: 0 4px;
-            flex-shrink: 0;
-        }
-
-        #toast-msg {
-            position: absolute;
-            bottom: 6%;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 50;
-            background: rgba(30, 41, 59, 0.92);
-            color: #fff;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 8px 16px;
-            border-radius: 9999px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
             opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-            white-space: nowrap;
+            text-shadow: 0 1px 6px rgba(255, 255, 255, 0.9);
+            will-change: transform, left, top, opacity;
         }
-        #toast-msg.show {
-            opacity: 1;
+
+        @keyframes floatHeart {
+            0% { transform: translateY(0) scale(0.6); opacity: 0; }
+            25% { opacity: 0.7; } 
+            75% { opacity: 0.4; } 
+            100% { transform: translateY(-115vh) scale(1.4); opacity: 0; }
+        }
+        .floating-heart {
+            position: fixed; bottom: -50px; color: #ff7799; 
+            filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.8));
+            pointer-events: none; z-index: 1000; opacity: 0;
         }
     </style>
 </head>
-<body>
+<body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
 
-    <!-- 중앙 고정 비율 스테이지 프레임 -->
-    <main id="gate-stage">
-        <div class="stage-glow"></div>
+    <!-- [작업 3 반영: 23목장 관련 불필요한 더미 프레임(#seamless-feed-preview) 완전 제거] -->
 
-        <!-- 1. 상단 로고 + 세종꿈의교회 타이틀 (분할 이미지 1, 2) -->
-        <header class="top-brand-area">
-            <img src="./gate_logo.png"
-                 onerror="if(this.src.indexOf('logo30.png')===-1){this.src='./logo30.png';}else if(this.src.indexOf('logo20.png')===-1){this.src='./logo20.png';}"
-                 alt="세종꿈의교회 로고"
-                 class="top-brand-logo">
-            <img src="./gate_title.png"
-                 alt="기독교한국침례회 세종꿈의교회"
-                 class="top-brand-title">
-        </header>
+    <!-- [제스처 인증 게이트] -->
+    <div id="auth-gate">
+        <div class="gate-img-layer" id="gate-top"></div>
+        <div class="gate-img-layer" id="gate-bottom"></div>
 
-        <!-- 2. 중앙 유영하는 10개의 말씀 레이어 -->
-        <div id="floating-words-layer"></div>
-
-        <!-- 3. 하단 '꿈의목장' 타이틀 (분할 이미지 3) -->
-        <section class="bottom-mokjang-area">
-            <img src="./gate_mokjang.png"
-                 alt="꿈의목장"
-                 class="bottom-mokjang-img">
-            <div class="bottom-mokjang-line"></div>
-        </section>
-
-        <!-- 4. 우측 상단 10회 터치 히든 영역 (index1.html 이동) -->
-        <div id="admin-secret-trigger" aria-label="관리자 전용 히든 영역"></div>
-
-        <!-- 5. 하단 5회 터치 히든 영역 (로그인 캡슐 호출) -->
-        <div id="bottom-secret-trigger" aria-label="목원 입장 터치 영역"></div>
-
-        <!-- 6. 하단 캡슐형 로그인 입력창 -->
-        <div id="capsule-login-wrapper">
-            <div class="capsule-bar">
-                <input type="tel" id="login-code-input" maxlength="4" inputmode="numeric" pattern="[0-9]*"
-                       placeholder="코드(4자리)" class="capsule-input w-[44%] tracking-widest">
-                <div class="capsule-divider"></div>
-                <input type="text" id="login-name-input" maxlength="4"
-                       placeholder="이름" class="capsule-input w-[38%]">
-                <button type="button" id="login-submit-btn"
-                        class="ml-1 px-2.5 py-1 rounded-full bg-[#8f5b5d] text-white text-[11px] font-bold shrink-0 active:scale-95 transition">
-                    입장
-                </button>
-            </div>
+        <!-- 우측 상단 10회 터치 시 관리자(index1.html) 진입 -->
+        <div class="absolute top-0 right-0 w-16 h-16 z-40">
+            <button type="button" onclick="goToAdminPage()" aria-label="관리자 페이지" class="w-full h-full bg-transparent border-0 focus:outline-none"></button>
         </div>
 
-        <!-- 토스트 알림 -->
-        <div id="toast-msg"></div>
-    </main>
+        <div id="floating-words-layer"></div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        <!-- 갈라진 사이에 나타나는 둥근 캡슐형 로그인 창 -->
+        <div id="code-auth-box">
+            <!-- 코드는 숫자 최대 4자리 -->
+            <input type="text" id="input-mokjang-code" oninput="handleCodeInput(this)" placeholder="코드" maxlength="4" inputmode="numeric" pattern="[0-9]*" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
+            <div class="w-px h-3.5 bg-gray-400 mx-1"></div>
+            <!-- 이름은 한글 최대 4글자 -->
+            <input type="text" id="input-member-name" oninput="handleNameInput(this)" placeholder="이름" maxlength="4" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
+        </div>
+    </div>
 
-        // 10개의 은혜 말씀 및 은은한 파스텔/로즈 컬러
+    <script>
+        // 주소창을 깔끔하게 유지 (index.html 노출 제거)
+        try {
+            if (window.history && typeof window.history.replaceState === 'function') {
+                const cleanBase = window.location.pathname.replace(/\/?index\.html.*$/i, '/');
+                window.history.replaceState(null, document.title, cleanBase || '/');
+            }
+            sessionStorage.removeItem('mokjang_entry_pass');
+            sessionStorage.removeItem('mokjang_authorized_session');
+        } catch (e) {}
+
+        const authGate = document.getElementById('auth-gate');
+        const gateBottom = document.getElementById('gate-bottom');
+        const codeAuthBox = document.getElementById('code-auth-box');
+        const floatingWordsLayer = document.getElementById('floating-words-layer');
+
         const GRACE_WORDS = ['믿음', '소망', '사랑', '감사', '찬송', '기도', '섬김', '양육', '전도', '예배'];
-        const WORD_COLORS = [
-            '#7c4d50', '#2b4c7e', '#8f5b5d', '#3b5d50', '#6d4c7d',
-            '#9c5a4b', '#2d6a6e', '#7a5c3e', '#475569', '#8c4a58'
-        ];
-
-        // 스테이지 내부의 균형 잡힌 10개 목표 좌표 (%)
-        const TARGET_SPOTS = [
-            { x: 24, y: 24 }, { x: 76, y: 24 },
-            { x: 50, y: 30 }, { x: 22, y: 38 },
-            { x: 78, y: 38 }, { x: 48, y: 43 },
-            { x: 28, y: 51 }, { x: 72, y: 51 },
-            { x: 36, y: 59 }, { x: 64, y: 59 }
-        ];
-
-        let floatingAnimId = null;
-        let floatingActive = true;
         const floatingWordItems = [];
+        let floatingAnimId = null;
+        let isFloatingWordsActive = true;
 
         function initFloatingWords() {
-            const layer = document.getElementById('floating-words-layer');
-            if (!layer) return;
-            layer.innerHTML = '';
+            if (!floatingWordsLayer) return;
+            floatingWordsLayer.innerHTML = '';
             floatingWordItems.length = 0;
-
-            const startTime = performance.now();
+            const now = performance.now();
 
             GRACE_WORDS.forEach((word, idx) => {
                 const el = document.createElement('span');
                 el.className = 'floating-grace-word';
                 el.textContent = word;
-                el.style.color = WORD_COLORS[idx % WORD_COLORS.length];
-                el.style.fontSize = `${16 + (idx % 3) * 2}px`;
-                layer.appendChild(el);
+                floatingWordsLayer.appendChild(el);
 
-                const spot = TARGET_SPOTS[idx];
+                const targetX = 32 + (idx % 3) * 18 + (Math.random() * 10 - 5);
+                const targetY = 61.5 + Math.floor(idx / 3) * 6.5 + (Math.random() * 4 - 2);
+
                 floatingWordItems.push({
                     el,
-                    // 첫 단어부터 마지막 10번째 단어까지 천천히 차례대로 피어나도록 600ms 간격 설정
-                    spawnTime: startTime + 300 + idx * 600,
-                    spawnDuration: 2800,
-                    targetX: spot.x,
-                    targetY: spot.y,
-                    vx: (idx % 2 === 0 ? 1 : -1) * (0.008 + (idx % 3) * 0.003),
-                    vy: (idx % 3 === 0 ? -1 : 1) * (0.006 + (idx % 2) * 0.003),
-                    phase: idx * 1.15,
-                    speed: 0.0012 + (idx % 4) * 0.0002,
-                    ampX: 2.2 + (idx % 3) * 0.6,
-                    ampY: 1.8 + (idx % 2) * 0.6
+                    spawnTime: now + idx * 240,
+                    spawnDuration: 1500,
+                    x: targetX,
+                    y: targetY,
+                    vx: (Math.random() * 0.022 + 0.01) * (Math.random() < 0.5 ? 1 : -1),
+                    vy: (Math.random() * 0.016 + 0.007) * (Math.random() < 0.5 ? 1 : -1),
+                    scalePhase: Math.random() * Math.PI * 2,
+                    scaleSpeed: 0.0014 + Math.random() * 0.0008,
+                    swayPhase: Math.random() * Math.PI * 2,
+                    swaySpeed: 0.0011 + Math.random() * 0.0006
                 });
             });
 
-            function animateWords(now) {
-                if (!floatingActive) return;
+            function animateWords(timestamp) {
+                if (!isFloatingWordsActive) return;
 
-                for (let i = 0; i < floatingWordItems.length; i++) {
-                    const item = floatingWordItems[i];
-                    const elapsed = now - item.spawnTime;
+                floatingWordItems.forEach((item) => {
+                    const elapsed = timestamp - item.spawnTime;
+                    if (elapsed < 0) return;
 
-                    if (elapsed < 0) {
-                        item.el.style.opacity = '0';
-                        continue;
+                    if (elapsed < item.spawnDuration) {
+                        const p = elapsed / item.spawnDuration;
+                        const easeOut = 1 - Math.pow(1 - p, 3);
+                        const curX = 50 + (item.x - 50) * easeOut;
+                        const curY = 72 + (item.y - 72) * easeOut;
+                        const curScale = 0.2 + 0.8 * easeOut;
+                        item.el.style.left = `${curX}%`;
+                        item.el.style.top = `${curY}%`;
+                        item.el.style.opacity = `${Math.min(0.88, p * 0.95)}`;
+                        item.el.style.transform = `translate(-50%, -50%) scale(${curScale.toFixed(3)})`;
+                    } else {
+                        item.x += item.vx;
+                        item.y += item.vy;
+
+                        if (item.x < 26) { item.x = 26; item.vx = Math.abs(item.vx) * (0.9 + Math.random() * 0.2); }
+                        if (item.x > 74) { item.x = 74; item.vx = -Math.abs(item.vx) * (0.9 + Math.random() * 0.2); }
+
+                        if (item.y < 60) { item.y = 60; item.vy = Math.abs(item.vy) * (0.9 + Math.random() * 0.2); }
+                        if (item.y > 71.5) { item.y = 71.5; item.vy = -Math.abs(item.vy) * (0.9 + Math.random() * 0.2); }
+
+                        const wave = Math.sin(timestamp * item.scaleSpeed + item.scalePhase);
+                        const curScale = 0.94 + wave * 0.18;
+                        const curOpacity = 0.78 + wave * 0.14;
+                        const swayDeg = Math.sin(timestamp * item.swaySpeed + item.swayPhase) * 3.5;
+
+                        item.el.style.left = `${item.x.toFixed(2)}%`;
+                        item.el.style.top = `${item.y.toFixed(2)}%`;
+                        item.el.style.opacity = `${curOpacity.toFixed(2)}`;
+                        item.el.style.transform = `translate(-50%, -50%) scale(${curScale.toFixed(3)}) rotate(${swayDeg.toFixed(2)}deg)`;
                     }
-
-                    // 0 -> 1까지 부드럽게 증가하는 진행률 (중간 분기점 없이 연속 수식으로 튕김 현상 원천 제거)
-                    const p = Math.min(1, elapsed / item.spawnDuration);
-                    const easeOut = 1 - Math.pow(1 - p, 2.4);
-
-                    // 유영 후 서서히 이동하는 드리프트 변화량 (p === 1 이후부터만 아주 미세하게 누적)
-                    if (p >= 1) {
-                        item.targetX += item.vx;
-                        item.targetY += item.vy;
-
-                        if (item.targetX < 18) { item.targetX = 18; item.vx = Math.abs(item.vx); }
-                        if (item.targetX > 82) { item.targetX = 82; item.vx = -Math.abs(item.vx); }
-                        if (item.targetY < 21) { item.targetY = 21; item.vy = Math.abs(item.vy); }
-                        if (item.targetY > 61) { item.targetY = 61; item.vy = -Math.abs(item.vy); }
-                    }
-
-                    // 흔들림(sway)도 easeOut에 비례해 0에서부터 서서히 켜지므로 절대 툭 튀지 않음
-                    const swayX = Math.sin(now * item.speed + item.phase) * item.ampX * easeOut;
-                    const swayY = Math.cos(now * (item.speed * 0.9) + item.phase) * item.ampY * easeOut;
-
-                    // 출발점: 하단 '꿈의목장' 글자 중앙(50%, 71%) -> 목표 지점
-                    const curX = 50 + (item.targetX - 50) * easeOut + swayX;
-                    const curY = 71 + (item.targetY - 71) * easeOut + swayY;
-
-                    const breath = Math.sin(now * (item.speed * 1.1) + item.phase) * 0.04 * easeOut;
-                    const curScale = 0.25 + 0.75 * easeOut + breath;
-                    const curOpacity = Math.min(0.92, Math.pow(p, 0.75) * 0.92);
-
-                    item.el.style.left = `${curX.toFixed(2)}%`;
-                    item.el.style.top = `${curY.toFixed(2)}%`;
-                    item.el.style.opacity = `${curOpacity.toFixed(3)}`;
-                    item.el.style.transform = `translate(-50%, -50%) scale(${curScale.toFixed(3)})`;
-                }
+                });
 
                 floatingAnimId = requestAnimationFrame(animateWords);
             }
@@ -412,257 +233,240 @@
         }
 
         function stopFloatingWords() {
-            floatingActive = false;
-            if (floatingAnimId) cancelAnimationFrame(floatingAnimId);
-            const layer = document.getElementById('floating-words-layer');
-            if (layer) {
-                layer.style.opacity = '0';
-                setTimeout(() => { layer.innerHTML = ''; }, 450);
+            if (!isFloatingWordsActive) return;
+            isFloatingWordsActive = false;
+            if (floatingWordsLayer) {
+                floatingWordsLayer.style.opacity = '0';
+                setTimeout(() => {
+                    if (floatingAnimId) cancelAnimationFrame(floatingAnimId);
+                }, 650);
             }
         }
 
-        // 페이지 로드 즉시 10개 말씀 유영 시작
-        initFloatingWords();
+        let tapCount = 0;
+        let tapResetTimer = null;
 
-        // 로컬 설정 로드 및 동기화
-        const DEFAULT_CONFIG = {
-            mokjangName: '23목장',
-            mokjangCode: '2323',
-            leaderName: '안영준',
-            subLeaderName: '',
-            members: ['안영준'],
-            memberRoles: {}
+        gateBottom.addEventListener('click', () => {
+            tapCount++;
+            if (tapCount >= 5) {
+                stopFloatingWords();
+                codeAuthBox.style.opacity = '1';
+                codeAuthBox.style.pointerEvents = 'auto';
+                setTimeout(() => {
+                    const codeInput = document.getElementById('input-mokjang-code');
+                    if (codeInput) codeInput.focus();
+                }, 100);
+            }
+
+            clearTimeout(tapResetTimer);
+            tapResetTimer = setTimeout(() => {
+                tapCount = 0;
+            }, 1500); 
+        });
+
+        window.handleCodeInput = function(input) {
+            let clean = input.value.replace(/[^0-9]/g, '').slice(0, 4);
+            if (input.value !== clean) input.value = clean;
+            
+            let validCode = window.liveMokjangConfig?.mokjangCode || '1111';
+            try {
+                const rawCfg = localStorage.getItem('mokjang_config_backup');
+                if (rawCfg && !window.liveMokjangConfigLoaded) {
+                    const cfg = JSON.parse(rawCfg);
+                    if (cfg.mokjangCode) validCode = String(cfg.mokjangCode).trim();
+                }
+            } catch(e) {}
+
+            const isCodeCorrect = (clean === '1111' || clean === validCode);
+
+            if (clean.length === 4 && isCodeCorrect && document.activeElement === input) {
+                if (navigator.vibrate) {
+                    try { navigator.vibrate(40); } catch(e) {}
+                }
+                const nameInput = document.getElementById('input-member-name');
+                if (nameInput) nameInput.focus();
+            }
+            checkAutoLogin();
         };
 
-        function loadConfig() {
+        window.handleNameInput = function(input) {
+            let clean = input.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').slice(0, 4);
+            if (input.value !== clean) input.value = clean;
+            checkAutoLogin();
+        };
+
+        function checkAutoLogin() {
+            const codeInput = document.getElementById('input-mokjang-code');
+            const nameInput = document.getElementById('input-member-name');
+            const code = codeInput.value.trim();
+            const name = nameInput.value.trim();
+
+            let validCode = window.liveMokjangConfig?.mokjangCode || '1111';
+            let validMembers = Array.isArray(window.liveMokjangConfig?.members) ? window.liveMokjangConfig.members : ['1111'];
+            let mokjangShort = window.liveMokjangConfig?.mokjangName || '';
+            let leaderName = window.liveMokjangConfig?.leaderName || '목자';
             try {
-                const saved = localStorage.getItem('mokjang_config_v1');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    return {
-                        mokjangName: parsed.mokjangName || DEFAULT_CONFIG.mokjangName,
-                        mokjangCode: parsed.mokjangCode || DEFAULT_CONFIG.mokjangCode,
-                        leaderName: parsed.leaderName || DEFAULT_CONFIG.leaderName,
-                        subLeaderName: parsed.subLeaderName || '',
-                        members: Array.isArray(parsed.members) && parsed.members.length > 0 ? parsed.members : DEFAULT_CONFIG.members,
-                        memberRoles: parsed.memberRoles && typeof parsed.memberRoles === 'object' ? parsed.memberRoles : {}
-                    };
+                const rawCfg = localStorage.getItem('mokjang_config_backup');
+                if (rawCfg && !window.liveMokjangConfigLoaded) {
+                    const cfg = JSON.parse(rawCfg);
+                    if (cfg.mokjangCode) validCode = String(cfg.mokjangCode).trim();
+                    if (Array.isArray(cfg.members) && cfg.members.length > 0) validMembers = cfg.members;
+                    if (cfg.mokjangName) mokjangShort = String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '');
+                    if (cfg.leaderName) leaderName = String(cfg.leaderName).trim();
                 }
-            } catch (e) {}
-            return { ...DEFAULT_CONFIG };
+            } catch(e) {}
+
+            const isDefaultMatch = (code === '1111' && name === '1111');
+            const isLeaderMatch = (code === validCode && name === leaderName);
+            const isMemberMatch = (code === validCode && validMembers.includes(name));
+
+            // 코드(4자리)와 이름(2~4글자 이상, 목자 또는 등록된 일반 목원)이 일치할 때 로그인 승인
+            if (code.length === 4 && name.length >= 2 && (isDefaultMatch || isLeaderMatch || isMemberMatch)) {
+                const isLeaderRole = (name === leaderName || name === '목자' || name === '관리자');
+                const userRole = isLeaderRole ? 'leader' : 'member';
+                const isAdminFlag = isLeaderRole ? '1' : '0';
+
+                try {
+                    localStorage.setItem('mokjang_user_name', name);
+                    localStorage.setItem('mokjang_user_role', userRole);
+                    localStorage.setItem('mokjang_short_name', mokjangShort);
+                    localStorage.setItem('mokjang_name', mokjangShort ? `세종꿈의교회 ${mokjangShort}` : '세종꿈의교회');
+                    localStorage.setItem('mokjang_is_admin', isLeaderRole ? 'true' : 'false');
+                } catch(e) {}
+
+                codeInput.blur();
+                nameInput.blur();
+                handleMemberLogin(name, mokjangShort, isAdminFlag, userRole);
+            }
         }
 
-        let currentConfig = loadConfig();
+        function handleMemberLogin(userName, mokjangShort = '', isAdminFlag = '0', userRole = 'member') {
+            const finalName = userName || document.getElementById('input-member-name').value.trim() || '목장가족';
+            const finalMokjang = mokjangShort || '';
 
-        // Firebase 실시간 설정 동기화
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            authGate.classList.add('gate-open-active');
+            createHearts();
 
-        if (firebaseConfig) {
-            try {
-                const app = initializeApp(firebaseConfig);
-                const db = getFirestore(app);
-                const auth = getAuth(app);
-                const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'mokjang_config', 'main');
+            setTimeout(() => {
+                try {
+                    sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
+                        target: 'index2.html',
+                        authorizedFromIndex: true,
+                        token: 'tk_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+                        userName: finalName,
+                        mokjangShort: finalMokjang,
+                        role: userRole,
+                        isAdmin: isAdminFlag === '1',
+                        issuedAt: Date.now()
+                    }));
+                    sessionStorage.removeItem('mokjang_authorized_session');
+                } catch (e) {}
 
-                const syncFromFirestore = async () => {
-                    try {
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
-                    } catch (e) {}
-
-                    try {
-                        const snap = await getDoc(configDocRef);
-                        if (snap.exists()) {
-                            const data = snap.data();
-                            currentConfig = {
-                                mokjangName: data.mokjangName || currentConfig.mokjangName,
-                                mokjangCode: data.mokjangCode || currentConfig.mokjangCode,
-                                leaderName: data.leaderName || currentConfig.leaderName,
-                                subLeaderName: data.subLeaderName || currentConfig.subLeaderName || '',
-                                members: Array.isArray(data.members) ? data.members : currentConfig.members,
-                                memberRoles: data.memberRoles || currentConfig.memberRoles || {}
-                            };
-                            localStorage.setItem('mokjang_config_v1', JSON.stringify(currentConfig));
-                        }
-                    } catch (e) {}
-
-                    onSnapshot(configDocRef, (snap) => {
-                        if (snap.exists()) {
-                            const data = snap.data();
-                            currentConfig = {
-                                mokjangName: data.mokjangName || currentConfig.mokjangName,
-                                mokjangCode: data.mokjangCode || currentConfig.mokjangCode,
-                                leaderName: data.leaderName || currentConfig.leaderName,
-                                subLeaderName: data.subLeaderName || '',
-                                members: Array.isArray(data.members) ? data.members : currentConfig.members,
-                                memberRoles: data.memberRoles || {}
-                            };
-                            localStorage.setItem('mokjang_config_v1', JSON.stringify(currentConfig));
-                        }
-                    }, () => {});
-                };
-                syncFromFirestore();
-            } catch (e) {}
+                // [작업 4-나 반영]: URL에 파라미터를 노출하지 않고 깔끔하게 index2.html로 이동
+                try {
+                    if (window.location && typeof window.location.replace === 'function') {
+                        window.location.replace('index2.html');
+                    } else {
+                        window.location.href = 'index2.html';
+                    }
+                } catch (navErr) {
+                    window.location.href = 'index2.html';
+                }
+            }, 2800);
         }
 
-        function showToast(msg) {
-            const toast = document.getElementById('toast-msg');
-            if (!toast) return;
-            toast.textContent = msg;
-            toast.classList.add('show');
-            clearTimeout(window.__gateToastTimer);
-            window.__gateToastTimer = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2200);
-        }
-
-        // 1. 우측 상단 10회 터치 -> 관리자 보안 페이지(index1.html) 이동
         let adminTapCount = 0;
-        let adminTapTimer = null;
-        const adminTrigger = document.getElementById('admin-secret-trigger');
+        let adminTapResetTimer = null;
 
-        adminTrigger.addEventListener('click', (e) => {
-            e.stopPropagation();
+        function goToAdminPage() {
             adminTapCount++;
-            clearTimeout(adminTapTimer);
-
             if (adminTapCount >= 10) {
                 adminTapCount = 0;
-                sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
-                    target: 'index1.html',
-                    authorizedFromIndex: true,
-                    issuedAt: Date.now()
-                }));
-                sessionStorage.setItem('mokjang_authorized_session', 'index_verified');
-                window.location.href = './index1.html';
+                clearTimeout(adminTapResetTimer);
+                try {
+                    sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
+                        target: 'index1.html',
+                        authorizedFromIndex: true,
+                        token: 'tk_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+                        issuedAt: Date.now()
+                    }));
+                    sessionStorage.removeItem('mokjang_authorized_session');
+                } catch (e) {}
+                try {
+                    if (window.location && typeof window.location.replace === 'function') {
+                        window.location.replace('index1.html');
+                    } else {
+                        window.location.href = 'index1.html';
+                    }
+                } catch(navErr) {
+                    window.location.href = 'index1.html';
+                }
                 return;
             }
-
-            adminTapTimer = setTimeout(() => {
+            clearTimeout(adminTapResetTimer);
+            adminTapResetTimer = setTimeout(() => {
                 adminTapCount = 0;
             }, 1500);
-        });
-
-        // 2. 하단 5회 터치 -> 캡슐형 로그인 입력창 활성화
-        let bottomTapCount = 0;
-        let bottomTapTimer = null;
-        const bottomTrigger = document.getElementById('bottom-secret-trigger');
-        const capsuleWrapper = document.getElementById('capsule-login-wrapper');
-        const codeInput = document.getElementById('login-code-input');
-        const nameInput = document.getElementById('login-name-input');
-        const submitBtn = document.getElementById('login-submit-btn');
-
-        bottomTrigger.addEventListener('click', () => {
-            if (capsuleWrapper.classList.contains('active')) return;
-            bottomTapCount++;
-            clearTimeout(bottomTapTimer);
-
-            if (bottomTapCount >= 5) {
-                bottomTapCount = 0;
-                stopFloatingWords();
-                capsuleWrapper.classList.add('active');
-                bottomTrigger.style.pointerEvents = 'none';
-                setTimeout(() => {
-                    codeInput.focus();
-                }, 150);
-                return;
-            }
-
-            bottomTapTimer = setTimeout(() => {
-                bottomTapCount = 0;
-            }, 1400);
-        });
-
-        // 3. 코드(4자리) + 이름(최대4자) 검증 및 목자/부목자/목원 권한 부여 후 입장
-        let isRedirecting = false;
-
-        function checkAutoLogin(isManualSubmit = false) {
-            if (isRedirecting) return;
-
-            const codeVal = codeInput.value.replace(/[^0-9]/g, '').slice(0, 4);
-            if (codeInput.value !== codeVal) codeInput.value = codeVal;
-
-            const nameVal = nameInput.value.trim();
-
-            if (codeVal.length === 4 && document.activeElement === codeInput && nameVal.length === 0) {
-                nameInput.focus();
-                return;
-            }
-
-            if (codeVal.length < 4) {
-                if (isManualSubmit) showToast('목장 코드 4자리를 입력해 주세요.');
-                return;
-            }
-
-            if (nameVal.length < 2) {
-                if (isManualSubmit) showToast('성함을 입력해 주세요.');
-                return;
-            }
-
-            const latestConfig = loadConfig();
-            const validCode = (currentConfig.mokjangCode || latestConfig.mokjangCode || '2323').trim();
-            const leaderName = (currentConfig.leaderName || latestConfig.leaderName || '').trim();
-            const subLeaderName = (currentConfig.subLeaderName || latestConfig.subLeaderName || '').trim();
-            const memberRoles = currentConfig.memberRoles || latestConfig.memberRoles || {};
-            const members = Array.isArray(currentConfig.members) ? currentConfig.members : (latestConfig.members || []);
-
-            if (codeVal !== validCode) {
-                if (isManualSubmit || nameVal.length >= 2) {
-                    showToast('목장 코드가 일치하지 않습니다.');
-                }
-                return;
-            }
-
-            const isLeader = leaderName === nameVal || memberRoles[nameVal] === 'leader';
-            const isSubLeader = !isLeader && (subLeaderName === nameVal || memberRoles[nameVal] === 'subleader');
-            const isRegisteredMember = isLeader || isSubLeader || members.includes(nameVal);
-
-            if (!isRegisteredMember) {
-                if (isManualSubmit || nameVal.length >= 3) {
-                    showToast('등록된 목원 명단에 없는 성함입니다.');
-                }
-                return;
-            }
-
-            isRedirecting = true;
-            const userRole = isLeader ? 'leader' : (isSubLeader ? 'subleader' : 'member');
-            const isAdminPrivilege = isLeader || isSubLeader;
-
-            const sessionPayload = {
-                name: nameVal,
-                role: userRole,
-                isAdmin: isAdminPrivilege,
-                mokjangCode: validCode,
-                mokjangName: currentConfig.mokjangName || latestConfig.mokjangName || '23목장',
-                loginAt: Date.now()
-            };
-
-            localStorage.setItem('mokjang_active_session', JSON.stringify(sessionPayload));
-            localStorage.setItem('mokjang_user_name', nameVal);
-            localStorage.setItem('mokjang_user_role', userRole);
-            sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
-                target: 'index2.html',
-                authorizedFromIndex: true,
-                issuedAt: Date.now()
-            }));
-            sessionStorage.setItem('mokjang_authorized_session', 'index_verified');
-
-            window.location.href = './index2.html';
         }
 
-        codeInput.addEventListener('input', () => checkAutoLogin(false));
-        nameInput.addEventListener('input', () => checkAutoLogin(false));
-        nameInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                checkAutoLogin(true);
+        function createHearts() {
+            const heartCount = 35;
+            for (let i = 0; i < heartCount; i++) {
+                const heart = document.createElement('i');
+                heart.className = 'fa-solid fa-heart floating-heart';
+                
+                const left = Math.random() * 100;
+                const size = Math.random() * 16 + 12;
+                const duration = Math.random() * 1.2 + 2.8;
+                const delay = Math.random() * 0.8;
+                
+                heart.style.left = `${left}vw`;
+                heart.style.fontSize = `${size}px`;
+                heart.style.animation = `floatHeart ${duration}s ease-out ${delay}s forwards`;
+                
+                document.body.appendChild(heart);
+                
+                setTimeout(() => {
+                    heart.remove();
+                }, (duration + delay) * 1000 + 100);
             }
-        });
-        submitBtn.addEventListener('click', () => checkAutoLogin(true));
+        }
+
+        initFloatingWords();
+    </script>
+
+    <!-- [파이어베이스 실시간 목장 설정(mokjang_config/main) 동기화] -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKD5LUQL84ZuPH5UJrHBj7yAYDTabDWVA",
+            authDomain: "dream-data-146a4.firebaseapp.com",
+            projectId: "dream-data-146a4",
+            storageBucket: "dream-data-146a4.firebasestorage.app",
+            messagingSenderId: "812415684377",
+            appId: "1:812415684377:web:de8859d1502b3c05acbf88"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            signInAnonymously(auth).then(() => {
+                onSnapshot(doc(db, 'mokjang_config', 'main'), (snap) => {
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        window.liveMokjangConfig = data;
+                        window.liveMokjangConfigLoaded = true;
+                        try {
+                            localStorage.setItem('mokjang_config_backup', JSON.stringify(data));
+                        } catch (e) {}
+                    }
+                });
+            }).catch(() => {});
+        } catch (e) {}
     </script>
 </body>
 </html>
