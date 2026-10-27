@@ -226,4 +226,257 @@
                     }
                 });
 
-   
+                floatingAnimId = requestAnimationFrame(animateWords);
+            }
+
+            floatingAnimId = requestAnimationFrame(animateWords);
+        }
+
+        function stopFloatingWords() {
+            if (!isFloatingWordsActive) return;
+            isFloatingWordsActive = false;
+            if (floatingWordsLayer) {
+                floatingWordsLayer.style.opacity = '0';
+                setTimeout(() => {
+                    if (floatingAnimId) cancelAnimationFrame(floatingAnimId);
+                }, 650);
+            }
+        }
+
+        let tapCount = 0;
+        let tapResetTimer = null;
+
+        gateBottom.addEventListener('click', () => {
+            tapCount++;
+            if (tapCount >= 5) {
+                stopFloatingWords();
+                codeAuthBox.style.opacity = '1';
+                codeAuthBox.style.pointerEvents = 'auto';
+                setTimeout(() => {
+                    const codeInput = document.getElementById('input-mokjang-code');
+                    if (codeInput) codeInput.focus();
+                }, 100);
+            }
+
+            clearTimeout(tapResetTimer);
+            tapResetTimer = setTimeout(() => {
+                tapCount = 0;
+            }, 1500); 
+        });
+
+        window.handleCodeInput = function(input) {
+            let clean = input.value.replace(/[^0-9]/g, '').slice(0, 4);
+            if (input.value !== clean) input.value = clean;
+            
+            let validCode = window.liveMokjangConfig?.mokjangCode || '1111';
+            try {
+                const rawCfg = localStorage.getItem('mokjang_config_backup');
+                if (rawCfg && !window.liveMokjangConfigLoaded) {
+                    const cfg = JSON.parse(rawCfg);
+                    if (cfg.mokjangCode) validCode = String(cfg.mokjangCode).trim();
+                }
+            } catch(e) {}
+
+            const isCodeCorrect = (clean === '1111' || clean === validCode);
+
+            if (clean.length === 4 && isCodeCorrect && document.activeElement === input) {
+                if (navigator.vibrate) {
+                    try { navigator.vibrate(40); } catch(e) {}
+                }
+                const nameInput = document.getElementById('input-member-name');
+                if (nameInput) nameInput.focus();
+            }
+            checkAutoLogin();
+        };
+
+        window.handleNameInput = function(input) {
+            let clean = input.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').slice(0, 4);
+            if (input.value !== clean) input.value = clean;
+            checkAutoLogin();
+        };
+
+        function checkAutoLogin() {
+            const codeInput = document.getElementById('input-mokjang-code');
+            const nameInput = document.getElementById('input-member-name');
+            const code = codeInput.value.trim();
+            const name = nameInput.value.trim();
+
+            let cfg = window.liveMokjangConfig || {};
+            try {
+                const rawCfg = localStorage.getItem('mokjang_config_backup');
+                if (rawCfg && !window.liveMokjangConfigLoaded) {
+                    cfg = JSON.parse(rawCfg) || {};
+                }
+            } catch(e) {}
+
+            const validCode = cfg.mokjangCode ? String(cfg.mokjangCode).trim() : '1111';
+            const mokjangShort = cfg.mokjangName ? String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '') : '';
+            const leaderName = cfg.leaderName ? String(cfg.leaderName).trim() : '목자';
+            const subLeaderName = (cfg.subLeaderName || cfg.subleaderName) ? String(cfg.subLeaderName || cfg.subleaderName).trim() : '';
+            const subLeaders = Array.isArray(cfg.subLeaders) ? cfg.subLeaders : [];
+            const validMembers = Array.isArray(cfg.members) ? cfg.members.map(m => typeof m === 'object' ? m.name : m) : ['1111'];
+            const memberRoles = (cfg.memberRoles && typeof cfg.memberRoles === 'object') ? cfg.memberRoles : {};
+
+            const isDefaultMatch = (code === '1111' && name === '1111');
+            const isLeaderMatch = (code === validCode && (name === leaderName || memberRoles[name] === 'leader'));
+            const isSubLeaderMatch = (code === validCode && ((subLeaderName && name === subLeaderName) || subLeaders.includes(name) || memberRoles[name] === 'subleader'));
+            const isMemberMatch = (code === validCode && validMembers.includes(name));
+
+            // 코드(4자리)와 이름(2~4글자 이상: 목자 / 부목자 / 등록된 일반 목원)이 일치할 때 로그인 승인
+            if (code.length === 4 && name.length >= 2 && (isDefaultMatch || isLeaderMatch || isSubLeaderMatch || isMemberMatch)) {
+                let userRole = 'member';
+                let isAdminBool = false;
+
+                if (isLeaderMatch || name === leaderName || name === '목자' || name === '관리자') {
+                    userRole = 'leader';
+                    isAdminBool = true;
+                } else if (isSubLeaderMatch || name === '부목자') {
+                    userRole = 'subleader';
+                    isAdminBool = true;
+                }
+
+                const isAdminFlag = isAdminBool ? '1' : '0';
+
+                try {
+                    localStorage.setItem('mokjang_user_name', name);
+                    localStorage.setItem('mokjang_user_role', userRole);
+                    localStorage.setItem('mokjang_short_name', mokjangShort);
+                    localStorage.setItem('mokjang_name', mokjangShort ? `세종꿈의교회 ${mokjangShort}` : '세종꿈의교회');
+                    localStorage.setItem('mokjang_is_admin', isAdminBool ? 'true' : 'false');
+                } catch(e) {}
+
+                codeInput.blur();
+                nameInput.blur();
+                handleMemberLogin(name, mokjangShort, isAdminFlag, userRole);
+            }
+        }
+
+        function handleMemberLogin(userName, mokjangShort = '', isAdminFlag = '0', userRole = 'member') {
+            const finalName = userName || document.getElementById('input-member-name').value.trim() || '목장가족';
+            const finalMokjang = mokjangShort || '';
+
+            authGate.classList.add('gate-open-active');
+            createHearts();
+
+            setTimeout(() => {
+                try {
+                    sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
+                        target: 'index2.html',
+                        authorizedFromIndex: true,
+                        token: 'tk_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+                        userName: finalName,
+                        mokjangShort: finalMokjang,
+                        role: userRole,
+                        isAdmin: isAdminFlag === '1',
+                        issuedAt: Date.now()
+                    }));
+                    sessionStorage.removeItem('mokjang_authorized_session');
+                } catch (e) {}
+
+                try {
+                    if (window.location && typeof window.location.replace === 'function') {
+                        window.location.replace('index2.html');
+                    } else {
+                        window.location.href = 'index2.html';
+                    }
+                } catch (navErr) {
+                    window.location.href = 'index2.html';
+                }
+            }, 2800);
+        }
+
+        let adminTapCount = 0;
+        let adminTapResetTimer = null;
+
+        function goToAdminPage() {
+            adminTapCount++;
+            if (adminTapCount >= 10) {
+                adminTapCount = 0;
+                clearTimeout(adminTapResetTimer);
+                try {
+                    sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
+                        target: 'index1.html',
+                        authorizedFromIndex: true,
+                        token: 'tk_' + Date.now() + '_' + Math.random().toString(36).slice(2),
+                        issuedAt: Date.now()
+                    }));
+                    sessionStorage.removeItem('mokjang_authorized_session');
+                } catch (e) {}
+                try {
+                    if (window.location && typeof window.location.replace === 'function') {
+                        window.location.replace('index1.html');
+                    } else {
+                        window.location.href = 'index1.html';
+                    }
+                } catch(navErr) {
+                    window.location.href = 'index1.html';
+                }
+                return;
+            }
+            clearTimeout(adminTapResetTimer);
+            adminTapResetTimer = setTimeout(() => {
+                adminTapCount = 0;
+            }, 1500);
+        }
+
+        function createHearts() {
+            const heartCount = 35;
+            for (let i = 0; i < heartCount; i++) {
+                const heart = document.createElement('i');
+                heart.className = 'fa-solid fa-heart floating-heart';
+                
+                const left = Math.random() * 100;
+                const size = Math.random() * 16 + 12;
+                const duration = Math.random() * 1.2 + 2.8;
+                const delay = Math.random() * 0.8;
+                
+                heart.style.left = `${left}vw`;
+                heart.style.fontSize = `${size}px`;
+                heart.style.animation = `floatHeart ${duration}s ease-out ${delay}s forwards`;
+                
+                document.body.appendChild(heart);
+                
+                setTimeout(() => {
+                    heart.remove();
+                }, (duration + delay) * 1000 + 100);
+            }
+        }
+
+        initFloatingWords();
+    </script>
+
+    <!-- [파이어베이스 실시간 목장 설정(mokjang_config/main) 동기화] -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKD5LUQL84ZuPH5UJrHBj7yAYDTabDWVA",
+            authDomain: "dream-data-146a4.firebaseapp.com",
+            projectId: "dream-data-146a4",
+            storageBucket: "dream-data-146a4.firebasestorage.app",
+            messagingSenderId: "812415684377",
+            appId: "1:812415684377:web:de8859d1502b3c05acbf88"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const db = getFirestore(app);
+            signInAnonymously(auth).then(() => {
+                onSnapshot(doc(db, 'mokjang_config', 'main'), (snap) => {
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        window.liveMokjangConfig = data;
+                        window.liveMokjangConfigLoaded = true;
+                        try {
+                            localStorage.setItem('mokjang_config_backup', JSON.stringify(data));
+                        } catch (e) {}
+                    }
+                });
+            }).catch(() => {});
+        } catch (e) {}
+    </script>
+</body>
+</html>
