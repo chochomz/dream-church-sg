@@ -28,31 +28,14 @@
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        /* [게이트 바운드 & 심리스 슬라이드업 모션: index2가 간격 없이 바로 붙어 끌어 올라옴] */
+        /* [게이트 바운드 & 심리스 슬라이드업 모션] */
         @keyframes dipAndSlideUpSeamless {
             0% { transform: translateY(0); }
             22% { transform: translateY(32px); }
             100% { transform: translateY(-100%); }
         }
-        @keyframes pullUpNextPageSeamless {
-            0% { transform: translateY(100%); }
-            22% { transform: translateY(calc(100% + 32px)); }
-            100% { transform: translateY(0%); }
-        }
         .gate-open-active {
             animation: dipAndSlideUpSeamless 3.0s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        }
-        #seamless-next-container {
-            position: fixed; inset: 0; z-index: 998;
-            width: 100%; height: 100%;
-            background-color: #F8F9FA;
-            transform: translateY(100%);
-            will-change: transform;
-            pointer-events: none;
-            overflow: hidden;
-        }
-        #seamless-next-container.pull-up-active {
-            animation: pullUpNextPageSeamless 3.0s cubic-bezier(0.25, 1, 0.5, 1) forwards;
         }
 
         #auth-gate {
@@ -129,9 +112,6 @@
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
 
-    <!-- [로그인 시 하트와 함께 간격 없이 끌어 올라오는 index2.html 컨테이너] -->
-    <div id="seamless-next-container"></div>
-
     <!-- [제스처 인증 게이트] -->
     <div id="auth-gate">
         <div class="gate-img-layer" id="gate-top"></div>
@@ -181,6 +161,7 @@
             floatingWordItems.length = 0;
             const now = performance.now();
 
+            // 10개의 말씀이 첫 단어('믿음')부터 마지막 단어('예배')까지 천천히 차례대로 피어나도록 간격(550ms) 및 상승 시간(2400ms) 완화
             GRACE_WORDS.forEach((word, idx) => {
                 const el = document.createElement('span');
                 el.className = 'floating-grace-word';
@@ -192,8 +173,8 @@
 
                 floatingWordItems.push({
                     el,
-                    spawnTime: now + idx * 240,
-                    spawnDuration: 1500,
+                    spawnTime: now + 200 + idx * 550,
+                    spawnDuration: 2400,
                     x: targetX,
                     y: targetY,
                     vx: (Math.random() * 0.022 + 0.01) * (Math.random() < 0.5 ? 1 : -1),
@@ -214,13 +195,14 @@
 
                     if (elapsed < item.spawnDuration) {
                         const p = elapsed / item.spawnDuration;
-                        const easeOut = 1 - Math.pow(1 - p, 3);
+                        // 급격히 튀어나오지 않고 부드럽고 여유롭게 피어나는 완만한 이징 곡선 적용
+                        const easeOut = 1 - Math.pow(1 - p, 2.2);
                         const curX = 50 + (item.x - 50) * easeOut;
                         const curY = 72 + (item.y - 72) * easeOut;
                         const curScale = 0.2 + 0.8 * easeOut;
                         item.el.style.left = `${curX}%`;
                         item.el.style.top = `${curY}%`;
-                        item.el.style.opacity = `${Math.min(0.88, p * 0.95)}`;
+                        item.el.style.opacity = `${Math.min(0.88, p * 0.92)}`;
                         item.el.style.transform = `translate(-50%, -50%) scale(${curScale.toFixed(3)})`;
                     } else {
                         item.x += item.vx;
@@ -244,271 +226,4 @@
                     }
                 });
 
-                floatingAnimId = requestAnimationFrame(animateWords);
-            }
-
-            floatingAnimId = requestAnimationFrame(animateWords);
-        }
-
-        function stopFloatingWords() {
-            if (!isFloatingWordsActive) return;
-            isFloatingWordsActive = false;
-            if (floatingWordsLayer) {
-                floatingWordsLayer.style.opacity = '0';
-                setTimeout(() => {
-                    if (floatingAnimId) cancelAnimationFrame(floatingAnimId);
-                }, 650);
-            }
-        }
-
-        let tapCount = 0;
-        let tapResetTimer = null;
-
-        gateBottom.addEventListener('click', () => {
-            tapCount++;
-            if (tapCount >= 5) {
-                stopFloatingWords();
-                codeAuthBox.style.opacity = '1';
-                codeAuthBox.style.pointerEvents = 'auto';
-                setTimeout(() => {
-                    const codeInput = document.getElementById('input-mokjang-code');
-                    if (codeInput) codeInput.focus();
-                }, 100);
-            }
-
-            clearTimeout(tapResetTimer);
-            tapResetTimer = setTimeout(() => {
-                tapCount = 0;
-            }, 1500); 
-        });
-
-        window.handleCodeInput = function(input) {
-            let clean = input.value.replace(/[^0-9]/g, '').slice(0, 4);
-            if (input.value !== clean) input.value = clean;
-            
-            let validCode = window.liveMokjangConfig?.mokjangCode || '1111';
-            try {
-                const rawCfg = localStorage.getItem('mokjang_config_backup');
-                if (rawCfg && !window.liveMokjangConfigLoaded) {
-                    const cfg = JSON.parse(rawCfg);
-                    if (cfg.mokjangCode) validCode = String(cfg.mokjangCode).trim();
-                }
-            } catch(e) {}
-
-            const isCodeCorrect = (clean === '1111' || clean === validCode);
-
-            if (clean.length === 4 && isCodeCorrect && document.activeElement === input) {
-                if (navigator.vibrate) {
-                    try { navigator.vibrate(40); } catch(e) {}
-                }
-                const nameInput = document.getElementById('input-member-name');
-                if (nameInput) nameInput.focus();
-            }
-            checkAutoLogin();
-        };
-
-        window.handleNameInput = function(input) {
-            let clean = input.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').slice(0, 4);
-            if (input.value !== clean) input.value = clean;
-            checkAutoLogin();
-        };
-
-        function checkAutoLogin() {
-            const codeInput = document.getElementById('input-mokjang-code');
-            const nameInput = document.getElementById('input-member-name');
-            const code = codeInput.value.trim();
-            const name = nameInput.value.trim();
-
-            let validCode = window.liveMokjangConfig?.mokjangCode || '1111';
-            let validMembers = Array.isArray(window.liveMokjangConfig?.members) ? window.liveMokjangConfig.members : ['1111'];
-            let validSubLeaders = Array.isArray(window.liveMokjangConfig?.subLeaders) ? window.liveMokjangConfig.subLeaders : [];
-            let mokjangShort = window.liveMokjangConfig?.mokjangName ? String(window.liveMokjangConfig.mokjangName).trim().replace(/^세종꿈의교회\s*/, '') : '';
-            let leaderName = window.liveMokjangConfig?.leaderName ? String(window.liveMokjangConfig.leaderName).trim() : '목자';
-            let subLeaderName = window.liveMokjangConfig?.subLeaderName ? String(window.liveMokjangConfig.subLeaderName).trim() : '';
-            try {
-                const rawCfg = localStorage.getItem('mokjang_config_backup');
-                if (rawCfg && !window.liveMokjangConfigLoaded) {
-                    const cfg = JSON.parse(rawCfg);
-                    if (cfg.mokjangCode) validCode = String(cfg.mokjangCode).trim();
-                    if (Array.isArray(cfg.members) && cfg.members.length > 0) validMembers = cfg.members;
-                    if (Array.isArray(cfg.subLeaders)) validSubLeaders = cfg.subLeaders;
-                    if (cfg.mokjangName !== undefined) mokjangShort = String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '');
-                    if (cfg.leaderName) leaderName = String(cfg.leaderName).trim();
-                    if (cfg.subLeaderName) subLeaderName = String(cfg.subLeaderName).trim();
-                }
-            } catch(e) {}
-
-            const isDefaultMatch = (code === '1111' && name === '1111');
-            const isLeaderMatch = (code === validCode && name === leaderName);
-            const isSubLeaderMatch = (code === validCode && ((subLeaderName && name === subLeaderName) || validSubLeaders.includes(name)));
-            const isMemberMatch = (code === validCode && validMembers.includes(name));
-
-            // 코드(4자리)와 이름(2~4글자 이상, 목자·부목자 또는 등록된 일반 목원)이 일치할 때 로그인 승인
-            if (code.length === 4 && name.length >= 2 && (isDefaultMatch || isLeaderMatch || isSubLeaderMatch || isMemberMatch)) {
-                const isLeaderRole = (name === leaderName || name === '목자' || name === '관리자');
-                const isSubLeaderRole = (!isLeaderRole && ((subLeaderName && name === subLeaderName) || validSubLeaders.includes(name) || name === '부목자'));
-                const userRole = isLeaderRole ? 'leader' : (isSubLeaderRole ? 'subleader' : 'member');
-                const hasFullPrivilege = (isLeaderRole || isSubLeaderRole);
-                const isAdminFlag = hasFullPrivilege ? '1' : '0';
-
-                try {
-                    localStorage.setItem('mokjang_user_name', name);
-                    localStorage.setItem('mokjang_user_role', userRole);
-                    localStorage.setItem('mokjang_short_name', mokjangShort);
-                    localStorage.setItem('mokjang_name', mokjangShort ? `세종꿈의교회 ${mokjangShort}` : '세종꿈의교회');
-                    localStorage.setItem('mokjang_is_admin', hasFullPrivilege ? 'true' : 'false');
-                } catch(e) {}
-
-                codeInput.blur();
-                nameInput.blur();
-                handleMemberLogin(name, mokjangShort, isAdminFlag, userRole);
-            }
-        }
-
-        function handleMemberLogin(userName, mokjangShort = '', isAdminFlag = '0', userRole = 'member') {
-            const finalName = userName || document.getElementById('input-member-name').value.trim() || '목장가족';
-            const finalMokjang = mokjangShort || '';
-
-            const issuePass = () => {
-                try {
-                    sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
-                        target: 'index2.html',
-                        authorizedFromIndex: true,
-                        token: 'tk_' + Date.now() + '_' + Math.random().toString(36).slice(2),
-                        userName: finalName,
-                        mokjangShort: finalMokjang,
-                        role: userRole,
-                        isAdmin: isAdminFlag === '1',
-                        issuedAt: Date.now()
-                    }));
-                    sessionStorage.removeItem('mokjang_authorized_session');
-                } catch (e) {}
-            };
-
-            // 1. 게이트 바로 밑에 붙어 함께 끌어 올라올 index2.html 프리뷰 프레임 즉시 마운트
-            issuePass();
-            const nextContainer = document.getElementById('seamless-next-container');
-            if (nextContainer) {
-                nextContainer.innerHTML = '<iframe src="index2.html" class="w-full h-full border-0 pointer-events-none select-none" tabindex="-1"></iframe>';
-                nextContainer.classList.add('pull-up-active');
-            }
-
-            // 2. 게이트 슬라이드업과 하트 플로팅을 동시에 시작하여 빈 간격 없이 끌어 올라오게 함
-            authGate.classList.add('gate-open-active');
-            createHearts();
-
-            setTimeout(() => {
-                // 실제 페이지 전환 직전 새 1회용 통행증 재발급
-                issuePass();
-                try {
-                    if (window.location && typeof window.location.replace === 'function') {
-                        window.location.replace('index2.html');
-                    } else {
-                        window.location.href = 'index2.html';
-                    }
-                } catch (navErr) {
-                    window.location.href = 'index2.html';
-                }
-            }, 2850);
-        }
-
-        let adminTapCount = 0;
-        let adminTapResetTimer = null;
-
-        function goToAdminPage() {
-            adminTapCount++;
-            if (adminTapCount >= 10) {
-                adminTapCount = 0;
-                clearTimeout(adminTapResetTimer);
-                try {
-                    sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
-                        target: 'index1.html',
-                        authorizedFromIndex: true,
-                        token: 'tk_' + Date.now() + '_' + Math.random().toString(36).slice(2),
-                        issuedAt: Date.now()
-                    }));
-                    sessionStorage.removeItem('mokjang_authorized_session');
-                } catch (e) {}
-                try {
-                    if (window.location && typeof window.location.replace === 'function') {
-                        window.location.replace('index1.html');
-                    } else {
-                        window.location.href = 'index1.html';
-                    }
-                } catch(navErr) {
-                    window.location.href = 'index1.html';
-                }
-                return;
-            }
-            clearTimeout(adminTapResetTimer);
-            adminTapResetTimer = setTimeout(() => {
-                adminTapCount = 0;
-            }, 1500);
-        }
-
-        function createHearts() {
-            const heartCount = 35;
-            for (let i = 0; i < heartCount; i++) {
-                const heart = document.createElement('i');
-                heart.className = 'fa-solid fa-heart floating-heart';
-                
-                const left = Math.random() * 100;
-                const size = Math.random() * 16 + 12;
-                const duration = Math.random() * 1.2 + 2.8;
-                const delay = Math.random() * 0.8;
-                
-                heart.style.left = `${left}vw`;
-                heart.style.fontSize = `${size}px`;
-                heart.style.animation = `floatHeart ${duration}s ease-out ${delay}s forwards`;
-                
-                document.body.appendChild(heart);
-                
-                setTimeout(() => {
-                    heart.remove();
-                }, (duration + delay) * 1000 + 100);
-            }
-        }
-
-        initFloatingWords();
-    </script>
-
-    <!-- [파이어베이스 실시간 목장 설정(mokjang_config/main) 동기화] -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKD5LUQL84ZuPH5UJrHBj7yAYDTabDWVA",
-            authDomain: "dream-data-146a4.firebaseapp.com",
-            projectId: "dream-data-146a4",
-            storageBucket: "dream-data-146a4.firebasestorage.app",
-            messagingSenderId: "812415684377",
-            appId: "1:812415684377:web:de8859d1502b3c05acbf88"
-        };
-
-        try {
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            const db = getFirestore(app);
-            signInAnonymously(auth).then(() => {
-                onSnapshot(doc(db, 'mokjang_config', 'main'), (snap) => {
-                    if (snap.exists()) {
-                        const data = snap.data();
-                        window.liveMokjangConfig = data;
-                        window.liveMokjangConfigLoaded = true;
-                        try {
-                            localStorage.setItem('mokjang_config_backup', JSON.stringify(data));
-                            if (data.mokjangName !== undefined) {
-                                const cleanM = String(data.mokjangName).trim().replace(/^세종꿈의교회\s*/, '');
-                                localStorage.setItem('mokjang_short_name', cleanM);
-                                localStorage.setItem('mokjang_name', cleanM ? `세종꿈의교회 ${cleanM}` : '세종꿈의교회');
-                            }
-                        } catch (e) {}
-                    }
-                });
-            }).catch(() => {});
-        } catch (e) {}
-    </script>
-</body>
-</html>
+   
