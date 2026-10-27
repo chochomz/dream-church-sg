@@ -30,22 +30,24 @@
             overflow: hidden;
             font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
-        /* 스마트폰/태블릿/PC 모두 원본 비율을 그대로 유지하는 중앙 프레임 */
-        #gate-stage {
-            position: relative;
+        /* 배경 스테이지 (모바일/태블릿/PC 중앙 비율 유지) */
+        .gate-bg {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
             width: 100%;
             max-width: 460px;
             height: 100%;
             background-color: #ffffff;
+            z-index: 1;
             overflow: hidden;
         }
 
-        /* 원본 index0.png에서 측정한 상(tlogo) · 중(ttitle) · 하(tname) 정밀 좌표 */
+        /* 상(tlogo.png) · 중(ttitle.png) · 하(tname.png) 배치 */
         .gate-piece {
             position: absolute;
             left: 50%;
@@ -53,19 +55,15 @@
             height: auto;
             object-fit: contain;
             pointer-events: none;
-            z-index: 2;
         }
-        /* 상: 로고 (tlogo.png) */
         .piece-tlogo {
             top: 38.3%;
             width: 25.8%;
         }
-        /* 중: 타이틀 (ttitle.png) */
         .piece-ttitle {
             top: 53.0%;
             width: 56.0%;
         }
-        /* 하: 꿈의 목장 (tname.png) */
         .piece-tname {
             top: 77.7%;
             width: 31.8%;
@@ -73,6 +71,413 @@
 
         /* 우측 상단 10회 터치 히든 영역 (관리자 페이지 이동) */
         #admin-secret-trigger {
-            position: absolute;
+            position: fixed;
             top: 0;
             right: 0;
+            width: 96px;
+            height: 96px;
+            z-index: 40;
+            background: transparent;
+            cursor: default;
+        }
+
+        /* 하단 5회 터치 히든 영역 (일반 목원 로그인 바 호출) */
+        #bottom-secret-trigger {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 38%;
+            z-index: 20;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        /* 성경책에서 솟아올라 유영하는 10개 말씀 레이어 */
+        #floating-words-layer {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 460px;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            overflow: hidden;
+            transition: opacity 0.45s ease;
+        }
+        .floating-grace-word {
+            position: absolute;
+            left: 50%;
+            top: 72%;
+            transform: translate(-50%, -50%) scale(0.2);
+            font-family: 'Noto Serif KR', serif;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            padding: 4px 8px;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            text-shadow: 0 2px 8px rgba(255, 255, 255, 0.95), 0 0 4px rgba(255, 255, 255, 0.85);
+            white-space: nowrap;
+            opacity: 0;
+            will-change: left, top, transform, opacity;
+        }
+
+        /* 하단 캡슐형 초슬림 로그인 바 */
+        #capsule-login-wrapper {
+            position: fixed;
+            bottom: 15%;
+            left: 50%;
+            transform: translateX(-50%) translateY(16px);
+            z-index: 30;
+            width: 78%;
+            max-width: 240px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #capsule-login-wrapper.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .capsule-bar {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 9999px;
+            padding: 5px 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14), 0 0 0 1.5px rgba(59, 93, 80, 0.25);
+        }
+
+        .capsule-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 13px;
+            font-weight: 700;
+            color: #1f2937;
+            text-align: center;
+            padding: 4px 2px;
+        }
+        .capsule-input::placeholder {
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .capsule-divider {
+            width: 1.5px;
+            height: 16px;
+            background: #d1d5db;
+            margin: 0 4px;
+            flex-shrink: 0;
+        }
+
+        /* 토스트 메시지 */
+        #toast-msg {
+            position: fixed;
+            bottom: 8%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            background: rgba(17, 24, 39, 0.9);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            white-space: nowrap;
+        }
+        #toast-msg.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. 상(tlogo.png) · 중(ttitle.png) · 하(tname.png) 이미지 레이어 -->
+    <div class="gate-bg">
+        <img src="./tlogo.png" alt="로고" class="gate-piece piece-tlogo">
+        <img src="./ttitle.png" alt="타이틀" class="gate-piece piece-ttitle">
+        <img src="./tname.png" alt="꿈의 목장" class="gate-piece piece-tname">
+    </div>
+
+    <!-- 1-2. 성경책에서 피어오르는 10개의 말씀 유영 레이어 -->
+    <div id="floating-words-layer"></div>
+
+    <!-- 2. 우측 상단 10회 터치 히든 영역 (index1.html 이동) -->
+    <div id="admin-secret-trigger" aria-label="관리자 전용 히든 영역"></div>
+
+    <!-- 3. 하단 5회 터치 히든 영역 (로그인 캡슐 호출) -->
+    <div id="bottom-secret-trigger" aria-label="목원 입장 터치 영역"></div>
+
+    <!-- 4. 하단 중앙 초슬림 캡슐형 로그인 입력창 (5회 터치 시 활성화) -->
+    <div id="capsule-login-wrapper">
+        <div class="capsule-bar">
+            <input type="tel" id="login-code-input" maxlength="4" inputmode="numeric" pattern="[0-9]*"
+                   placeholder="코드(4자리)" class="capsule-input w-[48%] tracking-widest">
+            <div class="capsule-divider"></div>
+            <input type="text" id="login-name-input" maxlength="4"
+                   placeholder="이름" class="capsule-input w-[48%]">
+        </div>
+    </div>
+
+    <!-- 토스트 알림 -->
+    <div id="toast-msg"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // 0. 10개의 은혜 말씀이 성경책 위치(중앙 하단)에서 솟아올라 하늘 영역을 유영하는 애니메이션
+        const GRACE_WORDS = ['믿음', '소망', '사랑', '감사', '찬송', '기도', '섬김', '양육', '전도', '예배'];
+        const WORD_COLORS = [
+            '#be185d', '#1d4ed8', '#047857', '#b45309', '#6d28d9',
+            '#c2410c', '#0f766e', '#4338ca', '#a21caf', '#374151'
+        ];
+
+        let floatingAnimId = null;
+        let floatingActive = true;
+        const floatingWordItems = [];
+
+        function initFloatingWords() {
+            const layer = document.getElementById('floating-words-layer');
+            if (!layer) return;
+            layer.innerHTML = '';
+            floatingWordItems.length = 0;
+
+            const spots = [
+                { x: 22, y: 20 }, { x: 78, y: 20 },
+                { x: 50, y: 28 }, { x: 20, y: 36 },
+                { x: 80, y: 36 }, { x: 48, y: 42 },
+                { x: 26, y: 50 }, { x: 74, y: 50 },
+                { x: 35, y: 58 }, { x: 65, y: 58 }
+            ];
+
+            const now = performance.now();
+
+            GRACE_WORDS.forEach((word, idx) => {
+                const el = document.createElement('span');
+                el.className = 'floating-grace-word';
+                el.textContent = word;
+                el.style.color = WORD_COLORS[idx % WORD_COLORS.length];
+                el.style.fontSize = `${15 + (idx % 3) * 2}px`;
+                layer.appendChild(el);
+
+                const spot = spots[idx];
+                floatingWordItems.push({
+                    el,
+                    spawnTime: now + idx * 480,
+                    spawnDuration: 2200,
+                    x: spot.x + (Math.random() * 6 - 3),
+                    y: spot.y + (Math.random() * 5 - 2.5),
+                    vx: (Math.random() > 0.5 ? 1 : -1) * (0.012 + Math.random() * 0.012),
+                    vy: (Math.random() > 0.5 ? 1 : -1) * (0.01 + Math.random() * 0.01),
+                    phase: idx * 0.9 + Math.random() * 2,
+                    speed: 0.0014 + Math.random() * 0.0008,
+                    ampX: 2.2 + Math.random() * 1.8,
+                    ampY: 1.8 + Math.random() * 1.5
+                });
+            });
+
+            function animateWords(t) {
+                if (!floatingActive) return;
+
+                floatingWordItems.forEach((item) => {
+                    const elapsed = t - item.spawnTime;
+                    if (elapsed < 0) return;
+
+                    if (elapsed < item.spawnDuration) {
+                        const p = elapsed / item.spawnDuration;
+                        const easeOut = 1 - Math.pow(1 - p, 2.4);
+                        const curX = 50 + (item.x - 50) * easeOut;
+                        const curY = 72 + (item.y - 72) * easeOut;
+                        const curScale = 0.2 + 0.8 * easeOut;
+                        item.el.style.left = `${curX}%`;
+                        item.el.style.top = `${curY}%`;
+                        item.el.style.opacity = `${Math.min(0.88, p * 0.95)}`;
+                        item.el.style.transform = `translate(-50%, -50%) scale(${curScale.toFixed(3)})`;
+                    } else {
+                        const floatElapsed = elapsed - item.spawnDuration;
+                        const floatRamp = Math.min(1, floatElapsed / 1200);
+
+                        item.x += item.vx * floatRamp;
+                        item.y += item.vy * floatRamp;
+
+                        if (item.x < 14) { item.x = 14; item.vx *= -1; }
+                        if (item.x > 86) { item.x = 86; item.vx *= -1; }
+                        if (item.y < 16) { item.y = 16; item.vy *= -1; }
+                        if (item.y > 60) { item.y = 60; item.vy *= -1; }
+
+                        const swayX = Math.sin(floatElapsed * item.speed) * item.ampX * floatRamp;
+                        const swayY = Math.cos(floatElapsed * (item.speed * 0.85)) * item.ampY * floatRamp;
+                        const wave = Math.sin(floatElapsed * (item.speed * 1.1)) * 0.05 * floatRamp;
+
+                        item.el.style.left = `${item.x + swayX}%`;
+                        item.el.style.top = `${item.y + swayY}%`;
+                        item.el.style.opacity = '0.88';
+                        item.el.style.transform = `translate(-50%, -50%) scale(${(1 + wave).toFixed(3)})`;
+                    }
+                });
+
+                floatingAnimId = requestAnimationFrame(animateWords);
+            }
+
+            floatingAnimId = requestAnimationFrame(animateWords);
+        }
+
+        function stopFloatingWords() {
+            floatingActive = false;
+            if (floatingAnimId) cancelAnimationFrame(floatingAnimId);
+            const layer = document.getElementById('floating-words-layer');
+            if (layer) {
+                layer.style.opacity = '0';
+                setTimeout(() => { layer.innerHTML = ''; }, 450);
+            }
+        }
+
+        // 페이지 로드 즉시 10개 말씀 유영 시작
+        initFloatingWords();
+
+        // 기본 초기 설정값 (index1.html 설정과 연동)
+        const DEFAULT_CONFIG = {
+            mokjangName: '',
+            mokjangCode: '',
+            leaderName: '',
+            subLeaderName: '',
+            members: [],
+            memberRoles: {}
+        };
+
+        function loadConfig() {
+            try {
+                const saved = localStorage.getItem('mokjang_config_v1');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    return {
+                        mokjangName: parsed.mokjangName || DEFAULT_CONFIG.mokjangName,
+                        mokjangCode: parsed.mokjangCode || DEFAULT_CONFIG.mokjangCode,
+                        leaderName: parsed.leaderName || DEFAULT_CONFIG.leaderName,
+                        subLeaderName: parsed.subLeaderName || '',
+                        members: Array.isArray(parsed.members) ? parsed.members : DEFAULT_CONFIG.members,
+                        memberRoles: parsed.memberRoles && typeof parsed.memberRoles === 'object' ? parsed.memberRoles : {}
+                    };
+                }
+            } catch (e) {}
+            return { ...DEFAULT_CONFIG };
+        }
+
+        let currentConfig = loadConfig();
+
+        // Firebase 실시간 설정 동기화 (모든 스마트폰 기기에서 목장코드/명단 공유)
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        if (firebaseConfig) {
+            try {
+                const app = initializeApp(firebaseConfig);
+                const db = getFirestore(app);
+                const auth = getAuth(app);
+                const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'mokjang_config', 'main');
+
+                const syncFromFirestore = async () => {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (e) {}
+
+                    try {
+                        const snap = await getDoc(configDocRef);
+                        if (snap.exists()) {
+                            const data = snap.data();
+                            currentConfig = {
+                                mokjangName: data.mokjangName || currentConfig.mokjangName,
+                                mokjangCode: data.mokjangCode || currentConfig.mokjangCode,
+                                leaderName: data.leaderName || currentConfig.leaderName,
+                                subLeaderName: data.subLeaderName || currentConfig.subLeaderName || '',
+                                members: Array.isArray(data.members) ? data.members : currentConfig.members,
+                                memberRoles: data.memberRoles || currentConfig.memberRoles || {}
+                            };
+                            localStorage.setItem('mokjang_config_v1', JSON.stringify(currentConfig));
+                        }
+                    } catch (e) {}
+
+                    onSnapshot(configDocRef, (snap) => {
+                        if (snap.exists()) {
+                            const data = snap.data();
+                            currentConfig = {
+                                mokjangName: data.mokjangName || currentConfig.mokjangName,
+                                mokjangCode: data.mokjangCode || currentConfig.mokjangCode,
+                                leaderName: data.leaderName || currentConfig.leaderName,
+                                subLeaderName: data.subLeaderName || '',
+                                members: Array.isArray(data.members) ? data.members : currentConfig.members,
+                                memberRoles: data.memberRoles || {}
+                            };
+                            localStorage.setItem('mokjang_config_v1', JSON.stringify(currentConfig));
+                        }
+                    }, () => {});
+                };
+                syncFromFirestore();
+            } catch (e) {}
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast-msg');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(window.__gateToastTimer);
+            window.__gateToastTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2200);
+        }
+
+        // 1. 우측 상단 10회 터치 -> 관리자 페이지(index1.html) 이동
+        let adminTapCount = 0;
+        let adminTapTimer = null;
+        const adminTrigger = document.getElementById('admin-secret-trigger');
+
+        adminTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            adminTapCount++;
+            clearTimeout(adminTapTimer);
+
+            if (adminTapCount >= 10) {
+                adminTapCount = 0;
+                sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
+                    target: 'index1.html',
+                    authorizedFromIndex: true,
+                    issuedAt: Date.now()
+                }));
+                sessionStorage.setItem('mokjang_authorized_session', 'index_verified');
+                window.location.href = './index1.html';
+                return;
+            }
+
+            adminTapTimer = setTimeout(() => {
+                adminTapCount = 0;
+            }, 1500);
+        });
+
+        // 2. 하단 5회 터치 -> 캡슐형 로그인 입력창 활성화
+        let bottomTapCount = 0;
+        let bottomTapTimer = null;
+        const bottomTrigger = document.getElementById('bottom-secret-trigger');
+        const capsuleWrapper = document.getElementById('capsule-login-wrapper');
+        const codeInput = document.getElementById('login-code-input');
+        const nameInput = document.getElementById('login-name-input');
+
+        bottomTrigger.addEventListener('cli
