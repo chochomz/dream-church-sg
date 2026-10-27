@@ -28,14 +28,43 @@
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        /* [게이트 바운드 & 심리스 슬라이드업 모션] */
+        /* [게이트와 index2 스테이지가 한 몸처럼 맞닿아 함께 올라가는 일체형 심리스 모션] */
         @keyframes dipAndSlideUpSeamless {
-            0% { transform: translateY(0); }
+            0% { transform: translateY(0%); }
             22% { transform: translateY(32px); }
             100% { transform: translateY(-100%); }
         }
+        @keyframes dipAndFollowUpStage {
+            0% { transform: translateY(100%); }
+            22% { transform: translateY(calc(100% + 32px)); }
+            100% { transform: translateY(0%); }
+        }
+
         .gate-open-active {
             animation: dipAndSlideUpSeamless 3.0s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        .stage-follow-active {
+            animation: dipAndFollowUpStage 3.0s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        /* 게이트 바로 아래에서 뒤따라 올라오는 실제 index2.html 무리프레시 스테이지 */
+        #seamless-index2-stage {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 990;
+            background-color: #F8F9FA;
+            transform: translateY(100%);
+            will-change: transform;
+            overflow: hidden;
+        }
+        #seamless-index2-frame {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+            background-color: #F8F9FA;
         }
 
         #auth-gate {
@@ -45,6 +74,7 @@
             overflow: hidden; touch-action: manipulation;
             will-change: transform;
             cursor: pointer;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
         }
 
         .gate-img-layer {
@@ -75,6 +105,12 @@
             font-size: 16px !important;
             -webkit-text-size-adjust: 100% !important;
             caret-color: #6b7280 !important;
+        }
+
+        /* 코드 Pass 전 이름 입력창 잠금 스타일 */
+        #input-member-name:disabled {
+            opacity: 0.38;
+            cursor: not-allowed;
         }
 
         #floating-words-layer {
@@ -113,6 +149,11 @@
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
 
+    <!-- [게이트 바로 뒤를 따라 올라오는 실제 index2.html 스테이지 (리프레시 끊김 0%)] -->
+    <div id="seamless-index2-stage">
+        <iframe id="seamless-index2-frame" title="우리들의 목장 이야기 피드"></iframe>
+    </div>
+
     <!-- [제스처 인증 게이트] -->
     <div id="auth-gate">
         <div class="gate-img-layer" id="gate-top"></div>
@@ -126,12 +167,12 @@
         <div id="floating-words-layer"></div>
 
         <!-- 갈라진 사이에 나타나는 둥근 캡슐형 로그인 창 -->
-        <div id="code-auth-box" onclick="event.stopPropagation();" onpointerdown="event.stopPropagation();">
+        <div id="code-auth-box" onclick="handleAuthBoxClick(event)" onpointerdown="event.stopPropagation();">
             <!-- 코드는 숫자 최대 4자리 -->
             <input type="text" id="input-mokjang-code" oninput="handleCodeInput(this)" placeholder="코드" maxlength="4" inputmode="numeric" pattern="[0-9]*" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
             <div class="w-px h-3.5 bg-gray-400 mx-1"></div>
-            <!-- 이름은 한글 최대 4글자 -->
-            <input type="text" id="input-member-name" oninput="handleNameInput(this)" placeholder="이름" maxlength="4" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold">
+            <!-- 이름은 코드가 Pass되어야만 활성화됨 (초기 잠금 상태) -->
+            <input type="text" id="input-member-name" oninput="handleNameInput(this)" onfocus="guardNameInputFocus(this)" placeholder="이름" maxlength="4" disabled readonly tabindex="-1" class="w-[55px] bg-transparent text-center text-gray-900 focus:outline-none font-bold transition-opacity duration-200">
         </div>
     </div>
 
@@ -150,11 +191,15 @@
         const gateBottom = document.getElementById('gate-bottom');
         const codeAuthBox = document.getElementById('code-auth-box');
         const floatingWordsLayer = document.getElementById('floating-words-layer');
+        const seamlessStage = document.getElementById('seamless-index2-stage');
+        const seamlessFrame = document.getElementById('seamless-index2-frame');
 
         const GRACE_WORDS = ['믿음', '소망', '사랑', '감사', '찬송', '기도', '섬김', '양육', '전도', '예배'];
         const floatingWordItems = [];
         let floatingAnimId = null;
         let isFloatingWordsActive = true;
+        let isCodePassed = false;
+        let isLoginTransitioning = false;
 
         function initFloatingWords() {
             if (!floatingWordsLayer) return;
@@ -208,9 +253,9 @@
                         if (totalElapsed - b.spawnDelay < b.spawnDuration) continue;
 
                         const dx = a.x - b.x;
-                        const dy = (a.y - b.y) * 2.4; // 세로 간격 가중치
+                        const dy = (a.y - b.y) * 2.4;
                         const distSq = dx * dx + dy * dy;
-                        const minDist = 14.5; // 단어 간 최소 유지 거리(%)
+                        const minDist = 14.5;
 
                         if (distSq > 0.01 && distSq < minDist * minDist) {
                             const dist = Math.sqrt(distSq);
@@ -222,7 +267,6 @@
                             b.vx -= nx * push;
                             b.vy -= ny * push * 0.45;
 
-                            // 최대 속도 제한으로 평온한 유영 유지
                             const maxVx = 0.024, maxVy = 0.016;
                             a.vx = Math.max(-maxVx, Math.min(maxVx, a.vx));
                             a.vy = Math.max(-maxVy, Math.min(maxVy, a.vy));
@@ -294,6 +338,7 @@
         let lastGateTapTime = 0;
 
         function handleGateFiveTap(e) {
+            if (isLoginTransitioning) return;
             if (e && e.target && (e.target.closest('#admin-secret-zone') || e.target.closest('#code-auth-box'))) {
                 return;
             }
@@ -323,6 +368,42 @@
         authGate.addEventListener('pointerdown', handleGateFiveTap);
         authGate.addEventListener('click', handleGateFiveTap);
 
+        // [작업 1: 코드 창이 Pass되기 전에는 이름 창 접근을 원천 차단하고 코드 창으로 포커스 유도]
+        window.handleAuthBoxClick = function(e) {
+            e.stopPropagation();
+            if (!isCodePassed) {
+                const codeInput = document.getElementById('input-mokjang-code');
+                if (codeInput && document.activeElement !== codeInput) {
+                    codeInput.focus();
+                }
+            }
+        };
+
+        window.guardNameInputFocus = function(nameInput) {
+            if (!isCodePassed) {
+                nameInput.blur();
+                const codeInput = document.getElementById('input-mokjang-code');
+                if (codeInput) codeInput.focus();
+            }
+        };
+
+        function setNameInputLocked(locked) {
+            const nameInput = document.getElementById('input-member-name');
+            if (!nameInput) return;
+            if (locked) {
+                isCodePassed = false;
+                nameInput.value = '';
+                nameInput.disabled = true;
+                nameInput.readOnly = true;
+                nameInput.setAttribute('tabindex', '-1');
+            } else {
+                isCodePassed = true;
+                nameInput.disabled = false;
+                nameInput.readOnly = false;
+                nameInput.removeAttribute('tabindex');
+            }
+        }
+
         window.handleCodeInput = function(input) {
             let clean = input.value.replace(/[^0-9]/g, '').slice(0, 4);
             if (input.value !== clean) input.value = clean;
@@ -336,25 +417,38 @@
                 }
             } catch(e) {}
 
-            const isCodeCorrect = (clean === '1111' || clean === validCode);
+            const isCodeCorrect = (clean.length === 4 && (clean === '1111' || clean === validCode));
 
-            if (clean.length === 4 && isCodeCorrect && document.activeElement === input) {
-                if (navigator.vibrate) {
-                    try { navigator.vibrate(40); } catch(e) {}
+            if (isCodeCorrect) {
+                setNameInputLocked(false);
+                if (document.activeElement === input) {
+                    if (navigator.vibrate) {
+                        try { navigator.vibrate(40); } catch(e) {}
+                    }
+                    const nameInput = document.getElementById('input-member-name');
+                    if (nameInput) nameInput.focus();
                 }
-                const nameInput = document.getElementById('input-member-name');
-                if (nameInput) nameInput.focus();
+            } else {
+                // 코드가 아직 4자리가 아니거나 일치하지 않으면 이름 입력창을 잠금 상태로 유지
+                setNameInputLocked(true);
             }
             checkAutoLogin();
         };
 
         window.handleNameInput = function(input) {
-            let clean = input.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣]/g, '').slice(0, 4);
+            if (!isCodePassed) {
+                setNameInputLocked(true);
+                const codeInput = document.getElementById('input-mokjang-code');
+                if (codeInput) codeInput.focus();
+                return;
+            }
+            let clean = input.value.replace(/[^ㄱ-ㅎㅏ-ㅣ가-힣0-9]/g, '').slice(0, 4);
             if (input.value !== clean) input.value = clean;
             checkAutoLogin();
         };
 
         function checkAutoLogin() {
+            if (!isCodePassed || isLoginTransitioning) return;
             const codeInput = document.getElementById('input-mokjang-code');
             const nameInput = document.getElementById('input-member-name');
             const code = codeInput.value.trim();
@@ -409,14 +503,15 @@
             }
         }
 
+        // [작업 2: 게이트가 올라가며 바로 뒤따라 index2가 올라오는 무리프레시(Zero-Refresh) 일체형 모션]
         function handleMemberLogin(userName, mokjangShort = '', isAdminFlag = '0', userRole = 'member') {
+            if (isLoginTransitioning) return;
+            isLoginTransitioning = true;
+
             const finalName = userName || document.getElementById('input-member-name').value.trim() || '목장가족';
             const finalMokjang = mokjangShort || '';
 
-            authGate.classList.add('gate-open-active');
-            createHearts();
-
-            setTimeout(() => {
+            const issuePassToken = () => {
                 try {
                     sessionStorage.setItem('mokjang_entry_pass', JSON.stringify({
                         target: 'index2.html',
@@ -430,17 +525,50 @@
                     }));
                     sessionStorage.removeItem('mokjang_authorized_session');
                 } catch (e) {}
+            };
 
-                try {
-                    if (window.location && typeof window.location.replace === 'function') {
-                        window.location.replace('index2.html');
-                    } else {
-                        window.location.href = 'index2.html';
+            // 1. 즉시 통행증을 발급하고 백그라운드 스테이지(iframe)에 index2.html을 미리 렌더링 시작
+            issuePassToken();
+
+            let animationStarted = false;
+            const startSeamlessClimb = () => {
+                if (animationStarted) return;
+                animationStarted = true;
+
+                // 게이트는 위로 올라가고, 그 바로 아래에 붙은 index2 스테이지는 함께 따라 올라옴
+                authGate.classList.add('gate-open-active');
+                if (seamlessStage) seamlessStage.classList.add('stage-follow-active');
+                createHearts();
+
+                // 3.0초 동반 상승 모션이 끝난 뒤 페이지 리프레시 없이 게이트만 제거하여 끊김 0% 완성
+                setTimeout(() => {
+                    try {
+                        // 혹시라도 iframe 로드가 차단된 특수 환경일 경우에만 폴백 이동
+                        const frameDoc = seamlessFrame && (seamlessFrame.contentDocument || seamlessFrame.contentWindow?.document);
+                        if (!frameDoc || !frameDoc.body || frameDoc.body.children.length === 0) {
+                            issuePassToken();
+                            window.location.replace('index2.html');
+                            return;
+                        }
+                    } catch (err) {}
+
+                    authGate.style.display = 'none';
+                    if (seamlessFrame && seamlessFrame.contentWindow) {
+                        try { seamlessFrame.contentWindow.focus(); } catch (e) {}
                     }
-                } catch (navErr) {
-                    window.location.href = 'index2.html';
-                }
-            }, 2800);
+                }, 3000);
+            };
+
+            if (seamlessFrame) {
+                seamlessFrame.onload = () => {
+                    startSeamlessClimb();
+                };
+                seamlessFrame.src = 'index2.html';
+                // 네트워크 지연 시에도 120ms 내에 즉시 부드러운 동반 상승 시작
+                setTimeout(startSeamlessClimb, 120);
+            } else {
+                startSeamlessClimb();
+            }
         }
 
         let adminTapCount = 0;
