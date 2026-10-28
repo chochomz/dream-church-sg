@@ -475,17 +475,17 @@
     <header class="h-[52px] shrink-0 bg-white border-b church-border shadow-2xs px-4 flex items-center justify-between w-full z-30 relative max-w-md mx-auto">
         <div class="w-8 shrink-0 flex items-center justify-start" id="header-logo-slot"></div>
 
-        <!-- 중앙 메인 타이틀 ('세' 자와 하단 환영 문구 좌측 수직 라인 일치) -->
-        <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-auto max-w-[76vw]">
-            <div class="relative flex items-start space-x-1.5" id="header-mokjang-title-container">
-                <img src="logo20.png" alt="세종꿈의교회 로고" class="w-[21px] h-[21px] object-contain shrink-0 select-none mt-0.5" id="header-church-logo">
+                <!-- 중앙 메인 타이틀 ('회' 자가 화면 중앙에 오도록 왼쪽으로 이동 정렬) -->
+        <div class="absolute left-1/2 top-1/2 -translate-y-1/2 flex items-center pointer-events-auto max-w-[85vw]" id="header-mokjang-title-wrapper" style="left: calc(50% - 46px); transform: translateY(-50%);">
+            <div class="relative flex items-center space-x-2" id="header-mokjang-title-container">
+                <img src="flogo.png" alt="세종꿈의교회 로고" onerror="this.style.display='none'" class="w-[34px] h-[34px] object-contain shrink-0 select-none" id="header-church-logo">
                 <div class="flex flex-col items-start text-left min-w-0">
                     <h1 class="header-main-title-text font-black tracking-tight leading-tight whitespace-nowrap select-none relative" id="header-mokjang-title">
-                        <span id="title-church-prefix"><span id="title-char-se">세</span>종꿈의교회</span>
-                        <span id="title-mokjang-name" class="relative inline-block"></span>
+                        <span id="title-church-prefix"><span id="title-char-se">세</span>종꿈의교<span id="title-char-hoe">회</span></span>
+                        <span id="title-mokjang-name" class="ml-1 relative inline-block">23목장</span>
                     </h1>
-                    <!-- 서브 환영 문구 ('세' 자와 상하 같은 시작 라인으로 정렬) -->
-                    <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none text-left" id="header-user-display"><span class="text-emerald-600 font-semibold">한분</span> 입장 환영합니다</p>
+                    <!-- 서브 환영 문구 ('회'자 기준 상하 균형 정렬) -->
+                    <p class="text-[10px] text-gray-500 font-medium truncate whitespace-nowrap leading-none mt-0.5 animate-sway-welcome select-none text-left" id="header-user-display">목장 가족님 <span class="text-emerald-500 font-semibold">한분</span> 환영합니다</p>
                 </div>
                 <!-- 타이틀 하트 애니메이션 오버레이 -->
                 <div id="header-title-hearts-layer" class="absolute inset-0 pointer-events-none overflow-visible"></div>
@@ -1554,22 +1554,76 @@
             return info.author === currentUser;
         }
 
-        function syncHeaderMokjangTitleDOM() {
+                // [메인 타이틀 '회'자 기준 화면 정중앙 정렬 함수]
+        function alignTitleToHoe() {
+            const header = document.querySelector('header');
+            const hoeEl = document.getElementById('title-char-hoe');
+            const wrapper = document.getElementById('header-mokjang-title-wrapper') || (document.getElementById('header-mokjang-title-container') ? document.getElementById('header-mokjang-title-container').parentElement : null);
+            if (!header || !wrapper) return;
+
+            if (hoeEl && hoeEl.offsetParent !== null) {
+                const headerRect = header.getBoundingClientRect();
+                const headerCenterX = headerRect.left + (headerRect.width / 2);
+                const hoeRect = hoeEl.getBoundingClientRect();
+                const hoeCenterX = hoeRect.left + (hoeRect.width / 2);
+                const deltaX = headerCenterX - hoeCenterX;
+
+                const curLeft = wrapper.getBoundingClientRect().left - headerRect.left;
+                wrapper.style.left = `${Math.round(curLeft + deltaX)}px`;
+                wrapper.style.transform = 'translateY(-50%)';
+            } else {
+                wrapper.style.left = '50%';
+                wrapper.style.transform = 'translate(-50%, -50%)';
+            }
+        }
+        window.alignTitleToHoe = alignTitleToHoe;
+        window.addEventListener('resize', alignTitleToHoe);
+        window.addEventListener('orientationchange', alignTitleToHoe);
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => { setTimeout(alignTitleToHoe, 40); });
+        }
+        setTimeout(alignTitleToHoe, 80);
+        setTimeout(alignTitleToHoe, 300);
+
+function syncHeaderMokjangTitleDOM() {
+            const displayTitle = (currentMokjangShort && currentMokjangShort.trim()) ? currentMokjangShort.trim() : '세종꿈의교회 23목장';
+            currentMokjang = displayTitle;
+            const prefixEl = document.getElementById('title-church-prefix');
             const mokjangSpan = document.getElementById('title-mokjang-name');
-            if (mokjangSpan) {
-                mokjangSpan.textContent = currentMokjangShort;
-                if (currentMokjangShort) {
-                    mokjangSpan.classList.add('ml-1');
+            
+            if (prefixEl) {
+                if (displayTitle.includes('교회')) {
+                    const match = displayTitle.match(/^(.*?교회)s*(.*)$/);
+                    if (match) {
+                        const churchPart = match[1];
+                        const mokjangPart = match[2];
+                        const firstChar = churchPart.charAt(0);
+                        const midChars = churchPart.slice(1, -1);
+                        const lastChar = churchPart.slice(-1);
+                        prefixEl.innerHTML = `<span id="title-char-se">${escapeHtml(firstChar)}</span>${escapeHtml(midChars)}<span id="title-char-hoe">${escapeHtml(lastChar)}</span>`;
+                        if (mokjangSpan) {
+                            mokjangSpan.textContent = mokjangPart;
+                            mokjangSpan.className = mokjangPart ? 'ml-1 relative inline-block' : 'relative inline-block';
+                        }
+                    } else {
+                        prefixEl.innerHTML = escapeHtml(displayTitle);
+                    }
                 } else {
-                    mokjangSpan.classList.remove('ml-1');
+                    const firstChar = displayTitle.charAt(0) || '우';
+                    const restChars = displayTitle.slice(1);
+                    prefixEl.innerHTML = '<span id="title-char-se">' + escapeHtml(firstChar) + '</span>' + escapeHtml(restChars);
+                    if (mokjangSpan) {
+                        mokjangSpan.textContent = '';
+                    }
                 }
             }
-            document.title = `우리들의 목장 이야기 - ${currentMokjang}`;
+            document.title = `우리들의 목장 이야기 - ${displayTitle}`;
             const renameBtn = document.getElementById('lightbox-rename-btn');
             if (renameBtn) {
                 if (isCurrentUserAdmin) renameBtn.classList.remove('hidden');
                 else renameBtn.classList.add('hidden');
             }
+            setTimeout(alignTitleToHoe, 30);
         }
         syncHeaderMokjangTitleDOM();
 
