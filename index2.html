@@ -476,9 +476,9 @@
         <div class="w-8 shrink-0 flex items-center justify-start" id="header-logo-slot"></div>
 
         <!-- 중앙 메인 타이틀 ('세' 자와 하단 환영 문구 좌측 수직 라인 일치) -->
-        <div class="absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-[9.5px] flex items-center pointer-events-auto max-w-[76vw]">
-            <div class="relative flex items-start" id="header-mokjang-title-container">
-                <img src="logo20.png" alt="세종꿈의교회 로고" class="w-[21px] h-[21px] object-contain shrink-0 select-none absolute right-full mr-1.5 top-0.5" id="header-church-logo">
+        <div class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-auto max-w-[76vw]">
+            <div class="relative flex items-start space-x-1.5" id="header-mokjang-title-container">
+                <img src="logo20.png" alt="세종꿈의교회 로고" class="w-[21px] h-[21px] object-contain shrink-0 select-none mt-0.5" id="header-church-logo">
                 <div class="flex flex-col items-start text-left min-w-0">
                     <h1 class="header-main-title-text font-black tracking-tight leading-tight whitespace-nowrap select-none relative" id="header-mokjang-title">
                         <span id="title-church-prefix"><span id="title-char-se">세</span>종꿈의교회</span>
@@ -1278,6 +1278,32 @@
         </div>
     </div>
 
+    <!-- [카카오톡 공유 확인 모달] -->
+    <div id="kakao-share-modal" class="fixed inset-0 z-[80] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden" style="touch-action: none;">
+        <div class="bg-white rounded-2xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3 animate-sway-welcome">
+            <div class="w-12 h-12 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center mx-auto text-xl shadow-2xs border border-amber-200">
+                <i class="fa-solid fa-comment-dots text-[#3A1D1D] text-2xl"></i>
+            </div>
+            <div>
+                <h4 class="text-sm font-bold text-gray-800">카톡방 공유</h4>
+                <p class="text-xs text-gray-600 mt-1 font-medium leading-relaxed">
+                    올린글을 카톡방에 공유할까요.?
+                </p>
+                <div class="mt-2.5 p-2 bg-amber-50/80 rounded-xl border border-amber-200/80 text-[11px] text-amber-950 font-medium text-left leading-snug break-all shadow-inner">
+                    <span id="kakao-share-preview-text"></span>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <button type="button" onclick="closeKakaoShareModal()" class="py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold active:scale-95 transition-all">
+                    아니요
+                </button>
+                <button type="button" onclick="executeKakaoShare()" class="py-2.5 bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] rounded-xl text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center justify-center space-x-1">
+                    <i class="fa-solid fa-comment text-[11px]"></i>
+                    <span>예 (공유하기)</span>
+                </button>
+            </div>
+        </div>
+    </div>
     <!-- [댓글 및 펜댓글 삭제 확인 모달: "삭제하시겠습니까?"] -->
     <div id="delete-comment-confirm-modal" class="fixed inset-0 z-[75] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden" style="touch-action: none;">
         <div class="bg-white rounded-2xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3">
@@ -1302,6 +1328,64 @@
         import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // [작업 4-가, 나, 다, 라: 로그인 세션 기반 사용자 이름 및 목자/부목자/일반목원 권한 체계 초기화]
+                // [카카오톡 공유 모달 및 클립보드 복사 로직]
+        let pendingKakaoShareText = "";
+        window.openKakaoShareModal = function(authorName, postNumber) {
+            const author = authorName || currentUser || "가족";
+            const countNum = postNumber || (cachedPosts ? cachedPosts.length : 1);
+            const shareText = `${author} 님이 ❤️가족 웹북에 새로운 글을 (${countNum}번째) 올렸습니다.`;
+            pendingKakaoShareText = shareText;
+
+            const previewEl = document.getElementById("kakao-share-preview-text");
+            if (previewEl) previewEl.textContent = shareText;
+
+            const modal = document.getElementById("kakao-share-modal");
+            if (modal) modal.classList.remove("hidden");
+        };
+
+        window.closeKakaoShareModal = function() {
+            const modal = document.getElementById("kakao-share-modal");
+            if (modal) modal.classList.add("hidden");
+            pendingKakaoShareText = "";
+        };
+
+        window.executeKakaoShare = async function() {
+            const textToShare = pendingKakaoShareText || `${currentUser} 님이 ❤️가족 웹북에 새로운 글을 올렸습니다.`;
+            closeKakaoShareModal();
+
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(textToShare);
+                } else {
+                    const ta = document.createElement("textarea");
+                    ta.value = textToShare;
+                    ta.style.position = "fixed";
+                    ta.style.left = "-9999px";
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(ta);
+                }
+            } catch (clipErr) {
+                console.warn("클립보드 복사 실패:", clipErr);
+            }
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        text: textToShare
+                    });
+                    showNotification("카톡방 공유를 진행합니다.");
+                } catch (err) {
+                    if (err.name !== "AbortError") {
+                        showNotification("내용이 복사되었습니다. 카톡방을 열어 붙여넣기 하세요!");
+                    }
+                }
+            } else {
+                showNotification("내용이 복사되었습니다. 카톡방을 열어 붙여넣기 하세요!");
+            }
+        };
+
         let currentUser = "목장가족";
         let currentUserRole = "member"; // 'leader' (목자) | 'subleader' (부목자) | 'member' (일반 목원)
         let currentMokjangShort = "";
@@ -4000,6 +4084,12 @@
                 closeWriteModal();
                 showNotification(COMPLETED_STAGE_5_TEXT);
                 scrollToPost(targetScrollId, true);
+                if (!postId) {
+                    setTimeout(() => {
+                        const currentCount = (cachedPosts && cachedPosts.length > 0) ? cachedPosts.length : 1;
+                        openKakaoShareModal(currentUser, currentCount);
+                    }, 600);
+                }
             } catch (err) {
                 console.error("게시글 저장 오류:", err);
                 const descEl = document.getElementById('upload-stage-status-desc');
