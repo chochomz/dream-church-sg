@@ -1328,12 +1328,37 @@
         import { getStorage, ref as storageRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
         // [작업 4-가, 나, 다, 라: 로그인 세션 기반 사용자 이름 및 목자/부목자/일반목원 권한 체계 초기화]
-                // [카카오톡 공유 모달 및 클립보드 복사 로직]
+                        // [카카오톡 공유 모달 및 클립보드 복사 로직 (직분 호칭 포함)]
         let pendingKakaoShareText = "";
+
+        function getAuthorTitleName(authorName) {
+            const rawName = String(authorName || currentUser || "가족").trim();
+            // 이미 직분 명칭(목자, 부목자, 목원, 집사, 권사, 장로 등)이 포함된 경우 중복 추가 방지
+            if (/(?:목자|부목자|목원|집사|권사|장로)$/.test(rawName)) {
+                return rawName;
+            }
+            if (rawName === "우리가족" || rawName === "가족") {
+                return rawName;
+            }
+
+            // 직분 판별: currentUserRole, configuredLeaderName, configuredSubLeaderName, configuredSubLeaders
+            const role = (typeof currentUserRole !== 'undefined' ? currentUserRole : '') || (typeof localStorage !== 'undefined' ? localStorage.getItem('family_user_role') : '') || 'member';
+            const isLeader = (role === 'leader' || rawName === (typeof configuredLeaderName !== 'undefined' ? configuredLeaderName : '아빠') || rawName === '아빠' || rawName === '관리자');
+            const isSubLeader = (!isLeader && (role === 'subleader' || rawName === (typeof configuredSubLeaderName !== 'undefined' ? configuredSubLeaderName : '엄마') || (typeof configuredSubLeaders !== 'undefined' && Array.isArray(configuredSubLeaders) && configuredSubLeaders.includes(rawName)) || rawName === '엄마'));
+
+            let title = "목원";
+            if (isLeader) {
+                title = "목자";
+            } else if (isSubLeader) {
+                title = "부목자";
+            }
+            return rawName + " " + title;
+        }
+
         window.openKakaoShareModal = function(authorName, postNumber) {
-            const author = authorName || currentUser || "가족";
-            const countNum = postNumber || (cachedPosts ? cachedPosts.length : 1);
-            const shareText = `${author} 님이 ❤️가족 웹북에 새로운 글을 (${countNum}번째) 올렸습니다.`;
+            const displayName = getAuthorTitleName(authorName);
+            const countNum = postNumber || (typeof cachedPosts !== 'undefined' && cachedPosts ? cachedPosts.length : 1);
+            const shareText = displayName + "님이 ❤️가족 웹북에 새로운 글을 (" + countNum + "번째) 올렸습니다.";
             pendingKakaoShareText = shareText;
 
             const previewEl = document.getElementById("kakao-share-preview-text");
@@ -1350,7 +1375,8 @@
         };
 
         window.executeKakaoShare = async function() {
-            const textToShare = pendingKakaoShareText || `${currentUser} 님이 ❤️가족 웹북에 새로운 글을 올렸습니다.`;
+            const displayName = getAuthorTitleName(currentUser);
+            const textToShare = pendingKakaoShareText || (displayName + "님이 ❤️가족 웹북에 새로운 글을 올렸습니다.");
             closeKakaoShareModal();
 
             try {
