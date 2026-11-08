@@ -448,28 +448,24 @@
     </style>
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
-    <!-- [PATCH v1.8: 표준 황금비율 관공서형 로그인 카드] -->
+    <!-- [PATCH v1.9: 표준 황금비율 관공서형 로그인 카드] -->
     <div id="mokjang-login-gate" class="fixed inset-0 z-[120] bg-white flex flex-col items-center justify-center p-4 select-none transition-opacity duration-300 overflow-y-auto">
-        
-        <!-- 외곽 카드 프레임: 상하좌우 균형 잡힌 패딩(px-8 py-8)과 품격 있는 관공서형 테두리 -->
         <div class="w-full max-w-[364px] bg-white rounded-[26px] border-[1.5px] border-[#D5DFEC] shadow-[0_16px_40px_rgba(15,23,42,0.08),0_3px_12px_rgba(15,23,42,0.04)] px-8 py-8 mx-auto my-auto flex flex-col items-center">
-
-            <!-- 내부 정렬 컨테이너: 가로폭 296px로 타이틀·입력폼·들어가기 버튼의 좌우 끝선을 100% 일치시킴 -->
             <div class="w-full max-w-[296px] flex flex-col items-center">
 
-                <!-- 1. 상단 타이틀: 조금 더 큼직하고 선명하게 확대 (46px / 42px) & 구분선 없음 -->
+                <!-- 1. 상단 타이틀 (tlogo + ttitle) -->
                 <div class="w-full flex items-center justify-center space-x-3">
                     <img src="tlogo.png" alt="세종꿈의교회 심볼" onerror="if(!this.dataset.t1){this.dataset.t1=1;this.src='tlogo.jpg';}else if(!this.dataset.t2){this.dataset.t2=1;this.src='flogo.png';}" class="w-[46px] h-[46px] object-contain shrink-0 select-none">
                     <img src="ttitle.png" alt="기독교한국침례회 세종꿈의교회" onerror="if(!this.dataset.t1){this.dataset.t1=1;this.src='ttitle.jpg';}" class="h-[42px] w-auto max-w-[235px] object-contain shrink-0 select-none">
                 </div>
 
-                <!-- 2. 서브 타이틀: 위 타이틀과는 적당히 붙이고(pt-3.5), 아래 입력창과의 간격은 넉넉히 넓힘(pb-6) -->
+                <!-- 2. 서브 타이틀 -->
                 <div class="w-full flex items-baseline justify-center space-x-1.5 pt-3.5 pb-6 text-center">
                     <span class="text-[14px] font-bold text-[#475569] tracking-tight">사랑의 공동체</span>
                     <span class="text-[19px] font-black text-[#1E293B] tracking-tight">꿈의 목장</span>
                 </div>
 
-                <!-- 3. 이름 / 코드 입력 폼: 라벨('이름','코드')과 입력창 사이 간격을 좁혀(w-8, gap-2) 밀착감 있게 정렬 -->
+                <!-- 3. 이름 / 코드 입력 폼 -->
                 <div class="w-full space-y-3">
                     <div class="flex items-center w-full gap-2">
                         <label for="gate-input-name" class="w-8 text-left text-[14.5px] font-extrabold text-[#1E293B] tracking-tight shrink-0">이름</label>
@@ -486,11 +482,11 @@
                     </div>
                 </div>
 
-                <!-- 오류/안내 메시지 영역 -->
+                <!-- 상태/오류 메시지 -->
                 <p id="gate-login-msg" class="text-[11.5px] font-bold text-rose-600 min-h-[18px] mt-2 mb-1.5 text-center leading-tight"></p>
 
-                <!-- 4. [들어가기] 버튼: 전체 폭(296px) 및 입력창 높이(42px)와 비례하는 표준 높이(44px)로 완벽 통일 -->
-                <button type="button" onclick="submitMokjangGateLogin()"
+                <!-- 4. [들어가기] 버튼 -->
+                <button type="button" id="gate-submit-btn" onclick="submitMokjangGateLogin()"
                         class="w-full h-[44px] bg-[#163172] hover:bg-[#102558] active:scale-[0.99] text-white font-extrabold text-[15px] tracking-tight rounded-[12px] shadow-[0_4px_12px_rgba(22,49,114,0.2)] transition-all flex items-center justify-center">
                     <span>들어가기</span>
                 </button>
@@ -7367,22 +7363,48 @@ function syncHeaderMokjangTitleDOM() {
         // =========================================================================
         
         // =========================================================================
-        // [PATCH v1.8: 로그인 정보 완벽 반영 · 다중 목장 · 열람 시작일 필터 · indexdm 연동]
+        
         // =========================================================================
-        var currentMokjangCode = localStorage.getItem('mokjang_active_code') || '1111';
+        // [PATCH v1.9: 파이어베이스 기존 DB(mokjang_config/main) & 다중 목장 완벽 연동]
+        // =========================================================================
+        var currentMokjangCode = localStorage.getItem('mokjang_active_code') || '';
         var currentUserJoinedAt = Number(localStorage.getItem('mokjang_user_joined_at') || 0);
         var allMokjangConfigsMap = {};
+        var isGateLoginInProgress = false;
 
-        (function prefillSavedLoginInfo() {
+        // 페이지 열릴 때 즉시 파이어베이스 설정(mokjang_config/main 및 mokjang_configs) 미리 로드
+        function initMultiMokjangConfigsListener() {
+            if (!db) return;
             try {
-                var savedN = localStorage.getItem('mokjang_user_name') || '';
-                var savedC = localStorage.getItem('mokjang_active_code') || '';
-                var nameEl = document.getElementById('gate-input-name');
-                var codeEl = document.getElementById('gate-input-code');
-                if (nameEl && savedN && savedN !== '목장가족') nameEl.value = savedN;
-                if (codeEl && savedC) codeEl.value = savedC;
+                // 1) 기존 메인 설정 문서(mokjang_config/main) 실시간 연동
+                onSnapshot(doc(db, 'mokjang_config', 'main'), function(snap) {
+                    if (snap.exists()) {
+                        var data = snap.data();
+                        var cKey = String(data.mokjangCode || '1111').trim();
+                        allMokjangConfigsMap['main'] = data;
+                        allMokjangConfigsMap[cKey] = data;
+                        try {
+                            localStorage.setItem('mokjang_config_backup', JSON.stringify(data));
+                            localStorage.setItem('mokjang_config_backup_' + cKey, JSON.stringify(data));
+                        } catch (e) {}
+                    }
+                }, function() {});
+
+                // 2) 다중 목장 설정 컬렉션(mokjang_configs) 실시간 연동
+                onSnapshot(collection(db, 'mokjang_configs'), function(snap) {
+                    snap.forEach(function(docSnap) {
+                        var data = docSnap.data();
+                        var cKey = String(data.mokjangCode || docSnap.id).trim();
+                        allMokjangConfigsMap[cKey] = data;
+                        try { localStorage.setItem('mokjang_config_backup_' + cKey, JSON.stringify(data)); } catch (e) {}
+                    });
+                }, function() {});
             } catch (e) {}
-        })();
+        }
+
+        // 초기 실행 시 바로 리스너 가동
+        initMultiMokjangConfigsListener();
+        setTimeout(initMultiMokjangConfigsListener, 500);
 
         window.goToLeaderAdminPage = function(event) {
             if (event) event.stopPropagation();
@@ -7407,58 +7429,20 @@ function syncHeaderMokjangTitleDOM() {
             window.location.replace('indexdm.html');
         };
 
-        function initMultiMokjangConfigsListener() {
-            if (!db) return;
-            try {
-                onSnapshot(doc(db, 'mokjang_config', 'main'), function(snap) {
-                    if (snap.exists()) {
-                        var data = snap.data();
-                        var cKey = String(data.mokjangCode || '1111').trim();
-                        if (!allMokjangConfigsMap[cKey]) allMokjangConfigsMap[cKey] = data;
-                        allMokjangConfigsMap['main'] = data;
-                        try {
-                            localStorage.setItem('mokjang_config_backup_' + cKey, JSON.stringify(data));
-                            localStorage.setItem('mokjang_config_backup', JSON.stringify(data));
-                        } catch (e) {}
-                        if (currentMokjangCode === cKey || !allMokjangConfigsMap[currentMokjangCode]) {
-                            applyActiveMokjangConfigToFeed(data);
-                        }
-                    }
-                }, function() {});
-
-                onSnapshot(collection(db, 'mokjang_configs'), function(snap) {
-                    snap.forEach(function(docSnap) {
-                        var data = docSnap.data();
-                        var cKey = String(data.mokjangCode || docSnap.id).trim();
-                        allMokjangConfigsMap[cKey] = data;
-                        try { localStorage.setItem('mokjang_config_backup_' + cKey, JSON.stringify(data)); } catch (e) {}
-                    });
-                    if (currentMokjangCode && allMokjangConfigsMap[currentMokjangCode]) {
-                        applyActiveMokjangConfigToFeed(allMokjangConfigsMap[currentMokjangCode]);
-                    }
-                }, function() {});
-            } catch (e) {}
-        }
-
-        function getConfigForCode(code) {
-            var cleanCode = String(code || '').trim();
-            if (allMokjangConfigsMap[cleanCode]) return allMokjangConfigsMap[cleanCode];
-            try {
-                var localByCode = localStorage.getItem('mokjang_config_backup_' + cleanCode);
-                if (localByCode) return JSON.parse(localByCode);
-                var legacyLocal = localStorage.getItem('mokjang_config_backup');
-                if (legacyLocal) {
-                    var parsed = JSON.parse(legacyLocal);
-                    if (!parsed.mokjangCode || String(parsed.mokjangCode).trim() === cleanCode) return parsed;
-                }
-            } catch (e) {}
-            if (allMokjangConfigsMap['main']) {
-                return allMokjangConfigsMap['main'];
+        // 멤버 배열에서 이름 문자열만 안전하게 추출하는 헬퍼 (공백 제거 포함)
+        function extractCleanMemberNames(arr) {
+            if (!Array.isArray(arr)) return [];
+            var result = [];
+            for (var i = 0; i < arr.length; i++) {
+                var item = arr[i];
+                if (!item) continue;
+                var n = (typeof item === 'object' && item.name) ? String(item.name).trim() : String(item).trim();
+                if (n) result.push(n);
             }
-            return null;
+            return result;
         }
 
-        function applyActiveMokjangConfigToFeed(cfg) {
+        function applyActiveMokjangConfigToFeed(cfg, loginName, loginCode) {
             if (!cfg) return;
             var cleanM = cfg.mokjangName ? String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '') : '';
             if (cleanM) {
@@ -7466,19 +7450,8 @@ function syncHeaderMokjangTitleDOM() {
                 currentMokjang = currentMokjangShort;
             }
             if (cfg.leaderName) configuredLeaderName = String(cfg.leaderName).trim();
-            configuredSubLeaderName = cfg.subLeaderName ? String(cfg.subLeaderName).trim() : '';
-            configuredSubLeaders = Array.isArray(cfg.subLeaders) ? cfg.subLeaders.map(function(s) { return String(s).trim(); }).filter(Boolean) : [];
-
-            var isLeader = (currentUser === configuredLeaderName || currentUser === '목자' || currentUser === '관리자' || currentUser === '1111');
-            var isSubLeader = (!isLeader && ((configuredSubLeaderName && currentUser === configuredSubLeaderName) || configuredSubLeaders.indexOf(currentUser) !== -1 || currentUser === '부목자'));
-
-            if (isLeader) {
-                currentUserRole = 'leader';
-                isCurrentUserAdmin = true;
-            } else if (isSubLeader) {
-                currentUserRole = 'subleader';
-                isCurrentUserAdmin = true;
-            }
+            configuredSubLeaderName = (cfg.subLeaderName || cfg.subleaderName) ? String(cfg.subLeaderName || cfg.subleaderName).trim() : '';
+            configuredSubLeaders = extractCleanMemberNames(cfg.subLeaders);
 
             var joinedMap = (cfg.memberJoinedAt && typeof cfg.memberJoinedAt === 'object') ? cfg.memberJoinedAt : {};
             if (currentUserRole === 'leader') {
@@ -7490,6 +7463,8 @@ function syncHeaderMokjangTitleDOM() {
             }
 
             try {
+                localStorage.setItem('mokjang_active_code', loginCode || currentMokjangCode || '1111');
+                localStorage.setItem('mokjang_user_name', loginName || currentUser);
                 localStorage.setItem('mokjang_user_role', currentUserRole);
                 localStorage.setItem('mokjang_is_admin', isCurrentUserAdmin ? 'true' : 'false');
                 localStorage.setItem('mokjang_user_joined_at', String(currentUserJoinedAt));
@@ -7504,107 +7479,166 @@ function syncHeaderMokjangTitleDOM() {
             renderFeedList();
         }
 
-        window.submitMokjangGateLogin = function() {
+        // [핵심: 들어가기 클릭 시 DB(mokjang_config/main 및 mokjang_configs)와 정확히 대조하여 로그인]
+        window.submitMokjangGateLogin = async function() {
+            if (isGateLoginInProgress) return;
             var nameInput = document.getElementById('gate-input-name');
             var codeInput = document.getElementById('gate-input-code');
             var msgEl = document.getElementById('gate-login-msg');
-            var name = nameInput ? nameInput.value.trim() : '';
+            var submitBtn = document.getElementById('gate-submit-btn');
+
+            var rawName = nameInput ? nameInput.value.trim() : '';
+            var name = rawName.replace(/\s+/g, ''); // 이름 내부 불필요한 공백 제거
             var code = codeInput ? codeInput.value.trim() : '';
 
             if (!name || name.length < 2) {
-                if (msgEl) msgEl.textContent = '이름을 두 글자 이상 입력해 주세요.';
+                if (msgEl) {
+                    msgEl.className = 'text-[11.5px] font-bold text-rose-600 min-h-[18px] mt-2 mb-1.5 text-center leading-tight';
+                    msgEl.textContent = '이름을 두 글자 이상 입력해 주세요.';
+                }
                 if (nameInput) nameInput.focus();
                 return;
             }
             if (!/^[0-9]{4}$/.test(code)) {
-                if (msgEl) msgEl.textContent = '4자리 숫자 목장 코드를 입력해 주세요.';
+                if (msgEl) {
+                    msgEl.className = 'text-[11.5px] font-bold text-rose-600 min-h-[18px] mt-2 mb-1.5 text-center leading-tight';
+                    msgEl.textContent = '4자리 숫자 목장 코드를 입력해 주세요.';
+                }
                 if (codeInput) codeInput.focus();
                 return;
             }
 
-            var cfg = getConfigForCode(code);
-            if (!cfg) {
-                cfg = {
-                    mokjangCode: code,
-                    mokjangName: (currentMokjangShort || '').replace(/^세종꿈의교회\s*/, '') || '23목장',
-                    leaderName: configuredLeaderName || name,
-                    subLeaderName: configuredSubLeaderName || '',
-                    subLeaders: configuredSubLeaders || [],
-                    members: [name],
-                    memberJoinedAt: {}
-                };
-            }
-
-            var cfgCode = cfg.mokjangCode ? String(cfg.mokjangCode).trim() : code;
-            var leaderName = cfg.leaderName ? String(cfg.leaderName).trim() : '목자';
-            var subLeaderName = (cfg.subLeaderName || cfg.subleaderName) ? String(cfg.subLeaderName || cfg.subleaderName).trim() : '';
-            var subLeaders = Array.isArray(cfg.subLeaders) ? cfg.subLeaders.map(function(s) { return String(s).trim(); }) : [];
-            var validMembers = Array.isArray(cfg.members) ? cfg.members.map(function(m) { return typeof m === 'object' ? m.name : String(m).trim(); }) : [];
-            var memberRoles = (cfg.memberRoles && typeof cfg.memberRoles === 'object') ? cfg.memberRoles : {};
-            var joinedMap = (cfg.memberJoinedAt && typeof cfg.memberJoinedAt === 'object') ? cfg.memberJoinedAt : {};
-
-            if (cfg.mokjangCode && cfgCode !== code && code !== '1111') {
-                if (msgEl) msgEl.textContent = '목장 코드가 일치하지 않습니다.';
-                return;
-            }
-
-            var isDefaultMatch = (code === '1111' && (name === '1111' || name === '목자' || name === '관리자'));
-            var isLeaderMatch = (name === leaderName || name === '목자' || name === '관리자' || memberRoles[name] === 'leader' || isDefaultMatch);
-            var isSubLeaderMatch = (!isLeaderMatch && ((subLeaderName && name === subLeaderName) || subLeaders.indexOf(name) !== -1 || name === '부목자' || memberRoles[name] === 'subleader'));
-            var isMemberMatch = (validMembers.length === 0 || validMembers.indexOf(name) !== -1 || validMembers.indexOf('1111') !== -1);
-
-            if (!isLeaderMatch && !isSubLeaderMatch && !isMemberMatch) {
-                if (msgEl) msgEl.textContent = '등록되지 않은 이름입니다. 목자님께 명단 확인을 요청해 주세요.';
-                return;
-            }
-
-            if (isLeaderMatch) {
-                currentUserRole = 'leader';
-                isCurrentUserAdmin = true;
-                currentUserJoinedAt = 0;
-            } else if (isSubLeaderMatch) {
-                currentUserRole = 'subleader';
-                isCurrentUserAdmin = true;
-                currentUserJoinedAt = Number(joinedMap[name] || 0);
-            } else {
-                currentUserRole = 'member';
-                isCurrentUserAdmin = false;
-                currentUserJoinedAt = Number(joinedMap[name] || 0);
-            }
-
-            currentUser = name;
-            currentMokjangCode = code;
-            var cleanM = cfg.mokjangName ? String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '') : '';
-            if (cleanM) {
-                currentMokjangShort = '세종꿈의교회 ' + cleanM;
-                currentMokjang = currentMokjangShort;
+            isGateLoginInProgress = true;
+            if (submitBtn) submitBtn.innerHTML = '<span>확인 중...</span>';
+            if (msgEl) {
+                msgEl.className = 'text-[11.5px] font-bold text-emerald-700 min-h-[18px] mt-2 mb-1.5 text-center leading-tight';
+                msgEl.textContent = '목장 정보를 확인하고 있습니다...';
             }
 
             try {
-                localStorage.setItem('mokjang_active_code', currentMokjangCode);
-                localStorage.setItem('mokjang_user_name', currentUser);
-                localStorage.setItem('mokjang_user_role', currentUserRole);
-                localStorage.setItem('mokjang_is_admin', isCurrentUserAdmin ? 'true' : 'false');
-                localStorage.setItem('mokjang_user_joined_at', String(currentUserJoinedAt));
-                if (cleanM) {
-                    localStorage.setItem('mokjang_short_name', cleanM);
-                    localStorage.setItem('mokjang_name', currentMokjang);
+                // 아직 익명 인증 전이면 먼저 인증 대기 (최대 1.5초)
+                if (auth && !auth.currentUser) {
+                    try { await Promise.race([signInAnonymously(auth), new Promise(function(r){setTimeout(r,1500);})]); } catch (e) {}
                 }
-            } catch (e) {}
 
-            if (msgEl) msgEl.textContent = '';
-            if (nameInput) nameInput.blur();
-            if (codeInput) codeInput.blur();
+                // 1순위: 메모리에 로드된 설정 확인
+                var matchedCfg = allMokjangConfigsMap[code] || null;
+                var mainCfg = allMokjangConfigsMap['main'] || null;
 
-            applyActiveMokjangConfigToFeed(cfg);
-            loadMokjangFeed();
+                // 2순위: 로컬스토리지 백업 확인 (mokjang_config_backup)
+                if (!mainCfg) {
+                    try {
+                        var rawBackup = localStorage.getItem('mokjang_config_backup');
+                        if (rawBackup) mainCfg = JSON.parse(rawBackup);
+                    } catch (e) {}
+                }
+                if (!matchedCfg) {
+                    try {
+                        var rawCodeBackup = localStorage.getItem('mokjang_config_backup_' + code);
+                        if (rawCodeBackup) matchedCfg = JSON.parse(rawCodeBackup);
+                    } catch (e) {}
+                }
 
-            var gate = document.getElementById('mokjang-login-gate');
-            if (gate) {
-                gate.classList.add('opacity-0', 'pointer-events-none');
-                setTimeout(function() { gate.style.display = 'none'; }, 300);
+                // 3순위: 만약 mainCfg의 코드가 입력한 코드와 같으면 매칭
+                if (!matchedCfg && mainCfg) {
+                    var mainCode = String(mainCfg.mokjangCode || '1111').trim();
+                    if (mainCode === code) {
+                        matchedCfg = mainCfg;
+                    }
+                }
+
+                // 4순위: 아직 매칭된 설정이 없으면 조금만(350ms) 기다렸다가 다시 한번 체크 (onSnapshot 수신 대기)
+                if (!matchedCfg && !mainCfg) {
+                    await new Promise(function(r) { setTimeout(r, 350); });
+                    matchedCfg = allMokjangConfigsMap[code] || null;
+                    mainCfg = allMokjangConfigsMap['main'] || null;
+                    if (!matchedCfg && mainCfg && String(mainCfg.mokjangCode || '1111').trim() === code) {
+                        matchedCfg = mainCfg;
+                    }
+                }
+
+                // 최종 비교할 설정 객체 결정
+                var cfg = matchedCfg || mainCfg;
+
+                if (cfg) {
+                    var validCode = cfg.mokjangCode ? String(cfg.mokjangCode).trim() : '1111';
+                    var leaderName = cfg.leaderName ? String(cfg.leaderName).trim().replace(/\s+/g, '') : '목자';
+                    var subLeaderName = (cfg.subLeaderName || cfg.subleaderName) ? String(cfg.subLeaderName || cfg.subleaderName).trim().replace(/\s+/g, '') : '';
+                    var subLeaders = extractCleanMemberNames(cfg.subLeaders).map(function(s){ return s.replace(/\s+/g, ''); });
+                    var validMembers = extractCleanMemberNames(cfg.members).map(function(m){ return m.replace(/\s+/g, ''); });
+                    var memberRoles = (cfg.memberRoles && typeof cfg.memberRoles === 'object') ? cfg.memberRoles : {};
+                    var joinedMap = (cfg.memberJoinedAt && typeof cfg.memberJoinedAt === 'object') ? cfg.memberJoinedAt : {};
+
+                    // 만약 입력한 코드가 기존 메인 설정 코드(validCode)와 다르고, 별도 다중 목장 설정(matchedCfg)도 없는 경우
+                    if (!matchedCfg && code !== validCode && code !== '1111') {
+                        if (msgEl) {
+                            msgEl.className = 'text-[11.5px] font-bold text-rose-600 min-h-[18px] mt-2 mb-1.5 text-center leading-tight';
+                            msgEl.textContent = '목장 코드가 일치하지 않습니다. (현재 등록된 코드와 다름)';
+                        }
+                        return;
+                    }
+
+                    var isDefaultAdmin = (code === '1111' && (name === '1111' || name === '목자' || name === '관리자'));
+                    var isLeaderMatch = (name === leaderName || name === '목자' || name === '관리자' || memberRoles[rawName] === 'leader' || memberRoles[name] === 'leader' || isDefaultAdmin);
+                    var isSubLeaderMatch = (!isLeaderMatch && ((subLeaderName && name === subLeaderName) || subLeaders.indexOf(name) !== -1 || name === '부목자' || memberRoles[rawName] === 'subleader' || memberRoles[name] === 'subleader'));
+                    var isMemberMatch = (validMembers.indexOf(name) !== -1 || validMembers.indexOf(rawName) !== -1 || validMembers.indexOf('1111') !== -1);
+
+                    if (!isLeaderMatch && !isSubLeaderMatch && !isMemberMatch) {
+                        if (msgEl) {
+                            msgEl.className = 'text-[11.5px] font-bold text-rose-600 min-h-[18px] mt-2 mb-1.5 text-center leading-tight';
+                            msgEl.textContent = '명단에 등록되지 않은 성함입니다. 목자님께 확인해 주세요.';
+                        }
+                        return;
+                    }
+
+                    if (isLeaderMatch) {
+                        currentUserRole = 'leader';
+                        isCurrentUserAdmin = true;
+                        currentUserJoinedAt = 0;
+                    } else if (isSubLeaderMatch) {
+                        currentUserRole = 'subleader';
+                        isCurrentUserAdmin = true;
+                        currentUserJoinedAt = Number(joinedMap[rawName] || joinedMap[name] || 0);
+                    } else {
+                        currentUserRole = 'member';
+                        isCurrentUserAdmin = false;
+                        currentUserJoinedAt = Number(joinedMap[rawName] || joinedMap[name] || 0);
+                    }
+
+                    currentUser = rawName;
+                    currentMokjangCode = (code === '1111' && validCode !== '1111') ? validCode : code;
+                    applyActiveMokjangConfigToFeed(cfg, currentUser, currentMokjangCode);
+                } else {
+                    // DB에 아직 아무 설정도 없는 초기 상태일 때
+                    currentUser = rawName;
+                    currentMokjangCode = code;
+                    currentUserRole = 'leader';
+                    isCurrentUserAdmin = true;
+                    currentUserJoinedAt = 0;
+                    applyActiveMokjangConfigToFeed({
+                        mokjangCode: code,
+                        mokjangName: '23목장',
+                        leaderName: rawName,
+                        members: [rawName]
+                    }, currentUser, currentMokjangCode);
+                }
+
+                if (msgEl) msgEl.textContent = '';
+                if (nameInput) nameInput.blur();
+                if (codeInput) codeInput.blur();
+
+                loadMokjangFeed();
+
+                var gate = document.getElementById('mokjang-login-gate');
+                if (gate) {
+                    gate.classList.add('opacity-0', 'pointer-events-none');
+                    setTimeout(function() { gate.style.display = 'none'; }, 300);
+                }
+                showNotification(currentUser + '님 환영합니다!');
+            } finally {
+                isGateLoginInProgress = false;
+                if (submitBtn) submitBtn.innerHTML = '<span>들어가기</span>';
             }
-            showNotification(currentUser + '님 환영합니다!');
         };
 
         (function checkReturnFromAdminDm() {
@@ -7615,7 +7649,7 @@ function syncHeaderMokjangTitleDOM() {
                     var rp = JSON.parse(returnPassRaw);
                     if (rp && rp.token && (Date.now() - (rp.issuedAt || 0) < 8000)) {
                         currentUser = rp.userName || currentUser;
-                        currentMokjangCode = rp.mokjangCode || currentMokjangCode;
+                        currentMokjangCode = rp.mokjangCode || currentMokjangCode || '1111';
                         currentUserRole = rp.role || 'leader';
                         isCurrentUserAdmin = true;
                         currentUserJoinedAt = 0;
@@ -7632,8 +7666,6 @@ function syncHeaderMokjangTitleDOM() {
                 }
             } catch (e) {}
         })();
-
-        setTimeout(initMultiMokjangConfigsListener, 200);
     </script>
 </body>
 </html>
