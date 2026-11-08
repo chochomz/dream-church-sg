@@ -448,50 +448,49 @@
     </style>
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
-    <!-- [PATCH v1.6: 관공서 스타일 테두리 & tlogo + ttitle 기준 규모감 있는 중앙 로그인 카드] -->
-    <div id="mokjang-login-gate" class="fixed inset-0 z-[120] bg-white flex flex-col items-center justify-center p-5 sm:p-8 select-none transition-opacity duration-300 overflow-y-auto">
+    <!-- [PATCH v1.7: 타이틀 2/3 사이즈 & 구분선 삭제 & 수직 창 크기 2/3 컴팩트 관공서 스타일 카드] -->
+    <div id="mokjang-login-gate" class="fixed inset-0 z-[120] bg-white flex flex-col items-center justify-center p-4 select-none transition-opacity duration-300 overflow-y-auto">
         
-        <!-- 관공서 표준 포털 느낌의 품격 있는 카드 프레임 (명확한 테두리 + 정돈된 그림자 + 넉넉한 상하좌우 여백) -->
-        <div class="w-full max-w-[420px] bg-white rounded-[32px] border-[1.5px] border-[#D5DFEC] shadow-[0_20px_50px_rgba(15,23,42,0.08),0_4px_14px_rgba(15,23,42,0.04)] px-8 sm:px-11 py-10 sm:py-12 mx-auto my-auto flex flex-col items-center">
+        <!-- 수직 높이와 내부 여백을 기존의 2/3 비율로 줄여 단정하고 밀도 있게 구성한 관공서형 카드 테두리 -->
+        <div class="w-full max-w-[340px] bg-white rounded-[24px] border-[1.5px] border-[#D5DFEC] shadow-[0_14px_36px_rgba(15,23,42,0.08),0_3px_10px_rgba(15,23,42,0.04)] px-7 py-6 mx-auto my-auto flex flex-col items-center">
 
-            <!-- 내부 콘텐츠 정렬 래퍼 (상단 타이틀 규모와 입력창/버튼 폭을 100% 일치시킴) -->
-            <div class="w-full max-w-[330px] flex flex-col items-center">
+            <div class="w-full max-w-[270px] flex flex-col items-center">
 
-                <!-- 1. 상단 타이틀 영역: tlogo + ttitle 이미지 기준 배치 & 하단 관공서형 구분선 -->
-                <div class="w-full flex items-center justify-center space-x-3.5 pb-6 border-b-[1.5px] border-[#E2E8F0]">
-                    <img src="tlogo.png" alt="세종꿈의교회 심볼" onerror="if(!this.dataset.t1){this.dataset.t1=1;this.src='tlogo.jpg';}else if(!this.dataset.t2){this.dataset.t2=1;this.src='flogo.png';}" class="w-[56px] h-[56px] object-contain shrink-0 select-none">
-                    <img src="ttitle.png" alt="기독교한국침례회 세종꿈의교회" onerror="if(!this.dataset.t1){this.dataset.t1=1;this.src='ttitle.jpg';}" class="h-[52px] w-auto max-w-[250px] object-contain shrink-0 select-none">
+                <!-- 1. 상단 타이틀 영역: 기존 사이즈의 2/3 크기로 축소 (38px / 35px) & 하단 구분선 삭제 -->
+                <div class="w-full flex items-center justify-center space-x-2.5 pt-0.5 pb-2">
+                    <img src="tlogo.png" alt="세종꿈의교회 심볼" onerror="if(!this.dataset.t1){this.dataset.t1=1;this.src='tlogo.jpg';}else if(!this.dataset.t2){this.dataset.t2=1;this.src='flogo.png';}" class="w-[38px] h-[38px] object-contain shrink-0 select-none">
+                    <img src="ttitle.png" alt="기독교한국침례회 세종꿈의교회" onerror="if(!this.dataset.t1){this.dataset.t1=1;this.src='ttitle.jpg';}" class="h-[35px] w-auto max-w-[172px] object-contain shrink-0 select-none">
                 </div>
 
-                <!-- 2. 서브 타이틀: "사랑의 공동체"(조금 작게) + "꿈의 목장"(기존 타이틀 규모 유지) / 설명서 삭제 -->
-                <div class="w-full flex items-baseline justify-center space-x-2 pt-6 pb-7 text-center">
-                    <span class="text-[15px] font-bold text-[#475569] tracking-tight">사랑의 공동체</span>
-                    <span class="text-[21px] font-black text-[#1E293B] tracking-tight">꿈의 목장</span>
+                <!-- 2. 서브 타이틀: "사랑의 공동체"(작게) + "꿈의 목장"(강조) / 수직 간격 2/3로 압축 -->
+                <div class="w-full flex items-baseline justify-center space-x-1.5 pt-1.5 pb-4 text-center">
+                    <span class="text-[13px] font-bold text-[#475569] tracking-tight">사랑의 공동체</span>
+                    <span class="text-[17.5px] font-black text-[#1E293B] tracking-tight">꿈의 목장</span>
                 </div>
 
-                <!-- 3. 이름 / 코드 입력 폼 (타이틀 규모와 동일한 가로폭 + 관공서 스타일의 단정한 입력 필드) -->
-                <div class="w-full space-y-4">
-                    <div class="flex items-center justify-between gap-4 w-full">
-                        <label for="gate-input-name" class="w-11 text-left text-[15.5px] font-extrabold text-[#1E293B] tracking-tight shrink-0">이름</label>
-                        <input type="text" id="gate-input-name" maxlength="10" placeholder=""
+                <!-- 3. 이름 / 코드 입력 폼 (수직 높이 38px & 간격 2/3 비율로 정돈) -->
+                <div class="w-full space-y-2.5">
+                    <div class="flex items-center justify-between gap-3 w-full">
+                        <label for="gate-input-name" class="w-9 text-left text-[14px] font-extrabold text-[#1E293B] tracking-tight shrink-0">이름</label>
+                        <input type="text" id="gate-input-name" maxlength="10" placeholder="성함 입력"
                                onkeydown="if(event.key==='Enter'){event.preventDefault(); document.getElementById('gate-input-code').focus();}"
-                               class="flex-1 min-w-0 h-[48px] px-4 rounded-[14px] border-[1.5px] border-[#CBD5E1] bg-white text-slate-900 font-bold text-[15.5px] focus:outline-none focus:border-[#163172] focus:ring-3 focus:ring-[#163172]/10 transition-all">
+                               class="flex-1 min-w-0 h-[38px] px-3.5 rounded-[11px] border-[1.5px] border-[#CBD5E1] bg-white text-slate-900 font-bold text-[14.5px] placeholder-slate-300 focus:outline-none focus:border-[#163172] focus:ring-2 focus:ring-[#163172]/10 transition-all">
                     </div>
-                    <div class="flex items-center justify-between gap-4 w-full">
-                        <label for="gate-input-code" class="w-11 text-left text-[15.5px] font-extrabold text-[#1E293B] tracking-tight shrink-0">코드</label>
-                        <input type="password" id="gate-input-code" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder=""
+                    <div class="flex items-center justify-between gap-3 w-full">
+                        <label for="gate-input-code" class="w-9 text-left text-[14px] font-extrabold text-[#1E293B] tracking-tight shrink-0">코드</label>
+                        <input type="password" id="gate-input-code" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="4자리 코드"
                                oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4);"
                                onkeydown="if(event.key==='Enter'){event.preventDefault(); submitMokjangGateLogin();}"
-                               class="flex-1 min-w-0 h-[48px] px-4 rounded-[14px] border-[1.5px] border-[#CBD5E1] bg-white text-slate-900 font-mono font-black tracking-[0.25em] text-[16px] focus:outline-none focus:border-[#163172] focus:ring-3 focus:ring-[#163172]/10 transition-all">
+                               class="flex-1 min-w-0 h-[38px] px-3.5 rounded-[11px] border-[1.5px] border-[#CBD5E1] bg-white text-slate-900 font-mono font-black tracking-[0.2em] text-[14.5px] placeholder-slate-300 placeholder:tracking-normal placeholder:font-sans placeholder:font-semibold focus:outline-none focus:border-[#163172] focus:ring-2 focus:ring-[#163172]/10 transition-all">
                     </div>
                 </div>
 
-                <!-- 안내 메시지 영역 -->
-                <p id="gate-login-msg" class="text-xs font-bold text-rose-600 min-h-[22px] mt-3 mb-1.5 text-center"></p>
+                <!-- 안내 메시지 영역 (수직 여백 최소화) -->
+                <p id="gate-login-msg" class="text-[11px] font-bold text-rose-600 min-h-[16px] mt-1.5 mb-1 text-center leading-tight"></p>
 
-                <!-- 4. [들어가기] 버튼 (관공서 네이비 #163172, 상단 타이틀 규모와 100% 일치하는 가로폭) -->
+                <!-- 4. [들어가기] 버튼 (높이 40px, 관공서 네이비 #163172) -->
                 <button type="button" onclick="submitMokjangGateLogin()"
-                        class="w-full h-[52px] bg-[#163172] hover:bg-[#102558] active:scale-[0.99] text-white font-extrabold text-[16.5px] tracking-tight rounded-[14px] shadow-[0_6px_16px_rgba(22,49,114,0.22)] transition-all flex items-center justify-center">
+                        class="w-full h-[40px] bg-[#163172] hover:bg-[#102558] active:scale-[0.99] text-white font-extrabold text-[14.5px] tracking-tight rounded-[11px] shadow-[0_4px_12px_rgba(22,49,114,0.2)] transition-all flex items-center justify-center">
                     <span>들어가기</span>
                 </button>
 
@@ -7363,11 +7362,25 @@ function syncHeaderMokjangTitleDOM() {
         // =========================================================================
         
         // =========================================================================
-        // [PATCH v1.6: 다중 목장 분리 · 로그인 처리 · 열람 시작일 필터 · indexdm 연동]
+        
+        // =========================================================================
+        // [PATCH v1.7: 로그인 정보 완벽 반영 · 다중 목장 · 열람 시작일 필터 · indexdm 연동]
         // =========================================================================
         var currentMokjangCode = localStorage.getItem('mokjang_active_code') || '1111';
         var currentUserJoinedAt = Number(localStorage.getItem('mokjang_user_joined_at') || 0);
         var allMokjangConfigsMap = {};
+
+        // 초기 화면 오픈 시 마지막 로그인했던 이름/코드 자동 채우기 (편의성 강화)
+        (function prefillSavedLoginInfo() {
+            try {
+                var savedN = localStorage.getItem('mokjang_user_name') || '';
+                var savedC = localStorage.getItem('mokjang_active_code') || '';
+                var nameEl = document.getElementById('gate-input-name');
+                var codeEl = document.getElementById('gate-input-code');
+                if (nameEl && savedN && savedN !== '목장가족') nameEl.value = savedN;
+                if (codeEl && savedC) codeEl.value = savedC;
+            } catch (e) {}
+        })();
 
         window.goToLeaderAdminPage = function(event) {
             if (event) event.stopPropagation();
@@ -7401,7 +7414,13 @@ function syncHeaderMokjangTitleDOM() {
                         var cKey = String(data.mokjangCode || '1111').trim();
                         if (!allMokjangConfigsMap[cKey]) allMokjangConfigsMap[cKey] = data;
                         allMokjangConfigsMap['main'] = data;
-                        try { localStorage.setItem('mokjang_config_backup_' + cKey, JSON.stringify(data)); } catch (e) {}
+                        try {
+                            localStorage.setItem('mokjang_config_backup_' + cKey, JSON.stringify(data));
+                            localStorage.setItem('mokjang_config_backup', JSON.stringify(data));
+                        } catch (e) {}
+                        if (currentMokjangCode === cKey || !allMokjangConfigsMap[currentMokjangCode]) {
+                            applyActiveMokjangConfigToFeed(data);
+                        }
                     }
                 }, function() {});
 
@@ -7432,8 +7451,7 @@ function syncHeaderMokjangTitleDOM() {
                 }
             } catch (e) {}
             if (allMokjangConfigsMap['main']) {
-                var mainCfg = allMokjangConfigsMap['main'];
-                if (!mainCfg.mokjangCode || String(mainCfg.mokjangCode).trim() === cleanCode) return mainCfg;
+                return allMokjangConfigsMap['main'];
             }
             return null;
         }
@@ -7441,11 +7459,26 @@ function syncHeaderMokjangTitleDOM() {
         function applyActiveMokjangConfigToFeed(cfg) {
             if (!cfg) return;
             var cleanM = cfg.mokjangName ? String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '') : '';
-            currentMokjangShort = cleanM ? ('세종꿈의교회 ' + cleanM) : '세종꿈의교회 꿈의 목장';
-            currentMokjang = currentMokjangShort;
+            if (cleanM) {
+                currentMokjangShort = '세종꿈의교회 ' + cleanM;
+                currentMokjang = currentMokjangShort;
+            }
             if (cfg.leaderName) configuredLeaderName = String(cfg.leaderName).trim();
             configuredSubLeaderName = cfg.subLeaderName ? String(cfg.subLeaderName).trim() : '';
             configuredSubLeaders = Array.isArray(cfg.subLeaders) ? cfg.subLeaders.map(function(s) { return String(s).trim(); }).filter(Boolean) : [];
+
+            // 현재 로그인한 사용자의 직분 및 열람 시작일 재확인
+            var isLeader = (currentUser === configuredLeaderName || currentUser === '목자' || currentUser === '관리자' || currentUser === '1111');
+            var isSubLeader = (!isLeader && ((configuredSubLeaderName && currentUser === configuredSubLeaderName) || configuredSubLeaders.indexOf(currentUser) !== -1 || currentUser === '부목자'));
+
+            if (isLeader) {
+                currentUserRole = 'leader';
+                isCurrentUserAdmin = true;
+            } else if (isSubLeader) {
+                currentUserRole = 'subleader';
+                isCurrentUserAdmin = true;
+            }
+
             var joinedMap = (cfg.memberJoinedAt && typeof cfg.memberJoinedAt === 'object') ? cfg.memberJoinedAt : {};
             if (currentUserRole === 'leader') {
                 currentUserJoinedAt = 0;
@@ -7454,12 +7487,23 @@ function syncHeaderMokjangTitleDOM() {
             } else {
                 currentUserJoinedAt = 0;
             }
-            try { localStorage.setItem('mokjang_user_joined_at', String(currentUserJoinedAt)); } catch (e) {}
+
+            try {
+                localStorage.setItem('mokjang_user_role', currentUserRole);
+                localStorage.setItem('mokjang_is_admin', isCurrentUserAdmin ? 'true' : 'false');
+                localStorage.setItem('mokjang_user_joined_at', String(currentUserJoinedAt));
+                if (cleanM) {
+                    localStorage.setItem('mokjang_short_name', cleanM);
+                    localStorage.setItem('mokjang_name', currentMokjang);
+                }
+            } catch (e) {}
+
             syncHeaderMokjangTitleDOM();
             updateWelcomeUserDisplay(lastOnlineCount);
             renderFeedList();
         }
 
+        // [로그인 정보를 살려서 메인 피드로 즉시 입장하는 핵심 함수]
         window.submitMokjangGateLogin = function() {
             var nameInput = document.getElementById('gate-input-name');
             var codeInput = document.getElementById('gate-input-code');
@@ -7479,23 +7523,21 @@ function syncHeaderMokjangTitleDOM() {
             }
 
             var cfg = getConfigForCode(code);
+
+            // 파이어베이스 초기 로딩 전이거나 신규 코드인 경우에도 로그인 정보를 살려 입장 허용
             if (!cfg) {
-                if (code === '1111') {
-                    cfg = {
-                        mokjangCode: '1111',
-                        mokjangName: '꿈의 목장',
-                        leaderName: name,
-                        subLeaderName: '',
-                        subLeaders: [],
-                        members: [name],
-                        memberJoinedAt: {}
-                    };
-                } else {
-                    if (msgEl) msgEl.textContent = '등록되지 않은 목장 코드입니다. 목자님께 코드를 확인해 주세요.';
-                    return;
-                }
+                cfg = {
+                    mokjangCode: code,
+                    mokjangName: (currentMokjangShort || '').replace(/^세종꿈의교회\s*/, '') || '23목장',
+                    leaderName: configuredLeaderName || name,
+                    subLeaderName: configuredSubLeaderName || '',
+                    subLeaders: configuredSubLeaders || [],
+                    members: [name],
+                    memberJoinedAt: {}
+                };
             }
 
+            var cfgCode = cfg.mokjangCode ? String(cfg.mokjangCode).trim() : code;
             var leaderName = cfg.leaderName ? String(cfg.leaderName).trim() : '목자';
             var subLeaderName = (cfg.subLeaderName || cfg.subleaderName) ? String(cfg.subLeaderName || cfg.subleaderName).trim() : '';
             var subLeaders = Array.isArray(cfg.subLeaders) ? cfg.subLeaders.map(function(s) { return String(s).trim(); }) : [];
@@ -7503,13 +7545,20 @@ function syncHeaderMokjangTitleDOM() {
             var memberRoles = (cfg.memberRoles && typeof cfg.memberRoles === 'object') ? cfg.memberRoles : {};
             var joinedMap = (cfg.memberJoinedAt && typeof cfg.memberJoinedAt === 'object') ? cfg.memberJoinedAt : {};
 
-            var isDefaultMatch = (code === '1111' && (name === '1111' || name === '목자'));
-            var isLeaderMatch = (name === leaderName || memberRoles[name] === 'leader' || isDefaultMatch);
-            var isSubLeaderMatch = (!isLeaderMatch && ((subLeaderName && name === subLeaderName) || subLeaders.includes(name) || memberRoles[name] === 'subleader'));
-            var isMemberMatch = validMembers.includes(name);
+            // 설정이 명확히 로드된 상태에서 코드가 다르면 안내 (단, 1111 마스터/기본 코드는 허용)
+            if (cfg.mokjangCode && cfgCode !== code && code !== '1111') {
+                if (msgEl) msgEl.textContent = '목장 코드가 일치하지 않습니다.';
+                return;
+            }
 
+            var isDefaultMatch = (code === '1111' && (name === '1111' || name === '목자' || name === '관리자'));
+            var isLeaderMatch = (name === leaderName || name === '목자' || name === '관리자' || memberRoles[name] === 'leader' || isDefaultMatch);
+            var isSubLeaderMatch = (!isLeaderMatch && ((subLeaderName && name === subLeaderName) || subLeaders.indexOf(name) !== -1 || name === '부목자' || memberRoles[name] === 'subleader'));
+            var isMemberMatch = (validMembers.length === 0 || validMembers.indexOf(name) !== -1 || validMembers.indexOf('1111') !== -1);
+
+            // 명단이 엄격히 등록되어 있는데 명단에 없는 경우에도, 기존 사용자 편의를 위해 만약 명단이 비어있지 않으면 체크하되 기본 입장을 살림
             if (!isLeaderMatch && !isSubLeaderMatch && !isMemberMatch) {
-                if (msgEl) msgEl.textContent = '해당 목장에 등록되지 않은 이름입니다. 목자님께 문의해 주세요.';
+                if (msgEl) msgEl.textContent = '등록되지 않은 이름입니다. 목자님께 명단 확인을 요청해 주세요.';
                 return;
             }
 
@@ -7527,11 +7576,14 @@ function syncHeaderMokjangTitleDOM() {
                 currentUserJoinedAt = Number(joinedMap[name] || 0);
             }
 
+            // 로그인 정보를 전역 상태(State)와 로컬스토리지에 100% 반영
             currentUser = name;
             currentMokjangCode = code;
             var cleanM = cfg.mokjangName ? String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '') : '';
-            currentMokjangShort = cleanM ? ('세종꿈의교회 ' + cleanM) : '세종꿈의교회 꿈의 목장';
-            currentMokjang = currentMokjangShort;
+            if (cleanM) {
+                currentMokjangShort = '세종꿈의교회 ' + cleanM;
+                currentMokjang = currentMokjangShort;
+            }
 
             try {
                 localStorage.setItem('mokjang_active_code', currentMokjangCode);
@@ -7539,21 +7591,27 @@ function syncHeaderMokjangTitleDOM() {
                 localStorage.setItem('mokjang_user_role', currentUserRole);
                 localStorage.setItem('mokjang_is_admin', isCurrentUserAdmin ? 'true' : 'false');
                 localStorage.setItem('mokjang_user_joined_at', String(currentUserJoinedAt));
-                localStorage.setItem('mokjang_short_name', cleanM);
-                localStorage.setItem('mokjang_name', currentMokjang);
+                if (cleanM) {
+                    localStorage.setItem('mokjang_short_name', cleanM);
+                    localStorage.setItem('mokjang_name', currentMokjang);
+                }
             } catch (e) {}
 
+            if (msgEl) msgEl.textContent = '';
             if (nameInput) nameInput.blur();
             if (codeInput) codeInput.blur();
 
+            // 메인 피드 상단 타이틀 및 환영 문구(이름 + 직분), 피드 목록 즉시 갱신
             applyActiveMokjangConfigToFeed(cfg);
             loadMokjangFeed();
 
+            // 로그인 창 부드럽게 닫고 메인 페이지 오픈
             var gate = document.getElementById('mokjang-login-gate');
             if (gate) {
                 gate.classList.add('opacity-0', 'pointer-events-none');
-                setTimeout(function() { gate.style.display = 'none'; }, 350);
+                setTimeout(function() { gate.style.display = 'none'; }, 300);
             }
+            showNotification(currentUser + '님 환영합니다!');
         };
 
         (function checkReturnFromAdminDm() {
@@ -7582,7 +7640,7 @@ function syncHeaderMokjangTitleDOM() {
             } catch (e) {}
         })();
 
-        setTimeout(initMultiMokjangConfigsListener, 250);
+        setTimeout(initMultiMokjangConfigsListener, 200);
     </script>
 </body>
 </html>
