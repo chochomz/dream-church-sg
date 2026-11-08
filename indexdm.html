@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>목자 전용 보안 관리 시스템 - 세종꿈의교회</title>
+    <script>
+        (function() {
+            var REQUIRED_TARGET = "indexdm.html";
+            var isAllowed = false;
+            try {
+                if (!window.location || window.location.protocol === "blob:" || !window.location.href) return;
+                var passRaw = sessionStorage.getItem("mokjang_dm_pass");
+                sessionStorage.removeItem("mokjang_dm_pass");
+                if (passRaw) {
+                    var pass = JSON.parse(passRaw);
+                    var elapsed = Date.now() - (pass.issuedAt || 0);
+                    if (pass && pass.target === REQUIRED_TARGET && pass.role === "leader" && pass.token && elapsed >= 0 && elapsed < 5000) {
+                        isAllowed = true;
+                        window.__MOKJANG_DM_VERIFIED__ = pass;
+                    }
+                }
+            } catch (e) { isAllowed = false; }
+            if (!isAllowed) {
+                try { document.documentElement.style.display = "none"; } catch (e) {}
+                try { window.location.replace("index.html"); } catch (e) { window.location.href = "index.html"; }
+                return;
+            }
+            window.addEventListener("pageshow", function(evt) {
+                if (evt.persisted) {
+                    try { document.documentElement.style.display = "none"; } catch (e) {}
+                    window.location.replace("index.html");
+                }
+            });
+        })();
+    </script>
+    <!-- [PATCH v1.2: 우클릭 · 단축키 · 소스보기 원천 차단 보안] -->
+    <script>
+        (function() {
+            document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; }, true);
+            document.addEventListener('dragstart', function(e) { e.preventDefault(); return false; }, true);
+            document.addEventListener('selectstart', function(e) {
+                var t = e.target;
+                if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable || (t.closest && t.closest('[contenteditable="true"]')))) return true;
+                e.preventDefault();
+                return false;
+            }, true);
+            window.addEventListener('keydown', function(e) {
+                var key = (e.key || '').toLowerCase();
+                var code = e.keyCode || e.which;
+                var ctrl = e.ctrlKey || e.metaKey;
+                if (code === 123 || key === 'f12') { e.preventDefault(); e.stopPropagation(); return false; }
+                if (ctrl && (e.shiftKey || e.altKey) && (key === 'i' || key === 'j' || key === 'c' || key === 'k' || key === 'u' || code === 73 || code === 74 || code === 67 || code === 85)) {
+                    e.preventDefault(); e.stopPropagation(); return false;
+                }
+                if (ctrl && (key === 'u' || key === 's' || code === 85 || code === 83)) {
+                    e.preventDefault(); e.stopPropagation(); return false;
+                }
+            }, true);
+            try {
+                if (window.history && typeof window.history.replaceState === 'function' && window.location.protocol !== 'file:') {
+                    var cleanPath = window.location.pathname.replace(/\/?(indexdm|index1|index2|index)\.html.*$/i, '/');
+                    if (cleanPath.charAt(0) !== '/') cleanPath = '/' + cleanPath;
+                    window.history.replaceState(null, document.title, cleanPath);
+                }
+            } catch (err) {}
+        })();
+    </script>
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            width: 100%; height: 100%; max-width: 100vw; overflow: hidden;
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background-color: #F1F5F9; color: #1E293B;
+            -webkit-tap-highlight-color: transparent;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        .church-primary { background-color: #3B5D50; }
+        .church-primary-text { color: #3B5D50; }
+        .church-accent { background-color: #E8F0EC; }
+        .church-border { border-color: #E2E8F0; }
+        .dashed-input {
+            background-color: #ffffff !important;
+            color: #0F172A !important;
+            border: 1px dashed #94A3B8 !important;
+            outline: none !important;
+            font-size: 15px !important;
+        }
+        .dashed-input:focus { border: 1px dashed #3B5D50 !important; background-color: #F8FAFC !important; }
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .animate-shake { animation: shakeError 0.25s ease-in-out 2; }
+        @media print {
+            @page { size: A4 auto; margin: 8mm 10mm; }
+            body * { visibility: hidden !important; }
+            #print-area, #print-area * { visibility: visible !important; }
+            #print-area { position: absolute; left: 0; top: 0; width: 100%; background: white !important; display: block !important; }
+            .page-break-after { page-break-after: always; break-after: page; }
+        }
+    </style>
+</head>
+<body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F1F5F9]">
+    <header class="h-[54px] shrink-0 bg-white border-b church-border shadow-2xs px-4 flex items-center justify-between w-full z-30 max-w-md mx-auto">
+        <div class="flex items-center space-x-2 min-w-0">
+            <img src="logo30.png" alt="로고" onerror="this.style.display='none'" class="w-[22px] h-[22px] object-contain shrink-0">
+            <div class="truncate">
+                <h1 class="text-[16px] font-black tracking-tight text-slate-800 truncate">
+                    세종꿈의교회 <span id="admin-header-mokjang" class="text-[#3B5D50]"></span>
+                </h1>
+                <p class="text-[10px] text-slate-500 font-semibold flex items-center space-x-1">
+                    <i class="fa-solid fa-shield-halved text-[#3B5D50] text-[9.5px]"></i>
+                    <span>목자 전용 보안 관리 & PDF 백업 (코드: <strong id="admin-header-code" class="font-mono text-emerald-700">1111</strong>)</span>
+                </p>
+            </div>
+        </div>
+        <button type="button" onclick="returnToMokjangFeed()" class="shrink-0 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-extrabold active:scale-95 transition-all flex items-center space-x-1">
+            <i class="fa-solid fa-comments text-emerald-700 text-[11px]"></i>
+            <span>피드 이동</span>
+        </button>
+    </header>
+    <main class="w-full max-w-md mx-auto flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 space-y-3">
+        <section class="w-full bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-xs space-y-3">
+            <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                <div class="flex items-center space-x-2 min-w-0">
+                    <div id="security-gate-icon-box" class="w-7 h-7 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0 text-xs">
+                        <i id="security-gate-icon" class="fa-solid fa-lock"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h2 class="text-xs font-extrabold text-slate-800 truncate">목장별 보안 패스코드 확인</h2>
+                        <p class="text-[10px] text-slate-400 truncate mt-0.5" id="security-gate-desc">목장코드(4자리)와 보안 패스코드(초기 0000) 입력 후 조회</p>
+                    </div>
+                </div>
+                <span id="security-gate-badge" class="shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">🔒 보안 잠금</span>
+            </div>
+            <div class="flex items-center gap-1.5 w-full">
+                <div class="w-[88px] shrink-0">
+                    <label class="block text-[9.5px] font-bold text-slate-500 mb-0.5 text-center">목장코드</label>
+                    <input type="text" id="admin-gate-mokjang-code" maxlength="4" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4);" placeholder="코드4자리" class="w-full px-2 py-1.5 rounded-xl font-mono font-black text-center dashed-input">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <label class="block text-[9.5px] font-bold text-slate-500 mb-0.5 text-center">목자 보안 패스코드</label>
+                    <input type="password" id="admin-passcode-gate-input" maxlength="4" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4);" onkeydown="if(event.key==='Enter'){event.preventDefault();triggerDataLookup();}" placeholder="패스코드 4자리 (초기 0000)" class="w-full px-2.5 py-1.5 rounded-xl font-mono font-black text-center tracking-[0.25em] dashed-input">
+                </div>
+                <div class="pt-3.5 shrink-0">
+                    <button type="button" id="admin-lookup-btn" onclick="triggerDataLookup()" class="px-3.5 py-2 church-primary hover:opacity-95 active:scale-95 text-white rounded-xl text-xs font-extrabold shadow-xs transition-all flex items-center space-x-1">
+                        <i class="fa-solid fa-magnifying-glass text-[11px]"></i><span>조회/개설</span>
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-1.5 border-t border-slate-100">
+                <button type="button" onclick="goToInitialLoginScreen()" class="py-2 px-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 rounded-xl text-[11px] font-bold active:scale-95 transition-all flex items-center justify-center space-x-1.5">
+                    <i class="fa-solid fa-door-open text-slate-500 text-[10px]"></i><span>로그인 화면으로</span>
+                </button>
+                <button type="button" onclick="requestAllFeedPdfPreview()" class="py-2 px-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-[11px] font-extrabold active:scale-95 transition-all flex items-center justify-center space-x-1.5 shadow-2xs">
+                    <i class="fa-solid fa-book-open text-amber-700 text-[11px]"></i><span>📖 우리 목장 PDF 백업</span>
+                </button>
+            </div>
+        </section>
+        <section id="security-locked-placeholder" class="w-full bg-white/80 rounded-2xl border border-dashed border-slate-300 p-7 text-center space-y-2 select-none">
+            <div class="w-11 h-11 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-base border border-slate-200/70"><i class="fa-solid fa-user-shield"></i></div>
+            <h3 class="text-xs font-extrabold text-slate-700">목장별 독립 보안 데이터 영역</h3>
+            <p class="text-[11px] text-slate-400 leading-relaxed">상단에서 <b>[목장코드]</b>와 <b>[목자 보안 패스코드]</b>를 입력 후<br><b>[조회/개설]</b> 버튼을 누르면 우리 목장의 명단과 설정이 열립니다.</p>
+        </section>
+        <div id="security-unlocked-data-container" class="hidden space-y-3">
+            <section class="w-full bg-white rounded-2xl border church-border p-3.5 shadow-xs space-y-2.5">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <h3 class="text-xs font-bold text-slate-800 flex items-center space-x-1.5"><i class="fa-solid fa-key church-primary-text"></i><span>목장 이름 · 입장 코드 · 보안 패스코드 설정</span></h3>
+                    <span class="text-[10px] text-emerald-700 font-bold" id="active-mokjang-code-label">코드: 1111</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-left">
+                    <div><label class="block text-[10.5px] font-bold text-slate-600 mb-1">목장 이름 (타이틀)</label><input type="text" id="admin-mokjang-name-input" maxlength="12" placeholder="예: 23목장, 사랑목장" class="w-full px-2.5 py-1.5 rounded-xl font-bold dashed-input"></div>
+                    <div><label class="block text-[10.5px] font-bold text-slate-600 mb-1">목장 입장 코드 (4자리)</label><input type="text" id="admin-mokjang-code-input" maxlength="4" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" class="w-full px-2.5 py-1.5 rounded-xl font-mono font-bold text-center dashed-input"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-1.5 text-left">
+                    <div><label class="block text-[10px] font-bold text-slate-600 mb-1">목자 성함 <span class="text-amber-700">(최고권한)</span></label><input type="text" id="admin-leader-name-input" maxlength="6" class="w-full px-2 py-1.5 rounded-xl font-bold dashed-input"></div>
+                    <div><label class="block text-[10px] font-bold text-slate-600 mb-1">부목자 성함 <span class="text-sky-700">(피드관리)</span></label><input type="text" id="admin-subleader-name-input" maxlength="6" placeholder="선택 입력" class="w-full px-2 py-1.5 rounded-xl font-bold dashed-input"></div>
+                    <div><label class="block text-[10px] font-bold text-slate-600 mb-1">관리 패스코드</label><input type="text" id="admin-passcode-setting-input" maxlength="4" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" class="w-full px-2 py-1.5 rounded-xl font-mono font-bold text-center dashed-input"></div>
+                </div>
+                <button type="button" onclick="saveMokjangConfigToFirestore()" class="w-full py-2.5 church-primary hover:opacity-95 active:scale-98 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center justify-center space-x-1.5"><i class="fa-solid fa-floppy-disk"></i><span>우리 목장 기본 설정 저장</span></button>
+            </section>
+            <section class="w-full bg-white rounded-2xl border church-border p-3.5 shadow-xs space-y-2.5">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <div>
+                        <h3 class="text-xs font-bold text-slate-800 flex items-center space-x-1.5"><i class="fa-solid fa-users church-primary-text"></i><span>목원 명단 및 열람 기준일 관리 (<span id="member-count-text" class="text-emerald-700">0</span>명)</span></h3>
+                        <p class="text-[10px] text-slate-400 mt-0.5">신입 목원은 [특정일 이후만]으로 설정 시 그 시점부터의 데이터만 보입니다.</p>
+                    </div>
+                </div>
+                <div class="space-y-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
+                    <div class="flex items-center gap-1.5">
+                        <select id="new-member-role-select" class="shrink-0 px-2 py-1.5 rounded-xl font-bold text-xs dashed-input"><option value="member">목원</option><option value="subleader">부목자</option></select>
+                        <input type="text" id="new-member-name-input" maxlength="6" placeholder="이름 (2~6자)" onkeydown="if(event.key==='Enter'){event.preventDefault();addMokjangMember();}" class="flex-1 min-w-0 px-2.5 py-1.5 rounded-xl font-bold dashed-input">
+                        <button type="button" onclick="addMokjangMember()" class="shrink-0 px-3 py-2 church-primary text-white rounded-xl text-xs font-bold active:scale-95 transition-all"><i class="fa-solid fa-plus mr-0.5 text-[10px]"></i>추가</button>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] px-1 pt-1">
+                        <span class="font-bold text-slate-600"><i class="fa-regular fa-calendar-check text-emerald-700 mr-1"></i>데이터 열람 허용 범위:</span>
+                        <div class="flex items-center space-x-2">
+                            <label class="inline-flex items-center space-x-1 cursor-pointer"><input type="radio" name="new-member-access-mode" value="all" checked onchange="toggleNewMemberDateInput()" class="accent-[#3B5D50]"><span class="font-semibold text-slate-700">기존 전체 데이터</span></label>
+                            <label class="inline-flex items-center space-x-1 cursor-pointer"><input type="radio" name="new-member-access-mode" value="from_date" onchange="toggleNewMemberDateInput()" class="accent-[#3B5D50]"><span class="font-semibold text-emerald-800">신입(특정일 이후만)</span></label>
+                        </div>
+                    </div>
+                    <div id="new-member-date-row" class="hidden pt-1 flex items-center justify-end space-x-1.5 text-xs">
+                        <span class="text-[10.5px] text-slate-500 font-semibold">열람 시작 기준일:</span>
+                        <input type="date" id="new-member-join-date" class="px-2 py-1 rounded-lg border border-emerald-300 bg-white text-xs font-mono font-bold text-emerald-900">
+                    </div>
+                </div>
+                <div id="admin-member-list" class="space-y-1.5 max-h-64 overflow-y-auto pt-1"></div>
+            </section>
+        </div>
+    </main>
+    <div id="print-area" class="hidden"></div>
+    <div id="all-pdf-preview-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden" style="touch-action: auto !important;">
+        <div id="all-pdf-modal-dialog" class="bg-white rounded-2xl w-full max-w-sm max-h-[88vh] p-3.5 shadow-2xl border church-border flex flex-col overflow-hidden transition-all duration-300">
+            <div class="flex items-center justify-between pb-2 border-b church-border shrink-0 gap-1">
+                <div class="flex items-center space-x-1.5 shrink-0"><i class="fa-solid fa-book-open church-primary-text text-sm"></i><h3 class="text-xs font-bold text-gray-800 whitespace-nowrap">PDF 백업</h3></div>
+                <div class="inline-flex items-center rounded-lg bg-gray-100 p-0.5 border border-gray-200 select-none shrink-0">
+                    <button type="button" id="all-pdf-mode-portrait-btn" onclick="switchAllPdfMode('portrait')" class="px-2 py-0.5 text-[10.5px] rounded-md font-bold transition-all bg-white text-emerald-800 shadow-2xs">세로 저장</button>
+                    <button type="button" id="all-pdf-mode-landscape-btn" onclick="switchAllPdfMode('landscape')" class="px-2 py-0.5 text-[10.5px] rounded-md font-medium transition-all text-gray-500 hover:text-gray-800">가로 저장</button>
+                </div>
+                <div class="flex items-center space-x-1 shrink-0">
+                    <button type="button" onclick="handleAllPdfPrint()" class="text-gray-500 hover:text-emerald-800 p-1 hover:bg-emerald-50 rounded-lg transition-all"><i class="fa-solid fa-print text-xs"></i></button>
+                    <button type="button" onclick="closeAllPdfPreviewModal()" class="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all"><i class="fa-solid fa-xmark text-sm"></i></button>
+                </div>
+            </div>
+            <div id="all-pdf-scroll-viewport" class="relative my-2 bg-gray-100/80 rounded-xl border border-gray-200/80 p-1.5" style="height: 48vh; overflow-y: scroll !important;">
+                <div id="all-pdf-continuous-container" class="w-full flex flex-col items-center select-none space-y-2"></div>
+            </div>
+            <div id="all-pdf-status-container" class="text-center shrink-0 hidden pb-1"><p id="all-pdf-status-desc" class="text-[11px] font-semibold text-emerald-800"></p></div>
+            <div class="flex items-center space-x-1.5 shrink-0 pt-1 pb-0.5 border-t border-gray-100">
+                <button type="button" id="all-pdf-save-btn" onclick="executeConfirmedAllPdfSave()" class="flex-[1.3] py-2.5 px-2 church-primary hover:opacity-90 text-white rounded-xl text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center justify-center space-x-1"><i class="fa-solid fa-floppy-disk text-xs"></i><span>내 기기에 저장</span></button>
+                <button type="button" id="all-pdf-share-btn" onclick="handleAllPdfShareClick()" class="flex-1 py-2.5 px-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center justify-center space-x-1"><i class="fa-solid fa-share-nodes text-xs"></i><span>공유</span></button>
+                <button type="button" onclick="closeAllPdfPreviewModal()" class="py-2.5 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium active:scale-95 transition-all">닫기</button>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        var firebaseConfig = {
+            apiKey: "AIzaSyDKD5LUQL84ZuPH5UJrHBj7yAYDTabDWVA",
+            authDomain: "dream-data-146a4.firebaseapp.com",
+            projectId: "dream-data-146a4",
+            storageBucket: "dream-data-146a4.firebasestorage.app",
+            messagingSenderId: "812415684377",
+            appId: "1:812415684377:web:de8859d1502b3c05acbf88"
+        };
+
+        var app = initializeApp(firebaseConfig);
+        var auth = getAuth(app);
+        var db = getFirestore(app);
+
+        var verifiedPass = window.__MOKJANG_DM_VERIFIED__ || {};
+        var activeMokjangCode = String(verifiedPass.mokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim();
+        var isDataUnlocked = false;
+        var cachedMokjangPosts = [];
+        var currentAllPdfMode = "portrait";
+        var generatedAllPdfBlob = null;
+        var generatedAllPdfFileName = "";
+
+        var mokjangConfig = {
+            mokjangName: verifiedPass.mokjangShort || "",
+            mokjangCode: activeMokjangCode,
+            adminPasscode: "0000",
+            leaderName: verifiedPass.leaderName || "목자",
+            subLeaderName: "",
+            subLeaders: [],
+            members: [verifiedPass.leaderName || "목자"],
+            memberJoinedAt: {}
+        };
+
+        function showToast(msg) {
+            var existing = document.getElementById("admin-toast");
+            if (existing) existing.remove();
+            var t = document.createElement("div");
+            t.id = "admin-toast";
+            t.className = "fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/95 text-white text-xs px-3.5 py-2 rounded-xl shadow-xl z-50 flex items-center space-x-1.5";
+            var icon = document.createElement("i");
+            icon.className = "fa-solid fa-circle-check text-emerald-400";
+            var span = document.createElement("span");
+            span.textContent = msg;
+            t.appendChild(icon);
+            t.appendChild(span);
+            document.body.appendChild(t);
+            setTimeout(function() { t.remove(); }, 2400);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return "";
+            return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return "";
+            var d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            if (isNaN(d.getTime())) return "";
+            return (d.getMonth() + 1) + "/" + d.getDate() + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+        }
+
+        window.toggleNewMemberDateInput = function() {
+            var checked = document.querySelector("input[name=\"new-member-access-mode\"]:checked");
+            var mode = checked ? checked.value : "all";
+            var row = document.getElementById("new-member-date-row");
+            var dateInput = document.getElementById("new-member-join-date");
+            if (mode === "from_date") {
+                row.classList.remove("hidden");
+                if (dateInput && !dateInput.value) dateInput.value = new Date().toISOString().split("T")[0];
+            } else {
+                row.classList.add("hidden");
+            }
+        };
+
+        window.triggerDataLookup = async function() {
+            var codeEl = document.getElementById("admin-gate-mokjang-code");
+            var passEl = document.getElementById("admin-passcode-gate-input");
+            var inputCode = (codeEl ? codeEl.value.trim() : activeMokjangCode) || "1111";
+            var inputPass = passEl ? passEl.value.trim() : "";
+
+            if (!/^[0-9]{4}$/.test(inputCode)) { showToast("목장코드 4자리를 입력해 주세요."); return; }
+            if (!/^[0-9]{4}$/.test(inputPass)) { showToast("보안 패스코드 4자리를 입력해 주세요."); return; }
+
+            try {
+                await signInAnonymously(auth);
+                var snap = await getDoc(doc(db, "mokjang_configs", inputCode));
+                var targetCfg = null;
+                if (snap.exists()) {
+                    targetCfg = snap.data();
+                } else {
+                    var mainSnap = await getDoc(doc(db, "mokjang_config", "main"));
+                    if (mainSnap.exists() && String(mainSnap.data().mokjangCode || "1111") === inputCode) {
+                        targetCfg = mainSnap.data();
+                    }
+                }
+
+                if (targetCfg) {
+                    var savedPass = String(targetCfg.adminPasscode || "0000").trim();
+                    if (inputPass !== savedPass) {
+                        passEl.classList.add("animate-shake");
+                        setTimeout(function() { passEl.classList.remove("animate-shake"); }, 350);
+                        showToast("해당 목장의 보안 패스코드가 일치하지 않습니다.");
+                        return;
+                    }
+                    mokjangConfig = Object.assign({}, mokjangConfig, targetCfg, { mokjangCode: inputCode, memberJoinedAt: targetCfg.memberJoinedAt || {} });
+                    showToast("[" + inputCode + "] 목장 보안 데이터를 불러왔습니다.");
+                } else {
+                    mokjangConfig = {
+                        mokjangName: "",
+                        mokjangCode: inputCode,
+                        adminPasscode: inputPass,
+                        leaderName: verifiedPass.leaderName || "목자",
+                        subLeaderName: "",
+                        subLeaders: [],
+                        members: [verifiedPass.leaderName || "목자"],
+                        memberJoinedAt: {}
+                    };
+                    showToast("신규 목장(코드: " + inputCode + ") 개설 모드로 열렸습니다.");
+                }
+
+                activeMokjangCode = inputCode;
+                isDataUnlocked = true;
+                document.getElementById("security-locked-placeholder").classList.add("hidden");
+                document.getElementById("security-unlocked-data-container").classList.remove("hidden");
+                document.getElementById("security-gate-badge").textContent = "🔓 열람 승인";
+                document.getElementById("security-gate-badge").className = "shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300";
+                renderAdminUI();
+            } catch (e) {
+                showToast("조회 중 오류: " + e.message);
+            }
+        };
+
+        function renderAdminUI() {
+            document.getElementById("admin-header-mokjang").textContent = mokjangConfig.mokjangName || "";
+            document.getElementById("admin-header-code").textContent = activeMokjangCode;
+            document.getElementById("active-mokjang-code-label").textContent = "코드: " + activeMokjangCode;
+            if (!isDataUnlocked) return;
+            document.getElementById("admin-mokjang-name-input").value = mokjangConfig.mokjangName || "";
+            document.getElementById("admin-mokjang-code-input").value = mokjangConfig.mokjangCode || activeMokjangCode;
+            document.getElementById("admin-leader-name-input").value = mokjangConfig.leaderName || "목자";
+            document.getElementById("admin-subleader-name-input").value = mokjangConfig.subLeaderName || "";
+            document.getElementById("admin-passcode-setting-input").value = mokjangConfig.adminPasscode || "0000";
+            renderMembersList();
+        }
+
+        function renderMembersList() {
+            var listEl = document.getElementById("admin-member-list");
+            var countEl = document.getElementById("member-count-text");
+            if (!listEl) return;
+            listEl.innerHTML = "";
+            var leaderName = (mokjangConfig.leaderName || "목자").trim();
+            var subPrimary = (mokjangConfig.subLeaderName || "").trim();
+            var subList = Array.isArray(mokjangConfig.subLeaders) ? mokjangConfig.subLeaders.filter(Boolean) : [];
+            if (subPrimary && subList.indexOf(subPrimary) === -1) subList.push(subPrimary);
+            var rawMembers = Array.isArray(mokjangConfig.members) ? mokjangConfig.members : [];
+            var combined = [leaderName].concat(subList).concat(rawMembers.filter(function(m) { return m && m !== "1111"; }));
+            var allMembers = [];
+            combined.forEach(function(item) { if (item && allMembers.indexOf(item) === -1) allMembers.push(item); });
+            var joinedMap = mokjangConfig.memberJoinedAt || {};
+            if (countEl) countEl.textContent = String(allMembers.length);
+
+            allMembers.forEach(function(m) {
+                var isLeader = (m === leaderName);
+                var isSub = (!isLeader && subList.indexOf(m) !== -1);
+                var row = document.createElement("div");
+                row.className = "flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs";
+
+                var leftDiv = document.createElement("div");
+                leftDiv.className = "flex items-center space-x-2 min-w-0";
+                var badge = document.createElement("span");
+                if (isLeader) {
+                    badge.className = "px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9.5px] font-extrabold";
+                    badge.textContent = "목자";
+                } else if (isSub) {
+                    badge.className = "px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 text-[9.5px] font-extrabold";
+                    badge.textContent = "부목자";
+                } else {
+                    badge.className = "px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9.5px] font-bold";
+                    badge.textContent = "목원";
+                }
+                var nameSpan = document.createElement("span");
+                nameSpan.className = "font-extrabold text-slate-800 truncate";
+                nameSpan.textContent = m;
+                leftDiv.appendChild(badge);
+                leftDiv.appendChild(nameSpan);
+
+                var rightDiv = document.createElement("div");
+                rightDiv.className = "flex items-center space-x-1.5 shrink-0";
+                var joinTs = Number(joinedMap[m] || 0);
+                var dateLabel = isLeader ? "전체기간(고정)" : (joinTs > 0 ? new Date(joinTs).toISOString().split("T")[0] + " 이후 열람" : "전체기간 열람");
+
+                if (!isLeader) {
+                    var dateBtn = document.createElement("button");
+                    dateBtn.type = "button";
+                    dateBtn.className = "px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-slate-600 hover:border-emerald-400 hover:text-emerald-800";
+                    dateBtn.textContent = "📅 " + dateLabel;
+                    dateBtn.onclick = function() { window.changeMemberJoinDate(m); };
+
+                    var delBtn = document.createElement("button");
+                    delBtn.type = "button";
+                    delBtn.className = "w-6 h-6 rounded-full hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center";
+                    delBtn.innerHTML = "<i class=\"fa-solid fa-xmark\"></i>";
+                    delBtn.onclick = function() { window.removeMokjangMemberByName(m); };
+
+                    rightDiv.appendChild(dateBtn);
+                    rightDiv.appendChild(delBtn);
+                } else {
+                    var fixedSpan = document.createElement("span");
+                    fixedSpan.className = "text-[10px] text-amber-700 font-semibold";
+                    fixedSpan.textContent = dateLabel;
+                    rightDiv.appendChild(fixedSpan);
+                }
+
+                row.appendChild(leftDiv);
+                row.appendChild(rightDiv);
+                listEl.appendChild(row);
+            });
+        }
+
+        window.changeMemberJoinDate = async function(memberName) {
+            if (!mokjangConfig.memberJoinedAt) mokjangConfig.memberJoinedAt = {};
+            var currentTs = Number(mokjangConfig.memberJoinedAt[memberName] || 0);
+            var defaultStr = currentTs > 0 ? new Date(currentTs).toISOString().split("T")[0] : new Date().toISOString().split("T")[0];
+            var input = prompt("[" + memberName + "] 님의 열람 시작 기준일을 입력하세요 (예: 2026-03-30).\n기존 전체 데이터를 다 보게 하려면 비워두고 확인을 누르세요.", defaultStr);
+            if (input === null) return;
+            var clean = input.trim();
+            if (!clean) {
+                delete mokjangConfig.memberJoinedAt[memberName];
+                showToast(memberName + " 님이 전체 기간 열람으로 설정되었습니다.");
+            } else {
+                var parsed = new Date(clean + "T00:00:00");
+                if (isNaN(parsed.getTime())) { showToast("YYYY-MM-DD 형식으로 입력해 주세요."); return; }
+                mokjangConfig.memberJoinedAt[memberName] = parsed.getTime();
+                showToast(memberName + " 님은 " + clean + " 이후 데이터만 열람합니다.");
+            }
+            await persistConfigToFirestore();
+            renderMembersList();
+        };
+
+        async function persistConfigToFirestore() {
+            mokjangConfig.updatedAt = Date.now();
+            var codeKey = String(mokjangConfig.mokjangCode || activeMokjangCode || "1111").trim();
+            try {
+                localStorage.setItem("mokjang_config_backup_" + codeKey, JSON.stringify(mokjangConfig));
+                localStorage.setItem("mokjang_config_backup", JSON.stringify(mokjangConfig));
+                localStorage.setItem("mokjang_active_code", codeKey);
+            } catch (e) {}
+            try {
+                await setDoc(doc(db, "mokjang_configs", codeKey), Object.assign({}, mokjangConfig), { merge: true });
+                if (codeKey === "1111") await setDoc(doc(db, "mokjang_config", "main"), Object.assign({}, mokjangConfig), { merge: true });
+            } catch (e) {}
+        }
+
+        window.saveMokjangConfigToFirestore = async function() {
+            if (!isDataUnlocked) return;
+            var newName = document.getElementById("admin-mokjang-name-input").value.trim().replace(/^세종꿈의교회\s*/, "");
+            var newCode = document.getElementById("admin-mokjang-code-input").value.trim() || "1111";
+            var newLeader = document.getElementById("admin-leader-name-input").value.trim() || "목자";
+            var newSub = document.getElementById("admin-subleader-name-input").value.trim();
+            var newPass = document.getElementById("admin-passcode-setting-input").value.trim() || "0000";
+            if (!/^[0-9]{4}$/.test(newCode) || !/^[0-9]{4}$/.test(newPass)) {
+                showToast("목장코드와 패스코드는 숫자 4자리여야 합니다.");
+                return;
+            }
+            mokjangConfig.mokjangName = newName;
+            mokjangConfig.mokjangCode = newCode;
+            mokjangConfig.leaderName = newLeader;
+            mokjangConfig.subLeaderName = newSub;
+            mokjangConfig.adminPasscode = newPass;
+            activeMokjangCode = newCode;
+            if (!Array.isArray(mokjangConfig.members)) mokjangConfig.members = [];
+            if (mokjangConfig.members.indexOf(newLeader) === -1) mokjangConfig.members.unshift(newLeader);
+            if (newSub && mokjangConfig.members.indexOf(newSub) === -1) mokjangConfig.members.push(newSub);
+            await persistConfigToFirestore();
+            renderAdminUI();
+            showToast("우리 목장 설정이 저장되었습니다.");
+        };
+
+        window.addMokjangMember = async function() {
+            if (!isDataUnlocked) return;
+            var nameInput = document.getElementById("new-member-name-input");
+            var roleSelect = document.getElementById("new-member-role-select");
+            var checked = document.querySelector("input[name=\"new-member-access-mode\"]:checked");
+            var accessMode = checked ? checked.value : "all";
+            var dateInput = document.getElementById("new-member-join-date");
+            var name = nameInput.value.trim();
+            if (!name || name.length < 2) { showToast("이름을 2자 이상 입력해 주세요."); return; }
+            if (!Array.isArray(mokjangConfig.members)) mokjangConfig.members = [];
+            if (!Array.isArray(mokjangConfig.subLeaders)) mokjangConfig.subLeaders = [];
+            if (!mokjangConfig.memberJoinedAt) mokjangConfig.memberJoinedAt = {};
+            if (mokjangConfig.members.indexOf(name) === -1) mokjangConfig.members.push(name);
+            if (roleSelect.value === "subleader" && mokjangConfig.subLeaders.indexOf(name) === -1) {
+                mokjangConfig.subLeaders.push(name);
+                if (!mokjangConfig.subLeaderName) mokjangConfig.subLeaderName = name;
+            }
+            if (accessMode === "from_date" && dateInput && dateInput.value) {
+                mokjangConfig.memberJoinedAt[name] = new Date(dateInput.value + "T00:00:00").getTime();
+            } else {
+                delete mokjangConfig.memberJoinedAt[name];
+            }
+            nameInput.value = "";
+            await persistConfigToFirestore();
+            renderMembersList();
+            showToast(name + " 님이 등록되었습니다.");
+        };
+
+        window.removeMokjangMemberByName = async function(targetName) {
+            if (!isDataUnlocked) return;
+            mokjangConfig.members = (mokjangConfig.members || []).filter(function(m) { return m !== targetName; });
+            mokjangConfig.subLeaders = (mokjangConfig.subLeaders || []).filter(function(s) { return s !== targetName; });
+            if (mokjangConfig.subLeaderName === targetName) mokjangConfig.subLeaderName = mokjangConfig.subLeaders[0] || "";
+            if (mokjangConfig.memberJoinedAt) delete mokjangConfig.memberJoinedAt[targetName];
+            await persistConfigToFirestore();
+            renderMembersList();
+            showToast(targetName + " 님이 명단에서 제외되었습니다.");
+        };
+
+        window.returnToMokjangFeed = function() {
+            try {
+                sessionStorage.setItem("mokjang_return_feed_pass", JSON.stringify({
+                    token: "ret_" + Date.now(),
+                    userName: mokjangConfig.leaderName || "목자",
+                    mokjangCode: activeMokjangCode,
+                    mokjangShort: mokjangConfig.mokjangName || "",
+                    role: "leader",
+                    issuedAt: Date.now()
+                }));
+            } catch (e) {}
+            window.location.replace("index.html");
+        };
+
+        window.goToInitialLoginScreen = function() {
+            sessionStorage.removeItem("mokjang_return_feed_pass");
+            window.location.replace("index.html");
+        };
+
+        var exportLibsPromise = null;
+        function ensurePdfLibs() {
+            if (window.html2canvas && window.jspdf) return Promise.resolve();
+            if (exportLibsPromise) return exportLibsPromise;
+            var load = function(src) {
+                return new Promise(function(res, rej) {
+                    var s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s);
+                });
+            };
+            exportLibsPromise = Promise.all([
+                load("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"),
+                load("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js")
+            ]);
+            return exportLibsPromise;
+        }
+
+        function getFilteredPostsForCurrentMokjang() {
+            return cachedMokjangPosts.filter(function(p) {
+                var pCode = p.mokjangCode ? String(p.mokjangCode).trim() : "1111";
+                return pCode === activeMokjangCode || (activeMokjangCode === "1111" && !p.mokjangCode);
+            }).sort(function(a, b) {
+                var tA = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+                var tB = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+                return tB - tA;
+            });
+        }
+
+        function buildPdfCardHtml(post) {
+            if (!post) return "";
+            var imgs = Array.isArray(post.images) ? post.images.filter(Boolean) : (post.imageUrl ? [post.imageUrl] : []);
+            var comments = Array.isArray(post.comments) ? post.comments : [];
+            var captions = post.photoCaptions || {};
+            var photosHtml = "";
+            if (imgs.length > 0) {
+                photosHtml = "<div class=\"grid grid-cols-2 gap-1.5 mt-1.5\">" + imgs.map(function(u, i) {
+                    var rawCap = captions[i] !== undefined ? captions[i] : captions[String(i)];
+                    var capText = typeof rawCap === "object" ? (rawCap && rawCap.text ? rawCap.text : "") : (rawCap || "");
+                    var capAuthor = typeof rawCap === "object" ? (rawCap && rawCap.author ? rawCap.author : (post.author || "")) : (post.author || "");
+                    var spanClass = (imgs.length === 1 || (imgs.length % 2 === 1 && i === imgs.length - 1)) ? "col-span-2" : "col-span-1";
+                    return "<div class=\"" + spanClass + " border border-gray-100 rounded-xl overflow-hidden bg-gray-50\">" +
+                        "<img src=\"" + u + "\" crossOrigin=\"anonymous\" class=\"w-full max-h-[180px] object-cover block mx-auto\">" +
+                        (capText ? "<div class=\"px-1.5 py-1 text-[10px] text-gray-700 bg-white border-t border-gray-100\"><b>" + escapeHtml(capAuthor) + " :</b> " + escapeHtml(capText) + "</div>" : "") +
+                        "</div>";
+                }).join("") + "</div>";
+            }
+            var commentsHtml = "";
+            if (comments.length > 0) {
+                commentsHtml = "<div class=\"mt-2 bg-gray-50/90 rounded-xl p-2 border border-gray-100 space-y-1\">" +
+                    "<div class=\"text-[10px] font-bold text-emerald-800\">목장 댓글 (" + comments.length + ")</div>" +
+                    comments.map(function(c) { return "<div class=\"text-[10px] leading-snug\"><b>" + escapeHtml(c.author) + " :</b> " + escapeHtml(c.text) + " <span class=\"text-[8.5px] text-gray-400\">" + escapeHtml(c.time || "") + "</span></div>"; }).join("") +
+                    "</div>";
+            }
+            return "<div class=\"w-full bg-white rounded-2xl border border-gray-200 p-3 text-left flex flex-col justify-between h-full shadow-2xs\">" +
+                "<div><div class=\"flex items-center justify-between pb-1.5 mb-1.5 border-b border-gray-100\">" +
+                "<span class=\"text-xs font-extrabold text-gray-800\">" + escapeHtml(post.author || "목장가족") + "</span>" +
+                "<span class=\"text-[9.5px] text-gray-400\">" + formatDate(post.createdAt) + "</span></div>" +
+                (post.content ? "<div class=\"text-xs text-gray-800 leading-relaxed whitespace-pre-wrap mb-1.5\">" + post.content + "</div>" : "") +
+                "</div><div class=\"mt-auto\">" + photosHtml + commentsHtml + "</div></div>";
+        }
+
+        window.requestAllFeedPdfPreview = async function() {
+            await ensurePdfLibs();
+            var posts = getFilteredPostsForCurrentMokjang();
+            if (posts.length === 0) { showToast("현재 목장에 백업할 게시글이 없습니다."); return; }
+            generatedAllPdfBlob = null;
+            document.getElementById("all-pdf-preview-modal").classList.remove("hidden");
+            renderAllPdfPreviewContent();
+        };
+
+        window.closeAllPdfPreviewModal = function() {
+            document.getElementById("all-pdf-preview-modal").classList.add("hidden");
+        };
+
+        window.switchAllPdfMode = function(mode) {
+            currentAllPdfMode = mode;
+            generatedAllPdfBlob = null;
+            var pBtn = document.getElementById("all-pdf-mode-portrait-btn");
+            var lBtn = document.getElementById("all-pdf-mode-landscape-btn");
+            var dialog = document.getElementById("all-pdf-modal-dialog");
+            if (mode === "portrait") {
+                pBtn.className = "px-2 py-0.5 text-[10.5px] rounded-md font-bold bg-white text-emerald-800 shadow-2xs";
+                lBtn.className = "px-2 py-0.5 text-[10.5px] rounded-md font-medium text-gray-500";
+                dialog.classList.remove("max-w-xl"); dialog.classList.add("max-w-sm");
+            } else {
+                lBtn.className = "px-2 py-0.5 text-[10.5px] rounded-md font-bold bg-white text-emerald-800 shadow-2xs";
+                pBtn.className = "px-2 py-0.5 text-[10.5px] rounded-md font-medium text-gray-500";
+                dialog.classList.remove("max-w-sm"); dialog.classList.add("max-w-xl");
+            }
+            renderAllPdfPreviewContent();
+        };
+
+        function renderAllPdfPreviewContent() {
+            var container = document.getElementById("all-pdf-continuous-container");
+            var posts = getFilteredPostsForCurrentMokjang();
+            var titleName = mokjangConfig.mokjangName ? ("세종꿈의교회 " + mokjangConfig.mokjangName) : "세종꿈의교회 꿈의 목장";
+            var html = "<div class=\"w-full text-center pb-2 pt-1.5 border-b-2 border-emerald-800 bg-emerald-50/80 p-2 rounded-xl\"><h2 class=\"text-xs font-bold text-gray-900\">" + escapeHtml(titleName) + " 이야기</h2><p class=\"text-[9.5px] text-gray-500 mt-0.5\">발행: " + new Date().toLocaleDateString("ko-KR") + " | 총 " + posts.length + "개의 나눔</p></div>";
+            if (currentAllPdfMode === "landscape") {
+                var pageCount = Math.ceil(posts.length / 2);
+                for (var p = 0; p < pageCount; p++) {
+                    html += "<div class=\"w-full bg-white rounded-xl border border-emerald-200/70 p-2 shadow-xs\"><div class=\"text-[9px] text-emerald-800 font-bold pb-1 mb-1 border-b border-gray-100\">가로 A4 페이지 " + (p + 1) + " / " + pageCount + "</div><div class=\"grid grid-cols-2 gap-2 items-stretch\"><div>" + buildPdfCardHtml(posts[p * 2]) + "</div><div>" + (posts[p * 2 + 1] ? buildPdfCardHtml(posts[p * 2 + 1]) : "<div class=\"h-full border border-dashed border-gray-200 rounded-xl flex items-center justify-center text-[10px] text-gray-400\">나눔의 끝</div>") + "</div></div></div>";
+                }
+            } else {
+                posts.forEach(function(post) { html += "<div class=\"w-full\">" + buildPdfCardHtml(post) + "</div>"; });
+            }
+            container.innerHTML = html;
+        }
+
+        async function generatePdfBlob() {
+            if (generatedAllPdfBlob) return generatedAllPdfBlob;
+            await ensurePdfLibs();
+            var statusBox = document.getElementById("all-pdf-status-container");
+            var statusDesc = document.getElementById("all-pdf-status-desc");
+            statusBox.classList.remove("hidden");
+            statusDesc.textContent = "고품질 PDF 문서를 생성 중입니다...";
+            var jsPDF = window.jspdf.jsPDF;
+            var posts = getFilteredPostsForCurrentMokjang();
+            var titleName = mokjangConfig.mokjangName ? ("세종꿈의교회 " + mokjangConfig.mokjangName) : "세종꿈의교회 꿈의 목장";
+
+            if (currentAllPdfMode === "landscape") {
+                var pdf = new jsPDF("l", "mm", "a4");
+                var pageCount = Math.max(1, Math.ceil(posts.length / 2));
+                for (var p = 0; p < pageCount; p++) {
+                    if (p > 0) pdf.addPage();
+                    var temp = document.createElement("div");
+                    temp.style.cssText = "position:fixed;left:-9999px;top:0;width:1120px;background:#fff;padding:16px;";
+                    temp.innerHTML = "<div class=\"flex justify-between pb-2 mb-3 border-b-2 border-emerald-800\"><h2 class=\"text-base font-bold\">" + escapeHtml(titleName) + "</h2><span class=\"text-xs font-mono\">" + (p + 1) + " / " + pageCount + "</span></div><div class=\"grid grid-cols-2 gap-4\"><div>" + buildPdfCardHtml(posts[p * 2]) + "</div><div>" + (posts[p * 2 + 1] ? buildPdfCardHtml(posts[p * 2 + 1]) : "") + "</div></div>";
+                    document.body.appendChild(temp);
+                    var canvas = await html2canvas(temp, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+                    temp.remove();
+                    var w = 285, h = Math.min(198, (canvas.height * w) / canvas.width);
+                    pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 6, 6, w, h);
+                }
+                generatedAllPdfFileName = "목장이야기_" + activeMokjangCode + "_가로백업.pdf";
+                generatedAllPdfBlob = pdf.output("blob");
+            } else {
+                var pdfP = new jsPDF("p", "mm", "a4");
+                var curY = 8;
+                for (var i = 0; i < posts.length; i++) {
+                    var tempP = document.createElement("div");
+                    tempP.style.cssText = "position:fixed;left:-9999px;top:0;width:720px;background:#fff;padding:10px;";
+                    tempP.innerHTML = buildPdfCardHtml(posts[i]);
+                    document.body.appendChild(tempP);
+                    var canvasP = await html2canvas(tempP, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+                    tempP.remove();
+                    var wP = 194, hP = Math.min(275, (canvasP.height * wP) / canvasP.width);
+                    if (curY + hP > 287 && i > 0) { pdfP.addPage(); curY = 8; }
+                    pdfP.addImage(canvasP.toDataURL("image/jpeg", 0.92), "JPEG", 8, curY, wP, hP);
+                    curY += hP + 4;
+                }
+                generatedAllPdfFileName = "목장이야기_" + activeMokjangCode + "_세로백업.pdf";
+                generatedAllPdfBlob = pdfP.output("blob");
+            }
+            statusDesc.textContent = "PDF 생성이 완료되었습니다!";
+            return generatedAllPdfBlob;
+        }
+
+        window.executeConfirmedAllPdfSave = async function() {
+            var blob = await generatePdfBlob();
+            if (!blob) return;
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement("a"); a.href = url; a.download = generatedAllPdfFileName; document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+            showToast("PDF 파일이 저장되었습니다.");
+        };
+
+        window.handleAllPdfShareClick = async function() {
+            var blob = await generatePdfBlob();
+            if (!blob) return;
+            var file = new File([blob], generatedAllPdfFileName, { type: "application/pdf" });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try { await navigator.share({ files: [file], title: "목장 이야기 PDF 백업" }); return; } catch (e) {}
+            }
+            window.executeConfirmedAllPdfSave();
+        };
+
+        window.handleAllPdfPrint = function() {
+            var printArea = document.getElementById("print-area");
+            printArea.innerHTML = document.getElementById("all-pdf-continuous-container").innerHTML;
+            printArea.classList.remove("hidden");
+            window.print();
+            setTimeout(function() { printArea.classList.add("hidden"); printArea.innerHTML = ""; }, 500);
+        };
+
+        (async function initDmPage() {
+            var codeEl = document.getElementById("admin-gate-mokjang-code");
+            if (codeEl) codeEl.value = activeMokjangCode;
+            renderAdminUI();
+            try {
+                await signInAnonymously(auth);
+                onSnapshot(collection(db, "mokjang_posts"), function(snap) {
+                    var arr = [];
+                    snap.forEach(function(d) { arr.push(Object.assign({ id: d.id }, d.data())); });
+                    cachedMokjangPosts = arr;
+                });
+            } catch (e) {}
+        })();
+    </script>
+</body>
+</html>
