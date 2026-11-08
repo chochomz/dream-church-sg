@@ -464,13 +464,48 @@ window.currentUserJoinedAt = Number(localStorage.getItem('mokjang_user_joined_at
                 localStorage.setItem('mokjang_user_name', rp.userName || '목자');
                 localStorage.setItem('mokjang_user_role', 'leader');
                 localStorage.setItem('mokjang_is_admin', 'true');
-                if (rp.mokjangCode) localStorage.setItem('mokjang_active_code', rp.mokjangCode);
+                if (rp.mokjangCode) {
+                    localStorage.setItem('mokjang_active_code', rp.mokjangCode);
+                    window.currentMokjangCode = rp.mokjangCode;
+                }
+                if (rp.mokjangShort !== undefined) {
+                    var cleanM = String(rp.mokjangShort).trim().replace(/^세종꿈의교회\s*/, '');
+                    localStorage.setItem('mokjang_short_name', cleanM);
+                    localStorage.setItem('mokjang_name', cleanM ? ('세종꿈의교회 ' + cleanM) : '세종꿈의교회');
+                }
                 var g = document.getElementById('mokjang-login-gate');
                 if (g) g.style.display = 'none';
             }
         }
     } catch (e) {}
 })();
+
+window.getMergedMokjangConfigByCode = function(code) {
+    var mainCfg = window.liveMokjangConfig || (window.allMokjangConfigsMap && window.allMokjangConfigsMap['main']) || null;
+    var codeCfg = (window.allMokjangConfigsMap && code && window.allMokjangConfigsMap[code]) || null;
+    try {
+        if (!mainCfg) {
+            var rawMain = localStorage.getItem('mokjang_config_backup');
+            if (rawMain) mainCfg = JSON.parse(rawMain);
+        }
+        if (!codeCfg && code) {
+            var rawByCode = localStorage.getItem('mokjang_config_backup_' + code);
+            if (rawByCode) codeCfg = JSON.parse(rawByCode);
+        }
+    } catch (e) {}
+    var merged = Object.assign({}, mainCfg || {}, codeCfg || {});
+    if (codeCfg && (!Array.isArray(codeCfg.members) || codeCfg.members.length <= 1) && mainCfg && Array.isArray(mainCfg.members) && mainCfg.members.length > 1) {
+        merged.members = mainCfg.members.slice();
+    }
+    var cPass = codeCfg && (codeCfg.adminPasscode || codeCfg.passcode || codeCfg.securityCode);
+    var mPass = mainCfg && (mainCfg.adminPasscode || mainCfg.passcode || mainCfg.securityCode);
+    if ((!cPass || cPass === '0000') && mPass) {
+        merged.adminPasscode = String(mPass).trim();
+    } else if (cPass) {
+        merged.adminPasscode = String(cPass).trim();
+    }
+    return merged;
+};
 
 window.submitMokjangGateLogin = function() {
     var nameInput = document.getElementById('gate-input-name');
@@ -491,14 +526,7 @@ window.submitMokjangGateLogin = function() {
         return;
     }
 
-    var cfg = (window.allMokjangConfigsMap && window.allMokjangConfigsMap[code]) || window.liveMokjangConfig || {};
-    try {
-        var rawByCode = localStorage.getItem('mokjang_config_backup_' + code);
-        if (rawByCode && (!cfg || !cfg.mokjangCode)) cfg = JSON.parse(rawByCode) || {};
-        var rawMain = localStorage.getItem('mokjang_config_backup');
-        if (rawMain && (!cfg || Object.keys(cfg).length === 0)) cfg = JSON.parse(rawMain) || {};
-    } catch (e) {}
-
+    var cfg = window.getMergedMokjangConfigByCode(code);
     var validCode = cfg.mokjangCode ? String(cfg.mokjangCode).trim() : '1111';
     var mokjangShort = cfg.mokjangName ? String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '') : '';
     var leaderName = cfg.leaderName ? String(cfg.leaderName).trim() : '목자';
@@ -582,14 +610,19 @@ window.goToLeaderAdminPage = function(event) {
         }
         return;
     }
+    var activeCode = localStorage.getItem('mokjang_active_code') || window.currentMokjangCode || '1111';
+    var cfg = typeof window.getMergedMokjangConfigByCode === 'function' ? window.getMergedMokjangConfigByCode(activeCode) : (window.liveMokjangConfig || {});
+    var finalCode = cfg.mokjangCode ? String(cfg.mokjangCode).trim() : activeCode;
+    var savedAdminPass = String(cfg.adminPasscode || cfg.passcode || cfg.securityCode || '0000').trim();
     try {
         sessionStorage.setItem('mokjang_dm_pass', JSON.stringify({
             target: 'indexdm.html',
             authorizedFromIndex: true,
             token: 'dmtk_' + Date.now() + '_' + Math.random().toString(36).slice(2),
-            mokjangCode: localStorage.getItem('mokjang_active_code') || '1111',
-            mokjangShort: localStorage.getItem('mokjang_short_name') || '',
-            leaderName: userName || '목자',
+            mokjangCode: finalCode,
+            adminPasscode: savedAdminPass,
+            mokjangShort: localStorage.getItem('mokjang_short_name') || cfg.mokjangName || '',
+            leaderName: userName || cfg.leaderName || '목자',
             role: 'leader',
             issuedAt: Date.now()
         }));
@@ -8491,7 +8524,7 @@ function syncHeaderMokjangTitleDOM() {
 // [BRIDGE_V24_START]
 var currentMokjangCode = window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '1111';
 var currentUserJoinedAt = Number(window.currentUserJoinedAt || localStorage.getItem('mokjang_user_joined_at') || 0);
-window.allMokjangConfigsMap = {};
+window.allMokjangConfigsMap = window.allMokjangConfigsMap || {};
 try {
     onSnapshot(doc(db, 'mokjang_config', 'main'), function(snap) {
         if (snap.exists()) {
@@ -8500,16 +8533,21 @@ try {
             window.liveMokjangConfigLoaded = true;
             var cKey = String(data.mokjangCode || '1111').trim();
             window.allMokjangConfigsMap['main'] = data;
-            window.allMokjangConfigsMap[cKey] = data;
-            try { localStorage.setItem('mokjang_config_backup', JSON.stringify(data)); } catch (e) {}
+            window.allMokjangConfigsMap[cKey] = Object.assign({}, window.allMokjangConfigsMap[cKey] || {}, data);
+            try {
+                localStorage.setItem('mokjang_config_backup', JSON.stringify(data));
+                localStorage.setItem('mokjang_config_backup_' + cKey, JSON.stringify(window.allMokjangConfigsMap[cKey]));
+            } catch (e) {}
         }
     });
     onSnapshot(collection(db, 'mokjang_configs'), function(snap) {
         snap.forEach(function(d) {
             var data = d.data();
             var cKey = String(data.mokjangCode || d.id).trim();
-            window.allMokjangConfigsMap[cKey] = data;
-            try { localStorage.setItem('mokjang_config_backup_' + cKey, JSON.stringify(data)); } catch (e) {}
+            var mainData = window.allMokjangConfigsMap['main'] || window.liveMokjangConfig || {};
+            var merged = Object.assign({}, (cKey === String(mainData.mokjangCode || '1111').trim() ? mainData : {}), data);
+            window.allMokjangConfigsMap[cKey] = merged;
+            try { localStorage.setItem('mokjang_config_backup_' + cKey, JSON.stringify(merged)); } catch (e) {}
         });
     });
 } catch (e) {}
