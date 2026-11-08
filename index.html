@@ -448,8 +448,8 @@
     </style>
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
-    <div id="mokjang-login-gate" class="fixed inset-0 z-[120] bg-white flex flex-col items-center justify-center p-4 select-none transition-opacity duration-300 overflow-y-auto">
-        <div class="w-full max-w-[364px] bg-white rounded-[26px] border-[1.5px] border-[#D5DFEC] shadow-[0_16px_40px_rgba(15,23,42,0.08),0_3px_12px_rgba(15,23,42,0.04)] px-7 py-8 mx-auto my-auto flex flex-col items-center">
+    <div id="mokjang-login-gate" class="fixed inset-0 z-[120] bg-white flex flex-col items-center justify-center p-4 select-none overflow-y-auto">
+        <div id="mokjang-login-card" class="w-full max-w-[364px] bg-white rounded-[26px] border-[1.5px] border-[#D5DFEC] shadow-[0_16px_40px_rgba(15,23,42,0.08),0_3px_12px_rgba(15,23,42,0.04)] px-7 py-8 mx-auto my-auto flex flex-col items-center transition-transform duration-200">
             <div class="w-full max-w-[292px] flex flex-col items-center">
                 <div class="inline-flex flex-col items-end max-w-full">
                     <div class="flex items-center justify-center space-x-2.5">
@@ -462,17 +462,17 @@
                     </div>
                 </div>
                 <div class="w-full space-y-3">
-                    <div class="flex items-center w-full gap-2.5">
-                        <label for="gate-input-code" class="w-10 text-left text-[17px] font-extrabold text-[#64748B] tracking-tight shrink-0 whitespace-nowrap">코드</label>
-                        <input type="password" id="gate-input-code" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="" oninput="window.handleGateCodeInput(this)" onkeydown="if(event.key==='Enter'){event.preventDefault(); window.submitMokjangGateLogin();}" class="flex-1 min-w-0 h-[44px] px-3.5 rounded-[12px] border-[1.5px] border-[#CBD5E1] bg-white text-slate-900 font-mono font-black tracking-[0.25em] text-[16px] focus:outline-none focus:border-[#163172] focus:ring-2 focus:ring-[#163172]/10 transition-all">
+                    <div class="flex items-center w-full gap-1">
+                        <label for="gate-input-code" class="w-[38px] text-left text-[19px] font-extrabold text-[#94A3B8] tracking-tight shrink-0 whitespace-nowrap select-none">코드</label>
+                        <input type="password" id="gate-input-code" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="" onfocus="window.centerGateInputOnFocus(this)" onclick="window.centerGateInputOnFocus(this)" oninput="window.handleGateCodeInput(this)" onkeydown="if(event.key==='Enter'){event.preventDefault(); window.submitMokjangGateLogin();}" class="flex-1 min-w-0 h-[44px] px-3.5 rounded-[12px] border-[1.5px] border-[#CBD5E1] bg-white text-slate-900 font-mono font-black tracking-[0.25em] text-[16px] focus:outline-none focus:border-[#163172] focus:ring-2 focus:ring-[#163172]/10 transition-all">
                     </div>
-                    <div class="flex items-center w-full gap-2.5">
-                        <label for="gate-input-name" class="w-10 text-left text-[17px] font-extrabold text-[#64748B] tracking-tight shrink-0 whitespace-nowrap">이름</label>
+                    <div class="flex items-center w-full gap-1">
+                        <label for="gate-input-name" class="w-[38px] text-left text-[19px] font-extrabold text-[#94A3B8] tracking-tight shrink-0 whitespace-nowrap select-none">이름</label>
                         <div class="relative flex-1 min-w-0">
-                            <input type="text" id="gate-input-name" maxlength="10" placeholder="" onkeydown="if(event.key==='Enter'){event.preventDefault(); window.submitMokjangGateLogin();}" class="w-full h-[44px] pl-3.5 pr-[58px] rounded-[12px] border-[1.5px] border-[#CBD5E1] bg-white text-slate-900 font-bold text-[16px] focus:outline-none focus:border-[#163172] focus:ring-2 focus:ring-[#163172]/10 transition-all">
-                            <label for="gate-remember-name-chk" onclick="event.stopPropagation();" class="absolute right-1.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded-lg border border-dashed border-slate-400 bg-slate-50/90 hover:bg-slate-100 cursor-pointer flex flex-col items-center justify-center leading-none select-none">
-                                <input type="checkbox" id="gate-remember-name-chk" onchange="window.handleRememberNameToggle(this)" class="w-3 h-3 accent-[#163172] cursor-pointer">
-                                <span class="text-[9px] font-extrabold text-slate-500 mt-0.5 tracking-tighter whitespace-nowrap">기억하기</span>
+                            <input type="text" id="gate-input-name" maxlength="10" placeholder="" onfocus="window.centerGateInputOnFocus(this)" onclick="window.centerGateInputOnFocus(this)" onkeydown="if(event.key==='Enter'){event.preventDefault(); window.submitMokjangGateLogin();}" class="w-full h-[44px] pl-3.5 pr-[52px] rounded-[12px] border-[1.5px] border-[#CBD5E1] bg-white text-slate-900 font-bold text-[16px] focus:outline-none focus:border-[#163172] focus:ring-2 focus:ring-[#163172]/10 transition-all">
+                            <label for="gate-remember-name-chk" onclick="event.stopPropagation();" class="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer flex flex-col items-center justify-center leading-none select-none">
+                                <input type="checkbox" id="gate-remember-name-chk" onchange="window.handleRememberNameToggle(this)" style="width: 24px; height: 16px;" class="accent-[#163172] cursor-pointer rounded">
+                                <span class="text-[9.5px] font-extrabold text-[#94A3B8] mt-0.5 tracking-tighter whitespace-nowrap">기억하기</span>
                             </label>
                         </div>
                     </div>
@@ -488,6 +488,41 @@
 // [GATE_JS_V24_START]
 window.currentMokjangCode = localStorage.getItem('mokjang_active_code') || '1111';
 window.currentUserJoinedAt = Number(localStorage.getItem('mokjang_user_joined_at') || 0);
+
+// 입력창 터치 시 모바일 화면 중앙으로 부드럽게 배치
+window.centerGateInputOnFocus = function(el) {
+    if (!el) return;
+    setTimeout(function() {
+        try {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (e) {}
+    }, 120);
+};
+
+// 목자(leader)에게만 펜 슬라이드의 설정(⚙️) 이모지 노출, 일반 부목자·목원에게는 숨김
+window.syncAdminGearVisibility = function(role, userName) {
+    var gearBtn = document.getElementById('header-admin-gear-btn');
+    var cloudBadge = document.getElementById('combined-cloud-badge');
+    var r = role || localStorage.getItem('mokjang_user_role') || 'member';
+    var u = userName || localStorage.getItem('mokjang_user_name') || '';
+    var isLeaderOnly = (r === 'leader' || u === '목자' || u === '관리자');
+    if (gearBtn) {
+        if (isLeaderOnly) {
+            gearBtn.classList.remove('hidden');
+            gearBtn.style.display = 'flex';
+        } else {
+            gearBtn.classList.add('hidden');
+            gearBtn.style.display = 'none';
+        }
+    }
+    if (cloudBadge) {
+        if (isLeaderOnly) {
+            cloudBadge.classList.add('border-r');
+        } else {
+            cloudBadge.classList.remove('border-r');
+        }
+    }
+};
 
 window.initMokjangLoginGateUI = function() {
     try {
@@ -520,17 +555,19 @@ window.initMokjangLoginGateUI = function() {
                     window.currentMokjangCode = rp.mokjangCode;
                 }
                 if (rp.mokjangShort !== undefined) {
-                    var cleanM = String(rp.mokjangShort).trim().replace(/^세종꿈의교회\s*/, '');
+                    var cleanM = String(rp.mokjangShort).trim().replace(/^세종꿈의교회\s*-?\s*/, '');
                     localStorage.setItem('mokjang_short_name', cleanM);
                     localStorage.setItem('mokjang_name', cleanM ? ('세종꿈의교회 ' + cleanM) : '세종꿈의교회');
                 }
                 var g = document.getElementById('mokjang-login-gate');
-                if (g) g.style.display = 'none';
+                if (g) { g.classList.remove('opacity-0'); g.style.display = 'none'; }
+                setTimeout(function() { window.syncAdminGearVisibility('leader', rp.userName || '목자'); }, 50);
                 return;
             }
         }
     } catch (e) {}
     window.initMokjangLoginGateUI();
+    setTimeout(function() { window.syncAdminGearVisibility(); }, 50);
 })();
 
 window.handleRememberNameToggle = function(chk) {
@@ -608,6 +645,7 @@ window.handleGateCodeInput = function(el) {
             } else if (nameInput) {
                 try {
                     nameInput.focus({ preventScroll: true });
+                    window.centerGateInputOnFocus(nameInput);
                 } catch (e) {
                     nameInput.focus();
                 }
@@ -654,7 +692,7 @@ window.submitMokjangGateLogin = function() {
 
     var cfg = window.getMergedMokjangConfigByCode(code);
     var validCode = cfg.mokjangCode ? String(cfg.mokjangCode).trim() : '1111';
-    var mokjangShort = cfg.mokjangName ? String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*/, '') : '';
+    var mokjangShort = cfg.mokjangName ? String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*-?\s*/, '') : '';
     var leaderName = cfg.leaderName ? String(cfg.leaderName).trim() : '목자';
     var subLeaderName = (cfg.subLeaderName || cfg.subleaderName) ? String(cfg.subLeaderName || cfg.subleaderName).trim() : '';
     var subLeaders = Array.isArray(cfg.subLeaders) ? cfg.subLeaders.map(function(s){ return String(s).trim(); }) : [];
@@ -719,15 +757,19 @@ window.submitMokjangGateLogin = function() {
     if (msgEl) msgEl.textContent = '';
     if (nameInput) nameInput.blur();
     if (codeInput) codeInput.blur();
+    window.scrollTo(0, 0);
+
+    window.syncAdminGearVisibility(userRole, name);
 
     if (typeof window.syncLoginSessionToFeed === 'function') {
         window.syncLoginSessionToFeed(name, userRole, isAdminBool, mokjangShort, finalCode, userJoinedAt);
     }
 
+    // 로그인 완료 즉시 잔상이나 흐려짐 없이 깔끔하게 로그인 게이트 제거
     var gate = document.getElementById('mokjang-login-gate');
     if (gate) {
-        gate.classList.add('opacity-0', 'pointer-events-none');
-        setTimeout(function() { gate.style.display = 'none'; }, 250);
+        gate.classList.remove('opacity-0', 'pointer-events-none');
+        gate.style.display = 'none';
     }
 };
 
@@ -773,7 +815,7 @@ window.goToLeaderAdminPage = function(event) {
                 <!-- 중앙 메인 타이틀 ('회' 자가 화면 중앙에 오도록 왼쪽으로 이동 정렬) -->
         <div class="absolute left-1/2 top-1/2 -translate-y-1/2 flex items-center pointer-events-auto max-w-[85vw]" id="header-mokjang-title-wrapper" style="left: calc(50% - 46px); transform: translateY(-50%);">
             <div class="relative flex items-center space-x-2" id="header-mokjang-title-container">
-                <img src="flogo.png" alt="세종꿈의교회 로고" onerror="this.style.display='none'" class="w-[34px] h-[34px] object-contain shrink-0 select-none" id="header-church-logo">
+                <img src="tlogo.png" alt="세종꿈의교회 로고" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='flogo.png';}else{this.style.display='none';}" class="w-[34px] h-[34px] rounded-xl border border-slate-200 bg-slate-50/80 p-0.5 object-contain shrink-0 select-none shadow-2xs" id="header-church-logo">
                 <div class="flex flex-col items-start text-left min-w-0">
                     <h1 class="header-main-title-text font-black tracking-tight leading-tight whitespace-nowrap select-none relative" id="header-mokjang-title">
                         <span id="title-church-prefix"><span id="title-char-se">세</span>종꿈의교<span id="title-char-hoe">회</span></span>
@@ -857,7 +899,7 @@ window.goToLeaderAdminPage = function(event) {
 
     <!-- [피드 메인 컨테이너] -->
     <main class="w-full max-w-md mx-auto flex-1 overflow-y-auto px-1 py-0.5" id="feed-container">
-        <div id="feed-initial-skeleton" class="w-full px-2 pt-1 pb-2 space-y-3 animate-pulse select-none">
+        <div id="feed-initial-skeleton" class="w-full px-2 pt-1 pb-2 space-y-3 select-none">
             <div class="w-full bg-white rounded-2xl border church-border p-3 space-y-2.5 shadow-2xs">
                 <div class="flex items-center space-x-2">
                     <div class="w-7 h-7 rounded-full bg-emerald-100/70"></div>
@@ -1880,42 +1922,37 @@ window.goToLeaderAdminPage = function(event) {
         setTimeout(alignTitleToHoe, 300);
 
 function syncHeaderMokjangTitleDOM() {
-            const displayTitle = (currentMokjangShort && currentMokjangShort.trim()) ? currentMokjangShort.trim() : '세종꿈의교회 23목장';
-            currentMokjang = displayTitle;
-            const prefixEl = document.getElementById('title-church-prefix');
-            const mokjangSpan = document.getElementById('title-mokjang-name');
-            
-            if (prefixEl) {
-                if (displayTitle.includes('교회')) {
-                    const match = displayTitle.match(/^(.*?교회)s*(.*)$/);
-                    if (match) {
-                        const churchPart = match[1];
-                        const mokjangPart = match[2];
-                        const firstChar = churchPart.charAt(0);
-                        const midChars = churchPart.slice(1, -1);
-                        const lastChar = churchPart.slice(-1);
-                        prefixEl.innerHTML = `<span id="title-char-se">${escapeHtml(firstChar)}</span>${escapeHtml(midChars)}<span id="title-char-hoe">${escapeHtml(lastChar)}</span>`;
-                        if (mokjangSpan) {
-                            mokjangSpan.textContent = mokjangPart;
-                            mokjangSpan.className = mokjangPart ? 'ml-1 relative inline-block' : 'relative inline-block';
-                        }
-                    } else {
-                        prefixEl.innerHTML = escapeHtml(displayTitle);
-                    }
-                } else {
-                    const firstChar = displayTitle.charAt(0) || '우';
-                    const restChars = displayTitle.slice(1);
-                    prefixEl.innerHTML = '<span id="title-char-se">' + escapeHtml(firstChar) + '</span>' + escapeHtml(restChars);
-                    if (mokjangSpan) {
-                        mokjangSpan.textContent = '';
-                    }
-                }
+            let rawShort = (currentMokjangShort && currentMokjangShort.trim()) ? currentMokjangShort.trim() : "";
+            if (!rawShort) {
+                try {
+                    const activeCode = window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111";
+                    const cfg = (typeof window.getMergedMokjangConfigByCode === "function") ? window.getMergedMokjangConfigByCode(activeCode) : null;
+                    if (cfg && cfg.mokjangName) rawShort = String(cfg.mokjangName).trim();
+                    else rawShort = localStorage.getItem("mokjang_short_name") || "";
+                } catch (e) {}
             }
-            document.title = `우리들의 목장 이야기 - ${displayTitle}`;
-            const renameBtn = document.getElementById('lightbox-rename-btn');
+            const cleanShort = String(rawShort || "").replace(/^세종꿈의교회\s*-?\s*/, "").trim();
+            currentMokjangShort = cleanShort;
+            const mokjangPart = cleanShort || "꿈의목장";
+            currentMokjang = "세종꿈의교회 " + mokjangPart;
+
+            const prefixEl = document.getElementById("title-church-prefix");
+            const mokjangSpan = document.getElementById("title-mokjang-name");
+            if (prefixEl) {
+                prefixEl.innerHTML = '<span id="title-char-se">세</span>종꿈의교<span id="title-char-hoe">회</span>';
+            }
+            if (mokjangSpan) {
+                mokjangSpan.textContent = mokjangPart;
+                mokjangSpan.className = "ml-1 relative inline-block text-[#3B5D50]";
+            }
+            document.title = "우리들의 목장 이야기 - " + currentMokjang;
+            const renameBtn = document.getElementById("lightbox-rename-btn");
             if (renameBtn) {
-                if (isCurrentUserAdmin) renameBtn.classList.remove('hidden');
-                else renameBtn.classList.add('hidden');
+                if (isCurrentUserAdmin) renameBtn.classList.remove("hidden");
+                else renameBtn.classList.add("hidden");
+            }
+            if (typeof window.syncAdminGearVisibility === "function") {
+                window.syncAdminGearVisibility(currentUserRole, currentUser);
             }
             setTimeout(alignTitleToHoe, 30);
         }
@@ -8667,6 +8704,24 @@ function syncHeaderMokjangTitleDOM() {
 var currentMokjangCode = window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '1111';
 var currentUserJoinedAt = Number(window.currentUserJoinedAt || localStorage.getItem('mokjang_user_joined_at') || 0);
 window.allMokjangConfigsMap = window.allMokjangConfigsMap || {};
+
+function applyConfigTitleIfActive(cKey, data) {
+    if (!data) return;
+    var activeCode = String(window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '1111').trim();
+    if (cKey === activeCode || (activeCode === '1111' && cKey === 'main')) {
+        if (data.mokjangName !== undefined) {
+            var cleanM = String(data.mokjangName || '').trim().replace(/^세종꿈의교회\s*-?\s*/, '');
+            currentMokjangShort = cleanM;
+            currentMokjang = cleanM ? ('세종꿈의교회 ' + cleanM) : '세종꿈의교회';
+            try {
+                localStorage.setItem('mokjang_short_name', cleanM);
+                localStorage.setItem('mokjang_name', currentMokjang);
+            } catch (e) {}
+            syncHeaderMokjangTitleDOM();
+        }
+    }
+}
+
 try {
     onSnapshot(doc(db, 'mokjang_config', 'main'), function(snap) {
         if (snap.exists()) {
@@ -8680,6 +8735,7 @@ try {
                 localStorage.setItem('mokjang_config_backup', JSON.stringify(data));
                 localStorage.setItem('mokjang_config_backup_' + cKey, JSON.stringify(window.allMokjangConfigsMap[cKey]));
             } catch (e) {}
+            applyConfigTitleIfActive(cKey, data);
         }
     });
     onSnapshot(collection(db, 'mokjang_configs'), function(snap) {
@@ -8690,6 +8746,7 @@ try {
             var merged = Object.assign({}, (cKey === String(mainData.mokjangCode || '1111').trim() ? mainData : {}), data);
             window.allMokjangConfigsMap[cKey] = merged;
             try { localStorage.setItem('mokjang_config_backup_' + cKey, JSON.stringify(merged)); } catch (e) {}
+            applyConfigTitleIfActive(cKey, merged);
         });
     });
 } catch (e) {}
@@ -8702,14 +8759,16 @@ window.syncLoginSessionToFeed = function(name, role, isAdmin, mokjangShort, code
     window.currentMokjangCode = currentMokjangCode;
     currentUserJoinedAt = Number(joinedAt || 0);
     window.currentUserJoinedAt = currentUserJoinedAt;
-    if (mokjangShort) {
-        var cleanM = String(mokjangShort).trim().replace(/^세종꿈의교회\s*/, '');
-        currentMokjangShort = cleanM;
-        currentMokjang = cleanM ? ('세종꿈의교회 ' + cleanM) : '세종꿈의교회';
+    var cleanM = String(mokjangShort || '').trim().replace(/^세종꿈의교회\s*-?\s*/, '');
+    currentMokjangShort = cleanM;
+    currentMokjang = cleanM ? ('세종꿈의교회 ' + cleanM) : '세종꿈의교회';
+    if (typeof window.syncAdminGearVisibility === 'function') {
+        window.syncAdminGearVisibility(role, name);
     }
     syncHeaderMokjangTitleDOM();
     updateWelcomeUserDisplay(lastOnlineCount);
-    renderFeedList();
+    loadMokjangFeed();
+    ensureMokjangFilesLoaded();
     if (typeof showNotification === 'function') showNotification(name + '님 환영합니다!');
 };
 // [BRIDGE_V24_END]
