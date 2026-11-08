@@ -464,10 +464,7 @@ window.currentUserJoinedAt = Number(localStorage.getItem('mokjang_user_joined_at
                 localStorage.setItem('mokjang_user_name', rp.userName || '목자');
                 localStorage.setItem('mokjang_user_role', 'leader');
                 localStorage.setItem('mokjang_is_admin', 'true');
-                if (rp.mokjangCode) {
-                    localStorage.setItem('mokjang_active_code', rp.mokjangCode);
-                    window.currentMokjangCode = rp.mokjangCode;
-                }
+                if (rp.mokjangCode) { localStorage.setItem('mokjang_active_code', rp.mokjangCode); window.currentMokjangCode = rp.mokjangCode; }
                 if (rp.mokjangShort !== undefined) {
                     var cleanM = String(rp.mokjangShort).trim().replace(/^세종꿈의교회\s*/, '');
                     localStorage.setItem('mokjang_short_name', cleanM);
@@ -481,29 +478,19 @@ window.currentUserJoinedAt = Number(localStorage.getItem('mokjang_user_joined_at
 })();
 
 window.getMergedMokjangConfigByCode = function(code) {
+    var cleanCode = String(code || '1111').trim();
     var mainCfg = window.liveMokjangConfig || (window.allMokjangConfigsMap && window.allMokjangConfigsMap['main']) || null;
-    var codeCfg = (window.allMokjangConfigsMap && code && window.allMokjangConfigsMap[code]) || null;
+    var codeCfg = (window.allMokjangConfigsMap && window.allMokjangConfigsMap[cleanCode]) || null;
     try {
-        if (!mainCfg) {
-            var rawMain = localStorage.getItem('mokjang_config_backup');
-            if (rawMain) mainCfg = JSON.parse(rawMain);
-        }
-        if (!codeCfg && code) {
-            var rawByCode = localStorage.getItem('mokjang_config_backup_' + code);
-            if (rawByCode) codeCfg = JSON.parse(rawByCode);
-        }
+        if (!mainCfg) { var rm = localStorage.getItem('mokjang_config_backup'); if (rm) mainCfg = JSON.parse(rm); }
+        if (!codeCfg) { var rc = localStorage.getItem('mokjang_config_backup_' + cleanCode); if (rc) codeCfg = JSON.parse(rc); }
     } catch (e) {}
+    var mainDocCode = (mainCfg && mainCfg.mokjangCode) ? String(mainCfg.mokjangCode).trim() : '1111';
+    if (codeCfg && cleanCode !== mainDocCode && cleanCode !== '1111') return Object.assign({}, codeCfg);
     var merged = Object.assign({}, mainCfg || {}, codeCfg || {});
-    if (codeCfg && (!Array.isArray(codeCfg.members) || codeCfg.members.length <= 1) && mainCfg && Array.isArray(mainCfg.members) && mainCfg.members.length > 1) {
-        merged.members = mainCfg.members.slice();
-    }
-    var cPass = codeCfg && (codeCfg.adminPasscode || codeCfg.passcode || codeCfg.securityCode);
-    var mPass = mainCfg && (mainCfg.adminPasscode || mainCfg.passcode || mainCfg.securityCode);
-    if ((!cPass || cPass === '0000') && mPass) {
-        merged.adminPasscode = String(mPass).trim();
-    } else if (cPass) {
-        merged.adminPasscode = String(cPass).trim();
-    }
+    var cPass = codeCfg && (codeCfg.adminPasscode || codeCfg.passcode);
+    var mPass = mainCfg && (mainCfg.adminPasscode || mainCfg.passcode);
+    merged.adminPasscode = String((cPass && cPass !== '0000') ? cPass : (mPass || cPass || '0000')).trim();
     return merged;
 };
 
@@ -7491,6 +7478,14 @@ function syncHeaderMokjangTitleDOM() {
                     data.likes = safeLikes;
                     data.thumbsUp = safeThumbs;
                     data.prayers = safePrayers;
+                    const activeCode = String(window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '1111').trim();
+                    const postCode = data.mokjangCode ? String(data.mokjangCode).trim() : '1111';
+                    if (postCode !== activeCode) return;
+                    const joinedLimit = Number(window.currentUserJoinedAt || localStorage.getItem('mokjang_user_joined_at') || 0);
+                    if (joinedLimit > 0 && currentUserRole !== 'leader') {
+                        const pTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt || 0).getTime();
+                        if (pTime > 0 && pTime < joinedLimit) return;
+                    }
 
                     posts.push({ id: docSnap.id, ...data });
                 });
