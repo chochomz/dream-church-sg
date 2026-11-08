@@ -113,26 +113,24 @@
         }
     </style>
 </head>
-<body class="h-full w-full max-w-full overflow-y-auto overflow-x-hidden bg-[#F1F5F9] py-2.5 px-2.5 select-none">
-    <div class="w-full max-w-md mx-auto bg-white rounded-3xl border border-slate-200/90 shadow-sm p-3.5 space-y-3">
-        <!-- 1) 상부 메인 타이틀: 사각형 둥근 테두리 로고 + "세종꿈의교회 - 00목장" 중앙정렬 -->
-        <div class="relative flex items-center justify-center min-h-[44px] pb-2.5 border-b border-slate-100">
-            <div class="flex items-center justify-center space-x-2 px-14 min-w-0">
+<body class="h-full w-full max-w-full overflow-y-auto overflow-x-hidden bg-[#F1F5F9] py-2 px-1.5 select-none">
+    <div class="w-full max-w-md mx-auto bg-white rounded-3xl border border-slate-200/90 shadow-sm px-2.5 py-3 space-y-2.5">
+        <!-- 1) 상부 메인 타이틀: 사각형 둥근 테두리 로고 + "세종꿈의교회 - 00목장" 정중앙 정렬 (피드 이동 버튼 삭제) -->
+        <div class="flex items-center justify-center min-h-[40px] pb-2 border-b border-slate-100">
+            <div class="flex items-center justify-center space-x-2 min-w-0">
                 <div class="w-8 h-8 rounded-xl border border-slate-200 bg-slate-50 p-1 flex items-center justify-center shrink-0 shadow-2xs">
                     <img src="logo30.png" alt="로고" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='flogo.png';}else{this.style.display='none';}" class="w-full h-full object-contain">
                 </div>
-                <h1 class="text-[15.5px] font-black tracking-tight text-slate-800 whitespace-nowrap truncate text-center">
+                <h1 class="text-[16px] font-black tracking-tight text-slate-800 whitespace-nowrap truncate text-center">
                     <span>세종꿈의교회 - </span><span id="admin-header-mokjang" class="text-[#3B5D50]">꿈의목장</span>
                 </h1>
             </div>
-            <button type="button" onclick="returnToMokjangFeed()" class="absolute right-0 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-[11px] font-extrabold active:scale-95 transition-all flex items-center space-x-1 whitespace-nowrap">
-                <i class="fa-solid fa-comments text-emerald-700 text-[10px]"></i><span>피드 이동</span>
-            </button>
             <span id="admin-header-code" class="hidden">1111</span>
+            <span id="active-mokjang-code-label" class="hidden"></span>
         </div>
 
         <!-- 2) 1열 배치: [로그인 화면으로] | [우리목장 백업] -->
-        <div class="grid grid-cols-2 gap-2">
+        <div class="grid grid-cols-2 gap-1.5">
             <button type="button" onclick="goToInitialLoginScreen()" class="py-2 px-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-xs font-extrabold active:scale-95 transition-all flex items-center justify-center space-x-1.5 whitespace-nowrap">
                 <i class="fa-solid fa-door-open text-slate-500 text-[11px]"></i><span>로그인 화면으로</span>
             </button>
@@ -141,50 +139,49 @@
             </button>
         </div>
 
-        <!-- 3) 기본 설정 카드: 목장이름(1줄 길게) -> 목장코드/관리패스코드 -> 목자성함/부목자성함 -> 설정 저장 버튼 -->
+        <!-- 3) 우리 목장 기본 설정 (우측 코드 문자 삭제, 목장 이름 라벨 수정) -->
         <div id="security-locked-placeholder" class="hidden"></div>
-        <div id="security-unlocked-data-container" class="space-y-3">
-            <section class="w-full bg-slate-50/70 rounded-2xl border church-border p-3 space-y-2.5">
-                <div class="flex items-center justify-between border-b border-slate-200/70 pb-1.5 whitespace-nowrap">
+        <div id="security-unlocked-data-container" class="space-y-2.5">
+            <section class="w-full bg-slate-50/70 rounded-2xl border church-border p-2.5 space-y-2">
+                <div class="flex items-center border-b border-slate-200/70 pb-1.5 whitespace-nowrap">
                     <h3 class="text-xs font-extrabold text-slate-800 flex items-center space-x-1.5"><i class="fa-solid fa-key church-primary-text text-[11px]"></i><span>우리 목장 기본 설정</span></h3>
-                    <span class="text-[10.5px] text-emerald-700 font-mono font-extrabold" id="active-mokjang-code-label">코드: 1111</span>
                 </div>
                 <div class="w-full text-left">
-                    <label class="block text-[10.5px] font-bold text-slate-600 mb-1 whitespace-nowrap">목장 이름 (타이틀)</label>
-                    <input type="text" id="admin-mokjang-name-input" maxlength="14" placeholder="예: 23목장, 사랑목장" class="w-full px-3 py-1.5 rounded-xl font-bold dashed-input">
+                    <label class="block text-[10.5px] font-bold text-slate-600 mb-1 whitespace-nowrap">목장 이름( 목장 이름은 상부 타이틀에 올라가는 문자임)</label>
+                    <input type="text" id="admin-mokjang-name-input" maxlength="14" placeholder="예: 23목장, 사랑목장" class="w-full px-2.5 py-1.5 rounded-xl font-bold dashed-input">
                 </div>
-                <div class="grid grid-cols-2 gap-2 text-left">
-                    <div><label class="block text-[10.5px] font-bold text-slate-600 mb-1 whitespace-nowrap">목장코드 (4자리)</label><input type="text" id="admin-mokjang-code-input" maxlength="4" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" class="w-full px-2.5 py-1.5 rounded-xl font-mono font-black text-center dashed-input"></div>
-                    <div><label class="block text-[10.5px] font-bold text-slate-600 mb-1 whitespace-nowrap">관리 패스코드 (4자리)</label><input type="text" id="admin-passcode-setting-input" maxlength="4" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" class="w-full px-2.5 py-1.5 rounded-xl font-mono font-black text-center dashed-input"></div>
+                <div class="grid grid-cols-2 gap-1.5 text-left">
+                    <div><label class="block text-[10.5px] font-bold text-slate-600 mb-1 whitespace-nowrap">목장코드 (4자리)</label><input type="text" id="admin-mokjang-code-input" maxlength="4" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" class="w-full px-2 py-1.5 rounded-xl font-mono font-black text-center dashed-input"></div>
+                    <div><label class="block text-[10.5px] font-bold text-slate-600 mb-1 whitespace-nowrap">관리 패스코드 (4자리)</label><input type="text" id="admin-passcode-setting-input" maxlength="4" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4)" class="w-full px-2 py-1.5 rounded-xl font-mono font-black text-center dashed-input"></div>
                 </div>
-                <div class="grid grid-cols-2 gap-2 text-left">
-                    <div><label class="block text-[10.5px] font-bold text-slate-600 mb-1 whitespace-nowrap">목자 성함 <span class="text-amber-700">(최고권한)</span></label><input type="text" id="admin-leader-name-input" maxlength="6" class="w-full px-2.5 py-1.5 rounded-xl font-bold text-center dashed-input"></div>
-                    <div><label class="block text-[10.5px] font-bold text-slate-600 mb-1 whitespace-nowrap">부목자 성함 <span class="text-sky-700">(피드관리)</span></label><input type="text" id="admin-subleader-name-input" maxlength="6" placeholder="선택 입력" class="w-full px-2.5 py-1.5 rounded-xl font-bold text-center dashed-input"></div>
+                <div class="grid grid-cols-2 gap-1.5 text-left">
+                    <div><label class="block text-[10.5px] font-bold text-slate-600 mb-1 whitespace-nowrap">목자 성함 <span class="text-amber-700">(최고권한)</span></label><input type="text" id="admin-leader-name-input" maxlength="6" class="w-full px-2 py-1.5 rounded-xl font-bold text-center dashed-input"></div>
+                    <div><label class="block text-[10.5px] font-bold text-slate-600 mb-1 whitespace-nowrap">부목자 성함 <span class="text-sky-700">(피드관리)</span></label><input type="text" id="admin-subleader-name-input" maxlength="6" placeholder="선택 입력" class="w-full px-2 py-1.5 rounded-xl font-bold text-center dashed-input"></div>
                 </div>
                 <button type="button" onclick="saveMokjangConfigToFirestore()" class="w-full py-2.5 church-primary hover:opacity-95 active:scale-98 text-white rounded-xl text-xs font-extrabold shadow-xs transition-all flex items-center justify-center space-x-1.5 whitespace-nowrap"><i class="fa-solid fa-floppy-disk"></i><span>우리 목장 기본 설정 저장</span></button>
             </section>
 
-            <!-- 4) 목원 · 부목자 추가 및 명단 관리 (모든 문구 1열 디자인) -->
-            <section class="w-full bg-slate-50/70 rounded-2xl border church-border p-3 space-y-2">
-                <div class="flex items-center justify-between border-b border-slate-200/70 pb-1.5 gap-1 whitespace-nowrap">
-                    <h3 class="text-xs font-extrabold text-slate-800 flex items-center space-x-1.5 shrink-0"><i class="fa-solid fa-users church-primary-text text-[11px]"></i><span>목원 · 부목자 추가 관리 (<span id="member-count-text" class="text-emerald-700">0</span>명)</span></h3>
-                    <span class="text-[10px] text-slate-400 font-semibold truncate">신입은 기준일 이후만 열람</span>
+            <!-- 4) 목원 · 부목자 추가 관리 (밑줄 문구 수정 + 좌우 여백 축소하여 이름 입력창 길게 확장) -->
+            <section class="w-full bg-slate-50/70 rounded-2xl border church-border p-2.5 space-y-2">
+                <div class="border-b border-slate-200/70 pb-1.5 text-left">
+                    <h3 class="text-xs font-extrabold text-slate-800 flex items-center space-x-1.5 whitespace-nowrap"><i class="fa-solid fa-users church-primary-text text-[11px]"></i><span>목원 · 부목자 추가 관리 (<span id="member-count-text" class="text-emerald-700">0</span>명)</span></h3>
+                    <p class="text-[10.5px] text-slate-500 font-semibold mt-0.5 whitespace-nowrap">신입 목원님의 열람 시작일을 지정하세요.</p>
                 </div>
-                <div class="space-y-1.5 bg-white p-2.5 rounded-xl border border-slate-200/80">
-                    <div class="flex items-center gap-1.5">
-                        <select id="new-member-role-select" class="shrink-0 px-2 py-1.5 rounded-xl font-bold text-xs dashed-input"><option value="member">목원</option><option value="subleader">부목자</option></select>
-                        <input type="text" id="new-member-name-input" maxlength="6" placeholder="이름 (2~6자)" onkeydown="if(event.key==='Enter'){event.preventDefault();addMokjangMember();}" class="flex-1 min-w-0 px-2.5 py-1.5 rounded-xl font-bold dashed-input">
-                        <button type="button" onclick="addMokjangMember()" class="shrink-0 px-3 py-1.5 church-primary text-white rounded-xl text-xs font-extrabold active:scale-95 transition-all whitespace-nowrap"><i class="fa-solid fa-plus mr-0.5 text-[10px]"></i>추가</button>
+                <div class="space-y-1.5 bg-white p-2 rounded-xl border border-slate-200/80">
+                    <div class="flex items-center gap-1 w-full">
+                        <select id="new-member-role-select" class="shrink-0 px-1.5 py-1.5 rounded-xl font-bold text-xs dashed-input"><option value="member">목원</option><option value="subleader">부목자</option></select>
+                        <input type="text" id="new-member-name-input" maxlength="8" placeholder="목원 이름 입력 (2~6자)" onkeydown="if(event.key==='Enter'){event.preventDefault();addMokjangMember();}" class="flex-1 min-w-0 w-full px-2.5 py-1.5 rounded-xl font-bold dashed-input">
+                        <button type="button" onclick="addMokjangMember()" class="shrink-0 px-2.5 py-1.5 church-primary text-white rounded-xl text-xs font-extrabold active:scale-95 transition-all whitespace-nowrap"><i class="fa-solid fa-plus mr-0.5 text-[10px]"></i>추가</button>
                     </div>
                     <div class="flex items-center justify-between text-[11px] px-0.5 pt-0.5 whitespace-nowrap">
                         <span class="font-bold text-slate-600 shrink-0"><i class="fa-regular fa-calendar-check text-emerald-700 mr-1"></i>열람범위:</span>
                         <div class="flex items-center space-x-2 shrink-0">
                             <label class="inline-flex items-center space-x-1 cursor-pointer"><input type="radio" name="new-member-access-mode" value="all" checked onchange="toggleNewMemberDateInput()" class="accent-[#3B5D50]"><span class="font-bold text-slate-700">전체기간</span></label>
-                            <label class="inline-flex items-center space-x-1 cursor-pointer"><input type="radio" name="new-member-access-mode" value="from_date" onchange="toggleNewMemberDateInput()" class="accent-[#3B5D50]"><span class="font-bold text-emerald-800">신입(기준일 이후)</span></label>
+                            <label class="inline-flex items-center space-x-1 cursor-pointer"><input type="radio" name="new-member-access-mode" value="from_date" onchange="toggleNewMemberDateInput()" class="accent-[#3B5D50]"><span class="font-bold text-emerald-800">신입(특정일 이후만)</span></label>
                         </div>
                     </div>
                     <div id="new-member-date-row" class="hidden pt-1 flex items-center justify-end space-x-1.5 text-xs whitespace-nowrap">
-                        <span class="text-[10.5px] text-slate-500 font-bold">기준일:</span>
+                        <span class="text-[10.5px] text-slate-500 font-bold">열람 시작 기준일:</span>
                         <input type="date" id="new-member-join-date" class="px-2 py-0.5 rounded-lg border border-emerald-300 bg-white text-xs font-mono font-bold text-emerald-900">
                     </div>
                 </div>
@@ -296,189 +293,67 @@
         };
 
         // [PATCH v2.0: 기존 DB(mokjang_config/main) 패스코드 및 명단 100% 추출·병합기]
-        function extractPasscodeFromDoc(docData) {
-            if (!docData || typeof docData !== "object") return "";
-            var candidate = docData.adminPasscode || docData.passcode || docData.securityCode || docData.leaderPasscode || "";
-            var str = String(candidate).trim();
-            return /^[0-9]{4}$/.test(str) ? str : "";
-        }
-
-        function mergeMokjangConfigData(mainData, codeData, requestedCode) {
-            var base = Object.assign({}, mokjangConfig);
-            if (mainData && typeof mainData === "object") {
-                base = Object.assign(base, mainData);
+        function mergeMokjangConfigData(mainData, codeData, reqCode) {
+            var b = Object.assign({}, mokjangConfig, mainData || {}, codeData || {});
+            if (codeData && (!Array.isArray(codeData.members) || codeData.members.length <= 1) && mainData && Array.isArray(mainData.members) && mainData.members.length > 1) {
+                b.members = mainData.members.slice();
             }
-            if (codeData && typeof codeData === "object") {
-                base = Object.assign(base, codeData);
-                if ((!Array.isArray(codeData.members) || codeData.members.length <= 1) && mainData && Array.isArray(mainData.members) && mainData.members.length > 1) {
-                    base.members = mainData.members.slice();
-                }
-            }
-            var passFromCode = extractPasscodeFromDoc(codeData);
-            var passFromMain = extractPasscodeFromDoc(mainData);
-            var passFromVerified = (verifiedPass && verifiedPass.adminPasscode && /^[0-9]{4}$/.test(String(verifiedPass.adminPasscode).trim())) ? String(verifiedPass.adminPasscode).trim() : "";
-
-            if (passFromCode && passFromCode !== "0000") {
-                base.adminPasscode = passFromCode;
-            } else if (passFromMain && passFromMain !== "0000") {
-                base.adminPasscode = passFromMain;
-            } else if (passFromCode) {
-                base.adminPasscode = passFromCode;
-            } else if (passFromMain) {
-                base.adminPasscode = passFromMain;
-            } else if (passFromVerified) {
-                base.adminPasscode = passFromVerified;
-            } else {
-                base.adminPasscode = String(base.adminPasscode || "0000").trim();
-            }
-
-            var resolvedCode = requestedCode || (codeData && codeData.mokjangCode) || (mainData && mainData.mokjangCode) || activeMokjangCode || "1111";
-            base.mokjangCode = String(resolvedCode).trim();
-            base.mokjangName = String(base.mokjangName || verifiedPass.mokjangShort || "").trim().replace(/^세종꿈의교회\s*/, "");
-            base.leaderName = String(base.leaderName || verifiedPass.leaderName || "목자").trim();
-            base.subLeaderName = String(base.subLeaderName || base.subleaderName || "").trim();
-            base.subLeaders = Array.isArray(base.subLeaders) ? base.subLeaders : [];
-            base.members = (Array.isArray(base.members) && base.members.length > 0) ? base.members : [base.leaderName];
-            base.memberJoinedAt = (base.memberJoinedAt && typeof base.memberJoinedAt === "object") ? base.memberJoinedAt : {};
-            return base;
+            var pCode = codeData && (codeData.adminPasscode || codeData.passcode || codeData.securityCode);
+            var pMain = mainData && (mainData.adminPasscode || mainData.passcode || mainData.securityCode);
+            b.adminPasscode = String((pCode && pCode !== "0000") ? pCode : (pMain || pCode || verifiedPass.adminPasscode || "0000")).trim();
+            b.mokjangCode = String(reqCode || b.mokjangCode || activeMokjangCode || "1111").trim();
+            b.mokjangName = String(b.mokjangName || verifiedPass.mokjangShort || "").trim().replace(/^세종꿈의교회\s*/, "");
+            b.leaderName = String(b.leaderName || verifiedPass.leaderName || "목자").trim();
+            b.subLeaderName = String(b.subLeaderName || b.subleaderName || "").trim();
+            b.subLeaders = Array.isArray(b.subLeaders) ? b.subLeaders : [];
+            b.members = (Array.isArray(b.members) && b.members.length > 0) ? b.members : [b.leaderName];
+            b.memberJoinedAt = b.memberJoinedAt || {};
+            return b;
         }
 
         function setSecurityGateUnlockedUI() {
             isDataUnlocked = true;
-            var lockedPlaceholder = document.getElementById("security-locked-placeholder");
-            var unlockedContainer = document.getElementById("security-unlocked-data-container");
-            var badgeEl = document.getElementById("security-gate-badge");
-            var iconBox = document.getElementById("security-gate-icon-box");
-            var iconEl = document.getElementById("security-gate-icon");
-            if (lockedPlaceholder) lockedPlaceholder.classList.add("hidden");
-            if (unlockedContainer) unlockedContainer.classList.remove("hidden");
-            if (badgeEl) {
-                badgeEl.textContent = "🔓 열람 승인";
-                badgeEl.className = "shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300";
-            }
-            if (iconBox) iconBox.className = "w-7 h-7 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 text-xs";
-            if (iconEl) iconEl.className = "fa-solid fa-lock-open";
+            var u = document.getElementById("security-unlocked-data-container");
+            if (u) u.classList.remove("hidden");
         }
 
-        window.triggerDataLookup = async function(isSilentAutoLoad) {
-            var codeEl = document.getElementById("admin-gate-mokjang-code");
-            var passEl = document.getElementById("admin-passcode-gate-input");
-            var inputCode = (codeEl && codeEl.value ? codeEl.value.trim() : activeMokjangCode) || "1111";
-            var inputPass = passEl && passEl.value ? passEl.value.trim() : "";
-
-            if (!/^[0-9]{4}$/.test(inputCode)) {
-                if (!isSilentAutoLoad) showToast("목장코드 4자리를 입력해 주세요.");
-                return;
-            }
-
+        window.triggerDataLookup = async function() {
             try {
                 await signInAnonymously(auth);
-                var mainData = null;
-                var codeData = null;
-
-                try {
-                    var mainSnap = await getDoc(doc(db, "mokjang_config", "main"));
-                    if (mainSnap.exists()) mainData = mainSnap.data();
-                } catch (e) {}
-
-                try {
-                    var codeSnap = await getDoc(doc(db, "mokjang_configs", inputCode));
-                    if (codeSnap.exists()) codeData = codeSnap.data();
-                } catch (e) {}
-
-                // 만약 초기 진입 시 activeMokjangCode가 1111인데 mainData에 다른 목장코드가 설정되어 있다면 그 코드의 데이터도 함께 조회
-                if (isSilentAutoLoad && mainData && mainData.mokjangCode) {
-                    var mainConfiguredCode = String(mainData.mokjangCode).trim();
-                    if (/^[0-9]{4}$/.test(mainConfiguredCode) && mainConfiguredCode !== inputCode && !codeData) {
-                        inputCode = mainConfiguredCode;
-                        if (codeEl) codeEl.value = inputCode;
-                        try {
-                            var altSnap = await getDoc(doc(db, "mokjang_configs", inputCode));
-                            if (altSnap.exists()) codeData = altSnap.data();
-                        } catch (e) {}
+                var mSnap = await getDoc(doc(db, "mokjang_config", "main")).catch(function(){return null;});
+                var cSnap = await getDoc(doc(db, "mokjang_configs", activeMokjangCode)).catch(function(){return null;});
+                var mData = (mSnap && mSnap.exists()) ? mSnap.data() : null;
+                var cData = (cSnap && cSnap.exists()) ? cSnap.data() : null;
+                if (mData && mData.mokjangCode && !cData) {
+                    var mc = String(mData.mokjangCode).trim();
+                    if (/^[0-9]{4}$/.test(mc) && mc !== activeMokjangCode) {
+                        activeMokjangCode = mc;
+                        var alt = await getDoc(doc(db, "mokjang_configs", activeMokjangCode)).catch(function(){return null;});
+                        if (alt && alt.exists()) cData = alt.data();
                     }
                 }
-
-                // 로컬 백업 폴백 확인
-                if (!mainData && !codeData) {
-                    try {
-                        var localByCode = localStorage.getItem("mokjang_config_backup_" + inputCode);
-                        if (localByCode) codeData = JSON.parse(localByCode);
-                        var localMain = localStorage.getItem("mokjang_config_backup");
-                        if (localMain) mainData = JSON.parse(localMain);
-                    } catch (e) {}
-                }
-
-                var mainDocCode = (mainData && mainData.mokjangCode) ? String(mainData.mokjangCode).trim() : "1111";
-                var shouldMergeMain = mainData && (inputCode === mainDocCode || inputCode === "1111" || !codeData);
-
-                if (codeData || shouldMergeMain) {
-                    var mergedCfg = mergeMokjangConfigData(shouldMergeMain ? mainData : null, codeData, inputCode);
-                    var dbPass = String(mergedCfg.adminPasscode || "0000").trim();
-
-                    // 자동 로드이거나 패스코드 입력란이 비어 있으면 DB에서 불러온 패스코드를 자동 입력
-                    if (isSilentAutoLoad || !inputPass) {
-                        inputPass = dbPass;
-                        if (passEl) passEl.value = dbPass;
-                    }
-
-                    if (inputPass !== dbPass && !isSilentAutoLoad) {
-                        if (passEl) {
-                            passEl.classList.add("animate-shake");
-                            setTimeout(function() { passEl.classList.remove("animate-shake"); }, 350);
-                        }
-                        showToast("해당 목장의 보안 패스코드가 일치하지 않습니다.");
-                        return;
-                    }
-
-                    mokjangConfig = mergedCfg;
-                    activeMokjangCode = mergedCfg.mokjangCode;
-                    if (codeEl) codeEl.value = activeMokjangCode;
-                    if (passEl) passEl.value = dbPass;
-                    setSecurityGateUnlockedUI();
-                    renderAdminUI();
-                    if (!isSilentAutoLoad) {
-                        showToast("[" + activeMokjangCode + "] 목장 보안 데이터 및 패스코드를 불러왔습니다.");
-                    }
-                } else {
-                    var initPass = /^[0-9]{4}$/.test(inputPass) ? inputPass : "0000";
-                    if (passEl) passEl.value = initPass;
-                    mokjangConfig = {
-                        mokjangName: verifiedPass.mokjangShort || "",
-                        mokjangCode: inputCode,
-                        adminPasscode: initPass,
-                        leaderName: verifiedPass.leaderName || "목자",
-                        subLeaderName: "",
-                        subLeaders: [],
-                        members: [verifiedPass.leaderName || "목자"],
-                        memberJoinedAt: {}
-                    };
-                    activeMokjangCode = inputCode;
-                    setSecurityGateUnlockedUI();
-                    renderAdminUI();
-                    if (!isSilentAutoLoad) {
-                        showToast("신규 목장(코드: " + inputCode + ") 개설 모드로 열렸습니다.");
-                    }
-                }
-            } catch (e) {
-                if (!isSilentAutoLoad) showToast("조회 중 오류: " + e.message);
-            }
+                var mCode = (mData && mData.mokjangCode) ? String(mData.mokjangCode).trim() : "1111";
+                mokjangConfig = mergeMokjangConfigData((activeMokjangCode === mCode || !cData) ? mData : null, cData, activeMokjangCode);
+                activeMokjangCode = mokjangConfig.mokjangCode;
+                isDataUnlocked = true;
+                renderAdminUI();
+            } catch (e) {}
         };
 
         function renderAdminUI() {
-            document.getElementById("admin-header-mokjang").textContent = (mokjangConfig.mokjangName || "").replace(/^세종꿈의교회\s*/, "") || "꿈의목장";
-            document.getElementById("admin-header-code").textContent = activeMokjangCode;
-            document.getElementById("active-mokjang-code-label").textContent = "코드: " + activeMokjangCode;
-            var gateCodeEl = document.getElementById("admin-gate-mokjang-code");
-            var gatePassEl = document.getElementById("admin-passcode-gate-input");
-            if (gateCodeEl) gateCodeEl.value = mokjangConfig.mokjangCode || activeMokjangCode;
-            if (gatePassEl) gatePassEl.value = mokjangConfig.adminPasscode || "0000";
-            if (!isDataUnlocked) return;
-            document.getElementById("admin-mokjang-name-input").value = mokjangConfig.mokjangName || "";
-            document.getElementById("admin-mokjang-code-input").value = mokjangConfig.mokjangCode || activeMokjangCode;
-            document.getElementById("admin-leader-name-input").value = mokjangConfig.leaderName || "목자";
-            document.getElementById("admin-subleader-name-input").value = mokjangConfig.subLeaderName || "";
-            document.getElementById("admin-passcode-setting-input").value = mokjangConfig.adminPasscode || "0000";
+            var cleanTitle = (mokjangConfig.mokjangName || "").replace(/^세종꿈의교회\s*/, "").trim();
+            var hEl = document.getElementById("admin-header-mokjang");
+            if (hEl) hEl.textContent = cleanTitle || "꿈의목장";
+            var nEl = document.getElementById("admin-mokjang-name-input");
+            var cEl = document.getElementById("admin-mokjang-code-input");
+            var lEl = document.getElementById("admin-leader-name-input");
+            var sEl = document.getElementById("admin-subleader-name-input");
+            var pEl = document.getElementById("admin-passcode-setting-input");
+            if (nEl) nEl.value = cleanTitle;
+            if (cEl) cEl.value = mokjangConfig.mokjangCode || activeMokjangCode;
+            if (lEl) lEl.value = mokjangConfig.leaderName || "목자";
+            if (sEl) sEl.value = mokjangConfig.subLeaderName || "";
+            if (pEl) pEl.value = mokjangConfig.adminPasscode || "0000";
             renderMembersList();
         }
 
@@ -502,42 +377,42 @@
                 var isLeader = (m === leaderName);
                 var isSub = (!isLeader && subList.indexOf(m) !== -1);
                 var row = document.createElement("div");
-                row.className = "flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-xs";
+                row.className = "flex items-center justify-between px-2 py-1.5 rounded-xl bg-white border border-slate-200/80 text-xs whitespace-nowrap";
 
                 var leftDiv = document.createElement("div");
-                leftDiv.className = "flex items-center space-x-2 min-w-0";
+                leftDiv.className = "flex items-center space-x-1.5 flex-1 min-w-0 pr-1";
                 var badge = document.createElement("span");
                 if (isLeader) {
-                    badge.className = "px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9.5px] font-extrabold";
+                    badge.className = "px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9.5px] font-extrabold shrink-0";
                     badge.textContent = "목자";
                 } else if (isSub) {
-                    badge.className = "px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 text-[9.5px] font-extrabold";
+                    badge.className = "px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 text-[9.5px] font-extrabold shrink-0";
                     badge.textContent = "부목자";
                 } else {
-                    badge.className = "px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9.5px] font-bold";
+                    badge.className = "px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9.5px] font-bold shrink-0";
                     badge.textContent = "목원";
                 }
                 var nameSpan = document.createElement("span");
-                nameSpan.className = "font-extrabold text-slate-800 truncate";
+                nameSpan.className = "font-extrabold text-slate-800 text-[13px] whitespace-nowrap";
                 nameSpan.textContent = m;
                 leftDiv.appendChild(badge);
                 leftDiv.appendChild(nameSpan);
 
                 var rightDiv = document.createElement("div");
-                rightDiv.className = "flex items-center space-x-1.5 shrink-0";
+                rightDiv.className = "flex items-center space-x-1 shrink-0";
                 var joinTs = Number(joinedMap[m] || 0);
-                var dateLabel = isLeader ? "전체기간(고정)" : (joinTs > 0 ? new Date(joinTs).toISOString().split("T")[0] + " 이후 열람" : "전체기간 열람");
+                var dateLabel = isLeader ? "전체기간(고정)" : (joinTs > 0 ? new Date(joinTs).toISOString().split("T")[0] + " 이후" : "전체기간 열람");
 
                 if (!isLeader) {
                     var dateBtn = document.createElement("button");
                     dateBtn.type = "button";
-                    dateBtn.className = "px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-slate-600 hover:border-emerald-400 hover:text-emerald-800";
+                    dateBtn.className = "px-1.5 py-0.5 rounded-lg bg-slate-50 border border-slate-200 text-[10px] font-bold text-slate-600 hover:border-emerald-400 hover:text-emerald-800 whitespace-nowrap";
                     dateBtn.textContent = "📅 " + dateLabel;
                     dateBtn.onclick = function() { window.changeMemberJoinDate(m); };
 
                     var delBtn = document.createElement("button");
                     delBtn.type = "button";
-                    delBtn.className = "w-6 h-6 rounded-full hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center";
+                    delBtn.className = "w-5 h-5 rounded-full hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center shrink-0";
                     delBtn.innerHTML = "<i class=\"fa-solid fa-xmark\"></i>";
                     delBtn.onclick = function() { window.removeMokjangMemberByName(m); };
 
@@ -545,7 +420,7 @@
                     rightDiv.appendChild(delBtn);
                 } else {
                     var fixedSpan = document.createElement("span");
-                    fixedSpan.className = "text-[10px] text-amber-700 font-semibold";
+                    fixedSpan.className = "text-[10px] text-amber-700 font-semibold whitespace-nowrap";
                     fixedSpan.textContent = dateLabel;
                     rightDiv.appendChild(fixedSpan);
                 }
