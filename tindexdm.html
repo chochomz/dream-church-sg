@@ -24,7 +24,6 @@
             </div>
             <button type="button" onclick="location.href='index.html'" class="absolute right-0 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold">로그인창</button>
         </div>
-
         <section class="w-full bg-slate-800/80 rounded-2xl border border-slate-700 p-3.5 space-y-2.5">
             <div class="flex items-center justify-between border-b border-slate-700 pb-2">
                 <div class="flex items-center space-x-2 min-w-0">
@@ -50,7 +49,6 @@
                 </div>
             </div>
         </section>
-
         <section class="w-full bg-slate-800/80 rounded-2xl border border-emerald-500/40 p-3.5 space-y-2.5">
             <div class="flex items-center justify-between border-b border-slate-700 pb-1.5">
                 <h3 class="text-xs font-extrabold text-emerald-300"><i class="fa-solid fa-user-plus mr-1"></i>새로운 목장 생성 및 권한 부여</h3>
@@ -74,7 +72,6 @@
                 <pre id="guide-text" class="text-[11px] text-slate-200 font-sans whitespace-pre-wrap select-all"></pre>
             </div>
         </section>
-
         <section class="w-full bg-slate-800/80 rounded-2xl border border-slate-700 p-3.5 space-y-2">
             <h3 class="text-xs font-extrabold text-white border-b border-slate-700 pb-1.5"><i class="fa-solid fa-list text-sky-400 mr-1.5"></i>개설된 목장 현황 (<span id="total-cnt" class="text-emerald-400">0</span>개)</h3>
             <div id="mokjang-list" class="space-y-1.5 max-h-56 overflow-y-auto"></div>
@@ -127,7 +124,7 @@
             await setDoc(doc(db, "mokjang_configs", mCode), payload, { merge: true });
             if (mCode === "1111") await setDoc(doc(db, "mokjang_config", "main"), payload, { merge: true });
             try { localStorage.setItem("mokjang_config_backup_" + mCode, JSON.stringify(payload)); } catch(e){}
-            var gText = "[세종꿈의교회 꿈의목장 개설 안내]\n• 목장명: " + (mName || "꿈의목장") + "\n• 목자 성함(로그인 이름): " + lName + "\n• 목장 입장 코드(4자리): " + mCode + "\n• 목자 관리 패스코드: " + aPass + "\n\n초기 로그인 화면에서 이름(" + lName + ")과 코드(" + mCode + ")를 입력하시면 새로운 빈 목장 웹북이 시작됩니다.";
+            var gText = "[세종꿈의교회 꿈의목장 개설 안내]\n• 목장명: " + (mName || "꿈의목장") + "\n• 목자 성함(로그인 이름): " + lName + "\n• 목장 입장 코드(4자리): " + mCode + "\n• 목자 관리 패스코드: " + aPass + "\n\n초기 로그인 화면에서 코드(" + mCode + ")와 이름(" + lName + ")을 입력하시면 새로운 빈 목장 웹북이 시작됩니다.";
             document.getElementById("guide-text").textContent = gText;
             document.getElementById("guide-box").classList.remove("hidden");
             toast("[" + mCode + "] 새 목장 생성 및 권한 부여 완료!");
