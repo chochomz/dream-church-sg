@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <title>우리들의 목장 이야기 - 세종꿈의교회</title>
         <!-- [PATCH v1.2: 우클릭 · 단축키 · 소스보기 원천 차단 보안] -->
     <script>
@@ -48,6 +48,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#3B5D50">
+    <!-- [카카오톡 공식 JavaScript SDK] -->
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"></script>
     <!-- Pretendard 기본 웹폰트 (초기 렌더링 최적화 병렬 로드) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
     <!-- Tailwind CSS CDN -->
@@ -88,7 +90,7 @@
             background-color: #F8F9FA;
             color: #222222;
             -webkit-tap-highlight-color: transparent;
-            touch-action: pan-y;
+            touch-action: pan-x pan-y pinch-zoom;
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
         header {
@@ -133,11 +135,11 @@
             25% { transform: rotate(-2deg) translateY(-0.5px); }
             75% { transform: rotate(2deg) translateY(0.5px); }
         }
-        .animate-sway-welcome {
-            display: inline-block;
-            animation: swayWelcome 3.5s ease-in-out infinite;
-            transform-origin: center center;
-        }
+        .animate-sway-welcome { display: inline-block; animation: swayWelcome 3.5s ease-in-out infinite; transform-origin: center center; }
+        @keyframes scrollWiggle { 0%, 100% { transform: rotate(0deg) scale(1); } 20% { transform: rotate(-10deg) scale(1.12); } 40% { transform: rotate(8deg) scale(1.08); } 60% { transform: rotate(-6deg) scale(1.04); } 80% { transform: rotate(4deg) scale(1.02); } }
+        .animate-scroll-unread { display: inline-block !important; animation: scrollWiggle 2.2s ease-in-out infinite !important; transform-origin: center bottom !important; }
+        @keyframes swayGentle { 0%, 100% { transform: rotate(0deg) translateY(0); } 20% { transform: rotate(-3deg) translateY(-2px); } 40% { transform: rotate(2.5deg) translateY(1px); } 60% { transform: rotate(-2deg) translateY(-1px); } 80% { transform: rotate(1.5deg) translateY(0.5px); } }
+        .animate-sway-gentle { animation: swayGentle 2.6s ease-in-out infinite; transform-origin: center top; }
 
         @keyframes penLiveMotion {
             0%, 100% { transform: rotate(0deg) scale(1); }
@@ -193,7 +195,9 @@
             -webkit-overflow-scrolling: touch;
             overflow-y: auto;
             scrollbar-width: thin;
+            overflow-x: hidden;
             padding-bottom: 48vh !important;
+            touch-action: pan-y pinch-zoom;
         }
         #feed-container::-webkit-scrollbar {
             width: 4px;
@@ -327,8 +331,9 @@
             max-height: 600px;
             display: block;
             cursor: pointer;
-            transition: opacity 0.2s;
+            transition: max-height 0.38s cubic-bezier(0.25, 1, 0.5, 1), transform 0.25s ease, opacity 0.2s ease;
             object-fit: cover;
+            will-change: max-height;
         }
         .continuous-photo-item:active {
             opacity: 0.92;
@@ -966,12 +971,10 @@ window.goToLeaderAdminPage = function(event) {
 
             <div id="comments-modal-list" class="flex-1 overflow-y-auto p-3 space-y-2.5 text-xs"></div>
 
-            <div class="p-2 border-t church-border bg-gray-50/70 shrink-0 flex items-center justify-between gap-1.5">
-                <textarea id="comments-modal-input" rows="2" maxlength="300" placeholder="댓글 입력..." oninput="autoExpandCommentTextarea(this)" class="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg text-xs border border-dashed border-gray-300 bg-white text-gray-800 resize-none leading-snug"></textarea>
-                <button type="button" onclick="addCommentFromModal()" class="py-1 px-2.5 church-primary text-white rounded-lg text-xs font-semibold active:scale-95 transition-all">등록</button>
-                <button type="button" onclick="closeCommentsModal()" class="py-1 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium active:scale-95 transition-all">
-                    닫기
-                </button>
+            <div class="p-2 border-t church-border bg-gray-50/70 shrink-0 flex items-stretch justify-between gap-1.5">
+                <textarea id="comments-modal-input" rows="2" maxlength="300" placeholder="댓글 입력..." oninput="autoExpandCommentTextarea(this)" class="flex-1 min-w-0 min-h-[44px] px-2.5 py-1.5 rounded-lg text-xs border border-dashed border-gray-300 bg-white text-gray-800 resize-none leading-snug"></textarea>
+                <button type="button" onclick="addCommentFromModal()" class="self-stretch px-3 church-primary hover:opacity-90 text-white rounded-lg text-xs font-semibold active:scale-95 transition-all flex items-center justify-center">등록</button>
+                <button type="button" onclick="closeCommentsModal()" class="self-stretch px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium active:scale-95 transition-all flex items-center justify-center">닫기</button>
             </div>
         </div>
     </div>
@@ -1079,6 +1082,12 @@ window.goToLeaderAdminPage = function(event) {
                          dir="ltr"
                          class="w-full min-h-[84px] max-h-[140px] overflow-y-auto px-3 py-2 rounded-xl border border-gray-200 text-sm focus:border-[#3B5D50] focus:ring-1 focus:ring-[#3B5D50] focus:outline-none bg-white block transition-all shadow-2xs text-left font-pretendard select-text"
                          style="white-space: pre-wrap; word-break: break-word;"></div>
+                    <div class="mt-2 pt-1 border-t border-gray-100 flex items-center justify-between">
+                        <button type="button" onclick="openLongTextModal()" id="trigger-long-text-btn" class="w-full py-2 px-3 rounded-xl border border-dashed border-amber-300/90 bg-amber-50/70 hover:bg-amber-100/80 active:scale-98 transition-all flex items-center justify-between shadow-2xs group" title="1,500자 이내 긴글 작성">
+                            <div class="flex items-center space-x-1.5"><span class="text-base leading-none">📜</span><span class="text-xs font-bold text-amber-950">긴글쓰기 (최대 1,500자)</span></div>
+                            <div class="flex items-center space-x-1.5"><span id="long-text-indicator-badge" class="hidden px-2 py-0.5 rounded-full bg-amber-200/90 text-amber-900 text-[10px] font-mono font-bold">0자</span><i class="fa-solid fa-chevron-right text-[10px] text-amber-700 group-hover:translate-x-0.5 transition-transform"></i></div>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="w-full pt-1.5 border-t border-gray-100 space-y-1.5" id="post-file-attach-container">
@@ -1288,10 +1297,72 @@ window.goToLeaderAdminPage = function(event) {
         </div>
     </div>
 
+    <!-- [긴글쓰기 & 긴글읽기 모달 (최대 1,500자, 5단계 글자크기)] -->
+    <div id="long-text-modal" class="fixed inset-0 z-[60] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden" style="touch-action: none;">
+        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl border church-border max-h-[88vh] flex flex-col overflow-hidden" style="max-height: calc(100dvh - 32px);">
+            <div class="flex items-center justify-between px-3.5 py-2.5 border-b church-border shrink-0 bg-[#FAF8F5]">
+                <div class="flex items-center space-x-1.5"><span class="text-base">📜</span><h3 class="text-xs font-bold text-amber-950">긴글 작성</h3></div>
+                <div class="flex items-center space-x-1"><span id="long-text-char-indicator" class="text-gray-400 font-mono text-[10.5px] mr-1">0 / 1500자</span><button type="button" onclick="closeLongTextModal()" class="text-gray-400 hover:text-gray-600 p-1"><i class="fa-solid fa-xmark text-sm"></i></button></div>
+            </div>
+            <div class="bg-amber-50/90 px-3 py-1.5 border-b border-amber-200/70 flex items-center justify-between shrink-0 select-none">
+                <div class="flex items-center space-x-1 text-amber-900 font-bold text-[11px]"><span class="text-xs">📜</span><span>글자크기</span></div>
+                <div class="flex items-center space-x-1">
+                    <button type="button" onclick="changeLongTextFontSize(-1)" class="w-6 h-6 rounded-full bg-white hover:bg-amber-100 text-amber-900 font-black border border-amber-200 flex items-center justify-center text-[10px]">➖</button>
+                    <div class="inline-flex items-center space-x-0.5">
+                        <button type="button" onclick="setLongTextFontSize(1)" id="long-font-chip-1" class="w-5 h-5 rounded text-[10px] font-bold bg-white text-gray-600 border border-amber-200">1</button>
+                        <button type="button" onclick="setLongTextFontSize(2)" id="long-font-chip-2" class="w-5 h-5 rounded text-[10px] font-bold bg-amber-600 text-white">2</button>
+                        <button type="button" onclick="setLongTextFontSize(3)" id="long-font-chip-3" class="w-5 h-5 rounded text-[10px] font-bold bg-white text-gray-600 border border-amber-200">3</button>
+                        <button type="button" onclick="setLongTextFontSize(4)" id="long-font-chip-4" class="w-5 h-5 rounded text-[10px] font-bold bg-white text-gray-600 border border-amber-200">4</button>
+                        <button type="button" onclick="setLongTextFontSize(5)" id="long-font-chip-5" class="w-5 h-5 rounded text-[10px] font-bold bg-white text-gray-600 border border-amber-200">5</button>
+                    </div>
+                    <button type="button" onclick="changeLongTextFontSize(1)" class="w-6 h-6 rounded-full bg-white hover:bg-amber-100 text-amber-900 font-black border border-amber-200 flex items-center justify-center text-[10px]">➕</button>
+                </div>
+            </div>
+            <div class="flex-1 p-3 overflow-y-auto bg-[#FAF8F5]/60 flex flex-col min-h-0" style="touch-action: pan-y !important;">
+                <textarea id="long-text-input" maxlength="1500" placeholder="목장 가족들과 나눌 긴 이야기, 묵상글, 기도제목을 자유롭게 작성하거나 붙여넣으세요... (최대 1,500자)" oninput="handleLongTextInput(this)" onpaste="handleLongTextPaste(event)" class="w-full flex-1 min-h-[200px] p-3 text-gray-900 bg-white border border-amber-200 rounded-xl outline-none focus:border-amber-500 font-gowun-batang resize-none leading-[1.8] select-text box-border block shadow-inner" style="font-family: 'Gowun Batang', serif !important; font-size: 16px; word-break: break-word !important; overflow-wrap: anywhere !important; white-space: pre-wrap !important;"></textarea>
+            </div>
+            <div class="p-2.5 border-t church-border shrink-0 bg-white flex items-center justify-between gap-2">
+                <button type="button" onclick="clearLongTextContent()" class="py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-medium">내용 비우기</button>
+                <div class="flex items-center space-x-1.5">
+                    <button type="button" onclick="closeLongTextModal()" class="py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold">취소</button>
+                    <button type="button" onclick="saveLongTextModal()" class="py-2 px-4 church-primary text-white rounded-xl text-xs font-bold flex items-center space-x-1"><i class="fa-solid fa-check text-xs"></i><span>입력 완료</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="long-content-reader-modal" class="fixed inset-0 z-[65] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden" style="touch-action: none;">
+        <div class="bg-[#FAF8F5] rounded-2xl w-full max-w-sm shadow-2xl border border-amber-300 max-h-[88vh] flex flex-col overflow-hidden" style="max-height: calc(100dvh - 32px);">
+            <div class="flex items-center justify-between px-3.5 py-2.5 border-b border-amber-200/80 shrink-0 bg-white/95">
+                <div class="flex items-center space-x-1.5 truncate mr-2"><span class="text-base">📜</span><h3 id="long-reader-title" class="text-xs font-bold text-amber-950 truncate">목장 긴 이야기</h3></div>
+                <button type="button" onclick="closeLongContentReader()" class="w-6 h-6 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 flex items-center justify-center text-xs"><i class="fa-solid fa-xmark text-xs"></i></button>
+            </div>
+            <div class="bg-amber-50/90 px-3 py-1.5 border-b border-amber-200/70 flex items-center justify-between shrink-0 select-none">
+                <div class="flex items-center space-x-1 text-amber-900 font-bold text-[11px]"><span class="text-xs">📜</span><span>글자크기</span></div>
+                <div class="flex items-center space-x-1">
+                    <button type="button" onclick="changeLongReaderFontSize(-1)" class="w-6 h-6 rounded-full bg-white hover:bg-amber-100 text-amber-900 font-black border border-amber-200 flex items-center justify-center text-[10px]">➖</button>
+                    <div class="inline-flex items-center space-x-0.5">
+                        <button type="button" onclick="setLongReaderFontSize(1)" id="reader-font-chip-1" class="w-5 h-5 rounded text-[10px] font-bold bg-white text-gray-600 border border-amber-200">1</button>
+                        <button type="button" onclick="setLongReaderFontSize(2)" id="reader-font-chip-2" class="w-5 h-5 rounded text-[10px] font-bold bg-amber-600 text-white">2</button>
+                        <button type="button" onclick="setLongReaderFontSize(3)" id="reader-font-chip-3" class="w-5 h-5 rounded text-[10px] font-bold bg-white text-gray-600 border border-amber-200">3</button>
+                        <button type="button" onclick="setLongReaderFontSize(4)" id="reader-font-chip-4" class="w-5 h-5 rounded text-[10px] font-bold bg-white text-gray-600 border border-amber-200">4</button>
+                        <button type="button" onclick="setLongReaderFontSize(5)" id="reader-font-chip-5" class="w-5 h-5 rounded text-[10px] font-bold bg-white text-gray-600 border border-amber-200">5</button>
+                    </div>
+                    <button type="button" onclick="changeLongReaderFontSize(1)" class="w-6 h-6 rounded-full bg-white hover:bg-amber-100 text-amber-900 font-black border border-amber-200 flex items-center justify-center text-[10px]">➕</button>
+                </div>
+            </div>
+            <div id="long-reader-viewport" class="flex-1 overflow-y-auto p-4 text-gray-900 font-gowun-batang select-text box-border" style="touch-action: pan-y !important; -webkit-overflow-scrolling: touch !important;">
+                <div id="long-reader-body" class="w-full text-left font-gowun-batang leading-[1.8] text-gray-900 select-text" style="font-family: 'Gowun Batang', serif !important; font-size: 16px; word-break: break-word !important; overflow-wrap: anywhere !important; white-space: pre-wrap !important;"></div>
+            </div>
+            <div class="px-3.5 py-2 border-t border-amber-200/80 bg-white/95 shrink-0 flex items-center justify-between">
+                <span id="long-reader-char-count" class="text-[10px] font-mono text-gray-500 font-bold">0자</span>
+                <button type="button" onclick="closeLongContentReader()" class="py-1.5 px-4 church-primary text-white rounded-xl text-xs font-bold">닫기</button>
+            </div>
+        </div>
+    </div>
     <!-- [라이트박스 모달] -->
     <div id="lightbox-modal" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-between hidden p-2 select-none">
-        <div class="w-full flex items-center justify-center p-2 z-50 bg-white/95 border-b border-gray-200 shadow-xs rounded-xl">
-            <div class="flex items-center justify-center space-x-2 flex-nowrap whitespace-nowrap">
+        <div class="w-full flex items-center justify-center px-1 py-1.5 z-50 bg-white/95 border-b border-gray-200 shadow-xs rounded-xl overflow-x-auto scrollbar-none">
+            <div class="flex items-center justify-center space-x-1 sm:space-x-1.5 flex-nowrap whitespace-nowrap max-w-full">
                 <button type="button" id="lightbox-autofix-btn" onclick="toggleLightboxAdjustPanel()" class="h-8 px-2.5 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 rounded-lg flex items-center justify-center space-x-1 transition-all border border-gray-200 shadow-2xs text-xs font-semibold">
                     <i class="fa-solid fa-wand-magic-sparkles text-xs text-emerald-700"></i>
                     <span>마법봉</span>
@@ -1430,7 +1501,7 @@ window.goToLeaderAdminPage = function(event) {
 
     <!-- [카카오톡 공유 확인 모달] -->
     <div id="kakao-share-modal" class="fixed inset-0 z-[80] bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 hidden" style="touch-action: none;">
-        <div class="bg-white rounded-2xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3 animate-sway-welcome">
+        <div class="bg-white rounded-2xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3 animate-sway-gentle">
             <div class="w-12 h-12 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center mx-auto text-xl shadow-2xs border border-amber-200">
                 <i class="fa-solid fa-comment-dots text-[#3A1D1D] text-2xl"></i>
             </div>
@@ -1479,41 +1550,33 @@ window.goToLeaderAdminPage = function(event) {
 
         // [작업 4-가, 나, 다, 라: 로그인 세션 기반 사용자 이름 및 목자/부목자/일반목원 권한 체계 초기화]
                         // [카카오톡 공유 모달 및 클립보드 복사 로직 (직분 호칭 포함)]
+        const KAKAO_JAVASCRIPT_KEY = "";
+        function initKakaoSDK() {
+            try { if (window.Kakao && !window.Kakao.isInitialized() && KAKAO_JAVASCRIPT_KEY.trim()) window.Kakao.init(KAKAO_JAVASCRIPT_KEY.trim()); } catch (e) {}
+        }
+        initKakaoSDK();
+
         let pendingKakaoShareText = "";
+        let pendingKakaoShareData = null;
 
         function getAuthorTitleName(authorName) {
-            const rawName = String(authorName || currentUser || "가족").trim();
-            // 이미 직분 명칭(목자, 부목자, 목원, 집사, 권사, 장로 등)이 포함된 경우 중복 추가 방지
-            if (/(?:목자|부목자|목원|집사|권사|장로)$/.test(rawName)) {
-                return rawName;
-            }
-            if (rawName === "우리가족" || rawName === "가족") {
-                return rawName;
-            }
-
-            // 직분 판별: currentUserRole, configuredLeaderName, configuredSubLeaderName, configuredSubLeaders
-            const role = (typeof currentUserRole !== 'undefined' ? currentUserRole : '') || (typeof localStorage !== 'undefined' ? localStorage.getItem('mokjang_user_role') : '') || 'member';
-            const isLeader = (role === 'leader' || rawName === (typeof configuredLeaderName !== 'undefined' ? configuredLeaderName : '목자') || rawName === '아빠' || rawName === '관리자');
-            const isSubLeader = (!isLeader && (role === 'subleader' || rawName === (typeof configuredSubLeaderName !== 'undefined' ? configuredSubLeaderName : '부목자') || (typeof configuredSubLeaders !== 'undefined' && Array.isArray(configuredSubLeaders) && configuredSubLeaders.includes(rawName)) || rawName === '엄마'));
-
-            let title = "목원";
-            if (isLeader) {
-                title = "목자";
-            } else if (isSubLeader) {
-                title = "부목자";
-            }
-            return rawName + " " + title;
+            const rawName = String(authorName || currentUser || "목장가족").trim();
+            if (/(?:목자|부목자|목원|집사|권사|장로)$/.test(rawName) || rawName === "목장가족") return rawName;
+            const role = (typeof currentUserRole !== 'undefined' ? currentUserRole : '') || localStorage.getItem('mokjang_user_role') || 'member';
+            const isLeader = (role === 'leader' || rawName === (typeof configuredLeaderName !== 'undefined' ? configuredLeaderName : '목자') || rawName === '관리자');
+            const isSubLeader = (!isLeader && (role === 'subleader' || rawName === (typeof configuredSubLeaderName !== 'undefined' ? configuredSubLeaderName : '부목자') || (Array.isArray(configuredSubLeaders) && configuredSubLeaders.includes(rawName))));
+            return rawName + " " + (isLeader ? "목자" : (isSubLeader ? "부목자" : "목원"));
         }
 
-        window.openKakaoShareModal = function(authorName, postNumber) {
+        window.openKakaoShareModal = function(authorName, postNumber, postContent = '', postFirstImage = '') {
             const displayName = getAuthorTitleName(authorName);
-            const countNum = postNumber || (typeof cachedPosts !== 'undefined' && cachedPosts ? cachedPosts.length : 1);
-            const shareText = displayName + "님이 🌿우리 목장 나눔방에 새로운 글을 (" + countNum + "번째) 올렸습니다.";
-            pendingKakaoShareText = shareText;
-
+            const countNum = postNumber || (cachedPosts ? cachedPosts.length : 1);
+            const countText = countNum + "번째";
+            const appUrl = window.location.origin + window.location.pathname;
+            pendingKakaoShareText = displayName + "님이 🌿우리 목장 나눔방에 새로운 글을 (" + countText + ") 올렸습니다.\n\n👉 보러가기 :\n" + appUrl;
+            pendingKakaoShareData = { author: displayName, countText: countText, imageUrl: postFirstImage || "" };
             const previewEl = document.getElementById("kakao-share-preview-text");
-            if (previewEl) previewEl.textContent = shareText;
-
+            if (previewEl) previewEl.innerHTML = `<div class="py-0.5 text-center"><p class="font-bold text-gray-800 text-xs">${escapeHtml(displayName)}님이 <span class="text-emerald-800">(${escapeHtml(countText)})</span> 새로운 글을 올렸습니다.</p></div>`;
             const modal = document.getElementById("kakao-share-modal");
             if (modal) modal.classList.remove("hidden");
         };
@@ -1522,45 +1585,149 @@ window.goToLeaderAdminPage = function(event) {
             const modal = document.getElementById("kakao-share-modal");
             if (modal) modal.classList.add("hidden");
             pendingKakaoShareText = "";
+            pendingKakaoShareData = null;
         };
 
         window.executeKakaoShare = async function() {
             const displayName = getAuthorTitleName(currentUser);
             const textToShare = pendingKakaoShareText || (displayName + "님이 🌿우리 목장 나눔방에 새로운 글을 올렸습니다.");
+            const data = pendingKakaoShareData || {};
             closeKakaoShareModal();
-
             try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    await navigator.clipboard.writeText(textToShare);
-                } else {
-                    const ta = document.createElement("textarea");
-                    ta.value = textToShare;
-                    ta.style.position = "fixed";
-                    ta.style.left = "-9999px";
-                    document.body.appendChild(ta);
-                    ta.select();
-                    document.execCommand("copy");
-                    document.body.removeChild(ta);
-                }
-            } catch (clipErr) {
-                console.warn("클립보드 복사 실패:", clipErr);
-            }
-
-            if (navigator.share) {
+                if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(textToShare);
+            } catch (e) {}
+            const appUrl = window.location.origin + window.location.pathname;
+            const logoUrl = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/tlogo.png');
+            if (window.Kakao && window.Kakao.isInitialized && window.Kakao.isInitialized()) {
                 try {
-                    await navigator.share({
-                        text: textToShare
+                    window.Kakao.Share.sendDefault({
+                        objectType: 'feed',
+                        content: {
+                            title: currentMokjang || '우리들의 목장 이야기',
+                            description: (data.author || displayName) + '님이 🌿우리 목장 나눔방에 (' + (data.countText || '새') + ') 글을 올렸습니다.',
+                            imageUrl: logoUrl, imageWidth: 200, imageHeight: 200,
+                            link: { mobileWebUrl: appUrl, webUrl: appUrl }
+                        }
                     });
-                    showNotification("카톡방 공유를 진행합니다.");
-                } catch (err) {
-                    if (err.name !== "AbortError") {
-                        showNotification("내용이 복사되었습니다. 카톡방을 열어 붙여넣기 하세요!");
-                    }
-                }
-            } else {
-                showNotification("내용이 복사되었습니다. 카톡방을 열어 붙여넣기 하세요!");
+                    return;
+                } catch (err) {}
+            }
+            if (navigator.share) {
+                try { await navigator.share({ title: currentMokjang || '우리들의 목장 이야기', text: textToShare }); return; } catch (err) { if (err.name === "AbortError") return; }
+            }
+            showNotification("공유 문구가 복사되었습니다! 카톡 단톡방에 붙여넣기 하세요.");
+        };
+
+        const LONG_FONT_SIZES = [14, 16, 18, 20, 22];
+        let currentLongContentText = "";
+        let currentLongContentFontSize = 2;
+        let currentReaderFontSize = 2;
+        let activeReaderPostId = null;
+
+        window.openLongTextModal = function() {
+            const modal = document.getElementById('long-text-modal');
+            const textarea = document.getElementById('long-text-input');
+            if (textarea) { textarea.value = currentLongContentText || ""; setLongTextFontSize(currentLongContentFontSize || 2); updateLongTextCharCount(); }
+            if (modal) modal.classList.remove('hidden');
+            setTimeout(() => { if (textarea) textarea.focus(); }, 100);
+        };
+        window.closeLongTextModal = function() { const m = document.getElementById('long-text-modal'); if (m) m.classList.add('hidden'); };
+        window.clearLongTextContent = function() { const t = document.getElementById('long-text-input'); if (t) { t.value = ""; updateLongTextCharCount(); t.focus(); } };
+        window.saveLongTextModal = function() {
+            const t = document.getElementById('long-text-input');
+            if (t) currentLongContentText = t.value.trim();
+            updateLongTextBtnBadge(); closeLongTextModal();
+            if (currentLongContentText.length > 0) showNotification(`긴글 ${currentLongContentText.length}자가 준비되었습니다.`);
+        };
+        window.handleLongTextInput = function(el) {
+            if (!el) return;
+            if (el.value.length > 1500) { el.value = el.value.substring(0, 1500); showNotification("긴글은 최대 1,500자까지 작성하실 수 있습니다."); }
+            updateLongTextCharCount();
+        };
+        window.handleLongTextPaste = function(e) {
+            e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text/plain') || '';
+            const t = document.getElementById('long-text-input');
+            if (!t) return;
+            const start = t.selectionStart, end = t.selectionEnd, cur = t.value;
+            const avail = 1500 - (cur.length - (end - start));
+            if (avail <= 0) { showNotification("1,500자 용량을 초과하여 붙여넣을 수 없습니다."); return; }
+            const ins = text.substring(0, avail);
+            t.value = cur.substring(0, start) + ins + cur.substring(end);
+            t.selectionStart = t.selectionEnd = start + ins.length;
+            updateLongTextCharCount();
+        };
+        function updateLongTextCharCount() {
+            const t = document.getElementById('long-text-input'), ind = document.getElementById('long-text-char-indicator');
+            if (ind) ind.innerText = `${t ? t.value.length : 0} / 1500자`;
+        }
+        function updateLongTextBtnBadge() {
+            const badge = document.getElementById('long-text-indicator-badge');
+            if (!badge) return;
+            const len = currentLongContentText ? currentLongContentText.length : 0;
+            if (len > 0) { badge.innerText = `작성됨: ${len}자`; badge.classList.remove('hidden'); }
+            else { badge.innerText = "0자"; badge.classList.add('hidden'); }
+        }
+        window.setLongTextFontSize = function(level) {
+            const s = Math.max(1, Math.min(5, parseInt(level) || 2));
+            currentLongContentFontSize = s;
+            const t = document.getElementById('long-text-input');
+            if (t) t.style.fontSize = `${LONG_FONT_SIZES[s - 1]}px`;
+            for (let i = 1; i <= 5; i++) {
+                const c = document.getElementById(`long-font-chip-${i}`);
+                if (c) c.className = (i === s) ? "w-5 h-5 rounded text-[10px] font-bold bg-amber-600 text-white" : "w-5 h-5 rounded text-[10px] font-bold bg-white text-gray-600 border border-amber-200";
             }
         };
+        window.changeLongTextFontSize = function(dir) { setLongTextFontSize(currentLongContentFontSize + dir); };
+
+        let userLongContentReadState = {};
+        function getLongReadStorageKey() { return `mokjang_long_reads_${typeof reactionUserId !== 'undefined' ? reactionUserId : 'default'}`; }
+        function initLongContentReadTracker() {
+            try { const r = localStorage.getItem(getLongReadStorageKey()); if (r) userLongContentReadState = JSON.parse(r) || {}; } catch(e) { userLongContentReadState = {}; }
+        }
+        function isLongContentRead(postId, post) {
+            if (!postId || (post && post.author && String(post.author).trim() === currentUser)) return true;
+            const rec = userLongContentReadState[postId];
+            return rec ? (rec.len === (post && post.longContent ? post.longContent.length : 0)) : false;
+        }
+        function markLongContentAsRead(postId) {
+            const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+            if (!post || !post.longContent) return;
+            userLongContentReadState[postId] = { len: post.longContent.length, readAt: Date.now() };
+            try { localStorage.setItem(getLongReadStorageKey(), JSON.stringify(userLongContentReadState)); } catch(e) {}
+            const iconEl = document.getElementById(`long-read-icon-${postId}`);
+            if (iconEl) iconEl.classList.remove('animate-scroll-unread');
+        }
+        window.openLongContentReader = function(postId, event) {
+            if (event) event.stopPropagation();
+            const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+            if (!post || !post.longContent) { showNotification("등록된 긴 글이 없습니다."); return; }
+            markLongContentAsRead(postId);
+            activeReaderPostId = postId;
+            const modal = document.getElementById('long-content-reader-modal');
+            const titleEl = document.getElementById('long-reader-title');
+            const bodyEl = document.getElementById('long-reader-body');
+            const countEl = document.getElementById('long-reader-char-count');
+            if (titleEl) titleEl.textContent = `${post.author || '목장가족'}님의 긴 이야기`;
+            if (bodyEl) bodyEl.textContent = post.longContent;
+            if (countEl) countEl.textContent = `총 ${post.longContent.length}자`;
+            setLongReaderFontSize(post.longFontSize ? parseInt(post.longFontSize) : 2);
+            if (modal) modal.classList.remove('hidden');
+            const vp = document.getElementById('long-reader-viewport');
+            if (vp) vp.scrollTop = 0;
+        };
+        window.closeLongContentReader = function() { activeReaderPostId = null; const m = document.getElementById('long-content-reader-modal'); if (m) m.classList.add('hidden'); };
+        window.setLongReaderFontSize = function(level) {
+            const s = Math.max(1, Math.min(5, parseInt(level) || 2));
+            currentReaderFontSize = s;
+            const b = document.getElementById('long-reader-body');
+            if (b) b.style.fontSize = `${LONG_FONT_SIZES[s - 1]}px`;
+            for (let i = 1; i <= 5; i++) {
+                const c = document.getElementById(`reader-font-chip-${i}`);
+                if (c) c.className = (i === s) ? "w-5 h-5 rounded text-[10px] font-bold bg-amber-600 text-white" : "w-5 h-5 rounded text-[10px] font-bold bg-white text-gray-600 border border-amber-200";
+            }
+        };
+        window.changeLongReaderFontSize = function(dir) { setLongReaderFontSize(currentReaderFontSize + dir); };
 
         let currentUser = "목장가족";
         let currentUserRole = "member"; // 'leader' (목자) | 'subleader' (부목자) | 'member' (일반 목원)
@@ -1827,41 +1994,53 @@ function syncHeaderMokjangTitleDOM() {
             }, 1150);
         }
 
+        initLongContentReadTracker();
         let selectedImagesList = [];
+        let originalEditingImages = [];
         let postToDeleteId = null;
         let isAuthReady = false;
         let currentDbStatus = 'connecting';
         let currentActivePopupPostId = null;
         let cachedPosts = [];
 
-        // 실시간 접속자 세션 및 한국어 카운트 관리
         const sessionId = "sess_" + Math.random().toString(36).substring(2, 11) + "_" + Date.now();
         let onlineHeartbeatTimer = null;
         let lastOnlineCount = 1;
-        const KOREAN_COUNT_WORDS = [
-            "", "한분", "두분", "세분", "네분", "다섯분",
-            "여섯분", "일곱분", "여덟분", "아홉분", "열분",
-            "열한분", "열두분", "열세분", "열네분", "열다섯분"
-        ];
+        let lastOnlineUsersList = [];
+        let lastRenderedWelcomeHtml = '';
+        let lastOnlineNamesSignature = '';
 
-        function getKoreanCountWord(count) {
-            const num = Math.max(1, count || 1);
-            if (num <= 15) {
-                return KOREAN_COUNT_WORDS[num];
-            }
-            return `${num}분`;
-        }
-
-        function updateWelcomeUserDisplay(count = lastOnlineCount) {
-            lastOnlineCount = Math.max(1, count || 1);
+        function updateWelcomeUserDisplay(usersOrCount = lastOnlineUsersList) {
             const el = document.getElementById('header-user-display');
             if (!el) return;
-            const countText = getKoreanCountWord(lastOnlineCount);
+            let otherNames = [];
+            if (Array.isArray(usersOrCount)) {
+                lastOnlineUsersList = usersOrCount;
+                usersOrCount.forEach(item => {
+                    const name = typeof item === 'string' ? item.trim() : (item && item.user ? String(item.user).trim() : '');
+                    if (name && name !== currentUser && !otherNames.includes(name)) otherNames.push(name);
+                });
+            } else if (typeof usersOrCount === 'number') {
+                lastOnlineCount = Math.max(1, usersOrCount);
+            }
+            otherNames.sort((a, b) => a.localeCompare(b, 'ko'));
             const roleTag = currentUserRole === 'leader' ? '목자' : (currentUserRole === 'subleader' ? '부목자' : '목원');
-            el.innerHTML = `<span class="text-gray-700 font-bold">${escapeHtml(currentUser)}</span><span class="text-[9px] text-gray-500">(${roleTag})</span>님 <span class="text-emerald-600 font-semibold">${countText}</span> 입장 환영합니다`;
+            const currentSignature = `${currentUser}|${roleTag}|${otherNames.join(',')}`;
+            if (lastOnlineNamesSignature === currentSignature && lastRenderedWelcomeHtml) return;
+            lastOnlineNamesSignature = currentSignature;
+
+            const myBadge = `<span class="text-gray-700 font-bold">${escapeHtml(currentUser)}</span><span class="text-[9px] text-gray-500">(${roleTag})</span>`;
+            let displayText = '';
+            if (otherNames.length === 0) displayText = `${myBadge}님 들어왔어요`;
+            else if (otherNames.length === 1) displayText = `${myBadge}님과 <span class="text-emerald-600 font-semibold">${escapeHtml(otherNames[0])}</span>님 들어왔어요`;
+            else displayText = `${myBadge}님과 ${otherNames.map(n => `<span class="text-emerald-600 font-semibold">${escapeHtml(n)}</span>`).join(', ')}님 들어왔어요`;
+
+            if (lastRenderedWelcomeHtml !== displayText) {
+                lastRenderedWelcomeHtml = displayText;
+                el.innerHTML = displayText;
+            }
         }
 
-        // 라이트박스 상태 관리
         let currentLightboxPostId = null;
         let currentLightboxPhotoIdx = 0;
         let currentLightboxRotationAngle = 0;
@@ -1870,21 +2049,9 @@ function syncHeaderMokjangTitleDOM() {
         let currentLightboxPanX = 0;
         let currentLightboxPanY = 0;
         let currentLightboxImages = [];
-
         let pendingExportType = null;
         let pendingExportPostId = null;
-
-        let generatedAllPdfBlob = null;
-        let generatedAllPdfFileName = "";
-        let pdfTotalPagesCalculated = 1;
-        let pdfA4PageHeightPx = 1;
-
-        let isDraggingTrack = false;
-        let dragStartX = 0;
-        let dragCurrentX = 0;
         let trackOffset = 0;
-        let lightboxInitialPinchDist = 0;
-        let lightboxInitialScale = 1.0;
 
         const commentDrafts = {};
         const DRAFT_EXPIRE_MS = 5 * 60 * 1000;
@@ -1923,32 +2090,20 @@ function syncHeaderMokjangTitleDOM() {
             console.error("Firebase 초기화 에러:", e);
         }
 
+        let isStorageFallbackActive = false;
         async function uploadPhotoToStorage(dataUrl, folderName = 'mokjang_photos') {
             if (!dataUrl || typeof dataUrl !== 'string') return dataUrl;
-            if (dataUrl.startsWith('http://') || dataUrl.startsWith('https://')) {
-                return dataUrl;
-            }
-            if (!storage || !dataUrl.startsWith('data:image/')) {
-                return dataUrl;
-            }
-
-            const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error("Storage timeout")), 4000)
-            );
-
+            if (dataUrl.startsWith('http://') || dataUrl.startsWith('https://')) return dataUrl;
+            if (!storage || isStorageFallbackActive || !dataUrl.startsWith('data:image/')) return dataUrl;
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Storage timeout")), 2500));
             const uploadPromise = (async () => {
                 const uniqueFileName = Date.now() + '_' + Math.random().toString(36).substring(2, 9) + '.jpg';
                 const fileRef = storageRef(storage, folderName + '/' + uniqueFileName);
                 await uploadString(fileRef, dataUrl, 'data_url');
                 return await getDownloadURL(fileRef);
             })();
-
-            try {
-                return await Promise.race([uploadPromise, timeoutPromise]);
-            } catch (err) {
-                console.warn("Storage 사진 업로드 경고 (DataURL 안전 폴백):", err);
-                return dataUrl;
-            }
+            try { return await Promise.race([uploadPromise, timeoutPromise]); }
+            catch (err) { isStorageFallbackActive = true; return dataUrl; }
         }
 
         function getPostsCollection() {
@@ -2840,9 +2995,8 @@ function syncHeaderMokjangTitleDOM() {
 
         function getPostSearchableText(post) {
             const parts = [];
-            if (post.content) {
-                parts.push(post.content.replace(/<[^>]+>/g, ' '));
-            }
+            if (post.content) { parts.push(post.content.replace(/<[^>]+>/g, ' ')); }
+            if (post.longContent) { parts.push(post.longContent); }
             if (post.author) parts.push(post.author);
             if (post.mokjangName) parts.push(post.mokjangName);
             if (post.fileName) parts.push(post.fileName);
@@ -3117,6 +3271,7 @@ function syncHeaderMokjangTitleDOM() {
                 initBookmarkCalendarDrag();
                 initRecentCommentsNavigatorDrag();
                 initPostLayoutObserver();
+                initPullToRefresh();
             } catch (e) {
                 console.warn("익명 인증 경고:", e);
                 isAuthReady = true;
@@ -3487,53 +3642,117 @@ function syncHeaderMokjangTitleDOM() {
             });
         }
 
+        function ensurePullRefreshIndicator() {
+            let ind = document.getElementById('pull-refresh-indicator');
+            const feed = document.getElementById('feed-container');
+            if (!feed) return null;
+            if (!ind) {
+                ind = document.createElement('div');
+                ind.id = 'pull-refresh-indicator';
+                ind.className = 'w-full overflow-hidden transition-all duration-200 flex items-center justify-center text-xs text-emerald-800 select-none pointer-events-none';
+                ind.style.height = '0px'; ind.style.opacity = '0';
+                ind.innerHTML = `<div class="flex items-center space-x-1.5 py-1 px-3 bg-emerald-50/95 border border-emerald-200/80 rounded-full shadow-2xs my-1"><i id="pull-refresh-icon" class="fa-solid fa-arrow-down text-emerald-600 text-xs transition-transform duration-200"></i><span id="pull-refresh-text" class="font-semibold text-[11px]">당겨서 새로고침</span></div>`;
+            }
+            if (feed.firstChild !== ind) feed.insertBefore(ind, feed.firstChild);
+            return ind;
+        }
+
+        function initPullToRefresh() {
+            const feed = document.getElementById('feed-container');
+            if (!feed || feed.__pullRefreshInitialized) return;
+            feed.__pullRefreshInitialized = true;
+            ensurePullRefreshIndicator();
+            let startY = 0, pullDistance = 0, isPulling = false, isRefreshing = false;
+            const PULL_THRESHOLD = 65;
+            feed.addEventListener('touchstart', (e) => {
+                if (isRefreshing || e.touches.length !== 1) return;
+                if (feed.scrollTop <= 2) { startY = e.touches[0].clientY; isPulling = true; } else isPulling = false;
+            }, { passive: true });
+            feed.addEventListener('touchmove', (e) => {
+                if (!isPulling || isRefreshing || e.touches.length !== 1) return;
+                const diff = e.touches[0].clientY - startY;
+                if (diff > 0 && feed.scrollTop <= 2) {
+                    pullDistance = Math.min(95, diff * 0.42);
+                    if (pullDistance > 8) {
+                        if (e.cancelable) e.preventDefault();
+                        const ind = ensurePullRefreshIndicator(), icon = document.getElementById('pull-refresh-icon'), text = document.getElementById('pull-refresh-text');
+                        if (ind) { ind.style.height = `${pullDistance}px`; ind.style.opacity = `${Math.min(1, pullDistance / 45)}`; }
+                        if (icon && text) {
+                            icon.className = pullDistance >= PULL_THRESHOLD ? 'fa-solid fa-arrow-up text-emerald-700 text-xs' : 'fa-solid fa-arrow-down text-emerald-600 text-xs';
+                            text.innerText = pullDistance >= PULL_THRESHOLD ? '손을 놓으면 새로고침' : '당겨서 새로고침';
+                        }
+                    }
+                } else {
+                    pullDistance = 0;
+                    const ind = document.getElementById('pull-refresh-indicator');
+                    if (ind) { ind.style.height = '0px'; ind.style.opacity = '0'; }
+                }
+            }, { passive: false });
+            const finishRefresh = async () => {
+                if (!isPulling) return;
+                isPulling = false;
+                const ind = document.getElementById('pull-refresh-indicator'), icon = document.getElementById('pull-refresh-icon'), text = document.getElementById('pull-refresh-text');
+                if (pullDistance >= PULL_THRESHOLD) {
+                    isRefreshing = true;
+                    if (ind) { ind.style.height = '42px'; ind.style.opacity = '1'; }
+                    if (icon) icon.className = 'fa-solid fa-circle-notch fa-spin text-emerald-600 text-xs';
+                    if (text) text.innerText = '목장 이야기 새로 읽어오는 중...';
+                    try { loadMokjangFeed(); ensureMokjangFilesLoaded(); loadMokjangAdminConfig(); await new Promise(r => setTimeout(r, 600)); showNotification('목장 이야기를 새로 읽어왔습니다 ✨'); }
+                    finally { isRefreshing = false; pullDistance = 0; if (ind) { ind.style.height = '0px'; ind.style.opacity = '0'; } }
+                } else {
+                    pullDistance = 0; if (ind) { ind.style.height = '0px'; ind.style.opacity = '0'; }
+                }
+            };
+            feed.addEventListener('touchend', finishRefresh, { passive: true });
+        }
+
         initAuth();
+        const sessionJoinedAt = Date.now();
 
         function initPresenceSystem() {
             if (!db) return;
-
             const myRef = getPresenceDocRef(sessionId);
-
             const sendHeartbeat = async () => {
+                if (document.hidden) return;
                 try {
                     await setDoc(myRef, {
-                        sessionId: sessionId,
-                        user: currentUser,
-                        lastSeen: Date.now()
-                    });
+                        sessionId: sessionId, user: currentUser,
+                        mokjangCode: (typeof currentMokjangCode !== 'undefined' ? currentMokjangCode : '1111'),
+                        joinedAt: sessionJoinedAt, lastSeen: Date.now()
+                    }, { merge: true });
                 } catch (e) {}
             };
-
             sendHeartbeat();
             if (onlineHeartbeatTimer) clearInterval(onlineHeartbeatTimer);
-            onlineHeartbeatTimer = setInterval(sendHeartbeat, 15000);
-
-            window.addEventListener('beforeunload', () => {
-                try { deleteDoc(myRef); } catch (e) {}
-            });
+            onlineHeartbeatTimer = setInterval(sendHeartbeat, 90000);
+            document.addEventListener('visibilitychange', () => { if (!document.hidden) sendHeartbeat(); });
+            window.addEventListener('beforeunload', () => { try { deleteDoc(myRef); } catch (e) {} });
 
             const presenceCol = collection(db, 'mokjang_presence');
+            let presenceDebounceTimer = null;
             onSnapshot(presenceCol, (snapshot) => {
-                const now = Date.now();
-                const timeoutWindow = 45000;
-                let activeCount = 0;
-
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    if (data && typeof data.lastSeen === 'number') {
-                        if (now - data.lastSeen < timeoutWindow) {
-                            activeCount++;
-                        } else {
-                            try { deleteDoc(docSnap.ref); } catch (e) {}
+                if (presenceDebounceTimer) clearTimeout(presenceDebounceTimer);
+                presenceDebounceTimer = setTimeout(() => {
+                    const now = Date.now(), timeoutWindow = 180000, seenUsers = new Map();
+                    const activeCode = String(window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '1111').trim();
+                    snapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        if (data && typeof data.lastSeen === 'number') {
+                            if (data.mokjangCode && String(data.mokjangCode).trim() !== activeCode) return;
+                            if (now - data.lastSeen < timeoutWindow) {
+                                const rawName = (data.user && data.user.trim()) ? data.user.trim() : '목장가족';
+                                const joined = data.joinedAt || data.lastSeen;
+                                if (!seenUsers.has(rawName) || joined < seenUsers.get(rawName).joinedAt) {
+                                    seenUsers.set(rawName, { user: rawName, joinedAt: joined, lastSeen: data.lastSeen });
+                                }
+                            }
                         }
-                    }
-                });
-
-                activeCount = Math.max(1, activeCount);
-                updateWelcomeUserDisplay(activeCount);
-            }, (err) => {
-                updateWelcomeUserDisplay(1);
-            });
+                    });
+                    const activeUsers = Array.from(seenUsers.values()).sort((a, b) => a.user.localeCompare(b.user, 'ko'));
+                    lastOnlineCount = Math.max(1, activeUsers.length);
+                    updateWelcomeUserDisplay(activeUsers);
+                }, 600);
+            }, () => { updateWelcomeUserDisplay([]); });
         }
 
         function processImageFile(file, callback) {
@@ -3676,16 +3895,22 @@ function syncHeaderMokjangTitleDOM() {
             }
         }
 
+        function cleanPostHtmlContent(rawStr) {
+            if (!rawStr) return '';
+            let s = String(rawStr).replace(/\u200B/g, '');
+            s = s.replace(/&lt;\/?div[^&]*&gt;/gi, '<br>').replace(/&lt;\/?p[^&]*&gt;/gi, '<br>').replace(/&lt;br\s*\/?&gt;/gi, '<br>');
+            s = s.replace(/<div[^>]*>\s*<br\s*\/?>\s*<\/div>/gi, '<br>').replace(/<p[^>]*>\s*<br\s*\/?>\s*<\/p>/gi, '<br>')
+                 .replace(/<div[^>]*>/gi, '<br>').replace(/<\/div>/gi, '').replace(/<p[^>]*>/gi, '<br>').replace(/<\/p>/gi, '')
+                 .replace(/<\/?div[^>]*>/gi, '').replace(/(?:<|\b)\/div>?(?=\s|$|<)/gi, '').replace(/\/div(?=<|$|\s)/gi, '');
+            return s.replace(/^(?:<br\s*\/?>\s*)+/i, '').replace(/(?:\s*<br\s*\/?>)+$/i, '').trim();
+        }
+
         function renderPostContentHtml(contentStr) {
             if (!contentStr) return '';
-            const str = String(contentStr).trim();
-            if (str.includes('<span') || str.includes('<br')) {
-                return str
-                    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-                    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-                    .replace(/\son\w+="[^"]*"/gi, '')
-                    .replace(/\son\w+='[^']*'/gi, '')
-                    .replace(/javascript:/gi, '');
+            const str = cleanPostHtmlContent(contentStr);
+            if (!str) return '';
+            if (str.includes('<span') || str.includes('<br') || str.includes('<font') || str.includes('<b') || str.includes('<i') || str.includes('<u')) {
+                return str.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '').replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '').replace(/\son\w+="[^"]*"/gi, '').replace(/\son\w+='[^']*'/gi, '').replace(/javascript:/gi, '');
             }
             return escapeHtml(str);
         }
@@ -3930,7 +4155,7 @@ function syncHeaderMokjangTitleDOM() {
             const contentEl = document.getElementById('post-content');
             if (contentEl) {
                 contentEl.setAttribute('data-placeholder', `${currentUser}님, 목장 가족들과 나눌 따뜻한 이야기를 입력하세요...`);
-                contentEl.innerHTML = existingContent || "";
+                contentEl.innerHTML = cleanPostHtmlContent(existingContent || "");
                 const plain = (contentEl.innerText || '').replace(/\u200B/g, '').trim();
                 if (!plain) {
                     contentEl.setAttribute('data-empty', 'true');
@@ -3940,9 +4165,18 @@ function syncHeaderMokjangTitleDOM() {
                 updateCharCount(contentEl);
             }
 
+            currentLongContentText = ""; currentLongContentFontSize = 2;
+            if (postId) {
+                const editTargetObj = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+                if (editTargetObj && editTargetObj.longContent) {
+                    currentLongContentText = String(editTargetObj.longContent);
+                    currentLongContentFontSize = editTargetObj.longFontSize ? parseInt(editTargetObj.longFontSize) : 2;
+                }
+            }
+            updateLongTextBtnBadge();
             selectPostFont(existingFont || 'pretendard', false);
-
             selectedImagesList = Array.isArray(existingImages) ? [...existingImages] : (existingImages ? [existingImages] : []);
+            originalEditingImages = [...selectedImagesList];
             editingPhotoCaptionsList = [];
             if (postId) {
                 const editPostObj = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
@@ -3960,13 +4194,13 @@ function syncHeaderMokjangTitleDOM() {
                 if (editTargetPost && (editTargetPost.fileName || editTargetPost.fileId)) {
                     const matchedFile = cachedMokjangFiles.find(f => f.id === editTargetPost.fileId || f.fileName === editTargetPost.fileName);
                     if (matchedFile) {
-                        currentAttachedFile = { ...matchedFile };
+                        currentAttachedFile = { ...matchedFile, isExisting: true };
                     } else {
                         currentAttachedFile = {
                             fileName: editTargetPost.fileName,
                             fileSize: editTargetPost.fileSize,
                             fileType: editTargetPost.fileType || 'application/octet-stream',
-                            dataUrl: editTargetPost.fileDataUrl || ''
+                            id: editTargetPost.fileId || null, dataUrl: editTargetPost.fileDataUrl || '', isExisting: true
                         };
                     }
                     if (fileTitleInput) fileTitleInput.value = editTargetPost.fileTitle || '';
@@ -3987,7 +4221,11 @@ function syncHeaderMokjangTitleDOM() {
         window.closeWriteModal = function() {
             document.getElementById('write-modal').classList.add('hidden');
             selectedImagesList = [];
+            originalEditingImages = [];
             currentAttachedFile = null;
+            currentLongContentText = "";
+            currentLongContentFontSize = 2;
+            updateLongTextBtnBadge();
             renderAttachedFileUI();
             const contentEl = document.getElementById('post-content');
             if (contentEl) {
@@ -4006,7 +4244,7 @@ function syncHeaderMokjangTitleDOM() {
             const fileTitleInput = document.getElementById('post-file-title');
             const fileTitle = fileTitleInput ? fileTitleInput.value.trim() : '';
 
-            if (!plainText && selectedImagesList.length === 0 && !currentAttachedFile) {
+            if (!plainText && !currentLongContentText && selectedImagesList.length === 0 && !currentAttachedFile) {
                 showNotification('이야기 내용, 사진, 또는 첨부파일을 등록해 주세요.');
                 return;
             }
@@ -4182,118 +4420,78 @@ function syncHeaderMokjangTitleDOM() {
 
             isSubmittingPostLock = true;
             const contentEl = document.getElementById('post-content');
-            let content = contentEl ? contentEl.innerHTML.replace(/\u200B/g, '').trim() : '';
+            let rawEditorHtml = contentEl ? contentEl.innerHTML.replace(/\u200B/g, '').trim() : '';
+            let content = cleanPostHtmlContent(rawEditorHtml);
             if (content === '<br>' || content === '<div><br></div>') content = '';
+            if (!content && currentLongContentText) {
+                content = currentLongContentText.length > 80 ? currentLongContentText.substring(0, 80).trim() + '...' : currentLongContentText.trim();
+            }
             const finalImages = [...selectedImagesList];
             const fileToSave = currentAttachedFile;
-
             setDbStatus('saving');
-
-            // [1단계: 1. 저장 준비 및 용량검사 (20%)]
             setUploadProgressStage(1, false);
-            await new Promise(r => setTimeout(r, 140));
+            await new Promise(r => setTimeout(r, 60));
 
             try {
-                // [2단계: 2. 사진 고효율 압축처리 (40%)]
+                const isImagesUnchanged = Boolean(postId && finalImages.length === originalEditingImages.length && finalImages.every((img, idx) => img === originalEditingImages[idx]));
                 setUploadProgressStage(2, false);
-                await new Promise(r => setTimeout(r, 160));
+                if (!isImagesUnchanged) await new Promise(r => setTimeout(r, 60));
 
-                // [3단계: 3. 클라우드 저장소 업로드 (60%)]
                 setUploadProgressStage(3, false);
-                const uploadedImages = [];
-                for (let i = 0; i < finalImages.length; i++) {
-                    const imgData = finalImages[i];
-                    if (imgData.startsWith('http://') || imgData.startsWith('https://')) {
-                        uploadedImages.push(imgData);
-                    } else {
-                        setUploadProgressStage(3, false);
-                        const url = await uploadPhotoToStorage(imgData);
-                        uploadedImages.push(url);
-                    }
-                }
+                const uploadedImages = isImagesUnchanged
+                    ? [...finalImages]
+                    : await Promise.all(finalImages.map(imgData => {
+                        if (!imgData || imgData.startsWith('http://') || imgData.startsWith('https://') || (postId && originalEditingImages.includes(imgData))) return Promise.resolve(imgData);
+                        return uploadPhotoToStorage(imgData);
+                    }));
 
-                // [4단계: 4. 저장소 위치 정리 (80%)]
                 setUploadProgressStage(4, false);
-                await new Promise(r => setTimeout(r, 140));
+                await new Promise(r => setTimeout(r, 50));
 
-                let savedFileId = null;
-                let savedFileName = null;
-                let savedFileSize = null;
-
+                let savedFileId = null, savedFileName = null, savedFileSize = null;
                 const fileTitleInput = document.getElementById('post-file-title');
                 const fileTitle = fileTitleInput ? fileTitleInput.value.trim().substring(0, 15) : '';
 
-                if (fileToSave) {
-                    const fileDocRef = await addDoc(collection(db, 'mokjang_files'), {
-                        title: fileTitle || fileToSave.fileName,
-                        fileName: fileToSave.fileName,
-                        fileSize: fileToSave.fileSize,
-                        fileType: fileToSave.fileType,
-                        dataUrl: fileToSave.dataUrl,
-                        author: currentUser,
-                        authorUid: reactionUserId,
-                        createdAt: new Date(),
-                        postId: postId || null,
-                        mokjangCode: (typeof currentMokjangCode !== 'undefined' ? currentMokjangCode : '1111')
-                    });
-                    savedFileId = fileDocRef.id;
+                if (fileToSave && fileToSave.isExisting) {
+                    savedFileId = fileToSave.id || null;
                     savedFileName = fileToSave.fileName;
                     savedFileSize = fileToSave.fileSize;
+                    if (savedFileId && fileTitle) {
+                        try { await updateDoc(doc(db, 'mokjang_files', savedFileId), { title: fileTitle }); } catch (e) {}
+                    }
+                } else if (fileToSave) {
+                    const fileDocRef = await addDoc(collection(db, 'mokjang_files'), {
+                        title: fileTitle || fileToSave.fileName, fileName: fileToSave.fileName, fileSize: fileToSave.fileSize,
+                        fileType: fileToSave.fileType, dataUrl: fileToSave.dataUrl, author: currentUser, authorUid: reactionUserId,
+                        createdAt: new Date(), postId: postId || null, mokjangCode: (typeof currentMokjangCode !== 'undefined' ? currentMokjangCode : '1111')
+                    });
+                    savedFileId = fileDocRef.id; savedFileName = fileToSave.fileName; savedFileSize = fileToSave.fileSize;
                 }
 
-                // [5단계: 5. 문서 저장 (100%)]
                 setUploadProgressStage(5, false);
-
                 let targetScrollId = postId;
                 if (postId) {
                     const reindexedCaptions = {};
                     if (Array.isArray(editingPhotoCaptionsList)) {
-                        uploadedImages.forEach((_, newIdx) => {
-                            const capVal = editingPhotoCaptionsList[newIdx];
-                            if (capVal) reindexedCaptions[newIdx] = capVal;
-                        });
+                        uploadedImages.forEach((_, newIdx) => { const capVal = editingPhotoCaptionsList[newIdx]; if (capVal) reindexedCaptions[newIdx] = capVal; });
                     }
                     const updatePayload = {
-                        content: content,
-                        fontFamily: currentSelectedFont || 'pretendard',
-                        images: uploadedImages,
-                        imageUrl: uploadedImages.length > 0 ? uploadedImages[0] : "",
-                        photoCaptions: reindexedCaptions,
-                        updatedAt: new Date()
+                        content: content, fontFamily: currentSelectedFont || 'pretendard',
+                        longContent: currentLongContentText || '', longFontSize: currentLongContentFontSize || 2,
+                        photoCaptions: reindexedCaptions, updatedAt: new Date()
                     };
-                    if (savedFileId) {
-                        updatePayload.fileId = savedFileId;
-                        updatePayload.fileName = savedFileName;
-                        updatePayload.fileSize = savedFileSize;
-                        updatePayload.fileTitle = fileTitle || '';
-                    }
+                    if (!isImagesUnchanged) { updatePayload.images = uploadedImages; updatePayload.imageUrl = uploadedImages.length > 0 ? uploadedImages[0] : ""; }
+                    if (savedFileId) { updatePayload.fileId = savedFileId; updatePayload.fileName = savedFileName; updatePayload.fileSize = savedFileSize; updatePayload.fileTitle = fileTitle || ''; }
                     await updateDoc(getPostDocRef(postId), updatePayload);
                 } else {
                     const postPayload = {
-                        mokjangName: currentMokjang,
-                        mokjangCode: (typeof currentMokjangCode !== 'undefined' ? currentMokjangCode : '1111'),
-                        author: currentUser,
-                        authorUid: reactionUserId,
-                        content: content,
-                        fontFamily: currentSelectedFont || 'pretendard',
-                        images: uploadedImages,
-                        imageUrl: uploadedImages.length > 0 ? uploadedImages[0] : "",
-                        likes: 0,
-                        likedUsers: [],
-                        thumbsUp: 0,
-                        thumbedUsers: [],
-                        prayers: 0,
-                        prayedUsers: [],
-                        comments: [],
-                        photoCaptions: {},
-                        createdAt: new Date()
+                        mokjangName: currentMokjang, mokjangCode: (typeof currentMokjangCode !== 'undefined' ? currentMokjangCode : '1111'),
+                        author: currentUser, authorUid: reactionUserId, content: content, fontFamily: currentSelectedFont || 'pretendard',
+                        longContent: currentLongContentText || '', longFontSize: currentLongContentFontSize || 2,
+                        images: uploadedImages, imageUrl: uploadedImages.length > 0 ? uploadedImages[0] : "",
+                        likes: 0, likedUsers: [], thumbsUp: 0, thumbedUsers: [], prayers: 0, prayedUsers: [], comments: [], photoCaptions: {}, createdAt: new Date()
                     };
-                    if (savedFileId) {
-                        postPayload.fileId = savedFileId;
-                        postPayload.fileName = savedFileName;
-                        postPayload.fileSize = savedFileSize;
-                        postPayload.fileTitle = fileTitle || '';
-                    }
+                    if (savedFileId) { postPayload.fileId = savedFileId; postPayload.fileName = savedFileName; postPayload.fileSize = savedFileSize; postPayload.fileTitle = fileTitle || ''; }
                     const newDocRef = await addDoc(getPostsCollection(), postPayload);
                     targetScrollId = newDocRef.id;
                 }
@@ -4301,7 +4499,6 @@ function syncHeaderMokjangTitleDOM() {
                 setUploadProgressStage(5, true);
                 setDbStatus('connected');
                 await new Promise(r => setTimeout(r, 380));
-
                 closeUploadProgressModal();
                 closeWriteModal();
                 showNotification(COMPLETED_STAGE_5_TEXT);
@@ -4309,8 +4506,9 @@ function syncHeaderMokjangTitleDOM() {
                 if (!postId) {
                     setTimeout(() => {
                         const currentCount = (cachedPosts && cachedPosts.length > 0) ? cachedPosts.length : 1;
-                        openKakaoShareModal(currentUser, currentCount);
-                    }, 600);
+                        const firstImg = (uploadedImages && uploadedImages.length > 0) ? uploadedImages[0] : '';
+                        openKakaoShareModal(currentUser, currentCount, content, firstImg);
+                    }, 650);
                 }
             } catch (err) {
                 console.error("게시글 저장 오류:", err);
@@ -5811,6 +6009,11 @@ function syncHeaderMokjangTitleDOM() {
                 item.style.clear = 'both';
             });
 
+            const photoImgs = target.querySelectorAll('img.continuous-photo-item');
+            photoImgs.forEach(img => {
+                img.style.width = 'auto'; img.style.height = 'auto'; img.style.maxWidth = '100%';
+                img.style.maxHeight = '420px'; img.style.objectFit = 'contain'; img.style.margin = '0 auto'; img.style.display = 'block';
+            });
             target.querySelectorAll('.no-export').forEach(el => el.style.display = 'none');
         }
 
@@ -5846,7 +6049,7 @@ function syncHeaderMokjangTitleDOM() {
                 const capInfo = extractPhotoCaptionInfo(rawCap, post.author);
                 return `
                     <div class="w-full flex flex-col border border-gray-100 rounded-xl overflow-hidden bg-gray-50/70 shadow-2xs">
-                        <img src="${url}" alt="사진 ${i+1}" class="w-full ${maxH} object-cover block mx-auto" loading="lazy" decoding="async">
+                        <div class="w-full flex items-center justify-center bg-gray-50 p-0.5"><img src="${url}" alt="사진 ${i+1}" style="width: auto; height: auto; max-width: 100%; object-fit: contain;" class="${maxH} block mx-auto" loading="lazy" decoding="async"></div>
                         ${capInfo.text ? `<div class="px-1 py-0.5 bg-gray-50 text-[10px] text-gray-700 leading-snug border-t border-gray-100 text-left"><i class="fa-regular fa-comment-dots text-emerald-600 mr-0.5 text-[9px]"></i><span class="font-bold text-emerald-900 mr-0.5">${escapeHtml(capInfo.author)} :</span>${escapeHtml(capInfo.text)}</div>` : ''}
                     </div>
                 `;
@@ -6166,7 +6369,7 @@ function syncHeaderMokjangTitleDOM() {
 
             try {
                 const canvas = await html2canvas(targetEl, {
-                    scale: 2,
+                    scale: 1.5,
                     useCORS: true,
                     backgroundColor: '#ffffff',
                     onclone: (clonedDoc) => {
@@ -6176,7 +6379,7 @@ function syncHeaderMokjangTitleDOM() {
                     }
                 });
 
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const imgData = canvas.toDataURL('image/jpeg', 0.74);
                 const { jsPDF } = window.jspdf;
                 
                 let pdf;
@@ -6200,7 +6403,7 @@ function syncHeaderMokjangTitleDOM() {
                     const posX = margin + (contentWidth - imgMmWidth) / 2;
                     const posY = margin + (contentHeight - imgMmHeight) / 2;
 
-                    pdf.addImage(imgData, 'JPEG', posX, posY, imgMmWidth, imgMmHeight);
+                    pdf.addImage(imgData, 'JPEG', posX, posY, imgMmWidth, imgMmHeight, undefined, 'FAST');
                 } else {
                     pdf = new jsPDF('p', 'mm', 'a4');
                     const pageWidth = 210;
@@ -6219,7 +6422,7 @@ function syncHeaderMokjangTitleDOM() {
                     const posX = margin + (contentWidth - imgMmWidth) / 2;
                     const posY = margin;
 
-                    pdf.addImage(imgData, 'JPEG', posX, posY, imgMmWidth, imgMmHeight);
+                    pdf.addImage(imgData, 'JPEG', posX, posY, imgMmWidth, imgMmHeight, undefined, 'FAST');
                 }
 
                 pdf.save(`목장이야기_${postId.substring(0, 6)}_${formatFileDate(new Date())}.pdf`);
@@ -6327,7 +6530,7 @@ function syncHeaderMokjangTitleDOM() {
             card.className = "w-full px-2 pt-0.5 pb-1 box-border";
             card.setAttribute('data-post-id', post.id);
             const sigImgs = Array.isArray(post.images) ? post.images.filter(Boolean) : (post.imageUrl ? [post.imageUrl] : []);
-            card.setAttribute('data-post-sig', `${post.id}|${sigImgs.length}|${sigImgs.join(',')}|${post.content || ''}|${post.fontFamily || ''}|${post.fileName || ''}`);
+            card.setAttribute('data-post-sig', `${post.id}|${sigImgs.length}|${sigImgs.join(',')}|${post.content || ''}|${post.fontFamily || ''}|${post.fileName || ''}|${post.longContent || ''}|${post.longFontSize || ''}`);
 
             let imgArray = [];
             if (Array.isArray(post.images) && post.images.length > 0) {
@@ -6448,9 +6651,15 @@ function syncHeaderMokjangTitleDOM() {
             const commentsDisplayHtml = renderPostCommentsBoxHtml(post);
 
             const postFontClass = getFontClass(post.fontFamily);
-            const formattedContent = (post.content && post.content.trim()) 
-                ? `<div class="post-content-body ${postFontClass} pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight text-left break-words overflow-wrap-anywhere whitespace-pre-wrap" style="text-align: left !important; text-indent: 0 !important; margin: 0 !important; padding-left: 2px !important; direction: ltr !important; width: 100% !important; display: block !important;">${renderPostContentHtml(post.content.trim())}</div>` 
-                : '';
+            const hasLong = post.longContent && String(post.longContent).trim().length > 0;
+            const isUnreadLong = hasLong && !isLongContentRead(post.id, post);
+            const inlineLongBtn = hasLong ? `<span class="inline-block whitespace-nowrap ml-1"><button type="button" id="long-read-btn-${post.id}" onclick="event.stopPropagation(); openLongContentReader('${post.id}', event)" class="no-export inline-flex items-center space-x-0.5 px-1.5 py-0.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs text-[10.5px] font-bold active:scale-95 transition-transform align-middle select-none cursor-pointer" title="긴글 읽기"><span id="long-read-icon-${post.id}" class="text-[11px] leading-none ${isUnreadLong ? 'animate-scroll-unread' : ''}">📜</span><span>긴글읽기</span></button></span>` : '';
+            let formattedContent = '';
+            if (post.content && post.content.trim()) {
+                formattedContent = `<div class="post-content-body ${postFontClass} pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight text-left break-words overflow-wrap-anywhere whitespace-pre-wrap" style="text-align: left !important; text-indent: 0 !important; margin: 0 !important; padding-left: 2px !important; direction: ltr !important; width: 100% !important; display: block !important;">${renderPostContentHtml(post.content.trim())}${inlineLongBtn}</div>`;
+            } else if (hasLong) {
+                formattedContent = `<div class="post-content-body font-gowun-dodum pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight text-left">${inlineLongBtn}</div>`;
+            }
 
             card.innerHTML = `
                 <div id="post-card-${post.id}" class="w-full bg-white rounded-2xl border church-border shadow-xs flex flex-col p-2 box-border relative text-left">
@@ -6565,11 +6774,11 @@ function syncHeaderMokjangTitleDOM() {
 
                     <!-- [작업 4-마: 인라인 댓글 작성 시 현재 작성자 이름 표시] -->
                     <div id="inline-comment-row-${post.id}" class="no-export mt-1.5 pt-1 border-t border-gray-100 hidden w-full max-w-full box-border overflow-hidden">
-                        <div class="flex items-end gap-1.5 w-full max-w-full box-border">
+                        <div class="flex items-stretch gap-1.5 w-full max-w-full box-border">
                             <textarea id="inline-comment-input-${post.id}" rows="2" maxlength="300" placeholder="따뜻한 댓글을 남겨보세요..." 
                                       oninput="handleDraftInput('${post.id}', this.value); autoExpandCommentTextarea(this);"
                                       class="flex-1 min-w-0 w-full min-h-[46px] px-2.5 py-1.5 border border-dashed border-gray-300 rounded-lg text-xs bg-white text-gray-900 placeholder-gray-400 outline-none focus:outline-none focus:border-dashed focus:border-emerald-600 resize-none shadow-2xs box-border leading-snug"></textarea>
-                            <button type="button" onpointerdown="event.preventDefault();" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); addCommentInline('${post.id}', event)" class="shrink-0 h-[46px] px-3 church-primary hover:opacity-90 active:scale-95 text-white rounded-lg text-xs font-semibold whitespace-nowrap shadow-2xs transition-all flex items-center justify-center" title="댓글 등록">
+                            <button type="button" onpointerdown="event.preventDefault();" onmousedown="event.preventDefault();" onclick="event.stopPropagation(); addCommentInline('${post.id}', event)" class="shrink-0 self-stretch px-3 church-primary hover:opacity-90 active:scale-95 text-white rounded-lg text-xs font-semibold whitespace-nowrap shadow-2xs transition-all flex items-center justify-center" title="댓글 등록">
                                 <span>등록</span>
                             </button>
                         </div>
@@ -6654,7 +6863,7 @@ function syncHeaderMokjangTitleDOM() {
 
             const getPostMediaSignature = (p) => {
                 const imgs = Array.isArray(p.images) ? p.images.filter(Boolean) : (p.imageUrl ? [p.imageUrl] : []);
-                return `${p.id}|${imgs.length}|${imgs.join(',')}|${p.content || ''}|${p.fontFamily || ''}|${p.fileName || ''}`;
+                return `${p.id}|${imgs.length}|${imgs.join(',')}|${p.content || ''}|${p.fontFamily || ''}|${p.fileName || ''}|${p.longContent || ''}|${p.longFontSize || ''}`;
             };
             const existingArticles = Array.from(feedContainer.querySelectorAll('article[data-post-id]'));
             const existingSigs = existingArticles.map(a => a.getAttribute('data-post-sig') || '');
@@ -6670,6 +6879,7 @@ function syncHeaderMokjangTitleDOM() {
             }
 
             feedContainer.innerHTML = "";
+            ensurePullRefreshIndicator();
             visiblePosts.forEach(post => {
                 const card = buildPostCardElement(post);
                 feedContainer.appendChild(card);
@@ -7246,7 +7456,7 @@ function syncHeaderMokjangTitleDOM() {
             }
 
             setTimeout(() => {
-                resetCropBoxToImage(0.85);
+                resetCropBoxToImage(1.0, false);
             }, 80);
         };
 
@@ -7284,9 +7494,9 @@ function syncHeaderMokjangTitleDOM() {
             updateActiveImageTransform();
             const nextImg = getActiveImageEl();
             if (nextImg && !nextImg.complete) {
-                nextImg.onload = () => { resetCropBoxToImage(0.85, false); };
+                nextImg.onload = () => { resetCropBoxToImage(1.0, false); };
             }
-            setTimeout(() => { resetCropBoxToImage(0.85, false); }, 60);
+            setTimeout(() => { resetCropBoxToImage(1.0, false); }, 60);
         }
 
         function getActiveImageEl() {
@@ -7304,7 +7514,7 @@ function syncHeaderMokjangTitleDOM() {
             }
         }
 
-        window.resetCropBoxToImage = function(ratio = 0.85, notify = true) {
+        window.resetCropBoxToImage = function(ratio = 1.0, notify = true) {
             const vp = document.getElementById('lightbox-viewport');
             const activeImg = getActiveImageEl();
             const cropBox = document.getElementById('lightbox-crop-box');
@@ -7354,7 +7564,7 @@ function syncHeaderMokjangTitleDOM() {
                 autoFixBtn.classList.add('bg-gray-100', 'text-gray-700');
             }
             setTimeout(() => {
-                resetCropBoxToImage(0.85, false);
+                resetCropBoxToImage(1.0, false);
                 showNotification("사진 틀과 이미지 보정 설정이 모두 초기화되었습니다.");
             }, 30);
         };
@@ -7564,7 +7774,7 @@ function syncHeaderMokjangTitleDOM() {
         window.rotateLightboxImage = function() {
             currentLightboxRotationAngle = (currentLightboxRotationAngle + 90) % 360;
             updateActiveImageTransform();
-            setTimeout(() => { resetCropBoxToImage(0.85); }, 50);
+            setTimeout(() => { resetCropBoxToImage(1.0, false); }, 50);
         };
 
         window.slideLightboxPrev = function(e) {
