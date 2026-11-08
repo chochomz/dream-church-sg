@@ -15,7 +15,6 @@
 </head>
 <body class="min-h-screen py-4 px-3 flex flex-col items-center select-none">
     <div class="w-full max-w-md bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl p-4 space-y-3.5">
-        <!-- 상단 타이틀 -->
         <div class="relative flex items-center justify-center min-h-[44px] pb-2.5 border-b border-slate-800">
             <div class="flex items-center space-x-2 px-12 min-w-0">
                 <div class="w-8 h-8 rounded-xl border border-slate-700 bg-slate-800 p-1 flex items-center justify-center shrink-0">
@@ -26,7 +25,6 @@
             <button type="button" onclick="location.href='index.html'" class="absolute right-0 top-1/2 -translate-y-1/2 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold">로그인창</button>
         </div>
 
-        <!-- [indexdm.html에서 이동해 온] 목장코드 & 보안 패스코드 확인/조회 박스 -->
         <section class="w-full bg-slate-800/80 rounded-2xl border border-slate-700 p-3.5 space-y-2.5">
             <div class="flex items-center justify-between border-b border-slate-700 pb-2">
                 <div class="flex items-center space-x-2 min-w-0">
@@ -53,14 +51,13 @@
             </div>
         </section>
 
-        <!-- 새로운 목자 & 새 목장코드 & 목자패스코드 입력 생성 폼 -->
         <section class="w-full bg-slate-800/80 rounded-2xl border border-emerald-500/40 p-3.5 space-y-2.5">
             <div class="flex items-center justify-between border-b border-slate-700 pb-1.5">
                 <h3 class="text-xs font-extrabold text-emerald-300"><i class="fa-solid fa-user-plus mr-1"></i>새로운 목장 생성 및 권한 부여</h3>
                 <button type="button" onclick="resetForm()" class="text-[10px] text-slate-400 hover:text-white underline">초기화</button>
             </div>
             <div>
-                <label class="block text-[10.5px] font-bold text-slate-300 mb-1">목장 이름 (타이틀)</label>
+                <label class="block text-[10.5px] font-bold text-slate-300 mb-1">목장 이름( 목장 이름은 상부 타이틀에 올라가는 문자임)</label>
                 <input type="text" id="new-mokjang-name" maxlength="14" placeholder="예: 25목장, 사랑목장 (목자가 추후 변경가능)" class="w-full px-3 py-1.5 rounded-xl font-bold dashed-input">
             </div>
             <div class="grid grid-cols-2 gap-2">
@@ -78,7 +75,6 @@
             </div>
         </section>
 
-        <!-- 개설된 전체 목장 리스트 -->
         <section class="w-full bg-slate-800/80 rounded-2xl border border-slate-700 p-3.5 space-y-2">
             <h3 class="text-xs font-extrabold text-white border-b border-slate-700 pb-1.5"><i class="fa-solid fa-list text-sky-400 mr-1.5"></i>개설된 목장 현황 (<span id="total-cnt" class="text-emerald-400">0</span>개)</h3>
             <div id="mokjang-list" class="space-y-1.5 max-h-56 overflow-y-auto"></div>
