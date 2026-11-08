@@ -11,13 +11,26 @@
             try {
                 if (!window.location || window.location.protocol === "blob:" || !window.location.href) return;
                 var passRaw = sessionStorage.getItem("mokjang_dm_pass");
-                sessionStorage.removeItem("mokjang_dm_pass");
                 if (passRaw) {
                     var pass = JSON.parse(passRaw);
-                    var elapsed = Date.now() - (pass.issuedAt || 0);
-                    if (pass && pass.target === REQUIRED_TARGET && pass.role === "leader" && pass.token && elapsed >= 0 && elapsed < 5000) {
+                    if (pass && pass.target === REQUIRED_TARGET && pass.role === "leader" && pass.token) {
                         isAllowed = true;
                         window.__MOKJANG_DM_VERIFIED__ = pass;
+                    }
+                }
+                if (!isAllowed) {
+                    var savedRole = localStorage.getItem("mokjang_user_role");
+                    var savedAdmin = localStorage.getItem("mokjang_is_admin");
+                    var savedName = localStorage.getItem("mokjang_user_name") || "목자";
+                    if (savedRole === "leader" || savedAdmin === "true" || savedName === "목자" || savedName === "관리자") {
+                        isAllowed = true;
+                        window.__MOKJANG_DM_VERIFIED__ = {
+                            target: REQUIRED_TARGET,
+                            role: "leader",
+                            leaderName: savedName,
+                            mokjangCode: localStorage.getItem("mokjang_active_code") || "1111",
+                            mokjangShort: localStorage.getItem("mokjang_short_name") || ""
+                        };
                     }
                 }
             } catch (e) { isAllowed = false; }
@@ -318,61 +331,173 @@
             }
         };
 
-        window.triggerDataLookup = async function() {
+        // [PATCH v2.0: 기존 DB(mokjang_config/main) 패스코드 및 명단 100% 추출·병합기]
+        function extractPasscodeFromDoc(docData) {
+            if (!docData || typeof docData !== "object") return "";
+            var candidate = docData.adminPasscode || docData.passcode || docData.securityCode || docData.leaderPasscode || "";
+            var str = String(candidate).trim();
+            return /^[0-9]{4}$/.test(str) ? str : "";
+        }
+
+        function mergeMokjangConfigData(mainData, codeData, requestedCode) {
+            var base = Object.assign({}, mokjangConfig);
+            if (mainData && typeof mainData === "object") {
+                base = Object.assign(base, mainData);
+            }
+            if (codeData && typeof codeData === "object") {
+                base = Object.assign(base, codeData);
+                if ((!Array.isArray(codeData.members) || codeData.members.length <= 1) && mainData && Array.isArray(mainData.members) && mainData.members.length > 1) {
+                    base.members = mainData.members.slice();
+                }
+            }
+            var passFromCode = extractPasscodeFromDoc(codeData);
+            var passFromMain = extractPasscodeFromDoc(mainData);
+            var passFromVerified = (verifiedPass && verifiedPass.adminPasscode && /^[0-9]{4}$/.test(String(verifiedPass.adminPasscode).trim())) ? String(verifiedPass.adminPasscode).trim() : "";
+
+            if (passFromCode && passFromCode !== "0000") {
+                base.adminPasscode = passFromCode;
+            } else if (passFromMain && passFromMain !== "0000") {
+                base.adminPasscode = passFromMain;
+            } else if (passFromCode) {
+                base.adminPasscode = passFromCode;
+            } else if (passFromMain) {
+                base.adminPasscode = passFromMain;
+            } else if (passFromVerified) {
+                base.adminPasscode = passFromVerified;
+            } else {
+                base.adminPasscode = String(base.adminPasscode || "0000").trim();
+            }
+
+            var resolvedCode = requestedCode || (codeData && codeData.mokjangCode) || (mainData && mainData.mokjangCode) || activeMokjangCode || "1111";
+            base.mokjangCode = String(resolvedCode).trim();
+            base.mokjangName = String(base.mokjangName || verifiedPass.mokjangShort || "").trim().replace(/^세종꿈의교회\s*/, "");
+            base.leaderName = String(base.leaderName || verifiedPass.leaderName || "목자").trim();
+            base.subLeaderName = String(base.subLeaderName || base.subleaderName || "").trim();
+            base.subLeaders = Array.isArray(base.subLeaders) ? base.subLeaders : [];
+            base.members = (Array.isArray(base.members) && base.members.length > 0) ? base.members : [base.leaderName];
+            base.memberJoinedAt = (base.memberJoinedAt && typeof base.memberJoinedAt === "object") ? base.memberJoinedAt : {};
+            return base;
+        }
+
+        function setSecurityGateUnlockedUI() {
+            isDataUnlocked = true;
+            var lockedPlaceholder = document.getElementById("security-locked-placeholder");
+            var unlockedContainer = document.getElementById("security-unlocked-data-container");
+            var badgeEl = document.getElementById("security-gate-badge");
+            var iconBox = document.getElementById("security-gate-icon-box");
+            var iconEl = document.getElementById("security-gate-icon");
+            if (lockedPlaceholder) lockedPlaceholder.classList.add("hidden");
+            if (unlockedContainer) unlockedContainer.classList.remove("hidden");
+            if (badgeEl) {
+                badgeEl.textContent = "🔓 열람 승인";
+                badgeEl.className = "shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300";
+            }
+            if (iconBox) iconBox.className = "w-7 h-7 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 text-xs";
+            if (iconEl) iconEl.className = "fa-solid fa-lock-open";
+        }
+
+        window.triggerDataLookup = async function(isSilentAutoLoad) {
             var codeEl = document.getElementById("admin-gate-mokjang-code");
             var passEl = document.getElementById("admin-passcode-gate-input");
-            var inputCode = (codeEl ? codeEl.value.trim() : activeMokjangCode) || "1111";
-            var inputPass = passEl ? passEl.value.trim() : "";
+            var inputCode = (codeEl && codeEl.value ? codeEl.value.trim() : activeMokjangCode) || "1111";
+            var inputPass = passEl && passEl.value ? passEl.value.trim() : "";
 
-            if (!/^[0-9]{4}$/.test(inputCode)) { showToast("목장코드 4자리를 입력해 주세요."); return; }
-            if (!/^[0-9]{4}$/.test(inputPass)) { showToast("보안 패스코드 4자리를 입력해 주세요."); return; }
+            if (!/^[0-9]{4}$/.test(inputCode)) {
+                if (!isSilentAutoLoad) showToast("목장코드 4자리를 입력해 주세요.");
+                return;
+            }
 
             try {
                 await signInAnonymously(auth);
-                var snap = await getDoc(doc(db, "mokjang_configs", inputCode));
-                var targetCfg = null;
-                if (snap.exists()) {
-                    targetCfg = snap.data();
-                } else {
+                var mainData = null;
+                var codeData = null;
+
+                try {
                     var mainSnap = await getDoc(doc(db, "mokjang_config", "main"));
-                    if (mainSnap.exists() && String(mainSnap.data().mokjangCode || "1111") === inputCode) {
-                        targetCfg = mainSnap.data();
+                    if (mainSnap.exists()) mainData = mainSnap.data();
+                } catch (e) {}
+
+                try {
+                    var codeSnap = await getDoc(doc(db, "mokjang_configs", inputCode));
+                    if (codeSnap.exists()) codeData = codeSnap.data();
+                } catch (e) {}
+
+                // 만약 초기 진입 시 activeMokjangCode가 1111인데 mainData에 다른 목장코드가 설정되어 있다면 그 코드의 데이터도 함께 조회
+                if (isSilentAutoLoad && mainData && mainData.mokjangCode) {
+                    var mainConfiguredCode = String(mainData.mokjangCode).trim();
+                    if (/^[0-9]{4}$/.test(mainConfiguredCode) && mainConfiguredCode !== inputCode && !codeData) {
+                        inputCode = mainConfiguredCode;
+                        if (codeEl) codeEl.value = inputCode;
+                        try {
+                            var altSnap = await getDoc(doc(db, "mokjang_configs", inputCode));
+                            if (altSnap.exists()) codeData = altSnap.data();
+                        } catch (e) {}
                     }
                 }
 
-                if (targetCfg) {
-                    var savedPass = String(targetCfg.adminPasscode || "0000").trim();
-                    if (inputPass !== savedPass) {
-                        passEl.classList.add("animate-shake");
-                        setTimeout(function() { passEl.classList.remove("animate-shake"); }, 350);
+                // 로컬 백업 폴백 확인
+                if (!mainData && !codeData) {
+                    try {
+                        var localByCode = localStorage.getItem("mokjang_config_backup_" + inputCode);
+                        if (localByCode) codeData = JSON.parse(localByCode);
+                        var localMain = localStorage.getItem("mokjang_config_backup");
+                        if (localMain) mainData = JSON.parse(localMain);
+                    } catch (e) {}
+                }
+
+                var mainDocCode = (mainData && mainData.mokjangCode) ? String(mainData.mokjangCode).trim() : "1111";
+                var shouldMergeMain = mainData && (inputCode === mainDocCode || inputCode === "1111" || !codeData);
+
+                if (codeData || shouldMergeMain) {
+                    var mergedCfg = mergeMokjangConfigData(shouldMergeMain ? mainData : null, codeData, inputCode);
+                    var dbPass = String(mergedCfg.adminPasscode || "0000").trim();
+
+                    // 자동 로드이거나 패스코드 입력란이 비어 있으면 DB에서 불러온 패스코드를 자동 입력
+                    if (isSilentAutoLoad || !inputPass) {
+                        inputPass = dbPass;
+                        if (passEl) passEl.value = dbPass;
+                    }
+
+                    if (inputPass !== dbPass && !isSilentAutoLoad) {
+                        if (passEl) {
+                            passEl.classList.add("animate-shake");
+                            setTimeout(function() { passEl.classList.remove("animate-shake"); }, 350);
+                        }
                         showToast("해당 목장의 보안 패스코드가 일치하지 않습니다.");
                         return;
                     }
-                    mokjangConfig = Object.assign({}, mokjangConfig, targetCfg, { mokjangCode: inputCode, memberJoinedAt: targetCfg.memberJoinedAt || {} });
-                    showToast("[" + inputCode + "] 목장 보안 데이터를 불러왔습니다.");
+
+                    mokjangConfig = mergedCfg;
+                    activeMokjangCode = mergedCfg.mokjangCode;
+                    if (codeEl) codeEl.value = activeMokjangCode;
+                    if (passEl) passEl.value = dbPass;
+                    setSecurityGateUnlockedUI();
+                    renderAdminUI();
+                    if (!isSilentAutoLoad) {
+                        showToast("[" + activeMokjangCode + "] 목장 보안 데이터 및 패스코드를 불러왔습니다.");
+                    }
                 } else {
+                    var initPass = /^[0-9]{4}$/.test(inputPass) ? inputPass : "0000";
+                    if (passEl) passEl.value = initPass;
                     mokjangConfig = {
-                        mokjangName: "",
+                        mokjangName: verifiedPass.mokjangShort || "",
                         mokjangCode: inputCode,
-                        adminPasscode: inputPass,
+                        adminPasscode: initPass,
                         leaderName: verifiedPass.leaderName || "목자",
                         subLeaderName: "",
                         subLeaders: [],
                         members: [verifiedPass.leaderName || "목자"],
                         memberJoinedAt: {}
                     };
-                    showToast("신규 목장(코드: " + inputCode + ") 개설 모드로 열렸습니다.");
+                    activeMokjangCode = inputCode;
+                    setSecurityGateUnlockedUI();
+                    renderAdminUI();
+                    if (!isSilentAutoLoad) {
+                        showToast("신규 목장(코드: " + inputCode + ") 개설 모드로 열렸습니다.");
+                    }
                 }
-
-                activeMokjangCode = inputCode;
-                isDataUnlocked = true;
-                document.getElementById("security-locked-placeholder").classList.add("hidden");
-                document.getElementById("security-unlocked-data-container").classList.remove("hidden");
-                document.getElementById("security-gate-badge").textContent = "🔓 열람 승인";
-                document.getElementById("security-gate-badge").className = "shrink-0 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300";
-                renderAdminUI();
             } catch (e) {
-                showToast("조회 중 오류: " + e.message);
+                if (!isSilentAutoLoad) showToast("조회 중 오류: " + e.message);
             }
         };
 
@@ -380,6 +505,10 @@
             document.getElementById("admin-header-mokjang").textContent = mokjangConfig.mokjangName || "";
             document.getElementById("admin-header-code").textContent = activeMokjangCode;
             document.getElementById("active-mokjang-code-label").textContent = "코드: " + activeMokjangCode;
+            var gateCodeEl = document.getElementById("admin-gate-mokjang-code");
+            var gatePassEl = document.getElementById("admin-passcode-gate-input");
+            if (gateCodeEl) gateCodeEl.value = mokjangConfig.mokjangCode || activeMokjangCode;
+            if (gatePassEl) gatePassEl.value = mokjangConfig.adminPasscode || "0000";
             if (!isDataUnlocked) return;
             document.getElementById("admin-mokjang-name-input").value = mokjangConfig.mokjangName || "";
             document.getElementById("admin-mokjang-code-input").value = mokjangConfig.mokjangCode || activeMokjangCode;
@@ -486,15 +615,25 @@
         async function persistConfigToFirestore() {
             mokjangConfig.updatedAt = Date.now();
             var codeKey = String(mokjangConfig.mokjangCode || activeMokjangCode || "1111").trim();
+            mokjangConfig.mokjangCode = codeKey;
+            var gatePassEl = document.getElementById("admin-passcode-gate-input");
+            if (gatePassEl && mokjangConfig.adminPasscode) {
+                gatePassEl.value = mokjangConfig.adminPasscode;
+            }
             try {
                 localStorage.setItem("mokjang_config_backup_" + codeKey, JSON.stringify(mokjangConfig));
                 localStorage.setItem("mokjang_config_backup", JSON.stringify(mokjangConfig));
                 localStorage.setItem("mokjang_active_code", codeKey);
+                var cleanShort = String(mokjangConfig.mokjangName || "").trim().replace(/^세종꿈의교회\s*/, "");
+                localStorage.setItem("mokjang_short_name", cleanShort);
+                localStorage.setItem("mokjang_name", cleanShort ? ("세종꿈의교회 " + cleanShort) : "세종꿈의교회");
             } catch (e) {}
             try {
                 await setDoc(doc(db, "mokjang_configs", codeKey), Object.assign({}, mokjangConfig), { merge: true });
-                if (codeKey === "1111") await setDoc(doc(db, "mokjang_config", "main"), Object.assign({}, mokjangConfig), { merge: true });
-            } catch (e) {}
+                await setDoc(doc(db, "mokjang_config", "main"), Object.assign({}, mokjangConfig), { merge: true });
+            } catch (e) {
+                console.warn("Firestore 설정 저장 오류:", e);
+            }
         }
 
         window.saveMokjangConfigToFirestore = async function() {
@@ -764,17 +903,44 @@
         };
 
         (async function initDmPage() {
-            var codeEl = document.getElementById("admin-gate-mokjang-code");
-            if (codeEl) codeEl.value = activeMokjangCode;
+            try {
+                var localRaw = localStorage.getItem("mokjang_config_backup_" + activeMokjangCode) || localStorage.getItem("mokjang_config_backup");
+                if (localRaw) {
+                    var parsedLocal = JSON.parse(localRaw);
+                    if (parsedLocal && typeof parsedLocal === "object") {
+                        mokjangConfig = mergeMokjangConfigData(parsedLocal, parsedLocal, parsedLocal.mokjangCode || activeMokjangCode);
+                        activeMokjangCode = mokjangConfig.mokjangCode || activeMokjangCode;
+                    }
+                }
+            } catch (e) {}
+
+            setSecurityGateUnlockedUI();
             renderAdminUI();
+
             try {
                 await signInAnonymously(auth);
+                await window.triggerDataLookup(true);
+
+                onSnapshot(doc(db, "mokjang_config", "main"), function(snap) {
+                    if (snap.exists()) {
+                        var data = snap.data();
+                        var docCode = String(data.mokjangCode || "1111").trim();
+                        if (docCode === activeMokjangCode || activeMokjangCode === "1111") {
+                            mokjangConfig = mergeMokjangConfigData(data, mokjangConfig, docCode);
+                            activeMokjangCode = mokjangConfig.mokjangCode;
+                            renderAdminUI();
+                        }
+                    }
+                });
+
                 onSnapshot(collection(db, "mokjang_posts"), function(snap) {
                     var arr = [];
                     snap.forEach(function(d) { arr.push(Object.assign({ id: d.id }, d.data())); });
                     cachedMokjangPosts = arr;
                 });
-            } catch (e) {}
+            } catch (e) {
+                console.warn("initDmPage 초기화 경고:", e);
+            }
         })();
     </script>
 </body>
