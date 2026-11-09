@@ -27,13 +27,6 @@
                     e.preventDefault(); e.stopPropagation(); return false;
                 }
             }, true);
-            try {
-                if (window.history && typeof window.history.replaceState === 'function' && window.location.protocol !== 'file:') {
-                    var cleanPath = window.location.pathname.replace(/\/?(indexdm|index1|index2|index)\.html.*$/i, '/');
-                    if (cleanPath.charAt(0) !== '/') cleanPath = '/' + cleanPath;
-                    window.history.replaceState(null, document.title, cleanPath);
-                }
-            } catch (err) {}
         })();
     </script>
     <!-- [모바일 속도 최적화: 외부 리소스 사전 연결 & DNS 프리페치] -->
@@ -455,12 +448,12 @@
                 <div class="w-full space-y-3">
                     <div class="flex items-center w-full gap-1">
                         <label for="gate-input-code" class="w-[38px] text-left text-[19px] font-extrabold text-[#94A3B8] tracking-tight shrink-0 whitespace-nowrap select-none">코드</label>
-                        <input type="password" id="gate-input-code" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="" onfocus="window.centerGateInputOnFocus(this)" onclick="window.centerGateInputOnFocus(this)" oninput="window.handleGateCodeInput(this)" onkeydown="if(event.key==='Enter'){event.preventDefault(); window.submitMokjangGateLogin();}" class="flex-1 min-w-0 h-[44px] px-3.5 rounded-[12px] border-[1.5px] border-[#CBD5E1] bg-white text-slate-900 font-mono font-black tracking-[0.25em] text-[16px] focus:outline-none focus:border-[#163172] focus:ring-2 focus:ring-[#163172]/10 transition-all">
+                        <input type="password" id="gate-input-code" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="" onfocus="window.centerGateInputOnFocus(this)" onblur="window.restoreGateCardPosition()" onclick="window.centerGateInputOnFocus(this)" oninput="window.handleGateCodeInput(this)" onkeydown="if(event.key==='Enter'){event.preventDefault(); window.submitMokjangGateLogin();}" class="flex-1 min-w-0 h-[44px] px-3.5 rounded-[12px] border-[1.5px] border-[#CBD5E1] bg-white text-slate-900 font-mono font-black tracking-[0.25em] text-[16px] focus:outline-none focus:border-[#163172] focus:ring-2 focus:ring-[#163172]/10 transition-all">
                     </div>
                     <div class="flex items-center w-full gap-1">
                         <label for="gate-input-name" class="w-[38px] text-left text-[19px] font-extrabold text-[#94A3B8] tracking-tight shrink-0 whitespace-nowrap select-none">이름</label>
                         <div class="relative flex-1 min-w-0">
-                            <input type="text" id="gate-input-name" maxlength="10" placeholder="" onfocus="window.centerGateInputOnFocus(this)" onclick="window.centerGateInputOnFocus(this)" onkeydown="if(event.key==='Enter'){event.preventDefault(); window.submitMokjangGateLogin();}" class="w-full h-[44px] pl-3.5 pr-[52px] rounded-[12px] border-[1.5px] border-[#CBD5E1] bg-white text-slate-900 font-bold text-[16px] focus:outline-none focus:border-[#163172] focus:ring-2 focus:ring-[#163172]/10 transition-all">
+                            <input type="text" id="gate-input-name" maxlength="10" placeholder="" onfocus="window.centerGateInputOnFocus(this)" onblur="window.restoreGateCardPosition()" onclick="window.centerGateInputOnFocus(this)" onkeydown="if(event.key==='Enter'){event.preventDefault(); window.submitMokjangGateLogin();}" class="w-full h-[44px] pl-3.5 pr-[52px] rounded-[12px] border-[1.5px] border-[#CBD5E1] bg-white text-slate-900 font-bold text-[16px] focus:outline-none focus:border-[#163172] focus:ring-2 focus:ring-[#163172]/10 transition-all">
                             <label for="gate-remember-name-chk" onclick="event.stopPropagation();" class="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer flex flex-col items-center justify-center leading-none select-none">
                                 <input type="checkbox" id="gate-remember-name-chk" onchange="window.handleRememberNameToggle(this)" style="width: 24px; height: 16px;" class="accent-[#163172] cursor-pointer rounded">
                                 <span class="text-[9.5px] font-extrabold text-[#94A3B8] mt-0.5 tracking-tighter whitespace-nowrap">기억하기</span>
@@ -482,9 +475,42 @@ window.currentUserJoinedAt = Number(localStorage.getItem('mokjang_user_joined_at
 
 window.centerGateInputOnFocus = function(el) {
     if (!el) return;
+    var gate = document.getElementById('mokjang-login-gate');
+    var card = document.getElementById('mokjang-login-card');
+    if (gate) {
+        gate.style.justifyContent = 'flex-start';
+        gate.style.paddingTop = 'max(env(safe-area-inset-top, 12px), 22px)';
+        gate.style.paddingBottom = '260px';
+    }
+    if (card) {
+        card.style.marginTop = '0px';
+        card.style.marginBottom = 'auto';
+    }
     setTimeout(function() {
-        try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
-    }, 120);
+        try {
+            if (gate) gate.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo(0, 0);
+        } catch (e) {}
+    }, 60);
+};
+window.restoreGateCardPosition = function() {
+    setTimeout(function() {
+        var active = document.activeElement;
+        if (active && (active.id === 'gate-input-code' || active.id === 'gate-input-name')) return;
+        var gate = document.getElementById('mokjang-login-gate');
+        var card = document.getElementById('mokjang-login-card');
+        if (gate) {
+            gate.style.justifyContent = '';
+            gate.style.paddingTop = '';
+            gate.style.paddingBottom = '';
+            gate.scrollTop = 0;
+        }
+        if (card) {
+            card.style.marginTop = '';
+            card.style.marginBottom = '';
+        }
+        window.scrollTo(0, 0);
+    }, 160);
 };
 
 window.syncAdminGearVisibility = function(role, userName) {
@@ -677,7 +703,7 @@ window.submitMokjangGateLogin = function() {
     window.syncAdminGearVisibility(userRole, name);
     if (typeof window.syncLoginSessionToFeed === 'function') window.syncLoginSessionToFeed(name, userRole, isAdminBool, mokjangShort, finalCode, userJoinedAt);
     var gate = document.getElementById('mokjang-login-gate');
-    if (gate) { gate.classList.remove('opacity-0', 'pointer-events-none'); gate.style.display = 'none'; }
+    if (gate) { gate.classList.remove('opacity-0', 'pointer-events-none'); gate.style.display = 'none'; } document.body.style.filter = 'none'; document.body.style.webkitBackdropFilter = 'none';
 };
 
 window.goToLeaderAdminPage = function(event) {
@@ -713,7 +739,7 @@ window.goToLeaderAdminPage = function(event) {
                 <!-- 중앙 메인 타이틀 ('회' 자가 화면 중앙에 오도록 왼쪽으로 이동 정렬) -->
         <div class="absolute left-1/2 top-1/2 -translate-y-1/2 flex items-center pointer-events-auto max-w-[85vw]" id="header-mokjang-title-wrapper" style="left: calc(50% - 46px); transform: translateY(-50%);">
             <div class="relative flex items-center space-x-2" id="header-mokjang-title-container">
-                <img src="tlogo.png" alt="세종꿈의교회 로고" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='flogo.png';}else{this.style.display='none';}" class="w-[34px] h-[34px] rounded-xl border border-slate-200 bg-slate-50/80 p-0.5 object-contain shrink-0 select-none shadow-2xs" id="header-church-logo">
+                <img src="tlogo.png" alt="세종꿈의교회 로고" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='flogo.png';}else{this.style.display='none';}" class="w-[34px] h-[34px] object-contain shrink-0 select-none" id="header-church-logo">
                 <div class="flex flex-col items-start text-left min-w-0">
                     <h1 class="header-main-title-text font-black tracking-tight leading-tight whitespace-nowrap select-none relative" id="header-mokjang-title">
                         <span id="title-church-prefix"><span id="title-char-se">세</span>종꿈의교<span id="title-char-hoe">회</span></span>
@@ -1036,7 +1062,7 @@ window.goToLeaderAdminPage = function(event) {
                 
                 <div class="space-y-1">
                     <div class="flex justify-end items-center text-[11px] leading-none pt-0.5">
-                        <span id="image-count-indicator" class="text-gray-400 font-medium">0 / 5장</span>
+                        <span id="image-count-indicator" class="text-gray-400 font-medium">0 / 4장</span>
                     </div>
 
                     <input type="file" id="post-multi-file-input" accept="image/*" multiple class="hidden" onchange="handleFilesSelect(event)">
@@ -3723,7 +3749,7 @@ function syncHeaderMokjangTitleDOM() {
                         const canvas = document.createElement('canvas');
                         let width = img.width;
                         let height = img.height;
-                        const maxDim = 760;
+                        const maxDim = 660;
 
                         if (width > height) {
                             if (width > maxDim) {
@@ -3742,7 +3768,7 @@ function syncHeaderMokjangTitleDOM() {
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        const compressed = canvas.toDataURL('image/jpeg', 0.68);
+                        const compressed = canvas.toDataURL('image/jpeg', 0.55);
                         callback(compressed);
                     } catch (err) {
                         callback(e.target.result);
@@ -3767,8 +3793,8 @@ function syncHeaderMokjangTitleDOM() {
         }
 
         window.triggerFilePicker = function() {
-            if (selectedImagesList.length >= 5) {
-                showNotification('사진은 최대 5장까지 선택 가능합니다.');
+            if (selectedImagesList.length >= 4) {
+                showNotification('사진은 최대 4장까지 선택 가능합니다.');
                 return;
             }
             document.getElementById('post-multi-file-input').click();
@@ -3778,9 +3804,9 @@ function syncHeaderMokjangTitleDOM() {
             const files = event.target.files;
             if (!files || files.length === 0) return;
 
-            const remaining = 5 - selectedImagesList.length;
+            const remaining = 4 - selectedImagesList.length;
             if (remaining <= 0) {
-                showNotification('사진은 최대 5장까지만 등록할 수 있습니다.');
+                showNotification('사진은 최대 4장까지만 등록할 수 있습니다.');
                 return;
             }
 
@@ -3828,7 +3854,7 @@ function syncHeaderMokjangTitleDOM() {
             const grid = document.getElementById('selected-images-grid');
             const ind = document.getElementById('image-count-indicator');
             grid.innerHTML = "";
-            ind.innerText = `${selectedImagesList.length} / 5장`;
+            ind.innerText = `${selectedImagesList.length} / 4장`;
 
             selectedImagesList.forEach((src, idx) => {
                 const thumb = document.createElement('div');
@@ -3840,7 +3866,7 @@ function syncHeaderMokjangTitleDOM() {
                 grid.appendChild(thumb);
             });
 
-            if (selectedImagesList.length < 5) {
+            if (selectedImagesList.length < 4) {
                 const addBtn = document.createElement('button');
                 addBtn.type = "button";
                 addBtn.onclick = triggerFilePicker;
@@ -4105,14 +4131,15 @@ function syncHeaderMokjangTitleDOM() {
             closeHeaderSearch();
             document.getElementById('editing-post-id').value = postId || "";
 
+            const authorWithTitle = typeof getAuthorTitleName === 'function' ? getAuthorTitleName(currentUser) : currentUser;
             const authorBadge = document.getElementById('write-modal-author-badge');
             if (authorBadge) {
-                authorBadge.textContent = `작성: ${currentUser}`;
+                authorBadge.textContent = `작성: ${authorWithTitle}`;
             }
 
             const contentEl = document.getElementById('post-content');
             if (contentEl) {
-                contentEl.setAttribute('data-placeholder', `${currentUser}님, 목장 가족들과 나눌 따뜻한 이야기를 입력하세요...`);
+                contentEl.setAttribute('data-placeholder', `${authorWithTitle}님, 목장 가족들과 나눌 따뜻한 이야기를 입력하세요...`);
                 contentEl.innerHTML = cleanPostHtmlContent(existingContent || "");
                 const plain = (contentEl.innerText || '').replace(/\u200B/g, '').trim();
                 if (!plain) {
