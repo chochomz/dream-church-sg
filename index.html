@@ -431,6 +431,22 @@
             font-weight: 900 !important;
             box-shadow: 0 0 10px rgba(245, 158, 11, 0.45) !important;
         }
+
+        /* [로고 및 아이콘 길게 누르기(Long-press) 이미지 저장·미리보기·소스보기 원천 차단] */
+        #mokjang-login-gate img,
+        #gate-homescreen-guide-modal img,
+        #header-church-logo {
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            -webkit-user-drag: none !important;
+            pointer-events: none !important;
+        }
+        #mokjang-login-gate button {
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+        }
     </style>
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
@@ -464,15 +480,13 @@
                     </div>
                 </div>
                 <p id="gate-login-msg" class="text-[12px] font-bold text-rose-600 min-h-[20px] mt-2.5 mb-1.5 text-center leading-tight"></p>
-                <div class="relative w-full">
-                    <button type="button" id="gate-submit-btn" onclick="window.submitMokjangGateLogin()" class="w-full h-[46px] pl-[40px] pr-3 bg-[#163172] hover:bg-[#102558] active:scale-[0.99] text-white rounded-[12px] shadow-[0_4px_12px_rgba(22,49,114,0.2)] transition-all flex items-center justify-center select-none">
-                        <span class="flex items-baseline justify-center whitespace-nowrap">
-                            <span class="text-[12.0px] font-semibold text-white/95 mr-1.5 tracking-tight">홈화면에 추가후</span>
-                            <span class="text-[15.5px] font-extrabold text-white tracking-tight">들어가기</span>
-                        </span>
+                <div class="relative w-full select-none" oncontextmenu="return false;">
+                    <button type="button" id="gate-submit-btn" onclick="window.submitMokjangGateLogin()" oncontextmenu="return false;" class="w-full h-[46px] pl-[40px] pr-4 bg-[#163172] hover:bg-[#102558] active:scale-[0.99] text-white rounded-[12px] shadow-[0_4px_12px_rgba(22,49,114,0.2)] transition-all flex items-center justify-between select-none">
+                        <span onclick="window.openHomeScreenGuideModal(event)" class="text-[11.5px] font-semibold text-white/95 tracking-tight whitespace-nowrap cursor-pointer">홈화면에 추가후</span>
+                        <span class="text-[15.5px] font-extrabold text-white tracking-tight whitespace-nowrap mx-auto pr-2">들어가기</span>
                     </button>
-                    <button type="button" onclick="window.openHomeScreenGuideModal(event)" title="모바일 홈 화면 추가 방법 보기" class="absolute left-2 top-1/2 -translate-y-1/2 w-[28px] h-[28px] rounded-[7px] overflow-hidden active:scale-90 transition-transform flex items-center justify-center cursor-pointer z-10">
-                        <img src="hdclogo.png" alt="홈화면 추가 아이콘" onerror="this.src='tlogo.png'" class="w-full h-full object-contain select-none drop-shadow-xs">
+                    <button type="button" onclick="window.openHomeScreenGuideModal(event)" oncontextmenu="return false;" title="모바일 홈 화면 추가 방법 보기" class="absolute left-2 top-1/2 -translate-y-1/2 w-[28px] h-[28px] rounded-[7px] overflow-hidden active:scale-90 transition-transform flex items-center justify-center cursor-pointer z-10 select-none">
+                        <img src="hdclogo.png" alt="" draggable="false" onerror="this.src='tlogo.png'" class="w-full h-full object-contain select-none pointer-events-none drop-shadow-xs">
                     </button>
                 </div>
             </div>
@@ -6242,7 +6256,8 @@ function syncHeaderMokjangTitleDOM() {
             const titleEl = document.getElementById('export-modal-title');
             const previewContainer = document.getElementById('export-preview-content');
 
-            const useLandscape = (type === 'pdf') && shouldPostUseLandscapePdf(post);
+            const useLandscape = (type === 'pdf' || type === 'image') && shouldPostUseLandscapePdf(post);
+            const useCleanExportCard = (type === 'pdf' || type === 'image');
 
             if (type === 'image') {
                 titleEl.innerHTML = `<i class="fa-regular fa-image church-primary-text mr-1.5"></i>이미지 저장 미리보기`;
@@ -6264,8 +6279,8 @@ function syncHeaderMokjangTitleDOM() {
 
             let targetEl = cardEl;
             let tempWrapper = null;
-            if (useLandscape) {
-                tempWrapper = createLandscapeCardElement(post);
+            if (useCleanExportCard) {
+                tempWrapper = createLandscapeCardElement(post, useLandscape ? 'landscape' : 'portrait');
                 targetEl = tempWrapper;
             }
 
@@ -6278,7 +6293,7 @@ function syncHeaderMokjangTitleDOM() {
                     useCORS: true,
                     backgroundColor: '#ffffff',
                     onclone: (clonedDoc) => {
-                        if (!useLandscape) {
+                        if (!useCleanExportCard) {
                             fixClonedCardLayout(clonedDoc, postId);
                         }
                     }
@@ -6318,21 +6333,20 @@ function syncHeaderMokjangTitleDOM() {
 
         async function executeExportImage(postId) {
             await ensureExportLibraries();
-            const cardEl = document.getElementById(`post-card-${postId}`);
-            if (!cardEl) return;
+            const post = cachedPosts.find(p => p.id === postId);
+            if (!post) return;
             showNotification("게시글 이미지를 생성 중입니다...");
 
-            const noExportEls = cardEl.querySelectorAll('.no-export');
+            const useLandscape = shouldPostUseLandscapePdf(post);
+            const tempWrapper = createLandscapeCardElement(post, useLandscape ? 'landscape' : 'portrait');
+            const noExportEls = tempWrapper.querySelectorAll('.no-export');
             noExportEls.forEach(el => el.style.display = 'none');
 
             try {
-                const canvas = await html2canvas(cardEl, {
+                const canvas = await html2canvas(tempWrapper, {
                     scale: 2,
                     useCORS: true,
-                    backgroundColor: '#ffffff',
-                    onclone: (clonedDoc) => {
-                        fixClonedCardLayout(clonedDoc, postId);
-                    }
+                    backgroundColor: '#ffffff'
                 });
 
                 const fileName = `목장이야기_${postId.substring(0, 6)}_${formatFileDate(new Date())}.png`;
@@ -6360,13 +6374,13 @@ function syncHeaderMokjangTitleDOM() {
                     }
 
                     downloadBlobFallback(blob, fileName);
-                    showNotification("게시글 이미지가 저장되었습니다!");
+                    showNotification("게시글 이미지가 왜곡 없이 저장되었습니다!");
                 }, 'image/png');
 
             } catch (e) {
                 showNotification("이미지 저장 중 오류가 발생했습니다.");
             } finally {
-                noExportEls.forEach(el => el.style.display = '');
+                if (tempWrapper) tempWrapper.remove();
             }
         }
 
