@@ -1652,7 +1652,7 @@ window.goToLeaderAdminPage = function(event) {
         </div>
     </div>
 
-        <!-- [1. 목자 전용 심플 공지·알림 관리 모달 (창 고정·슬림 달력·점선 테마·따뜻한 타이틀)] -->
+        <!-- [1. 목자 전용 심플 공지·알림 관리 모달] -->
     <div id="mokjang-notice-admin-modal" onclick="window.closeNoticeAdminModal(event)" class="fixed inset-0 z-[95] bg-black/50 flex items-center justify-center p-2.5 hidden select-none" style="touch-action: none;">
         <div onclick="event.stopPropagation()" class="bg-white rounded-2xl w-full max-w-[340px] shadow-2xl border border-[#E6D5B8] flex flex-col overflow-hidden">
             <div class="px-3.5 py-2 bg-[#F6EBD8] text-[#5A3E28] border-b border-[#E6D5B8] flex items-center justify-between shrink-0">
@@ -1662,7 +1662,6 @@ window.goToLeaderAdminPage = function(event) {
                 </button>
             </div>
             <div class="p-2.5 space-y-2 bg-white overflow-hidden shrink-0">
-                <!-- 슬림 고정형 달력 (불필요한 외곽 테두리·라운드·여백 제거) -->
                 <div class="space-y-1">
                     <div class="flex items-center justify-between pb-1 border-b border-gray-100">
                         <button type="button" onclick="window.changeSimpleNoticeMonth(-1, event)" class="w-6 h-6 rounded hover:bg-gray-100 text-gray-700 flex items-center justify-center text-[11px] font-black active:scale-90">
@@ -1687,7 +1686,6 @@ window.goToLeaderAdminPage = function(event) {
                     </div>
                     <div id="simple-notice-cal-grid" class="grid grid-cols-7 gap-0.5 text-center pt-0.5"></div>
                 </div>
-                <!-- 하단 일정/공지 입력 및 목록 영역 (기존 댓글창 점선 테마 통일, 불필요한 외곽선 제거) -->
                 <div id="simple-notice-editor-box" class="pt-1.5 border-t border-gray-100 space-y-1.5 text-left">
                     <div class="flex items-center justify-between whitespace-nowrap px-0.5">
                         <span id="simple-notice-selected-date-text" class="text-[11.5px] font-extrabold text-emerald-900">날짜를 선택하세요</span>
@@ -1777,17 +1775,17 @@ window.goToLeaderAdminPage = function(event) {
             return rawName + " " + (isLeader ? "목자" : (isSubLeader ? "부목자" : "목원"));
         }
 
-                window.openKakaoShareModal = function(authorName, postNumber, postContent = '', postFirstImage = '') {
+                window.openKakaoShareModal = function(authorName, postNumber, postContent = "", postFirstImage = "") {
             const displayName = getAuthorTitleName(authorName);
             const countNum = postNumber || (cachedPosts ? cachedPosts.length : 1);
             const countText = countNum + "번째";
             const mokjangLabel = (currentMokjangShort && currentMokjangShort.trim())
                 ? currentMokjangShort.trim()
-                : (localStorage.getItem('mokjang_short_name') || '꿈의목장');
+                : (localStorage.getItem("mokjang_short_name") || "꿈의목장");
             pendingKakaoShareText = displayName + "님이 " + mokjangLabel + " 나눔 앱에 " + countText + " 글을 올렸습니다.";
             pendingKakaoShareData = { author: displayName, mokjangLabel: mokjangLabel, countText: countText };
             const previewEl = document.getElementById("kakao-share-preview-text");
-            if (previewEl) previewEl.innerHTML = `<div class="py-0.5 text-center"><p class="font-bold text-gray-800 text-xs">${escapeHtml(pendingKakaoShareText)}</p></div>`;
+            if (previewEl) previewEl.innerHTML = '<div class="py-0.5 text-center"><p class="font-bold text-gray-800 text-xs">' + escapeHtml(pendingKakaoShareText) + '</p></div>';
             const modal = document.getElementById("kakao-share-modal");
             if (modal) modal.classList.remove("hidden");
         };
@@ -1803,7 +1801,7 @@ window.goToLeaderAdminPage = function(event) {
             const displayName = getAuthorTitleName(currentUser);
             const mokjangLabel = (currentMokjangShort && currentMokjangShort.trim())
                 ? currentMokjangShort.trim()
-                : (localStorage.getItem('mokjang_short_name') || '꿈의목장');
+                : (localStorage.getItem("mokjang_short_name") || "꿈의목장");
             const textToShare = pendingKakaoShareText || (displayName + "님이 " + mokjangLabel + " 나눔 앱에 글을 올렸습니다.");
             closeKakaoShareModal();
             try {
@@ -1813,31 +1811,6 @@ window.goToLeaderAdminPage = function(event) {
                 try { await navigator.share({ text: textToShare }); return; } catch (err) { if (err.name === "AbortError") return; }
             }
             showNotification("공유 문구가 복사되었습니다! 카톡방에 붙여넣기 하세요.");
-        };
-            closeKakaoShareModal();
-            try {
-                if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(textToShare);
-            } catch (e) {}
-            const appUrl = window.location.origin + window.location.pathname;
-            const logoUrl = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/tlogo.png');
-            if (window.Kakao && window.Kakao.isInitialized && window.Kakao.isInitialized()) {
-                try {
-                    window.Kakao.Share.sendDefault({
-                        objectType: 'feed',
-                        content: {
-                            title: currentMokjang || '우리들의 목장 이야기',
-                            description: (data.author || displayName) + '님이 🌿우리 목장 나눔방에 (' + (data.countText || '새') + ') 글을 올렸습니다.',
-                            imageUrl: logoUrl, imageWidth: 200, imageHeight: 200,
-                            link: { mobileWebUrl: appUrl, webUrl: appUrl }
-                        }
-                    });
-                    return;
-                } catch (err) {}
-            }
-            if (navigator.share) {
-                try { await navigator.share({ title: currentMokjang || '우리들의 목장 이야기', text: textToShare }); return; } catch (err) { if (err.name === "AbortError") return; }
-            }
-            showNotification("공유 문구가 복사되었습니다! 카톡 단톡방에 붙여넣기 하세요.");
         };
 
         const LONG_FONT_SIZES = [14, 16, 18, 20, 22];
@@ -8262,34 +8235,34 @@ function syncHeaderMokjangTitleDOM() {
         }
 
         function escapeHtml(str) {
-            if (!str) return '';
+            if (!str) return "";
             return String(str).replace(/[&<>'"]/g, function(match) {
-                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match];
+                return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[match];
             });
         }
-    
-    
-    
-    
-    
+
 // [NOTICE_SCHEDULE_V8_START]
 let simpleNoticeYear = new Date().getFullYear();
 let simpleNoticeMonth = new Date().getMonth();
-let simpleSelectedDateKey = '';
+let simpleSelectedDateKey = "";
 
-function pad2Num(n) { return String(n).padStart(2, '0'); }
+function pad2Num(n) { return String(n).padStart(2, "0"); }
 
 function getFormattedMokjangSpaceTitle(suffix) {
     const raw = (currentMokjangShort && currentMokjangShort.trim())
         ? currentMokjangShort.trim()
-        : (localStorage.getItem('mokjang_short_name') || '꿈의 목장');
-    const spaced = raw.replace(/^(\d+)\s*목장$/, '$1 목장');
-    return spaced + ' ' + suffix;
+        : (localStorage.getItem("mokjang_short_name") || "23목장");
+    let spaced = raw;
+    if (raw.endsWith("목장") && !raw.endsWith(" 목장")) {
+        const prefix = raw.slice(0, -2).trim();
+        if (prefix) spaced = prefix + " 목장";
+    }
+    return spaced + " " + suffix;
 }
 
 function getActiveMokjangCfg() {
-    const code = String(window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '1111').trim();
-    const cfg = (typeof window.getMergedMokjangConfigByCode === 'function')
+    const code = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim();
+    const cfg = (typeof window.getMergedMokjangConfigByCode === "function")
         ? window.getMergedMokjangConfigByCode(code)
         : (window.liveMokjangConfig || {});
     return cfg || {};
@@ -8297,16 +8270,16 @@ function getActiveMokjangCfg() {
 
 function getSimpleSchedulesMap() {
     const cfg = getActiveMokjangCfg();
-    const raw = (cfg && cfg.mokjangSchedules && typeof cfg.mokjangSchedules === 'object') ? cfg.mokjangSchedules : {};
+    const raw = (cfg && cfg.mokjangSchedules && typeof cfg.mokjangSchedules === "object") ? cfg.mokjangSchedules : {};
     const normalized = {};
     Object.keys(raw).forEach(function(k) {
         const arr = raw[k];
         if (Array.isArray(arr) && arr.length > 0) {
             normalized[k] = arr.map(function(item) {
-                if (typeof item === 'object' && item !== null) {
-                    return { text: String(item.text || '').trim(), showOnLogin: item.showOnLogin !== false };
+                if (typeof item === "object" && item !== null) {
+                    return { text: String(item.text || "").trim(), showOnLogin: item.showOnLogin !== false };
                 }
-                return { text: String(item || '').trim(), showOnLogin: true };
+                return { text: String(item || "").trim(), showOnLogin: true };
             }).filter(function(o) { return o.text.length > 0; });
         }
     });
@@ -8321,33 +8294,33 @@ window.getMokjangSchedulesByDate = function(dateKey) {
 
 window.openNoticeAdminModal = function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
-    if (typeof closeAllHeaderQuickMenu === 'function') closeAllHeaderQuickMenu();
-    const role = localStorage.getItem('mokjang_user_role') || currentUserRole || 'member';
-    const uName = localStorage.getItem('mokjang_user_name') || currentUser || '';
-    const isLeader = (role === 'leader' || uName === '목자' || uName === '관리자' || isCurrentUserAdmin);
+    if (typeof closeAllHeaderQuickMenu === "function") closeAllHeaderQuickMenu();
+    const role = localStorage.getItem("mokjang_user_role") || currentUserRole || "member";
+    const uName = localStorage.getItem("mokjang_user_name") || currentUser || "";
+    const isLeader = (role === "leader" || uName === "목자" || uName === "관리자" || isCurrentUserAdmin);
     if (!isLeader) {
-        showNotification('공지·알림 관리는 목자(관리자)만 이용할 수 있습니다.');
+        showNotification("공지·알림 관리는 목자(관리자)만 이용할 수 있습니다.");
         return;
     }
-    const modal = document.getElementById('mokjang-notice-admin-modal');
+    const modal = document.getElementById("mokjang-notice-admin-modal");
     if (!modal) return;
-    const titleEl = document.getElementById('notice-admin-modal-title');
+    const titleEl = document.getElementById("notice-admin-modal-title");
     if (titleEl) {
-        const mShort = (currentMokjangShort && currentMokjangShort.trim()) || localStorage.getItem('mokjang_short_name') || '23목장';
-        titleEl.textContent = mShort + ' 공지·알림 관리';
+        const mShort = (currentMokjangShort && currentMokjangShort.trim()) || localStorage.getItem("mokjang_short_name") || "23목장";
+        titleEl.textContent = mShort + " 공지·알림 관리";
     }
     const now = new Date();
     simpleNoticeYear = now.getFullYear();
     simpleNoticeMonth = now.getMonth();
-    const todayKey = simpleNoticeYear + '-' + pad2Num(simpleNoticeMonth + 1) + '-' + pad2Num(now.getDate());
+    const todayKey = simpleNoticeYear + "-" + pad2Num(simpleNoticeMonth + 1) + "-" + pad2Num(now.getDate());
     window.selectSimpleNoticeDate(todayKey);
-    modal.classList.remove('hidden');
+    modal.classList.remove("hidden");
 };
 
 window.closeNoticeAdminModal = function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
-    const modal = document.getElementById('mokjang-notice-admin-modal');
-    if (modal) modal.classList.add('hidden');
+    const modal = document.getElementById("mokjang-notice-admin-modal");
+    if (modal) modal.classList.add("hidden");
 };
 
 window.changeSimpleNoticeMonth = function(delta, event) {
@@ -8363,7 +8336,7 @@ window.goSimpleNoticeToday = function(event) {
     const now = new Date();
     simpleNoticeYear = now.getFullYear();
     simpleNoticeMonth = now.getMonth();
-    const todayKey = simpleNoticeYear + '-' + pad2Num(simpleNoticeMonth + 1) + '-' + pad2Num(now.getDate());
+    const todayKey = simpleNoticeYear + "-" + pad2Num(simpleNoticeMonth + 1) + "-" + pad2Num(now.getDate());
     window.selectSimpleNoticeDate(todayKey, event);
 };
 
@@ -8371,20 +8344,20 @@ window.selectSimpleNoticeDate = function(dateKey, event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     simpleSelectedDateKey = dateKey;
     renderSimpleNoticeCalendar();
-    const editorBox = document.getElementById('simple-notice-editor-box');
-    const dateLabel = document.getElementById('simple-notice-selected-date-text');
-    const inputEl = document.getElementById('simple-notice-input');
-    if (editorBox) editorBox.classList.remove('hidden');
-    const parts = dateKey.split('-');
+    const editorBox = document.getElementById("simple-notice-editor-box");
+    const dateLabel = document.getElementById("simple-notice-selected-date-text");
+    const inputEl = document.getElementById("simple-notice-input");
+    if (editorBox) editorBox.classList.remove("hidden");
+    const parts = dateKey.split("-");
     if (dateLabel && parts.length === 3) {
         const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-        dateLabel.textContent = parseInt(parts[1], 10) + '월 ' + parseInt(parts[2], 10) + '일(' + dayNames[dObj.getDay()] + ')';
+        const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+        dateLabel.textContent = parseInt(parts[1], 10) + "월 " + parseInt(parts[2], 10) + "일(" + dayNames[dObj.getDay()] + ")";
     }
     const map = getSimpleSchedulesMap();
     const items = map[dateKey] || [];
     if (inputEl) {
-        inputEl.value = items.length === 1 ? items[0].text : '';
+        inputEl.value = items.length === 1 ? items[0].text : "";
     }
     renderSelectedDayNoticeItems();
 };
@@ -8394,108 +8367,108 @@ window.fillNoticeInputFromItem = function(idx, event) {
     const map = getSimpleSchedulesMap();
     const items = map[simpleSelectedDateKey] || [];
     if (!items[idx]) return;
-    const inputEl = document.getElementById('simple-notice-input');
-    const chkEl = document.getElementById('simple-notice-popup-chk');
-    if (inputEl) inputEl.value = items[idx].text || '';
+    const inputEl = document.getElementById("simple-notice-input");
+    const chkEl = document.getElementById("simple-notice-popup-chk");
+    if (inputEl) inputEl.value = items[idx].text || "";
     if (chkEl) chkEl.checked = items[idx].showOnLogin !== false;
 };
 
 function renderSelectedDayNoticeItems() {
-    const listContainer = document.getElementById('simple-notice-day-items');
+    const listContainer = document.getElementById("simple-notice-day-items");
     if (!listContainer || !simpleSelectedDateKey) return;
     const map = getSimpleSchedulesMap();
     const items = map[simpleSelectedDateKey] || [];
     if (items.length === 0) {
-        listContainer.innerHTML = '';
-        listContainer.classList.add('hidden');
+        listContainer.innerHTML = "";
+        listContainer.classList.add("hidden");
         return;
     }
-    listContainer.classList.remove('hidden');
+    listContainer.classList.remove("hidden");
     listContainer.innerHTML = items.map(function(item, idx) {
         const dotBadge = item.showOnLogin
             ? '<span class="text-[9.5px] font-extrabold text-amber-700 shrink-0">[알림]</span>'
             : '<span class="text-[9.5px] font-bold text-gray-400 shrink-0">[일정]</span>';
-        return '<div onclick="window.fillNoticeInputFromItem(' + idx + ', event)" class="py-1 px-1.5 border-b border-gray-100 last:border-b-0 text-[11.5px] flex items-start justify-between space-x-1 text-left cursor-pointer hover:bg-emerald-50/40">' +
+        return '<div data-idx="' + idx + '" onclick="window.fillNoticeInputFromItem(Number(this.dataset.idx), event)" class="py-1 px-1.5 border-b border-gray-100 last:border-b-0 text-[11.5px] flex items-start justify-between space-x-1 text-left cursor-pointer hover:bg-emerald-50/40">' +
                '<div class="flex-1 flex items-baseline space-x-1 min-w-0 pr-1">' + dotBadge +
                '<span class="text-gray-800 font-semibold leading-snug break-words">' + escapeHtml(item.text) + '</span></div>' +
-               '<button type="button" onclick="window.deleteSingleDayNotice('' + simpleSelectedDateKey + '', ' + idx + ', event)" class="text-gray-400 hover:text-rose-600 px-1 text-[10px] shrink-0" title="삭제"><i class="fa-solid fa-xmark"></i></button></div>';
-    }).join('');
+               '<button type="button" data-date="' + simpleSelectedDateKey + '" data-idx="' + idx + '" onclick="window.deleteSingleDayNotice(this.dataset.date, Number(this.dataset.idx), event)" class="text-gray-400 hover:text-rose-600 px-1 text-[10px] shrink-0" title="삭제"><i class="fa-solid fa-xmark"></i></button></div>';
+    }).join("");
 }
 
 function renderSimpleNoticeCalendar() {
-    const titleEl = document.getElementById('simple-notice-cal-title');
-    const gridEl = document.getElementById('simple-notice-cal-grid');
+    const titleEl = document.getElementById("simple-notice-cal-title");
+    const gridEl = document.getElementById("simple-notice-cal-grid");
     if (!titleEl || !gridEl) return;
-    titleEl.textContent = simpleNoticeYear + '년 ' + (simpleNoticeMonth + 1) + '월';
+    titleEl.textContent = simpleNoticeYear + "년 " + (simpleNoticeMonth + 1) + "월";
     const map = getSimpleSchedulesMap();
     const firstDay = new Date(simpleNoticeYear, simpleNoticeMonth, 1).getDay();
     const daysInMonth = new Date(simpleNoticeYear, simpleNoticeMonth + 1, 0).getDate();
     const today = new Date();
     const isThisMonth = (today.getFullYear() === simpleNoticeYear && today.getMonth() === simpleNoticeMonth);
     const todayDate = today.getDate();
-    let html = '';
+    let html = "";
     for (let i = 0; i < firstDay; i++) { html += '<div class="h-7"></div>'; }
     for (let d = 1; d <= daysInMonth; d++) {
-        const dateKey = simpleNoticeYear + '-' + pad2Num(simpleNoticeMonth + 1) + '-' + pad2Num(d);
+        const dateKey = simpleNoticeYear + "-" + pad2Num(simpleNoticeMonth + 1) + "-" + pad2Num(d);
         const dow = (firstDay + d - 1) % 7;
         const items = map[dateKey] || [];
         const count = items.length;
         const isToday = isThisMonth && d === todayDate;
         const isSelected = (simpleSelectedDateKey === dateKey);
-        let numClass = 'text-gray-800 font-black';
-        if (dow === 0) numClass = 'text-rose-600 font-black';
-        else if (dow === 6) numClass = 'text-sky-600 font-black';
-        let cellClass = 'hover:bg-gray-100';
-        if (isToday) { cellClass = 'bg-[#3B5D50] text-white rounded'; numClass = 'text-white font-black'; }
-        if (isSelected) { cellClass = 'bg-[#F6EBD8] ring-1 ring-[#C8A97E] rounded'; if (isToday) numClass = 'text-[#5A3E28] font-black'; }
-        const footnoteColor = (isToday && !isSelected) ? 'text-amber-200' : 'text-amber-600';
+        let numClass = "text-gray-800 font-black";
+        if (dow === 0) numClass = "text-rose-600 font-black";
+        else if (dow === 6) numClass = "text-sky-600 font-black";
+        let cellClass = "hover:bg-gray-100";
+        if (isToday) { cellClass = "bg-[#3B5D50] text-white rounded"; numClass = "text-white font-black"; }
+        if (isSelected) { cellClass = "bg-[#F6EBD8] ring-1 ring-[#C8A97E] rounded"; if (isToday) numClass = "text-[#5A3E28] font-black"; }
+        const footnoteColor = (isToday && !isSelected) ? "text-amber-200" : "text-amber-600";
         const footnoteHtml = count > 0
             ? '<span class="absolute top-[1px] right-[2px] text-[8.5px] font-mono font-black leading-none ' + footnoteColor + '">' + count + '</span>'
-            : '';
-        html += '<button type="button" onclick="window.selectSimpleNoticeDate('' + dateKey + '', event)" class="h-7 flex items-center justify-center relative select-none transition-all active:scale-95 ' + cellClass + '">' +
+            : "";
+        html += '<button type="button" data-date="' + dateKey + '" onclick="window.selectSimpleNoticeDate(this.dataset.date, event)" class="h-7 flex items-center justify-center relative select-none transition-all active:scale-95 ' + cellClass + '">' +
                 '<span class="text-[11.5px] leading-none ' + numClass + '">' + d + '</span>' + footnoteHtml + '</button>';
     }
     gridEl.innerHTML = html;
 }
 
 async function saveSimpleSchedulesToFirestore(nextMap) {
-    const activeCode = String(window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '1111').trim();
+    const activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim();
     const curCfg = getActiveMokjangCfg();
     const partial = { mokjangSchedules: nextMap, updatedAt: Date.now() };
     const mergedCfg = Object.assign({}, curCfg, partial);
     window.liveMokjangConfig = mergedCfg;
     window.allMokjangConfigsMap = window.allMokjangConfigsMap || {};
     window.allMokjangConfigsMap[activeCode] = mergedCfg;
-    if (activeCode === '1111' || !curCfg.mokjangCode || String(curCfg.mokjangCode).trim() === activeCode) {
-        window.allMokjangConfigsMap['main'] = mergedCfg;
+    if (activeCode === "1111" || !curCfg.mokjangCode || String(curCfg.mokjangCode).trim() === activeCode) {
+        window.allMokjangConfigsMap["main"] = mergedCfg;
     }
     try {
-        localStorage.setItem('mokjang_config_backup', JSON.stringify(mergedCfg));
-        localStorage.setItem('mokjang_config_backup_' + activeCode, JSON.stringify(mergedCfg));
+        localStorage.setItem("mokjang_config_backup", JSON.stringify(mergedCfg));
+        localStorage.setItem("mokjang_config_backup_" + activeCode, JSON.stringify(mergedCfg));
     } catch (e) {}
     if (db) {
-        setDbStatus('saving');
+        setDbStatus("saving");
         try {
-            if (activeCode === '1111' || (window.liveMokjangConfig && String(window.liveMokjangConfig.mokjangCode || '1111').trim() === activeCode)) {
-                await setDoc(doc(db, 'mokjang_config', 'main'), partial, { merge: true });
+            if (activeCode === "1111" || (window.liveMokjangConfig && String(window.liveMokjangConfig.mokjangCode || "1111").trim() === activeCode)) {
+                await setDoc(doc(db, "mokjang_config", "main"), partial, { merge: true });
             }
-            await setDoc(doc(db, 'mokjang_configs', activeCode), Object.assign({ mokjangCode: activeCode }, partial), { merge: true });
-            setDbStatus('connected');
-        } catch (err) { setDbStatus('error'); }
+            await setDoc(doc(db, "mokjang_configs", activeCode), Object.assign({ mokjangCode: activeCode }, partial), { merge: true });
+            setDbStatus("connected");
+        } catch (err) { setDbStatus("error"); }
     }
 }
 
 window.saveSimpleDayNotice = async function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
-    if (!simpleSelectedDateKey) { showNotification('먼저 달력에서 날짜를 선택해 주세요.'); return; }
-    const inputEl = document.getElementById('simple-notice-input');
-    const popupChk = document.getElementById('simple-notice-popup-chk');
-    const text = inputEl ? inputEl.value.trim() : '';
+    if (!simpleSelectedDateKey) { showNotification("먼저 달력에서 날짜를 선택해 주세요."); return; }
+    const inputEl = document.getElementById("simple-notice-input");
+    const popupChk = document.getElementById("simple-notice-popup-chk");
+    const text = inputEl ? inputEl.value.trim() : "";
     const map = getSimpleSchedulesMap();
     const existingList = Array.isArray(map[simpleSelectedDateKey]) ? map[simpleSelectedDateKey].slice() : [];
 
     if (!text && existingList.length === 0) {
-        showNotification('공지·알림 내용을 입력해 주세요.');
+        showNotification("공지·알림 내용을 입력해 주세요.");
         if (inputEl) inputEl.focus();
         return;
     }
@@ -8509,30 +8482,30 @@ window.saveSimpleDayNotice = async function(event) {
             existingList.forEach(function(it) { if (it.text === text) it.showOnLogin = showOnLogin; });
         }
         map[simpleSelectedDateKey] = existingList;
-        if (inputEl) inputEl.value = '';
+        if (inputEl) inputEl.value = "";
         await saveSimpleSchedulesToFirestore(map);
         renderSimpleNoticeCalendar();
         renderSelectedDayNoticeItems();
     } else if (existingList.length > 0) {
-        shareBodyText = existingList.map(function(it) { return it.text; }).join(' / ');
+        shareBodyText = existingList.map(function(it) { return it.text; }).join(" / ");
     }
 
-    const parts = simpleSelectedDateKey.split('-');
-    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    const parts = simpleSelectedDateKey.split("-");
+    const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
     let dateLabel = simpleSelectedDateKey;
     if (parts.length === 3) {
         const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-        dateLabel = parseInt(parts[1], 10) + '월 ' + parseInt(parts[2], 10) + '일(' + dayNames[dObj.getDay()] + ')';
+        dateLabel = parseInt(parts[1], 10) + "월 " + parseInt(parts[2], 10) + "일(" + dayNames[dObj.getDay()] + ")";
     }
-    const headerTitle = getFormattedMokjangSpaceTitle('알림 사항');
-    const shareMsg = '[' + headerTitle + '] ' + dateLabel + ' - ' + shareBodyText;
+    const headerTitle = getFormattedMokjangSpaceTitle("알림 사항");
+    const shareMsg = "[" + headerTitle + "] " + dateLabel + " - " + shareBodyText;
     try {
         if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(shareMsg);
     } catch (e) {}
     if (navigator.share) {
-        try { await navigator.share({ text: shareMsg }); return; } catch (err) { if (err.name === 'AbortError') return; }
+        try { await navigator.share({ text: shareMsg }); return; } catch (err) { if (err.name === "AbortError") return; }
     }
-    showNotification('공지 저장 및 카톡 공유 문구가 복사되었습니다!');
+    showNotification("공지 저장 및 카톡 공유 문구가 복사되었습니다!");
 };
 
 window.deleteSingleDayNotice = async function(dateKey, idx, event) {
@@ -8546,33 +8519,33 @@ window.deleteSingleDayNotice = async function(dateKey, idx, event) {
     await saveSimpleSchedulesToFirestore(map);
     renderSimpleNoticeCalendar();
     renderSelectedDayNoticeItems();
-    showNotification('알림 항목이 삭제되었습니다.');
+    showNotification("알림 항목이 삭제되었습니다.");
 };
 
 window.clearSelectedDayNotices = async function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     if (!simpleSelectedDateKey) return;
     const map = getSimpleSchedulesMap();
-    const inputEl = document.getElementById('simple-notice-input');
-    if (inputEl) inputEl.value = '';
+    const inputEl = document.getElementById("simple-notice-input");
+    if (inputEl) inputEl.value = "";
     if (!map[simpleSelectedDateKey]) return;
     delete map[simpleSelectedDateKey];
     await saveSimpleSchedulesToFirestore(map);
     renderSimpleNoticeCalendar();
     renderSelectedDayNoticeItems();
-    showNotification('전체 삭제되었습니다.');
+    showNotification("전체 삭제되었습니다.");
 };
 
 window.checkAndAutoShowNoticeAfterLogin = function() {
     const todayStr = new Date().toISOString().slice(0, 10);
-    const activeCode = String(window.currentMokjangCode || '1111').trim();
-    let dismissedDate = '';
-    try { dismissedDate = localStorage.getItem('mokjang_mini_notice_dismiss_' + activeCode + '_' + currentUser) || ''; } catch (e) {}
+    const activeCode = String(window.currentMokjangCode || "1111").trim();
+    let dismissedDate = "";
+    try { dismissedDate = localStorage.getItem("mokjang_mini_notice_dismiss_" + activeCode + "_" + currentUser) || ""; } catch (e) {}
     if (dismissedDate === todayStr) return;
     const map = getSimpleSchedulesMap();
     const loginEntries = [];
     Object.keys(map).sort().forEach(function(dateKey) {
-        if (dateKey >= todayStr.slice(0, 8) + '01') {
+        if (dateKey >= todayStr.slice(0, 8) + "01") {
             (map[dateKey] || []).forEach(function(item) {
                 if (item && item.showOnLogin && item.text) {
                     loginEntries.push({ dateKey: dateKey, text: item.text });
@@ -8581,83 +8554,83 @@ window.checkAndAutoShowNoticeAfterLogin = function() {
         }
     });
     if (loginEntries.length === 0) return;
-    const popup = document.getElementById('mokjang-login-mini-notice-popup');
-    const titleEl = document.getElementById('login-mini-notice-title');
-    const bodyEl = document.getElementById('login-mini-notice-body');
+    const popup = document.getElementById("mokjang-login-mini-notice-popup");
+    const titleEl = document.getElementById("login-mini-notice-title");
+    const bodyEl = document.getElementById("login-mini-notice-body");
     if (!popup || !bodyEl) return;
     if (titleEl) {
-        titleEl.textContent = getFormattedMokjangSpaceTitle('알림 사항');
+        titleEl.textContent = getFormattedMokjangSpaceTitle("알림 사항");
     }
-    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
     bodyEl.innerHTML = loginEntries.map(function(entry) {
-        const p = entry.dateKey.split('-');
+        const p = entry.dateKey.split("-");
         let dateBadge = entry.dateKey;
         if (p.length === 3) {
             const dObj = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
-            dateBadge = parseInt(p[1], 10) + '/' + parseInt(p[2], 10) + '(' + dayNames[dObj.getDay()] + ')';
+            dateBadge = parseInt(p[1], 10) + "/" + parseInt(p[2], 10) + "(" + dayNames[dObj.getDay()] + ")";
         }
         return '<div class="p-2.5 rounded-lg bg-[#FAF8F5] border border-dashed border-gray-300 space-y-1">' +
                '<div class="flex items-center">' +
                '<span class="px-1.5 py-0.5 rounded bg-[#F6EBD8] text-[#5A3E28] border border-[#E6D5B8] text-[10px] font-black leading-none">' + dateBadge + '</span>' +
                '</div>' +
                '<p class="text-[12.5px] font-bold text-gray-800 leading-snug whitespace-pre-wrap break-words">' + escapeHtml(entry.text) + '</p></div>';
-    }).join('');
-    setTimeout(function() { popup.classList.remove('hidden'); }, 300);
+    }).join("");
+    setTimeout(function() { popup.classList.remove("hidden"); }, 300);
 };
 
 window.closeLoginMiniNoticePopup = function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
-    const popup = document.getElementById('mokjang-login-mini-notice-popup');
-    if (popup) popup.classList.add('hidden');
+    const popup = document.getElementById("mokjang-login-mini-notice-popup");
+    if (popup) popup.classList.add("hidden");
 };
 
 window.dismissMiniNoticeToday = function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     const todayStr = new Date().toISOString().slice(0, 10);
-    const activeCode = String(window.currentMokjangCode || '1111').trim();
-    try { localStorage.setItem('mokjang_mini_notice_dismiss_' + activeCode + '_' + currentUser, todayStr); } catch (e) {}
+    const activeCode = String(window.currentMokjangCode || "1111").trim();
+    try { localStorage.setItem("mokjang_mini_notice_dismiss_" + activeCode + "_" + currentUser, todayStr); } catch (e) {}
     window.closeLoginMiniNoticePopup();
-    showNotification('오늘 하루 알림 사항 창을 띄우지 않습니다.');
+    showNotification("오늘 하루 알림 사항 창을 띄우지 않습니다.");
 };
 // [NOTICE_SCHEDULE_V8_END]
 // [BRIDGE_V24_START]
-var currentMokjangCode = window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '1111';
-var currentUserJoinedAt = Number(window.currentUserJoinedAt || localStorage.getItem('mokjang_user_joined_at') || 0);
+var currentMokjangCode = window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111";
+var currentUserJoinedAt = Number(window.currentUserJoinedAt || localStorage.getItem("mokjang_user_joined_at") || 0);
 window.allMokjangConfigsMap = window.allMokjangConfigsMap || {};
 function applyConfigTitleIfActive(cKey, data) {
     if (!data) return;
-    var activeCode = String(window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '1111').trim();
-    if (cKey === activeCode || (activeCode === '1111' && cKey === 'main')) {
+    var activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim();
+    if (cKey === activeCode || (activeCode === "1111" && cKey === "main")) {
         if (data.mokjangName !== undefined) {
-            var cleanM = String(data.mokjangName || '').trim().replace(/^세종꿈의교회\s*-?\s*/, '');
+            var cleanM = String(data.mokjangName || "").trim().replace(/^세종꿈의교회\s*-?\s*/, "");
             currentMokjangShort = cleanM;
-            currentMokjang = cleanM ? ('세종꿈의교회 ' + cleanM) : '세종꿈의교회';
-            try { localStorage.setItem('mokjang_short_name', cleanM); localStorage.setItem('mokjang_name', currentMokjang); } catch (e) {}
+            currentMokjang = cleanM ? ("세종꿈의교회 " + cleanM) : "세종꿈의교회";
+            try { localStorage.setItem("mokjang_short_name", cleanM); localStorage.setItem("mokjang_name", currentMokjang); } catch (e) {}
             syncHeaderMokjangTitleDOM();
         }
     }
 }
 try {
-    onSnapshot(collection(db, 'mokjang_configs'), function(snap) {
+    onSnapshot(collection(db, "mokjang_configs"), function(snap) {
         snap.forEach(function(d) {
             var data = d.data(); var cKey = String(data.mokjangCode || d.id).trim();
-            var mainData = window.allMokjangConfigsMap['main'] || window.liveMokjangConfig || {};
-            var merged = Object.assign({}, (cKey === String(mainData.mokjangCode || '1111').trim() ? mainData : {}), data);
+            var mainData = window.allMokjangConfigsMap["main"] || window.liveMokjangConfig || {};
+            var merged = Object.assign({}, (cKey === String(mainData.mokjangCode || "1111").trim() ? mainData : {}), data);
             window.allMokjangConfigsMap[cKey] = merged;
-            try { localStorage.setItem('mokjang_config_backup_' + cKey, JSON.stringify(merged)); } catch (e) {}
+            try { localStorage.setItem("mokjang_config_backup_" + cKey, JSON.stringify(merged)); } catch (e) {}
             applyConfigTitleIfActive(cKey, merged);
         });
     });
 } catch (e) {}
 window.syncLoginSessionToFeed = function(name, role, isAdmin, mokjangShort, code, joinedAt) {
     currentUser = name; currentUserRole = role; isCurrentUserAdmin = isAdmin;
-    currentMokjangCode = code || '1111'; window.currentMokjangCode = currentMokjangCode;
+    currentMokjangCode = code || "1111"; window.currentMokjangCode = currentMokjangCode;
     currentUserJoinedAt = Number(joinedAt || 0); window.currentUserJoinedAt = currentUserJoinedAt;
-    var cleanM = String(mokjangShort || '').trim().replace(/^세종꿈의교회\s*-?\s*/, '');
-    currentMokjangShort = cleanM; currentMokjang = cleanM ? ('세종꿈의교회 ' + cleanM) : '세종꿈의교회';
-    if (typeof window.syncAdminGearVisibility === 'function') window.syncAdminGearVisibility(role, name);
+    var cleanM = String(mokjangShort || "").trim().replace(/^세종꿈의교회\s*-?\s*/, "");
+    currentMokjangShort = cleanM; currentMokjang = cleanM ? ("세종꿈의교회 " + cleanM) : "세종꿈의교회";
+    if (typeof window.syncAdminGearVisibility === "function") window.syncAdminGearVisibility(role, name);
     syncHeaderMokjangTitleDOM(); updateWelcomeUserDisplay(lastOnlineCount); loadMokjangFeed(); ensureMokjangFilesLoaded(); if (typeof window.checkAndAutoShowNoticeAfterLogin === "function") window.checkAndAutoShowNoticeAfterLogin();
-    if (typeof showNotification === 'function') showNotification(name + '님 환영합니다!');
+    if (typeof showNotification === "function") showNotification(name + "님 환영합니다!");
 };
 // [BRIDGE_V24_END]
     </script>
