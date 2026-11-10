@@ -124,8 +124,6 @@
                     <span>세종꿈의교회 - </span><span id="admin-header-mokjang" class="text-[#3B5D50]">꿈의목장</span>
                 </h1>
             </div>
-            <span id="admin-header-code" class="hidden">1111</span>
-            <span id="active-mokjang-code-label" class="hidden"></span>
         </div>
         <div class="grid grid-cols-2 gap-1.5">
             <button type="button" onclick="goToInitialLoginScreen()" class="py-2 px-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/90 rounded-xl text-xs font-extrabold active:scale-95 transition-all flex items-center justify-center space-x-1.5 whitespace-nowrap">
@@ -135,7 +133,6 @@
                 <i class="fa-solid fa-book-open text-amber-700 text-[11px]"></i><span>우리목장 백업</span>
             </button>
         </div>
-        <div id="security-locked-placeholder" class="hidden"></div>
         <div id="security-unlocked-data-container" class="space-y-2.5">
             <section class="w-full bg-slate-50/70 rounded-2xl border church-border p-2.5 space-y-2">
                 <div class="flex items-center border-b border-slate-200/70 pb-1.5 whitespace-nowrap">
@@ -448,10 +445,6 @@
             mokjangConfig.updatedAt = Date.now();
             var codeKey = String(mokjangConfig.mokjangCode || activeMokjangCode || "1111").trim();
             mokjangConfig.mokjangCode = codeKey;
-            var gatePassEl = document.getElementById("admin-passcode-gate-input");
-            if (gatePassEl && mokjangConfig.adminPasscode) {
-                gatePassEl.value = mokjangConfig.adminPasscode;
-            }
             try {
                 localStorage.setItem("mokjang_config_backup_" + codeKey, JSON.stringify(mokjangConfig));
                 localStorage.setItem("mokjang_config_backup", JSON.stringify(mokjangConfig));
@@ -530,20 +523,6 @@
             await persistConfigToFirestore();
             renderMembersList();
             showToast(targetName + " 님이 명단에서 제외되었습니다.");
-        };
-
-        window.returnToMokjangFeed = function() {
-            try {
-                sessionStorage.setItem("mokjang_return_feed_pass", JSON.stringify({
-                    token: "ret_" + Date.now(),
-                    userName: mokjangConfig.leaderName || "목자",
-                    mokjangCode: activeMokjangCode,
-                    mokjangShort: mokjangConfig.mokjangName || "",
-                    role: "leader",
-                    issuedAt: Date.now()
-                }));
-            } catch (e) {}
-            window.location.replace("index.html");
         };
 
         window.goToInitialLoginScreen = function() {
@@ -751,7 +730,7 @@
 
             try {
                 await signInAnonymously(auth);
-                await window.triggerDataLookup(true);
+                await window.triggerDataLookup();
 
                 onSnapshot(doc(db, "mokjang_config", "main"), function(snap) {
                     if (snap.exists()) {
