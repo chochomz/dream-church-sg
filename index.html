@@ -476,7 +476,7 @@
             transform: none !important;
         }
     
-        /* [PATCH v10: 사파리 블러 방지 & 우상단->좌하단 대각선 아이폰 모음함 & 저속 스윙 공지판] */
+        /* [PATCH v11: 사파리 블러 방지 & 우상단->좌하단 대각선 아이폰 모음함 & 저속 스윙 공지판] */
         *, *::before, *::after {
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
@@ -512,7 +512,6 @@
             animation: slowNoticeSwing 5.5s ease-in-out infinite !important;
             transform-origin: top center !important;
         }
-    
     </style>
 </head>
 <body class="flex flex-col h-full w-full max-w-full overflow-hidden bg-[#F8F9FA]">
@@ -899,36 +898,28 @@ window.goToLeaderAdminPage = function(event) {
             </div>
         </div>
 
-        <!-- 오른쪽 펜 트리거 & 오른쪽 상부에서 왼쪽 대각선으로 내려오는 아이폰 스타일 모음함 -->
+                <!-- 오른쪽 펜 트리거 & 오른쪽 상부에서 왼쪽 대각선으로 내려오는 아이폰 스타일 모음함 -->
         <div class="shrink-0 relative flex items-center justify-end w-8">
             <div id="header-quick-menu" class="menu-closed absolute top-[40px] right-0 w-[186px] bg-[#F1F5F9] border border-slate-300/90 rounded-[22px] shadow-[0_16px_36px_rgba(15,23,42,0.16),0_2px_8px_rgba(15,23,42,0.06)] p-2.5 z-50 flex flex-col space-y-2 select-none">
-                <!-- 아이폰 화면 스타일 연한 사각 둥근 테두리 모음 (2열 그리드) -->
                 <div class="grid grid-cols-2 gap-2">
-                    <!-- 1. 글쓰기 -->
                     <button type="button" onclick="handleHeaderWriteClick()" class="h-[60px] rounded-[16px] bg-white hover:bg-emerald-50/70 border border-slate-200/90 shadow-2xs flex flex-col items-center justify-center space-y-1 active:scale-95 transition-all">
                         <div class="w-7 h-7 rounded-[10px] bg-emerald-50 text-[#3B5D50] border border-emerald-200/80 flex items-center justify-center">
                             <i class="fa-solid fa-pen-nib text-xs"></i>
                         </div>
                         <span class="text-[11px] font-extrabold text-slate-700 tracking-tight leading-none">글쓰기</span>
                     </button>
-
-                    <!-- 2. 검색 -->
                     <button type="button" id="header-search-btn" onclick="toggleHeaderSearch(event)" class="h-[60px] rounded-[16px] bg-white hover:bg-sky-50/70 border border-slate-200/90 shadow-2xs flex flex-col items-center justify-center space-y-1 active:scale-95 transition-all" title="피드 실시간 검색">
                         <div class="w-7 h-7 rounded-[10px] bg-sky-50 text-sky-700 border border-sky-200/80 flex items-center justify-center">
                             <i class="fa-solid fa-magnifying-glass text-xs"></i>
                         </div>
                         <span class="text-[11px] font-extrabold text-slate-700 tracking-tight leading-none">검색</span>
                     </button>
-
-                    <!-- 3. 공지·알림 (목자/관리자 로그인 시에만 노출) -->
                     <button type="button" id="header-notice-btn" onclick="window.openNoticeAdminModal(event)" class="hidden h-[60px] rounded-[16px] bg-white hover:bg-amber-50/80 border border-slate-200/90 shadow-2xs flex-col items-center justify-center space-y-1 active:scale-95 transition-all" title="목장 공지·알림 관리">
                         <div class="w-7 h-7 rounded-[10px] bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center">
                             <span class="text-xs leading-none">📢</span>
                         </div>
                         <span class="text-[11px] font-extrabold text-slate-700 tracking-tight leading-none">공지·알림</span>
                     </button>
-
-                    <!-- 4. 설정 (목자/관리자 로그인 시에만 노출) -->
                     <button type="button" id="header-admin-gear-btn" onclick="window.goToLeaderAdminPage(event)" class="hidden h-[60px] rounded-[16px] bg-white hover:bg-slate-100 border border-slate-200/90 shadow-2xs flex-col items-center justify-center space-y-1 active:scale-95 transition-all" title="목자 전용 보안 관리 및 설정">
                         <div class="w-7 h-7 rounded-[10px] bg-slate-100 text-slate-700 border border-slate-200/90 flex items-center justify-center">
                             <span class="text-xs leading-none">⚙️</span>
@@ -936,8 +927,6 @@ window.goToLeaderAdminPage = function(event) {
                         <span class="text-[11px] font-extrabold text-slate-700 tracking-tight leading-none">설정</span>
                     </button>
                 </div>
-
-                <!-- 5. 클라우드 연동 램프 & 용량 배지 -->
                 <div id="combined-cloud-badge" class="w-full h-[32px] px-2.5 rounded-[13px] bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between text-slate-700 select-none" title="클라우드 실시간 연동 및 1GB 무료 용량 사용 현황">
                     <div class="flex items-center space-x-1.5">
                         <span id="db-status-lamp" class="w-2 h-2 rounded-full bg-emerald-400 inline-block shrink-0"></span>
@@ -949,10 +938,7 @@ window.goToLeaderAdminPage = function(event) {
                     </div>
                 </div>
             </div>
-
-            <button type="button" id="header-pen-btn" onclick="toggleHeaderQuickMenu(event)" 
-                    class="w-7 h-7 rounded-full flex items-center justify-center church-accent church-primary-text border border-emerald-200/80 shadow-2xs hover:bg-emerald-100 active:scale-95 transition-all animate-pen-live" 
-                    title="목장 메뉴 열기">
+            <button type="button" id="header-pen-btn" onclick="toggleHeaderQuickMenu(event)" class="w-7 h-7 rounded-full flex items-center justify-center church-accent church-primary-text border border-emerald-200/80 shadow-2xs hover:bg-emerald-100 active:scale-95 transition-all animate-pen-live" title="목장 메뉴 열기">
                 <i class="fa-solid fa-pen-fancy text-xs transition-transform duration-200"></i>
             </button>
         </div>
@@ -1693,7 +1679,6 @@ window.goToLeaderAdminPage = function(event) {
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-
             <div class="p-3.5 overflow-y-auto space-y-3 bg-[#F8FAFC]">
                 <div class="bg-white rounded-2xl p-3 border border-slate-200/90 shadow-2xs space-y-2">
                     <div class="flex items-center justify-between pb-1.5 border-b border-slate-100">
@@ -1708,7 +1693,6 @@ window.goToLeaderAdminPage = function(event) {
                             <i class="fa-solid fa-chevron-right"></i>
                         </button>
                     </div>
-
                     <div class="grid grid-cols-7 gap-1 text-center text-[11.5px] font-black py-1 bg-slate-50 rounded-lg">
                         <span class="text-rose-600">일</span>
                         <span class="text-slate-800">월</span>
@@ -1718,11 +1702,9 @@ window.goToLeaderAdminPage = function(event) {
                         <span class="text-slate-800">금</span>
                         <span class="text-sky-600">토</span>
                     </div>
-
                     <div id="simple-notice-cal-grid" class="grid grid-cols-7 gap-1 text-center"></div>
                     <p class="text-[10.5px] font-bold text-slate-400 text-center pt-0.5">날짜를 터치하면 아래에 공지·알림 입력창이 열립니다</p>
                 </div>
-
                 <div id="simple-notice-editor-box" class="hidden bg-white rounded-2xl p-3.5 border-2 border-[#163172]/80 shadow-md space-y-2.5 text-left">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
                         <span id="simple-notice-selected-date-text" class="text-[12.5px] font-black text-[#163172]">10월 18일 공지·알림</span>
@@ -1731,10 +1713,43 @@ window.goToLeaderAdminPage = function(event) {
                             <span class="text-[10.5px] font-extrabold text-amber-950">로그인 알림판 띄우기</span>
                         </label>
                     </div>
-
                     <div id="simple-notice-day-items" class="space-y-1.5 max-h-[110px] overflow-y-auto"></div>
+                    <textarea id="simple-notice-input" rows="2" maxlength="300" placeholder="해당 일자의 공지·알림 내용을 입력하세요..." class="w-full px-2.5 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-900 leading-snug resize-none focus:outline-none focus:border-[#163172]"></textarea>
+                    <div class="flex items-center justify-end space-x-1.5 pt-0.5">
+                        <button type="button" onclick="window.clearSelectedDayNotices(event)" class="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[11px] font-extrabold active:scale-95">해당일 전체삭제</button>
+                        <button type="button" onclick="window.saveSimpleDayNotice(event)" class="px-4 py-1.5 rounded-xl bg-[#163172] hover:bg-[#102558] text-white text-[11.5px] font-extrabold shadow-xs active:scale-95 flex items-center space-x-1">
+                            <i class="fa-solid fa-check text-[10px]"></i>
+                            <span>입력 완료</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    <textarea id="simple-notice-input" rows="2" maxlength="300" placeholder="해당 일자의 공지·알림 내용을 입력하세요..." class="w-full px-2.5 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-900 leading-snug resize-none focus:outline-none focus:border-[#163172]">
+    <!-- [2. 로그인 시 나타나는 작고 심플한 저속 스윙 공지 알림판] -->
+    <div id="mokjang-login-mini-notice-popup" onclick="window.closeLoginMiniNoticePopup(event)" class="fixed inset-0 z-[92] bg-black/35 flex items-center justify-center p-4 hidden select-none">
+        <div onclick="event.stopPropagation()" class="w-full max-w-[292px] bg-white rounded-[22px] border-2 border-amber-400 shadow-[0_16px_36px_rgba(15,23,42,0.22)] overflow-hidden animate-slow-notice-swing">
+            <div class="bg-[#163172] px-3.5 py-2.5 flex items-center justify-between text-white">
+                <div class="flex items-center space-x-1.5 truncate">
+                    <span class="text-sm leading-none">📢</span>
+                    <h4 id="login-mini-notice-title" class="text-[13px] font-black tracking-tight truncate">목장 공지·알림</h4>
+                </div>
+                <button type="button" onclick="window.closeLoginMiniNoticePopup(event)" class="w-6 h-6 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center text-xs active:scale-90">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="login-mini-notice-body" class="p-3.5 space-y-2 max-h-[52vh] overflow-y-auto bg-[#FAF8F5] text-left"></div>
+            <div class="px-3 py-2.5 bg-white border-t border-slate-100 flex items-center justify-between gap-2">
+                <button type="button" onclick="window.dismissMiniNoticeToday(event)" class="py-1.5 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10.5px] font-bold active:scale-95">
+                    오늘 하루 안보기
+                </button>
+                <button type="button" onclick="window.closeLoginMiniNoticePopup(event)" class="flex-1 py-1.5 px-3 rounded-xl bg-[#163172] hover:bg-[#102558] text-white text-xs font-extrabold active:scale-95">
+                    확인
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- [댓글 및 펜댓글 삭제 확인 모달: "삭제하시겠습니까?"] -->
     <div id="delete-comment-confirm-modal" class="fixed inset-0 z-[75] bg-black/60 flex items-center justify-center p-3 hidden" style="touch-action: none;">
@@ -8260,14 +8275,13 @@ function syncHeaderMokjangTitleDOM() {
     
     
     
+    
 // [NOTICE_SCHEDULE_V8_START]
 let simpleNoticeYear = new Date().getFullYear();
 let simpleNoticeMonth = new Date().getMonth();
-let simpleSelectedDateKey = "";
+let simpleSelectedDateKey = '';
 
-function pad2Num(n) {
-    return String(n).padStart(2, '0');
-}
+function pad2Num(n) { return String(n).padStart(2, '0'); }
 
 function getActiveMokjangCfg() {
     const code = String(window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '1111').trim();
@@ -8286,10 +8300,7 @@ function getSimpleSchedulesMap() {
         if (Array.isArray(arr) && arr.length > 0) {
             normalized[k] = arr.map(function(item) {
                 if (typeof item === 'object' && item !== null) {
-                    return {
-                        text: String(item.text || '').trim(),
-                        showOnLogin: item.showOnLogin !== false
-                    };
+                    return { text: String(item.text || '').trim(), showOnLogin: item.showOnLogin !== false };
                 }
                 return { text: String(item || '').trim(), showOnLogin: true };
             }).filter(function(o) { return o.text.length > 0; });
@@ -8307,7 +8318,6 @@ window.getMokjangSchedulesByDate = function(dateKey) {
 window.openNoticeAdminModal = function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     if (typeof closeAllHeaderQuickMenu === 'function') closeAllHeaderQuickMenu();
-
     const role = localStorage.getItem('mokjang_user_role') || currentUserRole || 'member';
     const uName = localStorage.getItem('mokjang_user_name') || currentUser || '';
     const isLeader = (role === 'leader' || uName === '목자' || uName === '관리자' || isCurrentUserAdmin);
@@ -8315,24 +8325,19 @@ window.openNoticeAdminModal = function(event) {
         showNotification('공지·알림 관리는 목자(관리자)만 이용할 수 있습니다.');
         return;
     }
-
     const modal = document.getElementById('mokjang-notice-admin-modal');
     if (!modal) return;
-
     const titleEl = document.getElementById('notice-admin-modal-title');
     if (titleEl) {
         const mShort = currentMokjangShort || localStorage.getItem('mokjang_short_name') || '우리 목장';
         titleEl.textContent = mShort + ' 공지·알림 관리';
     }
-
     const now = new Date();
     simpleNoticeYear = now.getFullYear();
     simpleNoticeMonth = now.getMonth();
-    simpleSelectedDateKey = "";
-
+    simpleSelectedDateKey = '';
     const editorBox = document.getElementById('simple-notice-editor-box');
     if (editorBox) editorBox.classList.add('hidden');
-
     renderSimpleNoticeCalendar();
     modal.classList.remove('hidden');
 };
@@ -8364,48 +8369,34 @@ window.selectSimpleNoticeDate = function(dateKey, event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     simpleSelectedDateKey = dateKey;
     renderSimpleNoticeCalendar();
-
     const editorBox = document.getElementById('simple-notice-editor-box');
     const dateLabel = document.getElementById('simple-notice-selected-date-text');
     const inputEl = document.getElementById('simple-notice-input');
     if (editorBox) editorBox.classList.remove('hidden');
-
     const parts = dateKey.split('-');
     if (dateLabel && parts.length === 3) {
         const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
         const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
         dateLabel.textContent = parseInt(parts[1], 10) + '월 ' + parseInt(parts[2], 10) + '일(' + dayNames[dObj.getDay()] + ') 공지·알림 입력';
     }
-
     renderSelectedDayNoticeItems();
-    if (inputEl) {
-        setTimeout(function() { inputEl.focus(); }, 60);
-    }
+    if (inputEl) { setTimeout(function() { inputEl.focus(); }, 60); }
 };
 
 function renderSelectedDayNoticeItems() {
     const listContainer = document.getElementById('simple-notice-day-items');
     if (!listContainer || !simpleSelectedDateKey) return;
-
     const map = getSimpleSchedulesMap();
     const items = map[simpleSelectedDateKey] || [];
-
-    if (items.length === 0) {
-        listContainer.innerHTML = '';
-        return;
-    }
-
+    if (items.length === 0) { listContainer.innerHTML = ''; return; }
     listContainer.innerHTML = items.map(function(item, idx) {
         const badge = item.showOnLogin
             ? '<span class="px-1.5 py-0.2 rounded bg-amber-200/90 text-amber-950 text-[9.5px] font-black shrink-0">로그인알림 ON</span>'
             : '<span class="px-1.5 py-0.2 rounded bg-slate-200 text-slate-600 text-[9.5px] font-bold shrink-0">달력만</span>';
         return '<div class="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">' +
-               '<div class="flex items-center space-x-1.5 min-w-0 flex-1 pr-2">' +
-               badge +
-               '<span class="font-bold text-slate-800 truncate">' + escapeHtml(item.text) + '</span>' +
-               '</div>' +
-               '<button type="button" onclick="window.deleteSingleDayNotice(\'' + simpleSelectedDateKey + '\', ' + idx + ', event)" class="text-rose-500 hover:text-rose-700 px-1 text-xs font-black shrink-0" title="삭제"><i class="fa-solid fa-xmark"></i></button>' +
-               '</div>';
+               '<div class="flex items-center space-x-1.5 min-w-0 flex-1 pr-2">' + badge +
+               '<span class="font-bold text-slate-800 truncate">' + escapeHtml(item.text) + '</span></div>' +
+               '<button type="button" onclick="window.deleteSingleDayNotice(\'' + simpleSelectedDateKey + '\', ' + idx + ', event)" class="text-rose-500 hover:text-rose-700 px-1 text-xs font-black shrink-0" title="삭제"><i class="fa-solid fa-xmark"></i></button></div>';
     }).join('');
 }
 
@@ -8413,21 +8404,15 @@ function renderSimpleNoticeCalendar() {
     const titleEl = document.getElementById('simple-notice-cal-title');
     const gridEl = document.getElementById('simple-notice-cal-grid');
     if (!titleEl || !gridEl) return;
-
     titleEl.textContent = simpleNoticeYear + '년 ' + (simpleNoticeMonth + 1) + '월';
     const map = getSimpleSchedulesMap();
-
     const firstDay = new Date(simpleNoticeYear, simpleNoticeMonth, 1).getDay();
     const daysInMonth = new Date(simpleNoticeYear, simpleNoticeMonth + 1, 0).getDate();
     const today = new Date();
     const isThisMonth = (today.getFullYear() === simpleNoticeYear && today.getMonth() === simpleNoticeMonth);
     const todayDate = today.getDate();
-
     let html = '';
-    for (let i = 0; i < firstDay; i++) {
-        html += '<div class="h-11"></div>';
-    }
-
+    for (let i = 0; i < firstDay; i++) { html += '<div class="h-11"></div>'; }
     for (let d = 1; d <= daysInMonth; d++) {
         const dateKey = simpleNoticeYear + '-' + pad2Num(simpleNoticeMonth + 1) + '-' + pad2Num(d);
         const dow = (firstDay + d - 1) % 7;
@@ -8435,32 +8420,19 @@ function renderSimpleNoticeCalendar() {
         const count = items.length;
         const isToday = isThisMonth && d === todayDate;
         const isSelected = (simpleSelectedDateKey === dateKey);
-
         let numClass = 'text-slate-900 font-black';
         if (dow === 0) numClass = 'text-rose-600 font-black';
         else if (dow === 6) numClass = 'text-sky-600 font-black';
-
         let cellClass = 'bg-slate-50/70 hover:bg-slate-100 border border-slate-200/70';
-        if (count > 0) {
-            cellClass = 'bg-amber-50 border-2 border-amber-400 shadow-2xs';
-        }
-        if (isToday) {
-            cellClass = 'bg-[#E8F0EC] border-2 border-[#3B5D50]';
-        }
-        if (isSelected) {
-            cellClass = 'bg-blue-50 border-2 border-[#163172] ring-2 ring-[#163172]/20';
-        }
-
+        if (count > 0) cellClass = 'bg-amber-50 border-2 border-amber-400 shadow-2xs';
+        if (isToday) cellClass = 'bg-[#E8F0EC] border-2 border-[#3B5D50]';
+        if (isSelected) cellClass = 'bg-blue-50 border-2 border-[#163172] ring-2 ring-[#163172]/20';
         const tickerHtml = count > 0
             ? '<span class="mt-0.5 px-1 py-[1px] rounded bg-amber-500 text-white text-[8.5px] font-black leading-none tracking-tighter whitespace-nowrap shadow-2xs">알림' + count + '</span>'
             : '<span class="mt-0.5 h-[11px]"></span>';
-
         html += '<button type="button" onclick="window.selectSimpleNoticeDate(\'' + dateKey + '\', event)" class="h-11 rounded-xl flex flex-col items-center justify-center relative select-none transition-all active:scale-95 ' + cellClass + '">' +
-                '<span class="text-[13px] leading-none ' + numClass + '">' + d + '</span>' +
-                tickerHtml +
-                '</button>';
+                '<span class="text-[13px] leading-none ' + numClass + '">' + d + '</span>' + tickerHtml + '</button>';
     }
-
     gridEl.innerHTML = html;
 }
 
@@ -8469,19 +8441,16 @@ async function saveSimpleSchedulesToFirestore(nextMap) {
     const curCfg = getActiveMokjangCfg();
     const partial = { mokjangSchedules: nextMap, updatedAt: Date.now() };
     const mergedCfg = Object.assign({}, curCfg, partial);
-
     window.liveMokjangConfig = mergedCfg;
     window.allMokjangConfigsMap = window.allMokjangConfigsMap || {};
     window.allMokjangConfigsMap[activeCode] = mergedCfg;
     if (activeCode === '1111' || !curCfg.mokjangCode || String(curCfg.mokjangCode).trim() === activeCode) {
         window.allMokjangConfigsMap['main'] = mergedCfg;
     }
-
     try {
         localStorage.setItem('mokjang_config_backup', JSON.stringify(mergedCfg));
         localStorage.setItem('mokjang_config_backup_' + activeCode, JSON.stringify(mergedCfg));
     } catch (e) {}
-
     if (db) {
         setDbStatus('saving');
         try {
@@ -8490,33 +8459,22 @@ async function saveSimpleSchedulesToFirestore(nextMap) {
             }
             await setDoc(doc(db, 'mokjang_configs', activeCode), Object.assign({ mokjangCode: activeCode }, partial), { merge: true });
             setDbStatus('connected');
-        } catch (err) {
-            setDbStatus('error');
-        }
+        } catch (err) { setDbStatus('error'); }
     }
 }
 
 window.saveSimpleDayNotice = async function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
-    if (!simpleSelectedDateKey) {
-        showNotification('먼저 달력에서 날짜를 선택해 주세요.');
-        return;
-    }
+    if (!simpleSelectedDateKey) { showNotification('먼저 달력에서 날짜를 선택해 주세요.'); return; }
     const inputEl = document.getElementById('simple-notice-input');
     const popupChk = document.getElementById('simple-notice-popup-chk');
     const text = inputEl ? inputEl.value.trim() : '';
-    if (!text) {
-        showNotification('공지·알림 내용을 입력해 주세요.');
-        if (inputEl) inputEl.focus();
-        return;
-    }
-
+    if (!text) { showNotification('공지·알림 내용을 입력해 주세요.'); if (inputEl) inputEl.focus(); return; }
     const showOnLogin = popupChk ? popupChk.checked : true;
     const map = getSimpleSchedulesMap();
     const list = Array.isArray(map[simpleSelectedDateKey]) ? map[simpleSelectedDateKey].slice() : [];
     list.push({ text: text, showOnLogin: showOnLogin, updatedAt: Date.now() });
     map[simpleSelectedDateKey] = list;
-
     if (inputEl) inputEl.value = '';
     await saveSimpleSchedulesToFirestore(map);
     renderSimpleNoticeCalendar();
@@ -8532,7 +8490,6 @@ window.deleteSingleDayNotice = async function(dateKey, idx, event) {
     list.splice(idx, 1);
     if (list.length === 0) delete map[dateKey];
     else map[dateKey] = list;
-
     await saveSimpleSchedulesToFirestore(map);
     renderSimpleNoticeCalendar();
     renderSelectedDayNoticeItems();
@@ -8545,7 +8502,6 @@ window.clearSelectedDayNotices = async function(event) {
     const map = getSimpleSchedulesMap();
     if (!map[simpleSelectedDateKey]) return;
     delete map[simpleSelectedDateKey];
-
     await saveSimpleSchedulesToFirestore(map);
     renderSimpleNoticeCalendar();
     renderSelectedDayNoticeItems();
@@ -8556,11 +8512,8 @@ window.checkAndAutoShowNoticeAfterLogin = function() {
     const todayStr = new Date().toISOString().slice(0, 10);
     const activeCode = String(window.currentMokjangCode || '1111').trim();
     let dismissedDate = '';
-    try {
-        dismissedDate = localStorage.getItem('mokjang_mini_notice_dismiss_' + activeCode + '_' + currentUser) || '';
-    } catch (e) {}
+    try { dismissedDate = localStorage.getItem('mokjang_mini_notice_dismiss_' + activeCode + '_' + currentUser) || ''; } catch (e) {}
     if (dismissedDate === todayStr) return;
-
     const map = getSimpleSchedulesMap();
     const loginEntries = [];
     Object.keys(map).sort().forEach(function(dateKey) {
@@ -8572,19 +8525,15 @@ window.checkAndAutoShowNoticeAfterLogin = function() {
             });
         }
     });
-
     if (loginEntries.length === 0) return;
-
     const popup = document.getElementById('mokjang-login-mini-notice-popup');
     const titleEl = document.getElementById('login-mini-notice-title');
     const bodyEl = document.getElementById('login-mini-notice-body');
     if (!popup || !bodyEl) return;
-
     if (titleEl) {
         const mShort = currentMokjangShort || localStorage.getItem('mokjang_short_name') || '목장';
         titleEl.textContent = mShort + ' 공지·알림';
     }
-
     const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
     bodyEl.innerHTML = loginEntries.map(function(entry) {
         const p = entry.dateKey.split('-');
@@ -8596,15 +8545,10 @@ window.checkAndAutoShowNoticeAfterLogin = function() {
         return '<div class="p-2.5 rounded-xl bg-white border border-amber-200/90 shadow-2xs space-y-1">' +
                '<div class="flex items-center space-x-1.5">' +
                '<span class="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[10px] font-black leading-none">' + dateBadge + '</span>' +
-               '<span class="text-[10.5px] font-extrabold text-amber-900">공지·알림</span>' +
-               '</div>' +
-               '<p class="text-[12.5px] font-bold text-slate-800 leading-snug whitespace-pre-wrap break-words">' + escapeHtml(entry.text) + '</p>' +
-               '</div>';
+               '<span class="text-[10.5px] font-extrabold text-amber-900">공지·알림</span></div>' +
+               '<p class="text-[12.5px] font-bold text-slate-800 leading-snug whitespace-pre-wrap break-words">' + escapeHtml(entry.text) + '</p></div>';
     }).join('');
-
-    setTimeout(function() {
-        popup.classList.remove('hidden');
-    }, 300);
+    setTimeout(function() { popup.classList.remove('hidden'); }, 300);
 };
 
 window.closeLoginMiniNoticePopup = function(event) {
@@ -8617,14 +8561,11 @@ window.dismissMiniNoticeToday = function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     const todayStr = new Date().toISOString().slice(0, 10);
     const activeCode = String(window.currentMokjangCode || '1111').trim();
-    try {
-        localStorage.setItem('mokjang_mini_notice_dismiss_' + activeCode + '_' + currentUser, todayStr);
-    } catch (e) {}
+    try { localStorage.setItem('mokjang_mini_notice_dismiss_' + activeCode + '_' + currentUser, todayStr); } catch (e) {}
     window.closeLoginMiniNoticePopup();
     showNotification('오늘 하루 공지 알림판을 띄우지 않습니다.');
 };
 // [NOTICE_SCHEDULE_V8_END]
-    
 // [BRIDGE_V24_START]
 var currentMokjangCode = window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '1111';
 var currentUserJoinedAt = Number(window.currentUserJoinedAt || localStorage.getItem('mokjang_user_joined_at') || 0);
