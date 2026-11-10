@@ -447,12 +447,12 @@
             -webkit-user-select: none !important;
             user-select: none !important;
         }
-        /* [PATCH v7: 사파리(iOS) 홈화면/브라우저 상부 뿌연 블러 현상 원천 차단 & 공지창 흔들림 완전 제거] */
+        /* [PATCH v12 Unified: 사파리 상단 블러 원천 차단 & 아이폰 모음함 & 저속 스윙 공지판] */
         *, *::before, *::after {
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
         }
-        html {
+        html, body {
             background-color: #ffffff !important;
         }
         body::before {
@@ -468,26 +468,10 @@
         }
         header {
             background-color: #ffffff !important;
-            box-shadow: none !important;
+            box-shadow: -100vw 0 0 0 #ffffff, 100vw 0 0 0 #ffffff, 0 -80px 0 0 #ffffff !important;
             border-bottom: 1px solid #E5E7EB !important;
-        }
-        . {
-            animation: none !important;
-            transform: none !important;
-        }
-    
-        /* [PATCH v11: 사파리 블러 방지 & 우상단->좌하단 대각선 아이폰 모음함 & 저속 스윙 공지판] */
-        *, *::before, *::after {
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
-        }
-        html {
-            background-color: #ffffff !important;
-        }
-        header {
-            background-color: #ffffff !important;
-            box-shadow: none !important;
-            border-bottom: 1px solid #E5E7EB !important;
         }
         #header-quick-menu {
             transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease !important;
@@ -511,17 +495,6 @@
         .animate-slow-notice-swing {
             animation: slowNoticeSwing 5.5s ease-in-out infinite !important;
             transform-origin: top center !important;
-        }
-        /* [PATCH v12: 사파리 최상단 가변 블러(Variable Blur) 원천 무력화] */
-        html, body {
-            background-color: #ffffff !important;
-        }
-        header {
-            background-color: #ffffff !important;
-            box-shadow: -100vw 0 0 0 #ffffff, 100vw 0 0 0 #ffffff, 0 -80px 0 0 #ffffff !important;
-            border-bottom: 1px solid #E5E7EB !important;
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
         }
     </style>
 </head>
@@ -569,7 +542,7 @@
         </div>
         <!-- [모바일 홈 화면 추가 안내 가벼운 팝업] -->
         <div id="gate-homescreen-guide-modal" onclick="window.closeHomeScreenGuideModal(event)" class="hidden fixed inset-0 z-[130] bg-black/50 flex items-center justify-center p-4 select-none">
-            <div onclick="event.stopPropagation()" class="w-full max-w-[328px] bg-white rounded-[22px] border border-slate-200 shadow-2xl p-5 text-left space-y-3.5 ">
+            <div onclick="event.stopPropagation()" class="w-full max-w-[328px] bg-white rounded-[22px] border border-slate-200 shadow-2xl p-5 text-left space-y-3.5">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div class="flex items-center space-x-2.5">
                         <img src="hdclogo.png" alt="꿈의목장 아이콘" onerror="this.src='tlogo.png'" class="w-8 h-8 object-contain shrink-0 drop-shadow-2xs">
@@ -1656,7 +1629,7 @@ window.goToLeaderAdminPage = function(event) {
 
     <!-- [카카오톡 공유 확인 모달] -->
     <div id="kakao-share-modal" class="fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-3 hidden" style="touch-action: none;">
-        <div class="bg-white rounded-2xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3 ">
+        <div class="bg-white rounded-2xl w-full max-w-xs p-4 shadow-2xl border church-border text-center space-y-3">
             <div class="w-12 h-12 bg-amber-100 text-amber-800 rounded-2xl flex items-center justify-center mx-auto text-xl shadow-2xs border border-amber-200">
                 <i class="fa-solid fa-comment-dots text-[#3A1D1D] text-2xl"></i>
             </div>
@@ -8592,7 +8565,6 @@ function applyConfigTitleIfActive(cKey, data) {
             try { localStorage.setItem('mokjang_short_name', cleanM); localStorage.setItem('mokjang_name', currentMokjang); } catch (e) {}
             syncHeaderMokjangTitleDOM();
         }
-        if (typeof syncTopNoticeMiniBar === "function") syncTopNoticeMiniBar();
     }
 }
 try {
