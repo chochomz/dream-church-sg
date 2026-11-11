@@ -597,7 +597,7 @@ window.closeHomeScreenGuideModal = function(event) {
     if (m) m.classList.add('hidden');
 };
 
-window.currentMokjangCode = localStorage.getItem('mokjang_active_code') || '1111';
+window.currentMokjangCode = localStorage.getItem('mokjang_active_code') || '';
 window.currentUserJoinedAt = Number(localStorage.getItem('mokjang_user_joined_at') || 0);
 
 window.centerGateInputOnFocus = function(el) {
@@ -668,6 +668,7 @@ window.syncAdminGearVisibility = function(role, userName) {
         }
     }
 };
+
 window.initMokjangLoginGateUI = function() {
     try {
         var codeInput = document.getElementById('gate-input-code');
@@ -724,25 +725,24 @@ window.handleRememberNameToggle = function(chk) {
 };
 
 window.getMergedMokjangConfigByCode = function(code) {
-    var cleanCode = String(code || '1111').trim();
+    var cleanCode = String(code || localStorage.getItem('mokjang_active_code') || '').trim();
     var mainCfg = window.liveMokjangConfig || (window.allMokjangConfigsMap && window.allMokjangConfigsMap['main']) || null;
-    var codeCfg = (window.allMokjangConfigsMap && window.allMokjangConfigsMap[cleanCode]) || null;
+    var codeCfg = (cleanCode && window.allMokjangConfigsMap && window.allMokjangConfigsMap[cleanCode]) || null;
     try {
         if (!mainCfg) { var rawMain = localStorage.getItem('mokjang_config_backup'); if (rawMain) mainCfg = JSON.parse(rawMain); }
-        if (!codeCfg) { var rawByCode = localStorage.getItem('mokjang_config_backup_' + cleanCode); if (rawByCode) codeCfg = JSON.parse(rawByCode); }
+        if (!codeCfg && cleanCode) { var rawByCode = localStorage.getItem('mokjang_config_backup_' + cleanCode); if (rawByCode) codeCfg = JSON.parse(rawByCode); }
     } catch (e) {}
-    var mainDocCode = (mainCfg && mainCfg.mokjangCode) ? String(mainCfg.mokjangCode).trim() : '1111';
-    if (codeCfg && cleanCode !== mainDocCode && cleanCode !== '1111') return Object.assign({}, codeCfg);
+    var mainDocCode = (mainCfg && mainCfg.mokjangCode) ? String(mainCfg.mokjangCode).trim() : '';
+    if (codeCfg && cleanCode && cleanCode !== mainDocCode) return Object.assign({}, codeCfg);
     var merged = Object.assign({}, mainCfg || {}, codeCfg || {});
     var cPass = codeCfg && (codeCfg.adminPasscode || codeCfg.passcode || codeCfg.securityCode);
     var mPass = mainCfg && (mainCfg.adminPasscode || mainCfg.passcode || mainCfg.securityCode);
-    merged.adminPasscode = String((cPass && cPass !== '0000') ? cPass : (mPass || cPass || '0000')).trim();
+    merged.adminPasscode = String(cPass || mPass || '').trim();
     return merged;
 };
 
 window.isValidMokjangCodeCheck = function(code) {
     if (!/^[0-9]{4}$/.test(code)) return false;
-    if (code === '1111') return true;
     if (window.allMokjangConfigsMap && window.allMokjangConfigsMap[code]) return true;
     try {
         if (localStorage.getItem('mokjang_config_backup_' + code)) return true;
@@ -796,35 +796,35 @@ window.submitMokjangGateLogin = function() {
     }
     var boundOwnerName = '';
     try { boundOwnerName = (localStorage.getItem('mokjang_bound_owner_name') || '').trim(); } catch (e) {}
-    if (boundOwnerName && boundOwnerName !== '목장가족' && boundOwnerName !== '1111' && name !== boundOwnerName) {
+    if (boundOwnerName && boundOwnerName !== '목장가족' && name !== boundOwnerName) {
         if (msgEl) msgEl.textContent = '😊 이름을 바르게 입력하세요.!';
         if (nameInput) { try { nameInput.focus({ preventScroll: true }); } catch (e) { nameInput.focus(); } }
         return;
     }
     var cfg = window.getMergedMokjangConfigByCode(code);
-    var validCode = cfg.mokjangCode ? String(cfg.mokjangCode).trim() : '1111';
+    var validCode = cfg.mokjangCode ? String(cfg.mokjangCode).trim() : '';
     var mokjangShort = cfg.mokjangName ? String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*-?\s*/, '') : '';
     var leaderName = cfg.leaderName ? String(cfg.leaderName).trim() : '목자';
     var subLeaderName = (cfg.subLeaderName || cfg.subleaderName) ? String(cfg.subLeaderName || cfg.subleaderName).trim() : '';
     var subLeaders = Array.isArray(cfg.subLeaders) ? cfg.subLeaders.map(function(s){ return String(s).trim(); }) : [];
-    var validMembers = Array.isArray(cfg.members) ? cfg.members.map(function(m){ return typeof m === 'object' ? String(m.name).trim() : String(m).trim(); }) : ['1111', '목자'];
+    var validMembers = Array.isArray(cfg.members) ? cfg.members.map(function(m){ return typeof m === 'object' ? String(m.name).trim() : String(m).trim(); }) : [];
     var memberRoles = (cfg.memberRoles && typeof cfg.memberRoles === 'object') ? cfg.memberRoles : {};
     var joinedMap = (cfg.memberJoinedAt && typeof cfg.memberJoinedAt === 'object') ? cfg.memberJoinedAt : {};
-    var isEmergencyMaster = (code === '1111' && (name === '목자' || name === '1111' || name === '관리자' || name === leaderName));
-    var isLeaderMatch = isEmergencyMaster || (code === validCode && (name === leaderName || name === '목자' || memberRoles[name] === 'leader'));
+
+    var isLeaderMatch = (code === validCode && (name === leaderName || name === '목자' || memberRoles[name] === 'leader'));
     var isSubLeaderMatch = (!isLeaderMatch && code === validCode && ((subLeaderName && name === subLeaderName) || subLeaders.indexOf(name) !== -1 || name === '부목자' || memberRoles[name] === 'subleader'));
-    var isMemberMatch = (!isLeaderMatch && !isSubLeaderMatch && code === validCode && (validMembers.indexOf(name) !== -1 || validMembers.indexOf('1111') !== -1));
+    var isMemberMatch = (!isLeaderMatch && !isSubLeaderMatch && code === validCode && validMembers.indexOf(name) !== -1);
     if (!isLeaderMatch && !isSubLeaderMatch && !isMemberMatch) {
-        if (code !== validCode && code !== '1111') { if (msgEl) msgEl.textContent = '목장 코드가 일치하지 않습니다.'; }
+        if (code !== validCode) { if (msgEl) msgEl.textContent = '목장 코드가 일치하지 않습니다.'; }
         else { if (msgEl) msgEl.textContent = '😊 이름을 바르게 입력하세요.!'; }
         return;
     }
     var userRole = isLeaderMatch ? 'leader' : (isSubLeaderMatch ? 'subleader' : 'member');
     var isAdminBool = (isLeaderMatch || isSubLeaderMatch);
     var userJoinedAt = isLeaderMatch ? 0 : Number(joinedMap[name] || 0);
-    var finalCode = (code === '1111' && validCode !== '1111') ? validCode : code;
+    var finalCode = validCode || code;
     try {
-        if (!boundOwnerName || boundOwnerName === '목장가족' || boundOwnerName === '1111') localStorage.setItem('mokjang_bound_owner_name', name);
+        if (!boundOwnerName || boundOwnerName === '목장가족') localStorage.setItem('mokjang_bound_owner_name', name);
         if (remChk && remChk.checked) { localStorage.setItem('mokjang_remember_name_checked', 'true'); localStorage.setItem('mokjang_remembered_name', name); }
         else { localStorage.setItem('mokjang_remember_name_checked', 'false'); localStorage.removeItem('mokjang_remembered_name'); }
         localStorage.setItem('mokjang_active_code', finalCode);
@@ -842,7 +842,9 @@ window.submitMokjangGateLogin = function() {
     window.syncAdminGearVisibility(userRole, name);
     if (typeof window.syncLoginSessionToFeed === 'function') window.syncLoginSessionToFeed(name, userRole, isAdminBool, mokjangShort, finalCode, userJoinedAt);
     var gate = document.getElementById('mokjang-login-gate');
-    if (gate) { gate.classList.remove('opacity-0', 'pointer-events-none'); gate.style.display = 'none'; } document.body.style.filter = 'none'; document.body.style.webkitBackdropFilter = 'none';
+    if (gate) { gate.classList.remove('opacity-0', 'pointer-events-none'); gate.style.display = 'none'; }
+    document.body.style.filter = 'none';
+    document.body.style.webkitBackdropFilter = 'none';
 };
 
 window.goToLeaderAdminPage = function(event) {
@@ -861,10 +863,10 @@ window.goToLeaderAdminPage = function(event) {
 };
 
 window.proceedToExternalAdminPage = function() {
-    var activeCode = localStorage.getItem('mokjang_active_code') || window.currentMokjangCode || '1111';
+    var activeCode = localStorage.getItem('mokjang_active_code') || window.currentMokjangCode || '';
     var cfg = typeof window.getMergedMokjangConfigByCode === 'function' ? window.getMergedMokjangConfigByCode(activeCode) : (window.liveMokjangConfig || {});
     var finalCode = cfg.mokjangCode ? String(cfg.mokjangCode).trim() : activeCode;
-    var savedAdminPass = String(cfg.adminPasscode || cfg.passcode || cfg.securityCode || '0000').trim();
+    var savedAdminPass = String(cfg.adminPasscode || cfg.passcode || cfg.securityCode || '').trim();
     var userName = localStorage.getItem('mokjang_user_name') || '목자';
     try {
         sessionStorage.setItem('mokjang_dm_pass', JSON.stringify({
@@ -2016,26 +2018,7 @@ window.proceedToExternalAdminPage = function() {
         let configuredSubLeaders = [];
 
         try {
-            // 1. index.html / index1.html에서 전달된 세션 패스 확인
-            const passObj = window.__MOKJANG_VERIFIED_PASS__ || null;
-            if (passObj) {
-                if (passObj.userName && passObj.userName.trim()) {
-                    localStorage.setItem('mokjang_user_name', passObj.userName.trim());
-                }
-                if (typeof passObj.mokjangShort === 'string') {
-                    const cleanM = passObj.mokjangShort.trim().replace(/^세종꿈의교회\s*/, '');
-                    localStorage.setItem('mokjang_short_name', cleanM);
-                    localStorage.setItem('mokjang_name', cleanM ? `세종꿈의교회 ${cleanM}` : '세종꿈의교회');
-                }
-                if (passObj.role) {
-                    localStorage.setItem('mokjang_user_role', passObj.role);
-                }
-                if (passObj.isAdmin !== undefined) {
-                    localStorage.setItem('mokjang_is_admin', passObj.isAdmin ? 'true' : 'false');
-                }
-            }
-
-            // 2. 로컬 백업 설정에서 목장 이름(타이틀) 및 목자·부목자 이름 확인
+            // 로컬 백업 설정에서 목장 이름(타이틀) 및 목자·부목자 이름 확인
             const rawCfg = localStorage.getItem('mokjang_config_backup');
             if (rawCfg) {
                 const parsedCfg = JSON.parse(rawCfg);
@@ -2183,7 +2166,7 @@ function syncHeaderMokjangTitleDOM() {
             let rawShort = (currentMokjangShort && currentMokjangShort.trim()) ? currentMokjangShort.trim() : "";
             if (!rawShort) {
                 try {
-                    const activeCode = window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111";
+                    const activeCode = window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || '';
                     const cfg = (typeof window.getMergedMokjangConfigByCode === "function") ? window.getMergedMokjangConfigByCode(activeCode) : null;
                     if (cfg && cfg.mokjangName) rawShort = String(cfg.mokjangName).trim();
                     else rawShort = localStorage.getItem("mokjang_short_name") || "";
@@ -2568,7 +2551,7 @@ function syncHeaderMokjangTitleDOM() {
                         const cfg = snap.data();
                         window.liveMokjangConfig = cfg;
                         window.liveMokjangConfigLoaded = true;
-                        const cKey = String(cfg.mokjangCode || '1111').trim();
+                        const cKey = String(cfg.mokjangCode || '').trim();
                         window.allMokjangConfigsMap = window.allMokjangConfigsMap || {};
                         window.allMokjangConfigsMap['main'] = cfg;
                         window.allMokjangConfigsMap[cKey] = Object.assign({}, window.allMokjangConfigsMap[cKey] || {}, cfg);
@@ -3931,20 +3914,6 @@ function syncHeaderMokjangTitleDOM() {
             if (modal) modal.classList.add('hidden');
         };
 
-        window.downloadFileFromData = function(fileName, dataUrl) {
-            if (!dataUrl) {
-                showNotification("파일 데이터가 유효하지 않습니다.");
-                return;
-            }
-            const link = document.createElement('a');
-            link.download = fileName || `첨부파일_${Date.now()}`;
-            link.href = dataUrl;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            showNotification(`'${fileName}' 다운로드를 시작합니다.`);
-        };
-
         window.deleteFileById = async function(fileId, fileName) {
             const fileObj = cachedMokjangFiles.find(f => f.id === fileId);
             if (fileObj && !isCurrentUserAdmin && fileObj.author !== currentUser) {
@@ -4061,7 +4030,7 @@ function syncHeaderMokjangTitleDOM() {
                 try {
                     await setDoc(myRef, {
                         sessionId: sessionId, user: currentUser,
-                        mokjangCode: (typeof currentMokjangCode !== 'undefined' ? currentMokjangCode : '1111'),
+                        mokjangCode: (typeof currentMokjangCode !== 'undefined' ? currentMokjangCode : ''),
                         joinedAt: sessionJoinedAt, lastSeen: Date.now()
                     }, { merge: true });
                 } catch (e) {}
@@ -4078,7 +4047,7 @@ function syncHeaderMokjangTitleDOM() {
                 if (presenceDebounceTimer) clearTimeout(presenceDebounceTimer);
                 presenceDebounceTimer = setTimeout(() => {
                     const now = Date.now(), timeoutWindow = 180000, seenUsers = new Map();
-                    const activeCode = String(window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '1111').trim();
+                    const activeCode = String(window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '').trim();
                     snapshot.forEach(docSnap => {
                         const data = docSnap.data();
                         if (data && typeof data.lastSeen === 'number') {
@@ -4808,7 +4777,7 @@ function syncHeaderMokjangTitleDOM() {
                     const fileDocRef = await addDoc(collection(db, 'mokjang_files'), {
                         title: fileTitle || fileToSave.fileName, fileName: fileToSave.fileName, fileSize: fileToSave.fileSize,
                         fileType: fileToSave.fileType, dataUrl: fileToSave.dataUrl, author: currentUser, authorUid: reactionUserId,
-                        createdAt: new Date(), postId: postId || null, mokjangCode: (typeof currentMokjangCode !== 'undefined' ? currentMokjangCode : '1111')
+                        createdAt: new Date(), postId: postId || null, mokjangCode: (typeof currentMokjangCode !== 'undefined' ? currentMokjangCode : '')
                     });
                     savedFileId = fileDocRef.id; savedFileName = fileToSave.fileName; savedFileSize = fileToSave.fileSize;
                 }
@@ -4830,7 +4799,7 @@ function syncHeaderMokjangTitleDOM() {
                     await updateDoc(getPostDocRef(postId), updatePayload);
                 } else {
                     const postPayload = {
-                        mokjangName: currentMokjang, mokjangCode: (typeof currentMokjangCode !== 'undefined' ? currentMokjangCode : '1111'),
+                        mokjangName: currentMokjang, mokjangCode: (typeof currentMokjangCode !== 'undefined' ? currentMokjangCode : ''),
                         author: currentUser, authorUid: reactionUserId, content: content, fontFamily: currentSelectedFont || 'pretendard',
                         longContent: currentLongContentText || '', longFontSize: currentLongContentFontSize || 2,
                         images: uploadedImages, imageUrl: uploadedImages.length > 0 ? uploadedImages[0] : "",
@@ -5860,8 +5829,6 @@ function syncHeaderMokjangTitleDOM() {
                 }, 290);
             }
         };
-
-        window.handlePhotoDoubleTap = window.handlePhotoClick;
 
         window.togglePostPhotoLayout = function(postId) {
             const container = document.getElementById(`post-photos-${postId}`);
@@ -7330,56 +7297,32 @@ function syncHeaderMokjangTitleDOM() {
             onSnapshot(getPostsCollection(), (snapshot) => {
                 const posts = [];
 
+                                const activeCode = String(window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '').trim();
+                const joinedLimit = Number(window.currentUserJoinedAt || localStorage.getItem('mokjang_user_joined_at') || 0);
+
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
+                    const postCode = data.mokjangCode ? String(data.mokjangCode).trim() : '';
+                    if (activeCode && postCode && postCode !== activeCode) return;
+
                     const rawImg = data.imageUrl || "";
-                    const rawImgs = Array.isArray(data.images) ? data.images.join(" ") : "";
-                    
-                    const hasValidContent = data.content && data.content.trim().length > 0;
-                    const hasValidImages = (Array.isArray(data.images) && data.images.some(img => img && img.trim().length > 0)) || (rawImg && rawImg.trim().length > 0);
-                    const hasValidFile = (data.fileName && data.fileName.trim().length > 0) || (data.fileId && data.fileId.trim().length > 0);
-                    
-                    if ((!hasValidContent && !hasValidImages && !hasValidFile) || rawImg.includes("unsplash") || rawImgs.includes("unsplash")) {
-                        try { deleteDoc(getPostDocRef(docSnap.id)); } catch(e) {}
-                        return;
-                    }
+                    const hasValidContent = Boolean((data.content && data.content.trim()) || (data.longContent && data.longContent.trim()));
+                    const hasValidImages = (Array.isArray(data.images) && data.images.length > 0) || Boolean(rawImg && rawImg.trim());
+                    const hasValidFile = Boolean((data.fileName && data.fileName.trim()) || (data.fileId && data.fileId.trim()));
+                    if (!hasValidContent && !hasValidImages && !hasValidFile) return;
 
-                    const safeLikes = Math.max(0, parseInt(data.likes) || 0);
-                    const safeThumbs = Math.max(0, parseInt(data.thumbsUp) || 0);
-                    const safePrayers = Math.max(0, parseInt(data.prayers) || 0);
+                    const createdMs = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : (typeof data.createdAt === 'number' ? data.createdAt : new Date(data.createdAt || 0).getTime());
+                    if (joinedLimit > 0 && currentUserRole !== 'leader' && createdMs > 0 && createdMs < joinedLimit) return;
 
-                    if ((data.likes !== undefined && data.likes < 0) || 
-                        (data.thumbsUp !== undefined && data.thumbsUp < 0) || 
-                        (data.prayers !== undefined && data.prayers < 0)) {
-                        try {
-                            updateDoc(docSnap.ref, {
-                                likes: safeLikes,
-                                thumbsUp: safeThumbs,
-                                prayers: safePrayers
-                            });
-                        } catch(e) {}
-                    }
-
-                    data.likes = safeLikes;
-                    data.thumbsUp = safeThumbs;
-                    data.prayers = safePrayers;
-                    const activeCode = String(window.currentMokjangCode || localStorage.getItem('mokjang_active_code') || '1111').trim();
-                    const postCode = data.mokjangCode ? String(data.mokjangCode).trim() : '1111';
-                    if (postCode !== activeCode) return;
-                    const joinedLimit = Number(window.currentUserJoinedAt || localStorage.getItem('mokjang_user_joined_at') || 0);
-                    if (joinedLimit > 0 && currentUserRole !== 'leader') {
-                        const pTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : new Date(data.createdAt || 0).getTime();
-                        if (pTime > 0 && pTime < joinedLimit) return;
-                    }
+                    data.likes = Math.max(0, parseInt(data.likes) || 0);
+                    data.thumbsUp = Math.max(0, parseInt(data.thumbsUp) || 0);
+                    data.prayers = Math.max(0, parseInt(data.prayers) || 0);
+                    data._sortMs = createdMs || 0;
 
                     posts.push({ id: docSnap.id, ...data });
                 });
 
-                posts.sort((a, b) => {
-                    const tA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
-                    const tB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
-                    return tB - tA;
-                });
+                posts.sort((a, b) => (b._sortMs || 0) - (a._sortMs || 0));
 
                 cachedPosts = posts;
                 updateStorageQuotaDisplay(posts);
@@ -8269,8 +8212,6 @@ function syncHeaderMokjangTitleDOM() {
             }
         };
 
-        window.applyLightboxImageToFeed = window.cropAndSaveLightboxImage;
-
         function applyBrightnessContrastPixels(ctx, width, height, brightness, contrast) {
             if (brightness === 100 && contrast === 100) return;
             try {
@@ -8421,7 +8362,7 @@ function getFormattedMokjangSpaceTitle(suffix) {
 }
 
 function getActiveMokjangCfg() {
-    const code = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim();
+    const code = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || '').trim();
     if (window.allMokjangConfigsMap && window.allMokjangConfigsMap[code]) {
         return window.allMokjangConfigsMap[code];
     }
@@ -8494,7 +8435,7 @@ window.openUserManualModal = function(event) {
             target: "dcsghelp.html",
             authorizedFromIndex: true,
             token: "hlptk_" + Date.now() + "_" + Math.random().toString(36).slice(2),
-            mokjangCode: window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111",
+            mokjangCode: window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || '',
             userName: currentUser || localStorage.getItem("mokjang_user_name") || "목장가족",
             issuedAt: Date.now()
         }));
@@ -8563,12 +8504,12 @@ window.verifyAdminSlidePasscode = function() {
         if (input) input.focus();
         return;
     }
-    const activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim();
+    const activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || '').trim();
     const cfg = getActiveMokjangCfg();
     const validAdminPass = String(cfg.adminPasscode || cfg.passcode || cfg.securityCode || "0000").trim();
-    const validMokjangCode = String(cfg.mokjangCode || activeCode || "1111").trim();
+    const validMokjangCode = String(cfg.mokjangCode || activeCode || '').trim();
 
-    if (entered === validAdminPass || entered === validMokjangCode || entered === "0000" || entered === "1111") {
+    if ((validAdminPass && entered === validAdminPass) || (validMokjangCode && entered === validMokjangCode)) {
         if (input) input.blur();
         window.closeAdminPasscodeSlideModal();
         window.proceedToExternalAdminPage();
@@ -8603,7 +8544,7 @@ function getSimpleSchedulesMap() {
 }
 
 function applyLocalSchedulesMapImmediately(nextMap, deletedDateKey = null) {
-    const activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim();
+    const activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || '').trim();
     const curCfg = getActiveMokjangCfg();
     const baseSchedules = Object.assign({}, (curCfg && curCfg.mokjangSchedules) || {}, nextMap);
     if (deletedDateKey) {
@@ -8802,12 +8743,12 @@ function renderSimpleNoticeCalendar() {
 
 async function saveSimpleSchedulesToFirestore(nextMap, deletedDateKey = null) {
     const payloadSchedules = applyLocalSchedulesMapImmediately(nextMap, deletedDateKey);
-    const activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim();
+    const activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || '').trim();
     const partial = { mokjangSchedules: payloadSchedules, updatedAt: Date.now() };
     if (db) {
         setDbStatus("saving");
         try {
-            if (activeCode === "1111" || (window.liveMokjangConfig && String(window.liveMokjangConfig.mokjangCode || "1111").trim() === activeCode)) {
+            if ((window.liveMokjangConfig && String(window.liveMokjangConfig.mokjangCode || '').trim() === activeCode)) {
                 await setDoc(doc(db, "mokjang_config", "main"), partial, { merge: true });
             }
             await setDoc(doc(db, "mokjang_configs", activeCode), Object.assign({ mokjangCode: activeCode }, partial), { merge: true });
@@ -8942,7 +8883,7 @@ window.openMemberNoticeHistoryModal = function(event) {
 
 window.checkAndAutoShowNoticeAfterLogin = function() {
     const todayStr = new Date().toISOString().slice(0, 10);
-    const activeCode = String(window.currentMokjangCode || "1111").trim();
+    const activeCode = String(window.currentMokjangCode || '').trim();
     let dismissedDate = "";
     try { dismissedDate = localStorage.getItem("mokjang_mini_notice_dismiss_" + activeCode + "_" + currentUser) || ""; } catch (e) {}
     if (dismissedDate === todayStr) return;
@@ -8991,20 +8932,20 @@ window.closeLoginMiniNoticePopup = function(event) {
 window.dismissMiniNoticeToday = function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     const todayStr = new Date().toISOString().slice(0, 10);
-    const activeCode = String(window.currentMokjangCode || "1111").trim();
+    const activeCode = String(window.currentMokjangCode || '').trim();
     try { localStorage.setItem("mokjang_mini_notice_dismiss_" + activeCode + "_" + currentUser, todayStr); } catch (e) {}
     window.closeLoginMiniNoticePopup();
     showNotification("오늘 하루 알림 사항 창을 띄우지 않습니다.");
 };
 // [NOTICE_SCHEDULE_V8_END]
 // [BRIDGE_V24_START]
-var currentMokjangCode = window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111";
+var currentMokjangCode = window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "";
 var currentUserJoinedAt = Number(window.currentUserJoinedAt || localStorage.getItem("mokjang_user_joined_at") || 0);
 window.allMokjangConfigsMap = window.allMokjangConfigsMap || {};
 function applyConfigTitleIfActive(cKey, data) {
     if (!data) return;
-    var activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim();
-    if (cKey === activeCode || (activeCode === "1111" && cKey === "main")) {
+    var activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "").trim();
+    if (cKey === activeCode || (!activeCode && cKey === "main")) {
         if (data.mokjangName !== undefined) {
             var cleanM = String(data.mokjangName || "").trim().replace(/^세종꿈의교회\s*-?\s*/, "");
             currentMokjangShort = cleanM;
@@ -9019,11 +8960,12 @@ try {
         snap.forEach(function(d) {
             var data = d.data(); var cKey = String(data.mokjangCode || d.id).trim();
             var mainData = window.allMokjangConfigsMap["main"] || window.liveMokjangConfig || {};
-            var merged = Object.assign({}, (cKey === String(mainData.mokjangCode || "1111").trim() ? mainData : {}), data);
+            var merged = Object.assign({}, (cKey === String(mainData.mokjangCode || "").trim() ? mainData : {}), data);
             window.allMokjangConfigsMap[cKey] = merged;
             try { localStorage.setItem("mokjang_config_backup_" + cKey, JSON.stringify(merged)); } catch (e) {}
             applyConfigTitleIfActive(cKey, merged);
-            if (cKey === String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim()) {
+            var curActive = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "").trim();
+            if (curActive && cKey === curActive) {
                 window.liveMokjangConfig = merged;
                 if (typeof renderSimpleNoticeCalendar === "function") {
                     const noticeModal = document.getElementById("mokjang-notice-admin-modal");
@@ -9039,7 +8981,7 @@ try {
 } catch (e) {}
 window.syncLoginSessionToFeed = function(name, role, isAdmin, mokjangShort, code, joinedAt) {
     currentUser = name; currentUserRole = role; isCurrentUserAdmin = isAdmin;
-    currentMokjangCode = code || "1111"; window.currentMokjangCode = currentMokjangCode;
+    currentMokjangCode = code || ""; window.currentMokjangCode = currentMokjangCode;
     currentUserJoinedAt = Number(joinedAt || 0); window.currentUserJoinedAt = currentUserJoinedAt;
     var cleanM = String(mokjangShort || "").trim().replace(/^세종꿈의교회\s*-?\s*/, "");
     currentMokjangShort = cleanM; currentMokjang = cleanM ? ("세종꿈의교회 " + cleanM) : "세종꿈의교회";
