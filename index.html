@@ -125,7 +125,7 @@
         @keyframes scrollWiggle { 0%, 100% { transform: rotate(0deg) scale(1); } 20% { transform: rotate(-10deg) scale(1.12); } 40% { transform: rotate(8deg) scale(1.08); } 60% { transform: rotate(-6deg) scale(1.04); } 80% { transform: rotate(4deg) scale(1.02); } }
         .animate-scroll-unread { display: inline-block !important; animation: scrollWiggle 2.2s ease-in-out infinite !important; transform-origin: center bottom !important; }
         @keyframes swayGentle { 0%, 100% { transform: rotate(0deg) translateY(0); } 20% { transform: rotate(-3deg) translateY(-2px); } 40% { transform: rotate(2.5deg) translateY(1px); } 60% { transform: rotate(-2deg) translateY(-1px); } 80% { transform: rotate(1.5deg) translateY(0.5px); } }
-        . { animation: swayGentle 2.6s ease-in-out infinite; transform-origin: center top; }
+        .animate-sway-gentle { animation: swayGentle 2.6s ease-in-out infinite; transform-origin: center top; }
 
         @keyframes penLiveMotion {
             0%, 100% { transform: rotate(0deg) scale(1); }
@@ -1692,7 +1692,7 @@ window.goToLeaderAdminPage = function(event) {
                     <div id="simple-notice-cal-grid" class="grid gap-y-0.5 text-center pt-0.5" style="grid-template-columns: 1.45fr repeat(6, 1fr);"></div>
                 </div>
                 <!-- 4)~8) 3줄 알림 입력창 & 하단 3버튼 (입력 / 삭제 / 카톡방 공유) -->
-                <div id="simple-notice-editor-box" class="pt-1.5 border-t border-gray-100 space-y-1.5 text-left">
+                <div id="simple-notice-editor-box" class="-mt-1 pt-0 space-y-1.5 text-left">
                     <div class="flex items-center justify-between whitespace-nowrap px-0.5">
                         <span id="simple-notice-selected-date-text" class="text-[12px] font-extrabold text-emerald-900">날짜를 선택하세요</span>
                         <label class="inline-flex items-center space-x-1 cursor-pointer select-none whitespace-nowrap">
@@ -1700,13 +1700,13 @@ window.goToLeaderAdminPage = function(event) {
                             <span class="text-[11px] font-bold text-gray-700">로그인시 알림</span>
                         </label>
                     </div>
-                    <textarea id="simple-notice-input" rows="3" maxlength="200" oninput="window.handleSimpleNoticeInputLimit(this)" placeholder="해당 일자의 알림 내용을 입력하세요 (3줄 이내)..." class="w-full h-[68px] px-2.5 py-1.5 rounded-lg text-xs text-gray-900 placeholder-gray-400 leading-[1.35] resize-none overflow-y-auto"></textarea>
+                    <textarea id="simple-notice-input" rows="3" maxlength="60" oninput="window.handleSimpleNoticeInputLimit(this)" placeholder="해당일자의 알림 내용은 3줄(60자) 이내로 하시고 긴글은 글쓰기로 하세요.^^" class="w-full h-[68px] px-2.5 py-1.5 rounded-lg text-xs text-gray-900 placeholder-gray-400 leading-[1.35] resize-none overflow-y-auto"></textarea>
                     <div class="grid grid-cols-3 gap-1.5 pt-0.5">
-                        <button type="button" onclick="window.saveSimpleDayNoticeOnly(event)" class="py-2 px-1.5 rounded-md bg-[#F6EBD8] hover:bg-[#EFE0C6] text-[#5A3E28] border border-[#E6D5B8] text-[11.5px] font-extrabold shadow-2xs active:scale-95 transition-all text-center">
-                            입력
-                        </button>
                         <button type="button" onclick="window.clearSelectedDayNotices(event)" class="py-2 px-1.5 rounded-md bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-600 border border-gray-200/80 text-[11.5px] font-bold active:scale-95 transition-all text-center">
                             삭제
+                        </button>
+                        <button type="button" onclick="window.saveSimpleDayNoticeOnly(event)" class="py-2 px-1.5 rounded-md bg-[#F6EBD8] hover:bg-[#EFE0C6] text-[#5A3E28] border border-[#E6D5B8] text-[11.5px] font-extrabold shadow-2xs active:scale-95 transition-all text-center">
+                            입력
                         </button>
                         <button type="button" onclick="window.shareSimpleDayNoticeToKakao(event)" class="py-2 px-1.5 rounded-md bg-[#FEE500]/90 hover:bg-[#FEE500] text-[#3A1D1D] border border-amber-300/80 text-[11.5px] font-extrabold shadow-2xs active:scale-95 transition-all text-center">
                             카톡방 공유
@@ -2274,7 +2274,8 @@ function syncHeaderMokjangTitleDOM() {
                 db = initializeFirestore(app, {
                     localCache: persistentLocalCache({
                         tabManager: persistentSingleTabManager()
-                    })
+                    }),
+                    experimentalAutoDetectLongPolling: true
                 });
             } catch (dbErr) {
                 try {
@@ -2430,10 +2431,10 @@ function syncHeaderMokjangTitleDOM() {
                             const localRaw = localStorage.getItem('mokjang_config_backup');
                             if (localRaw) {
                                 const localParsed = JSON.parse(localRaw);
-                                if (localParsed.updatedAt && (!cfg.updatedAt || localParsed.updatedAt > cfg.updatedAt)) {
-                                    // 로컬 설정이 더 최신이면 파이어베이스에 최신 로컬 설정을 역동기화하고 덮어쓰기 방지
-                                    setDoc(doc(db, 'mokjang_config', 'main'), localParsed, { merge: true }).catch(() => {});
-                                    return;
+                                if (localParsed.updatedAt && cfg.updatedAt && localParsed.updatedAt > cfg.updatedAt) {
+                                    if (localParsed.mokjangSchedules) {
+                                        cfg.mokjangSchedules = Object.assign({}, cfg.mokjangSchedules || {}, localParsed.mokjangSchedules);
+                                    }
                                 }
                             }
                             localStorage.setItem('mokjang_config_backup', JSON.stringify(cfg));
@@ -6917,19 +6918,19 @@ function syncHeaderMokjangTitleDOM() {
 
                     <div class="pt-1 flex items-center justify-between no-export">
                         <div class="flex items-center space-x-3">
-                            <button type="button" data-reaction-btn="like" onclick="event.stopPropagation(); toggleLike('${post.id}', event)" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-400 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform" title="좋아요">
-                                <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i>
-                                <span class="text-xs">${likesCount}</span>
+                            <button type="button" data-reaction-btn="like" onclick="event.stopPropagation(); toggleLike('${post.id}', event)" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-500 font-bold' : 'text-slate-500 hover:text-rose-500'} active:scale-90 transition-transform" title="좋아요">
+                                <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-[14px] leading-none" style="transform: scaleX(0.94);"></i>
+                                <span class="text-xs font-semibold">${likesCount}</span>
                             </button>
 
-                            <button type="button" data-reaction-btn="thumbsUp" onclick="event.stopPropagation(); toggleThumbsUp('${post.id}', event)" class="flex items-center space-x-1 ${hasThumbed ? 'text-sky-400 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform" title="엄지척">
-                                <i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i>
-                                <span class="text-xs">${thumbsCount}</span>
+                            <button type="button" data-reaction-btn="thumbsUp" onclick="event.stopPropagation(); toggleThumbsUp('${post.id}', event)" class="flex items-center space-x-1 ${hasThumbed ? 'text-sky-500 font-bold' : 'text-slate-500 hover:text-sky-500'} active:scale-90 transition-transform" title="엄지척">
+                                <i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-[14px] leading-none" style="transform: scaleX(0.92);"></i>
+                                <span class="text-xs font-semibold">${thumbsCount}</span>
                             </button>
 
-                            <button type="button" data-reaction-btn="pray" onclick="event.stopPropagation(); togglePray('${post.id}', event)" class="flex items-center space-x-1 ${hasPrayed ? 'text-amber-400 font-medium' : 'text-gray-400 hover:text-amber-300'} active:scale-90 transition-transform" title="기도손">
-                                <i class="fa-solid fa-hands-praying text-sm inline-block" style="transform: rotate(20deg) translateY(1.5px);"></i>
-                                <span class="text-xs">${prayersCount}</span>
+                            <button type="button" data-reaction-btn="pray" onclick="event.stopPropagation(); togglePray('${post.id}', event)" class="flex items-center space-x-1 ${hasPrayed ? 'text-amber-500 font-bold' : 'text-slate-500 hover:text-amber-500'} active:scale-90 transition-transform" title="기도손">
+                                <i class="fa-solid fa-hands-praying text-[14px] inline-block leading-none" style="transform: rotate(0deg) scaleX(0.84) scaleY(0.98); -webkit-font-smoothing: antialiased;"></i>
+                                <span class="text-xs font-semibold">${prayersCount}</span>
                             </button>
 
                             <button type="button" onclick="event.stopPropagation(); toggleInlineCommentInput('${post.id}', event)" class="flex items-center space-x-1 text-gray-500 hover:text-emerald-700 active:scale-90 transition-transform" title="댓글 작성 및 열기">
@@ -6996,24 +6997,24 @@ function syncHeaderMokjangTitleDOM() {
             const hasLiked = Array.isArray(post.likedUsers) && post.likedUsers.includes(reactionUserId);
             const likesCount = Math.max(0, Array.isArray(post.likedUsers) ? post.likedUsers.length : (parseInt(post.likes) || 0));
             if (likeBtn) {
-                likeBtn.className = `flex items-center space-x-1 ${hasLiked ? 'text-rose-400 font-medium' : 'text-gray-400 hover:text-rose-200'} active:scale-90 transition-transform`;
-                likeBtn.innerHTML = `<i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i><span class="text-xs">${likesCount}</span>`;
+                likeBtn.className = `flex items-center space-x-1 ${hasLiked ? 'text-rose-500 font-bold' : 'text-slate-500 hover:text-rose-500'} active:scale-90 transition-transform`;
+                likeBtn.innerHTML = `<i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-[14px] leading-none" style="transform: scaleX(0.94);"></i><span class="text-xs font-semibold">${likesCount}</span>`;
             }
 
             const thumbBtn = cardEl.querySelector('[data-reaction-btn="thumbsUp"]');
             const hasThumbed = Array.isArray(post.thumbedUsers) && post.thumbedUsers.includes(reactionUserId);
             const thumbsCount = Math.max(0, Array.isArray(post.thumbedUsers) ? post.thumbedUsers.length : (parseInt(post.thumbsUp) || 0));
             if (thumbBtn) {
-                thumbBtn.className = `flex items-center space-x-1 ${hasThumbed ? 'text-sky-400 font-medium' : 'text-gray-400 hover:text-sky-200'} active:scale-90 transition-transform`;
-                thumbBtn.innerHTML = `<i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-sm"></i><span class="text-xs">${thumbsCount}</span>`;
+                thumbBtn.className = `flex items-center space-x-1 ${hasThumbed ? 'text-sky-500 font-bold' : 'text-slate-500 hover:text-sky-500'} active:scale-90 transition-transform`;
+                thumbBtn.innerHTML = `<i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-[14px] leading-none" style="transform: scaleX(0.92);"></i><span class="text-xs font-semibold">${thumbsCount}</span>`;
             }
 
             const prayBtn = cardEl.querySelector('[data-reaction-btn="pray"]');
             const hasPrayed = Array.isArray(post.prayedUsers) && post.prayedUsers.includes(reactionUserId);
             const prayersCount = Math.max(0, Array.isArray(post.prayedUsers) ? post.prayedUsers.length : (parseInt(post.prayers) || 0));
             if (prayBtn) {
-                prayBtn.className = `flex items-center space-x-1 ${hasPrayed ? 'text-amber-400 font-medium' : 'text-gray-400 hover:text-amber-300'} active:scale-90 transition-transform`;
-                prayBtn.innerHTML = `<i class="fa-solid fa-hands-praying text-sm inline-block" style="transform: rotate(20deg) translateY(1.5px);"></i><span class="text-xs">${prayersCount}</span>`;
+                prayBtn.className = `flex items-center space-x-1 ${hasPrayed ? 'text-amber-500 font-bold' : 'text-slate-500 hover:text-amber-500'} active:scale-90 transition-transform`;
+                prayBtn.innerHTML = `<i class="fa-solid fa-hands-praying text-[14px] inline-block leading-none" style="transform: rotate(0deg) scaleX(0.84) scaleY(0.98); -webkit-font-smoothing: antialiased;"></i><span class="text-xs font-semibold">${prayersCount}</span>`;
             }
 
             const commentCountEl = cardEl.querySelector('[data-comment-count]');
@@ -8272,13 +8273,16 @@ function getFormattedMokjangSpaceTitle(suffix) {
 
 function getActiveMokjangCfg() {
     const code = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim();
+    if (window.allMokjangConfigsMap && window.allMokjangConfigsMap[code]) {
+        return window.allMokjangConfigsMap[code];
+    }
     const cfg = (typeof window.getMergedMokjangConfigByCode === "function")
         ? window.getMergedMokjangConfigByCode(code)
         : (window.liveMokjangConfig || {});
     return cfg || {};
 }
 
-// 5) 하루당 1개의 알림만 유지하도록 정규화
+// 하루당 1개의 알림만 유지하도록 정규화
 function getSimpleSchedulesMap() {
     const cfg = getActiveMokjangCfg();
     const raw = (cfg && cfg.mokjangSchedules && typeof cfg.mokjangSchedules === "object") ? cfg.mokjangSchedules : {};
@@ -8298,26 +8302,69 @@ function getSimpleSchedulesMap() {
     return normalized;
 }
 
+// 로컬 메모리와 달력 UI(공지 달력 + 책갈피 달력)에 0초 즉시 반영하는 헬퍼
+function applyLocalSchedulesMapImmediately(nextMap) {
+    const activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim();
+    const curCfg = getActiveMokjangCfg();
+    const partial = { mokjangSchedules: nextMap, updatedAt: Date.now() };
+    const mergedCfg = Object.assign({}, curCfg, partial);
+    window.liveMokjangConfig = mergedCfg;
+    window.allMokjangConfigsMap = window.allMokjangConfigsMap || {};
+    window.allMokjangConfigsMap[activeCode] = mergedCfg;
+    if (activeCode === "1111" || !curCfg.mokjangCode || String(curCfg.mokjangCode).trim() === activeCode) {
+        window.allMokjangConfigsMap["main"] = mergedCfg;
+    }
+    try {
+        localStorage.setItem("mokjang_config_backup", JSON.stringify(mergedCfg));
+        localStorage.setItem("mokjang_config_backup_" + activeCode, JSON.stringify(mergedCfg));
+    } catch (e) {}
+    renderSimpleNoticeCalendar();
+    if (typeof renderBookmarkCalendar === "function") {
+        renderBookmarkCalendar(calendarCurrentYear, calendarCurrentMonth);
+    }
+}
+
 window.getMokjangSchedulesByDate = function(dateKey) {
     const map = getSimpleSchedulesMap();
     const list = map[dateKey];
     return Array.isArray(list) ? list.map(function(o) { return o.text; }) : [];
 };
 
-// 4) 공지 내용 입력창에 3줄 이상의 내용이 되면 안내 문구 표시
+// 공지 내용 입력 시 3줄(60자) 제한 안내 및 달력 하트(♥) 실시간 즉시 반응
 window.handleSimpleNoticeInputLimit = function(el) {
     if (!el) return;
-    const val = el.value || "";
+    let val = el.value || "";
     const lines = val.split("\n");
-    const isOverLines = (lines.length >= 3 && val.length > 42) || lines.length > 3 || (el.scrollHeight > el.clientHeight + 4);
+    const isOverLines = (lines.length > 3) || (val.length >= 60) || (el.scrollHeight > el.clientHeight + 6);
     if (lines.length > 3) {
-        el.value = lines.slice(0, 3).join("\n");
+        val = lines.slice(0, 3).join("\n");
+        el.value = val;
+    }
+    if (val.length > 60) {
+        val = val.slice(0, 60);
+        el.value = val;
     }
     if (isOverLines) {
         const now = Date.now();
         if (now - lastLineLimitToastAt > 1800) {
             lastLineLimitToastAt = now;
-            showNotification("알림 내용이 많으시면 글쓰기로 하세요.");
+            showNotification("해당일자의 알림 내용은 3줄(60자) 이내로 하시고 긴글은 글쓰기로 하세요.^^");
+        }
+    }
+    // 선택된 날짜 셀의 하트 각주 실시간 반응
+    if (simpleSelectedDateKey) {
+        const btn = document.querySelector('#simple-notice-cal-grid button[data-date="' + simpleSelectedDateKey + '"]');
+        if (btn) {
+            const existingHeart = btn.querySelector('.notice-heart-badge');
+            const hasText = val.trim().length > 0;
+            if (hasText && !existingHeart) {
+                const heartSpan = document.createElement('span');
+                heartSpan.className = 'notice-heart-badge absolute top-[0.5px] right-[2px] text-[9px] leading-none select-none text-rose-400/95';
+                heartSpan.textContent = '♥';
+                btn.appendChild(heartSpan);
+            } else if (!hasText && existingHeart) {
+                existingHeart.remove();
+            }
         }
     }
 };
@@ -8373,11 +8420,9 @@ window.goSimpleNoticeToday = function(event) {
     window.selectSimpleNoticeDate(todayKey, event);
 };
 
-// 6) & 7) 일자를 누르면 밑에 3줄짜리 알림창에 즉시 내용이 나오고 수정/입력/삭제 가능
 window.selectSimpleNoticeDate = function(dateKey, event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     simpleSelectedDateKey = dateKey;
-    renderSimpleNoticeCalendar();
     const editorBox = document.getElementById("simple-notice-editor-box");
     const dateLabel = document.getElementById("simple-notice-selected-date-text");
     const inputEl = document.getElementById("simple-notice-input");
@@ -8397,9 +8442,9 @@ window.selectSimpleNoticeDate = function(dateKey, event) {
     if (chkEl) {
         chkEl.checked = items.length > 0 ? (items[0].showOnLogin !== false) : true;
     }
+    renderSimpleNoticeCalendar();
 };
 
-// 2), 3), 5) 요일·일자 폰트 2pt 확대(상하 높이 h-7 동일), 주일 무테두리 배경강조, 작은 연한 하트(♥) 각주 표시
 function renderSimpleNoticeCalendar() {
     const titleEl = document.getElementById("simple-notice-cal-title");
     const gridEl = document.getElementById("simple-notice-cal-grid");
@@ -8420,7 +8465,7 @@ function renderSimpleNoticeCalendar() {
         const dateKey = simpleNoticeYear + "-" + pad2Num(simpleNoticeMonth + 1) + "-" + pad2Num(d);
         const dow = (firstDay + d - 1) % 7;
         const items = map[dateKey] || [];
-        const hasNotice = items.length > 0;
+        const hasNotice = items.length > 0 && String(items[0].text || "").trim().length > 0;
         const isToday = isThisMonth && d === todayDate;
         const isSelected = (simpleSelectedDateKey === dateKey);
         let numClass = "text-gray-800 font-black";
@@ -8441,7 +8486,7 @@ function renderSimpleNoticeCalendar() {
         }
         const heartColor = (isToday && !isSelected) ? "text-rose-200" : "text-rose-400/95";
         const heartHtml = hasNotice
-            ? '<span class="absolute top-[0.5px] right-[2px] text-[9px] leading-none select-none ' + heartColor + '">♥</span>'
+            ? '<span class="notice-heart-badge absolute top-[0.5px] right-[2px] text-[9px] leading-none select-none ' + heartColor + '">♥</span>'
             : "";
         html += '<button type="button" data-date="' + dateKey + '" onclick="window.selectSimpleNoticeDate(this.dataset.date, event)" class="h-7 flex items-center justify-center relative select-none transition-all active:scale-95 ' + cellClass + '">' +
                 '<span class="text-[13.5px] leading-none ' + numClass + '">' + d + '</span>' + heartHtml + '</button>';
@@ -8450,20 +8495,9 @@ function renderSimpleNoticeCalendar() {
 }
 
 async function saveSimpleSchedulesToFirestore(nextMap) {
+    applyLocalSchedulesMapImmediately(nextMap);
     const activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim();
-    const curCfg = getActiveMokjangCfg();
     const partial = { mokjangSchedules: nextMap, updatedAt: Date.now() };
-    const mergedCfg = Object.assign({}, curCfg, partial);
-    window.liveMokjangConfig = mergedCfg;
-    window.allMokjangConfigsMap = window.allMokjangConfigsMap || {};
-    window.allMokjangConfigsMap[activeCode] = mergedCfg;
-    if (activeCode === "1111" || !curCfg.mokjangCode || String(curCfg.mokjangCode).trim() === activeCode) {
-        window.allMokjangConfigsMap["main"] = mergedCfg;
-    }
-    try {
-        localStorage.setItem("mokjang_config_backup", JSON.stringify(mergedCfg));
-        localStorage.setItem("mokjang_config_backup_" + activeCode, JSON.stringify(mergedCfg));
-    } catch (e) {}
     if (db) {
         setDbStatus("saving");
         try {
@@ -8472,11 +8506,13 @@ async function saveSimpleSchedulesToFirestore(nextMap) {
             }
             await setDoc(doc(db, "mokjang_configs", activeCode), Object.assign({ mokjangCode: activeCode }, partial), { merge: true });
             setDbStatus("connected");
-        } catch (err) { setDbStatus("error"); }
+        } catch (err) {
+            console.warn("공지 클라우드 저장 오류:", err);
+            setDbStatus("error");
+        }
     }
 }
 
-// 6), 7), 8) [입력] 버튼: 하루 1개 저장(또는 수정), 커서로 비우고 입력 시 삭제 처리
 window.saveSimpleDayNoticeOnly = async function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     if (!simpleSelectedDateKey) { showNotification("먼저 달력에서 날짜를 선택해 주세요."); return; }
@@ -8487,9 +8523,9 @@ window.saveSimpleDayNoticeOnly = async function(event) {
     if (!text) {
         if (map[simpleSelectedDateKey]) {
             delete map[simpleSelectedDateKey];
-            await saveSimpleSchedulesToFirestore(map);
-            renderSimpleNoticeCalendar();
+            applyLocalSchedulesMapImmediately(map);
             showNotification("해당 일자의 알림이 삭제되었습니다.");
+            await saveSimpleSchedulesToFirestore(map);
         } else {
             showNotification("공지·알림 내용을 입력해 주세요.");
             if (inputEl) inputEl.focus();
@@ -8498,12 +8534,11 @@ window.saveSimpleDayNoticeOnly = async function(event) {
     }
     const showOnLogin = popupChk ? popupChk.checked : true;
     map[simpleSelectedDateKey] = [{ text: text, showOnLogin: showOnLogin, updatedAt: Date.now() }];
-    await saveSimpleSchedulesToFirestore(map);
-    renderSimpleNoticeCalendar();
+    applyLocalSchedulesMapImmediately(map);
     showNotification("알림이 저장되었습니다 ♥");
+    await saveSimpleSchedulesToFirestore(map);
 };
 
-// 8) [삭제] 버튼: 선택된 일자의 알림 삭제 및 하트 제거
 window.clearSelectedDayNotices = async function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     if (!simpleSelectedDateKey) return;
@@ -8511,16 +8546,16 @@ window.clearSelectedDayNotices = async function(event) {
     const inputEl = document.getElementById("simple-notice-input");
     if (inputEl) inputEl.value = "";
     if (!map[simpleSelectedDateKey]) {
+        renderSimpleNoticeCalendar();
         showNotification("삭제할 알림이 없습니다.");
         return;
     }
     delete map[simpleSelectedDateKey];
-    await saveSimpleSchedulesToFirestore(map);
-    renderSimpleNoticeCalendar();
+    applyLocalSchedulesMapImmediately(map);
     showNotification("해당 일자의 알림이 삭제되었습니다.");
+    await saveSimpleSchedulesToFirestore(map);
 };
 
-// 8) [카톡방 공유] 버튼: 현재 입력창(또는 저장된) 알림을 저장 후 카톡방 공유
 window.shareSimpleDayNoticeToKakao = async function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     if (!simpleSelectedDateKey) { showNotification("먼저 달력에서 날짜를 선택해 주세요."); return; }
@@ -8538,8 +8573,8 @@ window.shareSimpleDayNoticeToKakao = async function(event) {
     if (text) {
         const showOnLogin = popupChk ? popupChk.checked : true;
         map[simpleSelectedDateKey] = [{ text: text, showOnLogin: showOnLogin, updatedAt: Date.now() }];
-        await saveSimpleSchedulesToFirestore(map);
-        renderSimpleNoticeCalendar();
+        applyLocalSchedulesMapImmediately(map);
+        saveSimpleSchedulesToFirestore(map);
     } else if (existingList.length > 0) {
         shareBodyText = existingList[0].text;
     }
@@ -8563,7 +8598,6 @@ window.shareSimpleDayNoticeToKakao = async function(event) {
 
 window.saveSimpleDayNotice = window.saveSimpleDayNoticeOnly;
 
-// 추가 요구사항 반영: 로그인 시 공지창 알림 문자의 테두리를 없애고 흰 바탕에 문자만 깔끔하게 표시
 window.checkAndAutoShowNoticeAfterLogin = function() {
     const todayStr = new Date().toISOString().slice(0, 10);
     const activeCode = String(window.currentMokjangCode || "1111").trim();
@@ -8645,6 +8679,17 @@ try {
             window.allMokjangConfigsMap[cKey] = merged;
             try { localStorage.setItem("mokjang_config_backup_" + cKey, JSON.stringify(merged)); } catch (e) {}
             applyConfigTitleIfActive(cKey, merged);
+            if (cKey === String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim()) {
+                window.liveMokjangConfig = merged;
+                if (typeof renderSimpleNoticeCalendar === "function") {
+                    const noticeModal = document.getElementById("mokjang-notice-admin-modal");
+                    if (noticeModal && !noticeModal.classList.contains("hidden")) renderSimpleNoticeCalendar();
+                }
+                if (typeof renderBookmarkCalendar === "function") {
+                    const calPopup = document.getElementById("bookmark-calendar-popup");
+                    if (calPopup && !calPopup.classList.contains("hidden")) renderBookmarkCalendar(calendarCurrentYear, calendarCurrentMonth);
+                }
+            }
         });
     });
 } catch (e) {}
