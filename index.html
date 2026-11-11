@@ -1795,7 +1795,7 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
-            <!-- [관리자 설정 진입 패스코드 슬라이드 다운 모달] -->
+                <!-- [관리자 설정 진입 패스코드 슬라이드 다운 모달] -->
     <div id="admin-passcode-slide-modal" onclick="window.closeAdminPasscodeSlideModal(event)" class="fixed inset-0 z-[105] bg-black/40 hidden flex-col items-center justify-start pt-[58px] px-4 select-none">
         <div id="admin-passcode-slide-card" onclick="event.stopPropagation()" class="w-full max-w-[300px] bg-white rounded-2xl border border-slate-200 shadow-2xl p-4 transform -translate-y-8 opacity-0 transition-all duration-250 ease-out">
             <div class="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-100">
@@ -2308,7 +2308,6 @@ function syncHeaderMokjangTitleDOM() {
                 popup.className = 'fixed z-[85] bg-white/98 border border-emerald-200 rounded-lg shadow-md px-1.5 py-1 text-[11px] text-slate-700 select-none transition-all w-auto inline-block';
                 document.body.appendChild(popup);
             }
-            // '(0분)' 상단 제목 문구 없이 접속한 분들의 이름만 최소 여백으로 표시
             popup.innerHTML = '<div class="flex flex-wrap items-center gap-1 max-w-[165px]">' +
                 names.map(n => '<span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-900 font-bold text-[10.5px] leading-tight whitespace-nowrap">' + escapeHtml(n) + '</span>').join('') +
                 '</div>';
@@ -2322,6 +2321,13 @@ function syncHeaderMokjangTitleDOM() {
                 popup.style.left = Math.max(8, Math.min(window.innerWidth - popW - 8, Math.round(rect.left + (rect.width / 2) - (popW / 2)))) + 'px';
             }
         };
+
+        document.addEventListener('pointerdown', function(e) {
+            if (!e.target.closest('#online-users-mini-popover') && !e.target.closest('#online-others-count-trigger')) {
+                const pop = document.getElementById('online-users-mini-popover');
+                if (pop && !pop.classList.contains('hidden')) pop.classList.add('hidden');
+            }
+        }, { passive: true });
 
         function updateWelcomeUserDisplay(usersOrCount = lastOnlineUsersList) {
             const el = document.getElementById('header-user-display');
@@ -7053,19 +7059,19 @@ function syncHeaderMokjangTitleDOM() {
 
                     <div class="pt-1 flex items-center justify-between no-export">
                         <div class="flex items-center space-x-3">
-                            <button type="button" data-reaction-btn="like" data-post-id="${post.id}" oncontextmenu="return false;" onclick="event.stopPropagation(); if(!window.__reactionLongPressed) toggleLike('${post.id}', event)" style="-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;" class="reaction-emoji-btn flex items-center space-x-1 ${hasLiked ? 'text-rose-500 font-bold' : 'text-slate-500 hover:text-rose-500'} active:scale-90 transition-transform select-none" title="좋아요 (길게 누르면 명단 보기)">
-                                <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-[14px] leading-none pointer-events-none" style="transform: scaleX(0.94);"></i>
-                                <span class="text-xs font-semibold pointer-events-none">${likesCount}</span>
+                            <button type="button" data-reaction-btn="like" onclick="event.stopPropagation(); toggleLike('${post.id}', event)" class="flex items-center space-x-1 ${hasLiked ? 'text-rose-500 font-bold' : 'text-slate-500 hover:text-rose-500'} active:scale-90 transition-transform select-none" title="좋아요">
+                                <i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-[14px] leading-none" style="transform: scaleX(0.94);"></i>
+                                <span class="text-xs font-semibold">${likesCount}</span>
                             </button>
 
-                            <button type="button" data-reaction-btn="thumbsUp" data-post-id="${post.id}" oncontextmenu="return false;" onclick="event.stopPropagation(); if(!window.__reactionLongPressed) toggleThumbsUp('${post.id}', event)" style="-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;" class="reaction-emoji-btn flex items-center space-x-1 ${hasThumbed ? 'text-sky-500 font-bold' : 'text-slate-500 hover:text-sky-500'} active:scale-90 transition-transform select-none" title="엄지척 (길게 누르면 명단 보기)">
-                                <i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-[14px] leading-none pointer-events-none" style="transform: scaleX(0.92);"></i>
-                                <span class="text-xs font-semibold pointer-events-none">${thumbsCount}</span>
+                            <button type="button" data-reaction-btn="thumbsUp" onclick="event.stopPropagation(); toggleThumbsUp('${post.id}', event)" class="flex items-center space-x-1 ${hasThumbed ? 'text-sky-500 font-bold' : 'text-slate-500 hover:text-sky-500'} active:scale-90 transition-transform select-none" title="엄지척">
+                                <i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-[14px] leading-none" style="transform: scaleX(0.92);"></i>
+                                <span class="text-xs font-semibold">${thumbsCount}</span>
                             </button>
 
-                            <button type="button" data-reaction-btn="pray" data-post-id="${post.id}" oncontextmenu="return false;" onclick="event.stopPropagation(); if(!window.__reactionLongPressed) togglePray('${post.id}', event)" style="-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;" class="reaction-emoji-btn flex items-center space-x-1 ${hasPrayed ? 'text-amber-500 font-bold' : 'text-slate-500 hover:text-amber-500'} active:scale-90 transition-transform select-none" title="기도손 (길게 누르면 명단 보기)">
-                                <i class="fa-solid fa-hands-praying text-[14px] inline-block leading-none pointer-events-none" style="transform: rotate(0deg) scaleX(0.84) scaleY(0.98); -webkit-font-smoothing: antialiased;"></i>
-                                <span class="text-xs font-semibold pointer-events-none">${prayersCount}</span>
+                            <button type="button" data-reaction-btn="pray" onclick="event.stopPropagation(); togglePray('${post.id}', event)" class="flex items-center space-x-1 ${hasPrayed ? 'text-amber-500 font-bold' : 'text-slate-500 hover:text-amber-500'} active:scale-90 transition-transform select-none" title="기도손">
+                                <i class="fa-solid fa-hands-praying text-[14px] inline-block leading-none" style="transform: rotate(0deg) scaleX(0.84) scaleY(0.98); -webkit-font-smoothing: antialiased;"></i>
+                                <span class="text-xs font-semibold">${prayersCount}</span>
                             </button>
 
                             <button type="button" onclick="event.stopPropagation(); toggleInlineCommentInput('${post.id}', event)" class="flex items-center space-x-1 text-gray-500 hover:text-emerald-700 active:scale-90 transition-transform" title="댓글 작성 및 열기">
@@ -7132,27 +7138,24 @@ function syncHeaderMokjangTitleDOM() {
             const hasLiked = Array.isArray(post.likedUsers) && post.likedUsers.includes(reactionUserId);
             const likesCount = Math.max(0, Array.isArray(post.likedUsers) ? post.likedUsers.length : (parseInt(post.likes) || 0));
             if (likeBtn) {
-                likeBtn.setAttribute('data-post-id', postId);
-                likeBtn.className = `reaction-emoji-btn flex items-center space-x-1 ${hasLiked ? 'text-rose-500 font-bold' : 'text-slate-500 hover:text-rose-500'} active:scale-90 transition-transform select-none`;
-                likeBtn.innerHTML = `<i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-[14px] leading-none pointer-events-none" style="transform: scaleX(0.94);"></i><span class="text-xs font-semibold pointer-events-none">${likesCount}</span>`;
+                likeBtn.className = `flex items-center space-x-1 ${hasLiked ? 'text-rose-500 font-bold' : 'text-slate-500 hover:text-rose-500'} active:scale-90 transition-transform select-none`;
+                likeBtn.innerHTML = `<i class="${hasLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-[14px] leading-none" style="transform: scaleX(0.94);"></i><span class="text-xs font-semibold">${likesCount}</span>`;
             }
 
             const thumbBtn = cardEl.querySelector('[data-reaction-btn="thumbsUp"]');
             const hasThumbed = Array.isArray(post.thumbedUsers) && post.thumbedUsers.includes(reactionUserId);
             const thumbsCount = Math.max(0, Array.isArray(post.thumbedUsers) ? post.thumbedUsers.length : (parseInt(post.thumbsUp) || 0));
             if (thumbBtn) {
-                thumbBtn.setAttribute('data-post-id', postId);
-                thumbBtn.className = `reaction-emoji-btn flex items-center space-x-1 ${hasThumbed ? 'text-sky-500 font-bold' : 'text-slate-500 hover:text-sky-500'} active:scale-90 transition-transform select-none`;
-                thumbBtn.innerHTML = `<i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-[14px] leading-none pointer-events-none" style="transform: scaleX(0.92);"></i><span class="text-xs font-semibold pointer-events-none">${thumbsCount}</span>`;
+                thumbBtn.className = `flex items-center space-x-1 ${hasThumbed ? 'text-sky-500 font-bold' : 'text-slate-500 hover:text-sky-500'} active:scale-90 transition-transform select-none`;
+                thumbBtn.innerHTML = `<i class="${hasThumbed ? 'fa-solid' : 'fa-regular'} fa-thumbs-up text-[14px] leading-none" style="transform: scaleX(0.92);"></i><span class="text-xs font-semibold">${thumbsCount}</span>`;
             }
 
             const prayBtn = cardEl.querySelector('[data-reaction-btn="pray"]');
             const hasPrayed = Array.isArray(post.prayedUsers) && post.prayedUsers.includes(reactionUserId);
             const prayersCount = Math.max(0, Array.isArray(post.prayedUsers) ? post.prayedUsers.length : (parseInt(post.prayers) || 0));
             if (prayBtn) {
-                prayBtn.setAttribute('data-post-id', postId);
-                prayBtn.className = `reaction-emoji-btn flex items-center space-x-1 ${hasPrayed ? 'text-amber-500 font-bold' : 'text-slate-500 hover:text-amber-500'} active:scale-90 transition-transform select-none`;
-                prayBtn.innerHTML = `<i class="fa-solid fa-hands-praying text-[14px] inline-block leading-none pointer-events-none" style="transform: rotate(0deg) scaleX(0.84) scaleY(0.98); -webkit-font-smoothing: antialiased;"></i><span class="text-xs font-semibold pointer-events-none">${prayersCount}</span>`;
+                prayBtn.className = `flex items-center space-x-1 ${hasPrayed ? 'text-amber-500 font-bold' : 'text-slate-500 hover:text-amber-500'} active:scale-90 transition-transform select-none`;
+                prayBtn.innerHTML = `<i class="fa-solid fa-hands-praying text-[14px] inline-block leading-none" style="transform: rotate(0deg) scaleX(0.84) scaleY(0.98); -webkit-font-smoothing: antialiased;"></i><span class="text-xs font-semibold">${prayersCount}</span>`;
             }
 
             const commentCountEl = cardEl.querySelector('[data-comment-count]');
@@ -7607,167 +7610,6 @@ function syncHeaderMokjangTitleDOM() {
 
         const reactionInFlight = new Set();
 
-        function ensurePostReactionNameMap(post) {
-            if (!post.reactionNames || typeof post.reactionNames !== 'object') {
-                post.reactionNames = {};
-            }
-            if (currentUser && reactionUserId) {
-                post.reactionNames[reactionUserId] = currentUser;
-            }
-            return post.reactionNames;
-        }
-
-        function resolveReactionUserName(uid, post) {
-            if (!uid) return '목장가족';
-            if (uid === reactionUserId && currentUser) return currentUser;
-            if (post && post.reactionNames && post.reactionNames[uid]) return post.reactionNames[uid];
-            if (post && post.authorUid === uid && post.author) return post.author;
-            if (post && Array.isArray(post.comments)) {
-                const foundCmt = post.comments.find(c => c && c.authorUid === uid && c.author);
-                if (foundCmt) return foundCmt.author;
-            }
-            for (let i = 0; i < cachedPosts.length; i++) {
-                const p = cachedPosts[i];
-                if (p.reactionNames && p.reactionNames[uid]) return p.reactionNames[uid];
-                if (p.authorUid === uid && p.author) return p.author;
-            }
-            return '목장가족';
-        }
-
-        // [작업 1] 상단에 순서대로 하트 / 엄지척 / 기도손 3열 배치 & 그 밑으로 터치 순서대로 이름 바짝 나열 & 폭은 댓글 아이콘부터 오른쪽 테두리까지
-        window.showReactionUsersMiniModal = function(postId, anchorEl) {
-            const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
-            if (!post) return;
-
-            let modal = document.getElementById('reaction-users-mini-modal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'reaction-users-mini-modal';
-                modal.className = 'fixed z-[88] bg-white/98 border border-slate-200 rounded-xl shadow-lg px-1.5 py-1 text-[11px] text-slate-800 select-none transition-all box-border';
-                document.body.appendChild(modal);
-            }
-
-            const liked = Array.isArray(post.likedUsers) ? post.likedUsers : [];
-            const thumbed = Array.isArray(post.thumbedUsers) ? post.thumbedUsers : [];
-            const prayed = Array.isArray(post.prayedUsers) ? post.prayedUsers : [];
-
-            const renderNamesColumn = function(uidList) {
-                if (!uidList || uidList.length === 0) {
-                    return '<span class="text-[9.5px] text-slate-300 leading-none mt-0.5">-</span>';
-                }
-                return uidList.map(function(uid) {
-                    const uName = resolveReactionUserName(uid, post);
-                    return '<span class="block text-[10.5px] font-bold text-slate-700 leading-[1.15] tracking-tighter truncate w-full text-center">' + escapeHtml(uName) + '</span>';
-                }).join('');
-            };
-
-            modal.innerHTML =
-                '<div class="grid grid-cols-3 gap-0.5 items-start text-center">' +
-                    '<div class="flex flex-col items-center min-w-0">' +
-                        '<div class="pb-0.5 mb-0.5 border-b border-slate-100 w-full flex items-center justify-center">' +
-                            '<i class="fa-solid fa-heart text-rose-500 text-[11px] leading-none"></i>' +
-                        '</div>' +
-                        '<div class="flex flex-col items-center space-y-0 w-full">' +
-                            renderNamesColumn(liked) +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="flex flex-col items-center min-w-0 border-x border-slate-100/80 px-0.5">' +
-                        '<div class="pb-0.5 mb-0.5 border-b border-slate-100 w-full flex items-center justify-center">' +
-                            '<i class="fa-solid fa-thumbs-up text-sky-500 text-[11px] leading-none"></i>' +
-                        '</div>' +
-                        '<div class="flex flex-col items-center space-y-0 w-full">' +
-                            renderNamesColumn(thumbed) +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="flex flex-col items-center min-w-0">' +
-                        '<div class="pb-0.5 mb-0.5 border-b border-slate-100 w-full flex items-center justify-center">' +
-                            '<i class="fa-solid fa-hands-praying text-amber-500 text-[11px] leading-none" style="transform:rotate(0deg) scaleX(0.84);"></i>' +
-                        '</div>' +
-                        '<div class="flex flex-col items-center space-y-0 w-full">' +
-                            renderNamesColumn(prayed) +
-                        '</div>' +
-                    '</div>' +
-                '</div>';
-
-            modal.classList.remove('hidden');
-
-            // 댓글 버튼 위치부터 해당 피드 카드 오른쪽 테두리까지의 폭과 위치로 정확히 배치
-            const cardEl = document.getElementById('post-card-' + postId) || (anchorEl && anchorEl.closest ? anchorEl.closest('[id^="post-card-"]') : null);
-            const commentCountSpan = cardEl ? cardEl.querySelector('[data-comment-count]') : null;
-            const commentBtnEl = commentCountSpan ? commentCountSpan.closest('button') : null;
-
-            if (cardEl && commentBtnEl) {
-                const cardRect = cardEl.getBoundingClientRect();
-                const commentRect = commentBtnEl.getBoundingClientRect();
-                const targetLeft = Math.round(commentRect.left);
-                const targetWidth = Math.max(135, Math.round(cardRect.right - commentRect.left));
-                modal.style.width = targetWidth + 'px';
-                modal.style.left = Math.max(6, Math.min(window.innerWidth - targetWidth - 6, targetLeft)) + 'px';
-                const modalH = modal.offsetHeight || 42;
-                modal.style.top = Math.max(54, Math.round(commentRect.top - modalH - 4)) + 'px';
-            } else if (anchorEl && anchorEl.getBoundingClientRect) {
-                const rect = anchorEl.getBoundingClientRect();
-                modal.style.width = '168px';
-                modal.style.left = Math.max(8, Math.min(window.innerWidth - 176, Math.round(rect.left))) + 'px';
-                modal.style.top = Math.max(54, Math.round(rect.top - (modal.offsetHeight || 42) - 4)) + 'px';
-            }
-        };
-
-        window.hideReactionUsersMiniModal = function() {
-            const modal = document.getElementById('reaction-users-mini-modal');
-            if (modal && !modal.classList.contains('hidden')) {
-                modal.classList.add('hidden');
-            }
-            const onlinePop = document.getElementById('online-users-mini-popover');
-            if (onlinePop && !onlinePop.classList.contains('hidden')) {
-                onlinePop.classList.add('hidden');
-            }
-        };
-
-        (function initReactionLongPressDelegation() {
-            let pressTimer = null;
-            let startX = 0, startY = 0;
-            window.__reactionLongPressed = false;
-
-            document.addEventListener('pointerdown', function(e) {
-                const targetBtn = e.target.closest ? e.target.closest('[data-reaction-btn]') : null;
-                if (!e.target.closest('#reaction-users-mini-modal') && !e.target.closest('#online-users-mini-popover') && !e.target.closest('#online-others-count-trigger')) {
-                    window.hideReactionUsersMiniModal();
-                }
-                if (!targetBtn) return;
-                window.__reactionLongPressed = false;
-                startX = e.clientX;
-                startY = e.clientY;
-                const postId = targetBtn.getAttribute('data-post-id') || (targetBtn.closest('[data-post-id]') ? targetBtn.closest('[data-post-id]').getAttribute('data-post-id') : '');
-                if (pressTimer) clearTimeout(pressTimer);
-                pressTimer = setTimeout(function() {
-                    window.__reactionLongPressed = true;
-                    if (navigator.vibrate) { try { navigator.vibrate(20); } catch(err) {} }
-                    window.showReactionUsersMiniModal(postId, targetBtn);
-                }, 420);
-            }, { passive: true });
-
-            document.addEventListener('pointermove', function(e) {
-                if (!pressTimer) return;
-                if (Math.hypot(e.clientX - startX, e.clientY - startY) > 10) {
-                    clearTimeout(pressTimer);
-                    pressTimer = null;
-                }
-            }, { passive: true });
-
-            const clearPress = function() {
-                if (pressTimer) {
-                    clearTimeout(pressTimer);
-                    pressTimer = null;
-                }
-                setTimeout(function() { window.__reactionLongPressed = false; }, 120);
-            };
-            document.addEventListener('pointerup', clearPress, { passive: true });
-            document.addEventListener('pointercancel', clearPress, { passive: true });
-            const fc = document.getElementById('feed-container');
-            if (fc) fc.addEventListener('scroll', window.hideReactionUsersMiniModal, { passive: true });
-        })();
-
         window.toggleLike = async function(postId, eventOrLegacy, legacyEvent) {
             const event = (eventOrLegacy && eventOrLegacy.stopPropagation) ? eventOrLegacy : legacyEvent;
             if (event && event.stopPropagation) event.stopPropagation();
@@ -7793,7 +7635,6 @@ function syncHeaderMokjangTitleDOM() {
                     }
                 }
                 const nextLikes = Math.max(0, nextLikedUsers.length);
-                const rNames = ensurePostReactionNameMap(post);
 
                 post.likes = nextLikes;
                 post.likedUsers = nextLikedUsers;
@@ -7802,98 +7643,7 @@ function syncHeaderMokjangTitleDOM() {
                 setDbStatus('saving');
                 await updateDoc(getPostDocRef(postId), {
                     likes: nextLikes,
-                    likedUsers: nextLikedUsers,
-                    reactionNames: rNames
-                });
-                setDbStatus('connected');
-            } catch (err) {
-                setDbStatus('error');
-            } finally {
-                setTimeout(() => { reactionInFlight.delete(lockKey); }, 320);
-            }
-        };
-
-        window.toggleThumbsUp = async function(postId, eventOrLegacy, legacyEvent) {
-            const event = (eventOrLegacy && eventOrLegacy.stopPropagation) ? eventOrLegacy : legacyEvent;
-            if (event && event.stopPropagation) event.stopPropagation();
-            if (!db) return;
-
-            const lockKey = `${postId}_thumb`;
-            if (reactionInFlight.has(lockKey)) return;
-            reactionInFlight.add(lockKey);
-
-            try {
-                const post = cachedPosts.find(p => p.id === postId);
-                if (!post) return;
-
-                if (!Array.isArray(post.thumbedUsers)) post.thumbedUsers = [];
-                const isCurrentlyThumbed = post.thumbedUsers.includes(reactionUserId);
-                let nextThumbedUsers = [...post.thumbedUsers];
-
-                if (isCurrentlyThumbed) {
-                    nextThumbedUsers = nextThumbedUsers.filter(u => u !== reactionUserId);
-                } else {
-                    if (!nextThumbedUsers.includes(reactionUserId)) {
-                        nextThumbedUsers.push(reactionUserId);
-                    }
-                }
-                const nextThumbs = Math.max(0, nextThumbedUsers.length);
-                const rNames = ensurePostReactionNameMap(post);
-
-                post.thumbsUp = nextThumbs;
-                post.thumbedUsers = nextThumbedUsers;
-                updatePostReactionDOM(postId, post);
-
-                setDbStatus('saving');
-                await updateDoc(getPostDocRef(postId), {
-                    thumbsUp: nextThumbs,
-                    thumbedUsers: nextThumbedUsers,
-                    reactionNames: rNames
-                });
-                setDbStatus('connected');
-            } catch (err) {
-                setDbStatus('error');
-            } finally {
-                setTimeout(() => { reactionInFlight.delete(lockKey); }, 320);
-            }
-        };
-
-        window.togglePray = async function(postId, eventOrLegacy, legacyEvent) {
-            const event = (eventOrLegacy && eventOrLegacy.stopPropagation) ? eventOrLegacy : legacyEvent;
-            if (event && event.stopPropagation) event.stopPropagation();
-            if (!db) return;
-
-            const lockKey = `${postId}_pray`;
-            if (reactionInFlight.has(lockKey)) return;
-            reactionInFlight.add(lockKey);
-
-            try {
-                const post = cachedPosts.find(p => p.id === postId);
-                if (!post) return;
-
-                if (!Array.isArray(post.prayedUsers)) post.prayedUsers = [];
-                const isCurrentlyPrayed = post.prayedUsers.includes(reactionUserId);
-                let nextPrayedUsers = [...post.prayedUsers];
-
-                if (isCurrentlyPrayed) {
-                    nextPrayedUsers = nextPrayedUsers.filter(u => u !== reactionUserId);
-                } else {
-                    if (!nextPrayedUsers.includes(reactionUserId)) {
-                        nextPrayedUsers.push(reactionUserId);
-                    }
-                }
-                const nextPrayers = Math.max(0, nextPrayedUsers.length);
-                const rNames = ensurePostReactionNameMap(post);
-
-                post.prayers = nextPrayers;
-                post.prayedUsers = nextPrayedUsers;
-                updatePostReactionDOM(postId, post);
-
-                setDbStatus('saving');
-                await updateDoc(getPostDocRef(postId), {
-                    prayers: nextPrayers,
-                    prayedUsers: nextPrayedUsers,
-                    reactionNames: rNames
+                    likedUsers: nextLikedUsers
                 });
                 setDbStatus('connected');
             } catch (err) {
@@ -8650,6 +8400,14 @@ let lastLineLimitToastAt = 0;
 
 function pad2Num(n) { return String(n).padStart(2, "0"); }
 
+// 24시간제 시간 포맷 헬퍼 (예: 14:30)
+function formatNoticeTime24h(ts) {
+    if (!ts) return "";
+    const d = (ts && typeof ts.toDate === "function") ? ts.toDate() : new Date(Number(ts) || ts);
+    if (isNaN(d.getTime())) return "";
+    return pad2Num(d.getHours()) + ":" + pad2Num(d.getMinutes());
+}
+
 function getFormattedMokjangSpaceTitle(suffix) {
     const raw = (currentMokjangShort && currentMokjangShort.trim())
         ? currentMokjangShort.trim()
@@ -8728,7 +8486,6 @@ window.formatAuthorNameWithTitle = function(authorName) {
     return escapeHtml(raw);
 };
 
-// [작업 4] 펜글씨 기능모음에서 '사용설명서' 터치 시 일회성 보안 패스 발급 후 같은 위치의 dcsghelp.html 로드 (주소창 직접 입력 차단 호환)
 window.openUserManualModal = function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     if (typeof closeAllHeaderQuickMenu === "function") closeAllHeaderQuickMenu();
@@ -8764,7 +8521,6 @@ window.closeUserManualModal = function(event) {
     }
 };
 
-// [작업 3] 관리자(목자) 로그인 후 설정 터치 시 밑으로 슬라이드 패스코드 입력창 -> 확인 시 보안관리 페이지(indexdm.html)로 즉시 이동
 window.openAdminPasscodeSlideModal = function() {
     const modal = document.getElementById("admin-passcode-slide-modal");
     const card = document.getElementById("admin-passcode-slide-card");
@@ -8822,6 +8578,7 @@ window.verifyAdminSlidePasscode = function() {
     }
 };
 
+// updatedAt(등록/수정 시각) 보존 정규화
 function getSimpleSchedulesMap() {
     const cfg = getActiveMokjangCfg();
     const raw = (cfg && cfg.mokjangSchedules && typeof cfg.mokjangSchedules === "object") ? cfg.mokjangSchedules : {};
@@ -8831,8 +8588,12 @@ function getSimpleSchedulesMap() {
         if (Array.isArray(arr) && arr.length > 0) {
             const lastItem = arr[arr.length - 1];
             const obj = (typeof lastItem === "object" && lastItem !== null)
-                ? { text: String(lastItem.text || "").trim(), showOnLogin: lastItem.showOnLogin !== false }
-                : { text: String(lastItem || "").trim(), showOnLogin: true };
+                ? {
+                    text: String(lastItem.text || "").trim(),
+                    showOnLogin: lastItem.showOnLogin !== false,
+                    updatedAt: lastItem.updatedAt || lastItem.createdAt || null
+                }
+                : { text: String(lastItem || "").trim(), showOnLogin: true, updatedAt: null };
             if (obj.text.length > 0) {
                 normalized[k] = [obj];
             }
@@ -9138,6 +8899,7 @@ window.shareSimpleDayNoticeToKakao = async function(event) {
 
 window.saveSimpleDayNotice = window.saveSimpleDayNoticeOnly;
 
+// 알림 확인 창 & 로그인 시 뜨는 알림 창에 '일자 + 시간(24시간제, 작은 회색 문자)' 표시
 window.openMemberNoticeHistoryModal = function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     if (typeof closeAllHeaderQuickMenu === "function") closeAllHeaderQuickMenu();
@@ -9146,7 +8908,7 @@ window.openMemberNoticeHistoryModal = function(event) {
     Object.keys(map).sort().reverse().forEach(function(dateKey) {
         (map[dateKey] || []).forEach(function(item) {
             if (item && item.text) {
-                allEntries.push({ dateKey: dateKey, text: item.text });
+                allEntries.push({ dateKey: dateKey, text: item.text, updatedAt: item.updatedAt });
             }
         });
     });
@@ -9168,8 +8930,10 @@ window.openMemberNoticeHistoryModal = function(event) {
                 const dObj = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
                 dateBadge = parseInt(p[1], 10) + "/" + parseInt(p[2], 10) + "(" + dayNames[dObj.getDay()] + ")";
             }
+            const time24 = formatNoticeTime24h(entry.updatedAt);
+            const timeHtml = time24 ? '<span class="text-[10px] font-medium text-gray-400 ml-1.5 font-mono">' + time24 + '</span>' : '';
             return '<div class="py-1.5 border-b border-gray-100 last:border-b-0 bg-white space-y-0.5">' +
-                   '<div class="text-[11px] font-black text-[#8C6239]">' + dateBadge + '</div>' +
+                   '<div class="flex items-baseline"><span class="text-[11px] font-black text-[#8C6239]">' + dateBadge + '</span>' + timeHtml + '</div>' +
                    '<p class="text-[13px] font-bold text-gray-900 leading-snug whitespace-pre-wrap break-words">' + escapeHtml(entry.text) + '</p></div>';
         }).join("");
     }
@@ -9188,7 +8952,7 @@ window.checkAndAutoShowNoticeAfterLogin = function() {
         if (dateKey >= todayStr.slice(0, 8) + "01") {
             (map[dateKey] || []).forEach(function(item) {
                 if (item && item.showOnLogin && item.text) {
-                    loginEntries.push({ dateKey: dateKey, text: item.text });
+                    loginEntries.push({ dateKey: dateKey, text: item.text, updatedAt: item.updatedAt });
                 }
             });
         }
@@ -9209,8 +8973,10 @@ window.checkAndAutoShowNoticeAfterLogin = function() {
             const dObj = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
             dateBadge = parseInt(p[1], 10) + "/" + parseInt(p[2], 10) + "(" + dayNames[dObj.getDay()] + ")";
         }
+        const time24 = formatNoticeTime24h(entry.updatedAt);
+        const timeHtml = time24 ? '<span class="text-[10px] font-medium text-gray-400 ml-1.5 font-mono">' + time24 + '</span>' : '';
         return '<div class="py-1 bg-white space-y-1">' +
-               '<div class="text-[11px] font-black text-[#8C6239]">' + dateBadge + '</div>' +
+               '<div class="flex items-baseline"><span class="text-[11px] font-black text-[#8C6239]">' + dateBadge + '</span>' + timeHtml + '</div>' +
                '<p class="text-[13px] font-bold text-gray-900 leading-snug whitespace-pre-wrap break-words">' + escapeHtml(entry.text) + '</p></div>';
     }).join("");
     setTimeout(function() { popup.classList.remove("hidden"); }, 300);
