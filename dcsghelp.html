@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>우리들의 목장 이야기 - 터치형 사용설명서</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        html, body {
+            width: 100%; height: 100%; overflow: hidden;
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background-color: #F1F5F9; color: #1E293B;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        @keyframes pulseRing {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.55); }
+            50% { transform: scale(1.06); box-shadow: 0 0 0 5px rgba(245, 158, 11, 0); }
+        }
+        .touch-hotspot {
+            animation: pulseRing 2s infinite;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between h-full w-full max-w-md mx-auto bg-white shadow-xl overflow-hidden">
+
+    <!-- 상단 바: 돌아가기 & 직분 선택 탭 -->
+    <header class="w-full bg-[#F6EBD8] border-b border-[#E6D5B8] px-3 py-2 shrink-0 space-y-1.5">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-1.5">
+                <span class="w-5 h-5 rounded-full bg-[#5A3E28] text-white text-[11px] font-black flex items-center justify-center">?</span>
+                <h1 class="text-[13.5px] font-black text-[#5A3E28] tracking-tight"><span id="help-mokjang-label">23목장</span> 화면 터치 사용설명서</h1>
+            </div>
+            <button type="button" onclick="returnToMokjangApp()" class="px-2.5 py-1 rounded-lg bg-[#3B5D50] hover:opacity-95 text-white text-[11px] font-extrabold shadow-2xs active:scale-95 transition-all flex items-center space-x-1">
+                <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                <span>나눔방 돌아가기</span>
+            </button>
+        </div>
+        <!-- 직분 전환 탭 (목원 / 부목자 / 목자) -->
+        <div class="grid grid-cols-3 gap-1 bg-white/80 p-1 rounded-xl border border-[#E6D5B8]">
+            <button type="button" id="role-tab-member" onclick="setGuideRole('member')" class="py-1 rounded-lg text-[11px] font-extrabold transition-all">🌱 목원 기준</button>
+            <button type="button" id="role-tab-subleader" onclick="setGuideRole('subleader')" class="py-1 rounded-lg text-[11px] font-extrabold transition-all">🌿 부목자 기준</button>
+            <button type="button" id="role-tab-leader" onclick="setGuideRole('leader')" class="py-1 rounded-lg text-[11px] font-extrabold transition-all">👑 목자 기준</button>
+        </div>
+    </header>
+
+    <!-- 안내 한 줄 배너 -->
+    <div class="w-full bg-amber-50 border-b border-amber-200/80 px-3 py-1.5 text-center shrink-0 flex items-center justify-between">
+        <span class="text-[11px] font-extrabold text-amber-950"><i class="fa-solid fa-hand-pointer text-amber-600 mr-1 animate-bounce"></i>아래 실제 화면의 <strong>주황색 반짝이 버튼</strong>을 직접 터치해보세요!</span>
+        <span id="role-summary-pill" class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 text-[10px] font-black shrink-0">본인글 관리</span>
+    </div>
+
+    <!-- 중앙: 실제 목장 앱 화면 시뮬레이터 (스크롤 없이 한 화면에 쏙 들어오는 구조) -->
+    <main class="flex-1 w-full p-2.5 bg-[#F8FAFC] flex flex-col justify-between relative overflow-hidden">
+
+        <!-- [모의 앱 상단 헤더] -->
+        <div class="w-full bg-white rounded-xl border border-gray-200 px-3 py-2 flex items-center justify-between shadow-2xs relative z-20 shrink-0">
+            <div onclick="openGuidePopup('title')" class="touch-hotspot flex items-center space-x-2 px-1.5 py-0.5 rounded-lg border border-amber-400 bg-amber-50/40">
+                <div class="w-6 h-6 rounded-full bg-[#3B5D50] text-white flex items-center justify-center text-[10px] font-black">꿈</div>
+                <div class="text-left leading-tight">
+                    <div class="text-[12.5px] font-black text-gray-800">세종꿈의교회 <span class="text-[#3B5D50]" id="sim-mokjang-name">23목장</span></div>
+                    <div class="text-[9px] text-emerald-700 font-bold">실시간 접속 가족 표시 (👆터치)</div>
+                </div>
+            </div>
+
+            <!-- 우상단 펜 버튼 -->
+            <button type="button" onclick="openGuidePopup('pen_menu')" class="touch-hotspot w-7 h-7 rounded-full bg-[#E8F0EC] text-[#3B5D50] border-2 border-amber-400 flex items-center justify-center shadow-xs">
+                <i class="fa-solid fa-pen-fancy text-xs"></i>
+            </button>
+
+            <!-- 미니 모음함 프리뷰 (우측 상단에 항상 반쯤 보여서 직접 터치 유도) -->
+            <div class="absolute top-[44px] right-1.5 w-[138px] bg-[#F1F5F9] border-2 border-amber-400/90 rounded-[14px] shadow-lg p-1.5 z-30 space-y-1">
+                <div class="text-[9px] font-black text-amber-900 text-center bg-amber-100/90 rounded py-0.5">👆 펜 메뉴 터치해보세요</div>
+                <div class="grid grid-cols-2 gap-1">
+                    <button type="button" onclick="openGuidePopup('write')" class="touch-hotspot h-[36px] rounded-[9px] bg-white border border-amber-300 flex flex-col items-center justify-center">
+                        <i class="fa-solid fa-pen-nib text-[9px] text-[#3B5D50]"></i>
+                        <span class="text-[9px] font-extrabold text-slate-700 mt-0.5">글쓰기</span>
+                    </button>
+                    <button type="button" onclick="openGuidePopup('search')" class="touch-hotspot h-[36px] rounded-[9px] bg-white border border-amber-300 flex flex-col items-center justify-center">
+                        <i class="fa-solid fa-magnifying-glass text-[9px] text-sky-700"></i>
+                        <span class="text-[9px] font-extrabold text-slate-700 mt-0.5">검색</span>
+                    </button>
+                    <button type="button" id="sim-btn-notice" onclick="openGuidePopup('notice_admin')" class="touch-hotspot h-[36px] rounded-[9px] bg-white border border-amber-300 flex flex-col items-center justify-center">
+                        <span class="text-[9px] leading-none">📢</span>
+                        <span class="text-[9px] font-extrabold text-slate-700 mt-0.5">공지·알림</span>
+                    </button>
+                    <button type="button" id="sim-btn-settings" onclick="openGuidePopup('leader_settings')" class="touch-hotspot h-[36px] rounded-[9px] bg-white border border-amber-300 flex flex-col items-center justify-center">
+                        <span class="text-[9px] leading-none">⚙️</span>
+                        <span class="text-[9px] font-extrabold text-slate-700 mt-0.5">설정</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- [모의 피드 게시글 카드] -->
+        <div class="w-full bg-white rounded-2xl border border-gray-200 p-2.5 shadow-xs flex-1 my-2 flex flex-col justify-between relative overflow-hidden">
+            <!-- 카드 상단 작성자 & 첨부파일/더보기 -->
+            <div class="flex items-center justify-between border-b border-gray-100 pb-1.5 pr-[136px]">
+                <div class="flex items-center space-x-1.5">
+                    <div class="w-6 h-6 rounded-full bg-[#E8F0EC] text-[#3B5D50] font-bold text-xs flex items-center justify-center">홍</div>
+                    <div>
+                        <div class="text-[11px] font-bold text-gray-800">홍길동 목원</div>
+                        <div class="text-[8.5px] text-gray-400">10/18 14:20</div>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <button type="button" onclick="openGuidePopup('file_box')" class="touch-hotspot px-1.5 py-0.5 rounded-full bg-emerald-50 border border-amber-400 text-[9.5px] font-bold text-emerald-800">📁 1</button>
+                    <button type="button" onclick="openGuidePopup('post_more')" class="touch-hotspot w-6 h-6 rounded-full bg-amber-50 border border-amber-400 text-gray-700 text-xs font-black">+</button>
+                </div>
+            </div>
+
+            <!-- 본문 & 긴글읽기 -->
+            <div class="py-1 text-left pr-[132px]">
+                <p class="text-[11.5px] text-gray-800 leading-snug">이번 주일 목장 나눔 은혜로웠습니다!</p>
+                <button type="button" onclick="openGuidePopup('long_read')" class="touch-hotspot mt-1 inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-400 text-amber-950 text-[10px] font-bold">
+                    <span>📜</span><span>긴글읽기 (1,500자)</span>
+                </button>
+            </div>
+
+            <!-- 사진 영역 (1터치 펼쳐보기 / 3터치 크롭창 / 우하단 펜댓글) -->
+            <div class="grid grid-cols-2 gap-1.5 my-1 flex-1 min-h-[105px] max-h-[155px]">
+                <div onclick="openGuidePopup('photo_crop')" class="touch-hotspot rounded-xl bg-gradient-to-br from-emerald-800/80 to-teal-600/80 text-white p-2 flex flex-col justify-between relative border-2 border-amber-400 overflow-hidden">
+                    <span class="px-1.5 py-0.5 rounded bg-black/40 text-[9px] font-bold w-fit">👆 사진 1번 / 3번 터치</span>
+                    <div class="text-center my-auto">
+                        <i class="fa-regular fa-images text-lg opacity-90"></i>
+                        <p class="text-[10px] font-extrabold mt-0.5 leading-tight">1번 터치: 크게 펼침<br>3번 터치: 사진 편집창</p>
+                    </div>
+                    <button type="button" onclick="event.stopPropagation(); openGuidePopup('photo_caption')" class="touch-hotspot self-end px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[9.5px] font-black shadow">✏️ 사진 펜댓글</button>
+                </div>
+
+                <div onclick="openGuidePopup('login_notice')" class="touch-hotspot rounded-xl bg-[#FAF8F5] border-2 border-amber-400 p-2 flex flex-col justify-between text-left">
+                    <div class="flex items-center justify-between">
+                        <span class="px-1.5 py-0.5 rounded bg-[#F6EBD8] text-[#5A3E28] text-[9px] font-black">📢 로그인 알림창</span>
+                        <span class="text-[9px] text-rose-500 font-black">♥</span>
+                    </div>
+                    <div class="my-auto space-y-0.5">
+                        <div class="text-[9.5px] font-black text-[#8C6239]">10/20(주일)</div>
+                        <p class="text-[10px] font-bold text-gray-800 leading-tight">주일 오후 2시 목장 모임 있습니다 (👆터치)</p>
+                    </div>
+                    <span class="text-[8.5px] text-amber-800 font-bold">오늘 하루 안보기 지원</span>
+                </div>
+            </div>
+
+            <!-- 하단 반응(하트/엄지/기도/댓글+) 및 내보내기(v) -->
+            <div class="pt-1.5 border-t border-gray-100 flex items-center justify-between">
+                <div onclick="openGuidePopup('reactions')" class="touch-hotspot flex items-center space-x-2.5 px-2 py-1 rounded-lg bg-amber-50/70 border border-amber-400">
+                    <span class="text-xs text-rose-500 font-bold"><i class="fa-solid fa-heart mr-0.5"></i>3</span>
+                    <span class="text-xs text-sky-500 font-bold"><i class="fa-solid fa-thumbs-up mr-0.5"></i>2</span>
+                    <span class="text-xs text-amber-500 font-bold"><i class="fa-solid fa-hands-praying mr-0.5"></i>5</span>
+                    <span class="text-xs text-emerald-800 font-extrabold"><i class="fa-regular fa-comment-dots mr-0.5"></i>+ 댓글쓰기</span>
+                </div>
+                <button type="button" onclick="openGuidePopup('export_menu')" class="touch-hotspot px-2 py-1 rounded-lg bg-amber-50 border border-amber-400 text-[10px] font-extrabold text-gray-700 flex items-center space-x-1">
+                    <span>저장·인쇄</span><i class="fa-solid fa-chevron-down text-[9px]"></i>
+                </button>
+            </div>
+
+            <!-- 댓글 수정/삭제 안내 줄 -->
+            <div onclick="openGuidePopup('comment_edit')" class="touch-hotspot mt-1.5 bg-gray-50 rounded-lg px-2 py-1 border border-amber-400 flex items-center justify-between text-[10.5px]">
+                <div><strong class="text-gray-800">김사랑 :</strong> <span class="text-gray-700">아멘! 주일날 뵙겠습니다 (👆댓글 터치 시 수정·삭제)</span></div>
+                <span class="text-[9px] font-bold text-emerald-700 shrink-0 ml-1">✏️ / ✕</span>
+            </div>
+
+            <!-- [우측 플로팅 스마트 책갈피 모형] -->
+            <div onclick="openGuidePopup('bookmark')" class="touch-hotspot absolute right-0 top-1/2 -translate-y-1/2 w-[36px] py-2 px-0.5 rounded-l-xl bg-amber-100/95 border-y-2 border-l-2 border-amber-500 flex flex-col items-center space-y-1.5 shadow-md z-20">
+                <span class="text-xs leading-none">🍁</span>
+                <div class="text-[9px] font-black text-amber-950 leading-tight text-center">10.18<br>(주일)</div>
+                <span class="w-5 h-5 rounded-full bg-amber-600 text-white flex items-center justify-center text-[9px]"><i class="fa-regular fa-calendar-days"></i></span>
+                <span class="w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[9px] relative">💬<span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-rose-500 text-[8px] font-black flex items-center justify-center">2</span></span>
+            </div>
+        </div>
+
+        <!-- 하단 직분별 권한 한눈에 보기 바 -->
+        <div onclick="openGuidePopup('role_diff')" class="touch-hotspot w-full bg-[#F6EBD8] border border-[#E6D5B8] rounded-xl px-3 py-2 flex items-center justify-between text-xs shrink-0">
+            <div class="flex items-center space-x-2 truncate">
+                <span class="px-2 py-0.5 rounded bg-[#5A3E28] text-white text-[10px] font-black shrink-0" id="bottom-role-badge">목원</span>
+                <span class="text-[11px] font-extrabold text-[#5A3E28] truncate" id="bottom-role-desc">본인이 작성한 글·사진·댓글 수정 및 삭제 가능</span>
+            </div>
+            <span class="text-[10px] font-black text-amber-900 shrink-0 ml-1">직분비교 👆</span>
+        </div>
+    </main>
+
+    <!-- [터치 시 열리는 설명 팝업 모달] -->
+    <div id="guide-detail-modal" onclick="closeGuidePopup()" class="fixed inset-0 z-50 bg-black/55 flex items-center justify-center p-4 hidden">
+        <div onclick="event.stopPropagation()" class="w-full max-w-[320px] bg-white rounded-2xl border border-[#E6D5B8] shadow-2xl overflow-hidden">
+            <div class="bg-[#F6EBD8] px-3.5 py-2.5 border-b border-[#E6D5B8] flex items-center justify-between text-[#5A3E28]">
+                <div class="flex items-center space-x-1.5 truncate">
+                    <span id="popup-icon" class="text-sm">💡</span>
+                    <h3 id="popup-title" class="text-[13px] font-black tracking-tight truncate">기능 설명</h3>
+                </div>
+                <button type="button" onclick="closeGuidePopup()" class="w-6 h-6 rounded-md bg-white/70 text-[#5A3E28] flex items-center justify-center text-xs active:scale-90">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-3.5 space-y-2.5 text-left bg-white">
+                <div id="popup-role-tag" class="inline-block px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-900 border border-emerald-200 text-[10.5px] font-extrabold"></div>
+                <div id="popup-body" class="space-y-1.5 text-[12px] text-gray-800 font-medium leading-relaxed"></div>
+            </div>
+            <div class="px-3.5 py-2 bg-gray-50 border-t border-gray-100 flex justify-end">
+                <button type="button" onclick="closeGuidePopup()" class="w-full py-2 rounded-md bg-[#F6EBD8] hover:bg-[#EFE0C6] text-[#5A3E28] border border-[#E6D5B8] text-xs font-extrabold active:scale-95 transition-all">
+                    이해했습니다 (닫기)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        let currentRole = params.get("role") || localStorage.getItem("mokjang_user_role") || "member";
+        const mokjangName = params.get("mokjang") || localStorage.getItem("mokjang_short_name") || "23목장";
+
+        document.getElementById("help-mokjang-label").textContent = mokjangName;
+        document.getElementById("sim-mokjang-name").textContent = mokjangName;
+
+        const GUIDE_DATA = {
+            title: {
+                icon: "🏠",
+                title: "목장 타이틀 & 실시간 접속 가족 표시",
+                all: [
+                    "• 상단에는 우리 목장 이름과 현재 나눔방에 함께 들어와 있는 목장 가족들의 이름이 실시간으로 표시됩니다.",
+                    "• 화면을 아래로 살짝 당기면(Pull-to-Refresh) 최신 목장 이야기를 즉시 새로고침합니다."
+                ]
+            },
+            pen_menu: {
+                icon: "✒️",
+                title: "우상단 펜 메뉴 (모음함 열기)",
+                all: [
+                    "• 오른쪽 위 펜 버튼을 누르면 아이폰 스타일 모음함이 대각선으로 열립니다.",
+                    "• [목원/부목자]: 글쓰기, 검색, 사용설명서, 클라우드 용량이 표시됩니다.",
+                    "• [목자 전용]: 여기에 더해 📢공지·알림 관리와 ⚙️설정 버튼이 추가로 나타납니다."
+                ]
+            },
+            write: {
+                icon: "📝",
+                title: "목장 이야기 글쓰기 & 카톡 공유",
+                all: [
+                    "• 사진 최대 4장(자동 압축), 한글·영문 예쁜 글씨체 20종, 📜긴글쓰기(1,500자), 파일첨부(1MB)를 올려 나눌 수 있습니다.",
+                    "• 글을 등록하면 [000님이 00목장 나눔 앱에 00번째 글을 올렸습니다.] 문구만 깔끔하게 카톡방에 공유할 수 있습니다."
+                ]
+            },
+            search: {
+                icon: "🔍",
+                title: "실시간 단어 검색 & 자동 이동",
+                all: [
+                    "• 찾고 싶은 단어나 작성자 이름을 한 글자만 입력해도 노란 형광펜으로 표시됩니다.",
+                    "• 위/아래(▲/▼) 화살표를 누르면 해당 단어가 있는 게시글 위치로 즉시 이동합니다."
+                ]
+            },
+            notice_admin: {
+                icon: "📢",
+                title: "목자 전용: 공지·알림 관리",
+                roleOnly: "👑 목자(관리자) 전용 기능 (목원·부목자에게는 버튼이 숨겨짐)",
+                all: [
+                    "• 달력에서 주일이나 특정 날짜를 누르고 3줄 이내로 공지를 입력하면 날짜에 예쁜 하트(♥)가 달립니다.",
+                    "• 하트가 달린 날짜를 다시 누르면 내용을 불러와 수정·삭제하거나 [카톡방 공유]로 단톡방에 바로 알릴 수 있습니다.",
+                    "• [로그인시 알림]을 체크해 두면 가족들이 앱에 들어올 때 알림창이 자동으로 뜹니다."
+                ]
+            },
+            leader_settings: {
+                icon: "⚙️",
+                title: "목자 전용: 보안 설정 및 PDF 전체 백업",
+                roleOnly: "👑 목자(관리자) 전용 기능 (indexdm.html 연동)",
+                all: [
+                    "• 목장 이름, 4자리 목장 코드, 목자·부목자 성함을 설정하고 변경할 수 있습니다.",
+                    "• 새 가족(목원) 추가·제외 및 신입 목원의 열람 시작 기준일을 지정할 수 있습니다.",
+                    "• [우리목장 백업]을 눌러 목장의 모든 게시글·사진·댓글을 A4 세로/가로 PDF 책자로 저장·인쇄할 수 있습니다."
+                ]
+            },
+            photo_crop: {
+                icon: "🖼️",
+                title: "사진 1번 터치(펼쳐보기) & 3번 터치(크롭 편집창)",
+                all: [
+                    "• [사진 1번 터치]: 여러 장의 사진을 한 장씩 큼직하게 펼쳐보거나 다시 격자로 접습니다.",
+                    "• [사진 3번 연속 터치]: 노란 점선 크롭창이 열려 원하는 영역만 자르기, 회전, 마법봉(자동 밝기·대비 보정), 개별 사진 삭제를 할 수 있습니다.",
+                    "• 권한 안내: 목원은 본인 사진만, 부목자와 목자는 모든 게시글의 사진을 편집해 줄 수 있습니다."
+                ]
+            },
+            photo_caption: {
+                icon: "✏️",
+                title: "사진 속 작은 연필: 사진별 펜댓글",
+                all: [
+                    "• 각 사진의 오른쪽 아래 작은 연필(✏️) 아이콘을 누르면 그 사진 바로 밑에 사진 설명(펜댓글)을 달 수 있습니다.",
+                    "• 작성자 이름이 함께 표시되며, 작성자 본인 또는 목자·부목자가 수정/삭제할 수 있습니다."
+                ]
+            },
+            long_read: {
+                icon: "📜",
+                title: "긴글쓰기 & 긴글읽기 (최대 1,500자)",
+                all: [
+                    "• 주일 설교 요약이나 긴 기도제목(최대 1,500자)은 [📜긴글읽기] 버튼으로 깔끔하게 접혀 올라갑니다.",
+                    "• 아직 읽지 않은 새 긴글은 두루마리 아이콘(📜)이 살랑살랑 흔들리며, 터치 후 글자 크기를 1~5단계로 키워 편하게 읽을 수 있습니다."
+                ]
+            },
+            login_notice: {
+                icon: "🔔",
+                title: "로그인 시 뜨는 목장 알림 사항",
+                all: [
+                    "• 목자님이 등록한 공지사항이 있으면 로그인 직후 흰 바탕의 깔끔한 알림창으로 먼저 안내해 드립니다.",
+                    "• 확인 후 [오늘 하루 안보기]를 누르면 당일에는 다시 뜨지 않아 편리합니다."
+                ]
+            },
+            reactions: {
+                icon: "❤️",
+                title: "공감 반응(하트·엄지·기도손) & 댓글 달기",
+                all: [
+                    "• 하트(좋아요), 엄지척, 기도손을 눌러 목장 가족의 나눔에 사랑을 표현하세요.",
+                    "• [💬+ 댓글] 아이콘을 누르면 바로 아래에 점선 댓글 입력창이 열려 간편하게 댓글을 등록할 수 있습니다."
+                ]
+            },
+            comment_edit: {
+                icon: "💬",
+                title: "댓글 터치하여 수정(✏️) 및 삭제(✕)",
+                all: [
+                    "• 달려 있는 댓글 줄을 살짝 터치하면 오른쪽에 수정(✏️) 버튼과 삭제(✕) 버튼이 나타납니다.",
+                    "• [목원]: 본인이 쓴 댓글만 수정·삭제 가능 / [부목자·목자]: 모든 댓글 관리 가능."
+                ]
+            },
+            file_box: {
+                icon: "🗂️",
+                title: "첨부파일 보기·다운로드 & 전체파일 보관함",
+                all: [
+                    "• 게시글 우상단의 [📁1] 배지를 누르면 첨부된 주보·문서·사진 파일을 바로 미리보거나 기기에 다운로드할 수 있습니다.",
+                    "• [전체파일 보관함]을 열면 우리 목장에 올라온 모든 파일을 한곳에서 모아볼 수 있습니다."
+                ]
+            },
+            post_more: {
+                icon: "➕",
+                title: "게시글 수정 · 삭제 · 파일보관함 (+ 버튼)",
+                all: [
+                    "• 게시글 오른쪽 위 [+] 버튼을 누르면 슬라이드 메뉴가 열립니다.",
+                    "• [목원]: 본인이 작성한 글일 때만 [수정 | 삭제]가 보입니다.",
+                    "• [부목자 & 목자]: 목장 피드의 모든 게시글을 [수정 | 삭제]하여 관리할 수 있습니다."
+                ]
+            },
+            export_menu: {
+                icon: "🖨️",
+                title: "개별 게시글 이미지·PDF 저장 및 인쇄 (v 버튼)",
+                all: [
+                    "• 게시글 오른쪽 아래 [v] 버튼을 누르면 해당 게시글을 고화질 이미지(PNG), PDF 문서, 또는 인쇄(Print)로 깔끔하게 소장할 수 있습니다."
+                ]
+            },
+            bookmark: {
+                icon: "🍁",
+                title: "우측 스마트 책갈피 · 월별 달력 · 새댓글 이동",
+                all: [
+                    "• 피드를 스크롤할 때 나타나며, 길게 눌러 왼쪽/오른쪽 원하는 위치로 옮기거나 위아래 끝으로 당겨 빠르게 스크롤할 수 있습니다.",
+                    "• [📅 달력]: 날짜별 글(보라색), 댓글(분홍색), 공지(♥)를 확인하고 날짜를 누르면 그날의 글로 즉시 이동합니다.",
+                    "• [💬 새댓글]: 아직 안 읽은 새 댓글 개수를 알려주며, 누르면 노란 형광펜으로 새 댓글 위치로 바로 안내합니다."
+                ]
+            },
+            role_diff: {
+                icon: "👥",
+                title: "목원 · 부목자 · 목자 직분별 권한 한눈에 비교",
+                all: [
+                    "🌱 [목원]: 글쓰기·댓글·공감·책갈피·파일함 등 모든 나눔 기능 사용 + 본인이 작성한 글/사진/댓글만 수정·삭제 가능",
+                    "🌿 [부목자]: 목원의 모든 기능 + 목장 피드의 모든 게시글·사진(3터치 편집)·댓글·펜댓글 수정 및 삭제(피드 관리 권한)",
+                    "👑 [목자]: 부목자의 모든 권한 + 📢공지·알림 관리(하트 달력) + ⚙️목자 보안 설정(목원 명단·열람시작일·전체 PDF 백업)"
+                ]
+            }
+        };
+
+        function setGuideRole(role) {
+            currentRole = role;
+            const tabs = {
+                member: document.getElementById("role-tab-member"),
+                subleader: document.getElementById("role-tab-subleader"),
+                leader: document.getElementById("role-tab-leader")
+            };
+            Object.keys(tabs).forEach(k => {
+                if (k === role) {
+                    tabs[k].className = "py-1 rounded-lg text-[11px] font-black bg-[#3B5D50] text-white shadow-xs transition-all";
+                } else {
+                    tabs[k].className = "py-1 rounded-lg text-[11px] font-bold text-[#5A3E28] hover:bg-amber-100/60 transition-all";
+                }
+            });
+
+            const pill = document.getElementById("role-summary-pill");
+            const bBadge = document.getElementById("bottom-role-badge");
+            const bDesc = document.getElementById("bottom-role-desc");
+            const simNotice = document.getElementById("sim-btn-notice");
+            const simSettings = document.getElementById("sim-btn-settings");
+
+            if (role === "leader") {
+                pill.textContent = "👑 모든 관리 권한";
+                bBadge.textContent = "목자";
+                bDesc.textContent = "모든 글 관리 + 📢공지·알림 + ⚙️설정/백업";
+                simNotice.classList.remove("opacity-40");
+                simSettings.classList.remove("opacity-40");
+            } else if (role === "subleader") {
+                pill.textContent = "🌿 피드 전체 관리";
+                bBadge.textContent = "부목자";
+                bDesc.textContent = "피드 모든 글·사진·댓글 수정/삭제 가능";
+                simNotice.classList.add("opacity-40");
+                simSettings.classList.add("opacity-40");
+            } else {
+                pill.textContent = "🌱 본인글 수정/삭제";
+                bBadge.textContent = "목원";
+                bDesc.textContent = "본인이 작성한 글·사진·댓글 수정 및 삭제";
+                simNotice.classList.add("opacity-40");
+                simSettings.classList.add("opacity-40");
+            }
+        }
+
+        function openGuidePopup(key) {
+            const info = GUIDE_DATA[key];
+            if (!info) return;
+            document.getElementById("popup-icon").textContent = info.icon || "💡";
+            document.getElementById("popup-title").textContent = info.title;
+            const roleTag = document.getElementById("popup-role-tag");
+            if (info.roleOnly) {
+                roleTag.textContent = info.roleOnly;
+                roleTag.className = "inline-block px-2 py-0.5 rounded-md bg-amber-100 text-amber-950 border border-amber-300 text-[10.5px] font-extrabold";
+            } else {
+                const rName = currentRole === "leader" ? "👑 목자" : (currentRole === "subleader" ? "🌿 부목자" : "🌱 목원");
+                roleTag.textContent = rName + " · 모든 가족 공통 사용 기능";
+                roleTag.className = "inline-block px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-900 border border-emerald-200 text-[10.5px] font-extrabold";
+            }
+            document.getElementById("popup-body").innerHTML = info.all.map(line => `<p>${line}</p>`).join("");
+            document.getElementById("guide-detail-modal").classList.remove("hidden");
+        }
+
+        function closeGuidePopup() {
+            document.getElementById("guide-detail-modal").classList.add("hidden");
+        }
+
+        function returnToMokjangApp() {
+            window.location.replace("index.html");
+        }
+
+        setGuideRole(currentRole === "leader" || currentRole === "subleader" ? currentRole : "member");
+    </script>
+</body>
+</html>
