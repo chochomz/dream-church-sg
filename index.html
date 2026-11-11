@@ -938,7 +938,7 @@ window.proceedToExternalAdminPage = function() {
                         </div>
                         <span class="text-[11px] font-extrabold text-slate-700 tracking-tight leading-none">설정</span>
                     </button>
-                    <button type="button" id="header-manual-btn" onclick="window.openUserManualModal(event)" class="col-span-2 relative h-[42px] px-3 rounded-[14px] bg-white hover:bg-indigo-50/60 border border-slate-200/90 shadow-2xs flex items-center justify-center space-x-2 active:scale-95 transition-all" title="목장 앱 사용설명서">
+                    <button type="button" id="header-manual-btn" onclick="window.openUserManualModal(event)" class="col-span-2 relative h-[42px] px-3 rounded-[14px] bg-white hover:bg-indigo-50/60 border border-slate-200/90 shadow-2xs flex items-center justify-center space-x-2 active:scale-95 transition-all" title="목장 앱 사용설명서 (dcsghelp.html)">
                         <span class="absolute top-1 right-2 text-[8.5px] font-bold text-slate-400 leading-none">공통</span>
                         <div class="w-6 h-6 rounded-[8px] bg-indigo-50 text-indigo-700 border border-indigo-200/80 flex items-center justify-center shrink-0">
                             <i class="fa-solid fa-book-open text-[10px]"></i>
@@ -1795,7 +1795,7 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
-        <!-- [관리자 설정 진입 패스코드 슬라이드 다운 모달] -->
+            <!-- [관리자 설정 진입 패스코드 슬라이드 다운 모달] -->
     <div id="admin-passcode-slide-modal" onclick="window.closeAdminPasscodeSlideModal(event)" class="fixed inset-0 z-[105] bg-black/40 hidden flex-col items-center justify-start pt-[58px] px-4 select-none">
         <div id="admin-passcode-slide-card" onclick="event.stopPropagation()" class="w-full max-w-[300px] bg-white rounded-2xl border border-slate-200 shadow-2xl p-4 transform -translate-y-8 opacity-0 transition-all duration-250 ease-out">
             <div class="flex items-center justify-between mb-2.5 pb-2 border-b border-slate-100">
@@ -1816,113 +1816,19 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
-    <!-- [관리자 설정: 목원·부목자 및 직분(성도,집사,권사,안수집사,장로,간사) 관리 모달] -->
-    <div id="admin-member-role-title-modal" onclick="window.closeAdminMemberManageModal(event)" class="fixed inset-0 z-[108] bg-black/55 hidden items-center justify-center p-3 select-none">
-        <div onclick="event.stopPropagation()" class="w-full max-w-[360px] max-h-[86vh] bg-white rounded-2xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden">
-            <div class="px-4 py-3 bg-[#3B5D50] text-white flex items-center justify-between shrink-0">
-                <div class="flex items-center space-x-2">
-                    <span class="text-sm">⚙️</span>
-                    <h3 class="text-xs font-black tracking-tight">목원 · 부목자 및 직분 관리</h3>
-                </div>
-                <button type="button" onclick="window.closeAdminMemberManageModal(event)" class="w-6 h-6 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center text-xs active:scale-90">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+    <!-- [dcsghelp.html 외부 주소 직접 입력 방지용 인앱 보안 뷰어 모달] -->
+    <div id="dcsghelp-secure-viewer-modal" class="fixed inset-0 z-[115] bg-white hidden flex-col w-full h-full overflow-hidden select-none">
+        <div class="h-[48px] px-4 bg-[#3B5D50] text-white flex items-center justify-between shrink-0 shadow-xs max-w-md w-full mx-auto">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-book-open text-xs"></i>
+                <h3 class="text-xs font-black tracking-tight">우리들의 목장 이야기 사용설명서</h3>
             </div>
-
-            <!-- 신규/수정 추가 입력 영역 (윗줄: 이름 / 아랫줄 왼쪽: 목원·부목자, 오른쪽: 직분) -->
-            <div class="p-3 bg-slate-50 border-b border-slate-200 space-y-2 shrink-0 text-left">
-                <div class="text-[11px] font-extrabold text-emerald-900 flex items-center justify-between">
-                    <span>가족 추가 / 직분 설정</span>
-                    <span class="text-[10px] font-semibold text-slate-400">윗줄: 이름 · 아랫줄: 구분/직분</span>
-                </div>
-                <div class="flex items-center space-x-1.5">
-                    <span class="w-10 text-[11px] font-extrabold text-slate-600 shrink-0">이름</span>
-                    <input type="text" id="admin-manage-member-name" maxlength="10" placeholder="이름 입력 (예: 홍길동)" class="flex-1 h-9 px-3 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 focus:outline-none focus:border-[#3B5D50]">
-                </div>
-                <div class="flex items-center space-x-1.5">
-                    <span class="w-10 text-[11px] font-extrabold text-slate-600 shrink-0">구분</span>
-                    <select id="admin-manage-member-role" class="w-[96px] h-9 px-2 rounded-xl border border-slate-300 bg-white text-xs font-extrabold text-slate-800 focus:outline-none focus:border-[#3B5D50]">
-                        <option value="member">목원</option>
-                        <option value="subleader">부목자</option>
-                        <option value="leader">목자</option>
-                    </select>
-                    <select id="admin-manage-member-title" class="flex-1 h-9 px-2 rounded-xl border border-slate-300 bg-white text-xs font-extrabold text-emerald-900 focus:outline-none focus:border-[#3B5D50]">
-                        <option value="성도">직분: 성도</option>
-                        <option value="집사">직분: 집사</option>
-                        <option value="권사">직분: 권사</option>
-                        <option value="안수집사">직분: 안수집사</option>
-                        <option value="장로">직분: 장로</option>
-                        <option value="간사">직분: 간사</option>
-                    </select>
-                    <button type="button" onclick="window.addOrUpdateManagedMember()" class="h-9 px-3 rounded-xl church-primary text-white text-xs font-extrabold shrink-0 active:scale-95 transition-all shadow-2xs">저장</button>
-                </div>
-            </div>
-
-            <div id="admin-manage-members-list" class="flex-1 overflow-y-auto p-3 space-y-2 bg-white text-left"></div>
-
-            <div class="p-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-2 shrink-0">
-                <button type="button" onclick="window.proceedToExternalAdminPage()" class="py-2 px-3 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-extrabold flex items-center space-x-1 active:scale-95 transition-all">
-                    <i class="fa-solid fa-sliders text-[10px]"></i>
-                    <span>전체 코드·고급설정 페이지로 이동</span>
-                </button>
-                <button type="button" onclick="window.closeAdminMemberManageModal(event)" class="py-2 px-4 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold active:scale-95 transition-all">닫기</button>
-            </div>
+            <button type="button" onclick="window.closeUserManualModal(event)" class="px-2.5 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-extrabold flex items-center space-x-1 active:scale-95 transition-all">
+                <i class="fa-solid fa-xmark"></i>
+                <span>닫기</span>
+            </button>
         </div>
-    </div>
-
-    <!-- [목장 앱 사용설명서 모달 (공통)] -->
-    <div id="mokjang-user-manual-modal" onclick="window.closeUserManualModal(event)" class="fixed inset-0 z-[106] bg-black/50 hidden items-center justify-center p-3 select-none">
-        <div onclick="event.stopPropagation()" class="w-full max-w-[350px] max-h-[84vh] bg-white rounded-2xl border border-slate-200 shadow-2xl flex flex-col overflow-hidden text-left">
-            <div class="px-4 py-3 bg-[#3B5D50] text-white flex items-center justify-between shrink-0">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-book-open text-xs"></i>
-                    <h3 class="text-xs font-black tracking-tight">우리들의 목장 이야기 사용설명서</h3>
-                </div>
-                <button type="button" onclick="window.closeUserManualModal(event)" class="w-6 h-6 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center text-xs active:scale-90">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="flex-1 overflow-y-auto p-3.5 space-y-2.5 text-xs text-slate-700 leading-relaxed">
-                <div class="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 space-y-1">
-                    <h4 class="font-black text-emerald-950 flex items-center justify-between">
-                        <span>✍️ 1. 글쓰기 · 긴글 · 첨부파일</span>
-                        <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-white text-emerald-800 border border-emerald-200 font-bold">공통</span>
-                    </h4>
-                    <p class="text-[11.5px] text-slate-600">우측 상단 펜 버튼 ➔ <b>[글쓰기]</b>에서 사진(최대 4장), 글씨체 20종, 1,500자 긴글(📜), 첨부파일(1MB)을 올릴 수 있습니다.</p>
-                </div>
-                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
-                    <h4 class="font-black text-slate-900 flex items-center justify-between">
-                        <span>🖼️ 2. 사진 펼쳐보기 & 3번 터치 편집</span>
-                        <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-white text-slate-600 border border-slate-200 font-bold">공통</span>
-                    </h4>
-                    <p class="text-[11.5px] text-slate-600">피드 사진을 <b>1번 터치</b>하면 크게 펼쳐지고, 본인 사진을 <b>3번 연속 터치</b>하면 회전·자르기·밝기 보정(마법봉) 편집창이 열립니다. 사진 우측 하단 연필(✏️)로 사진별 한줄 이야기도 남길 수 있습니다.</p>
-                </div>
-                <div class="p-2.5 rounded-xl bg-rose-50/60 border border-rose-200/70 space-y-1">
-                    <h4 class="font-black text-rose-950 flex items-center justify-between">
-                        <span>❤️ 3. 공감 이모지 터치 & 길게 누르기</span>
-                        <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-white text-rose-700 border border-rose-200 font-bold">공통</span>
-                    </h4>
-                    <p class="text-[11.5px] text-slate-600">하트(❤️), 엄지척(👍), 기도손(🙏)을 가볍게 터치해 공감을 표시하고, <b>길게 누르면</b> 공감한 가족들의 이름이 심플하게 나타납니다.</p>
-                </div>
-                <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 space-y-1">
-                    <h4 class="font-black text-amber-950 flex items-center justify-between">
-                        <span>🍁 4. 책갈피 달력 & 새댓글 · 알림 확인</span>
-                        <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-white text-amber-800 border border-amber-200 font-bold">공통</span>
-                    </h4>
-                    <p class="text-[11.5px] text-slate-600">화면 옆 책갈피의 달력(📅)으로 날짜별 글과 일정(♥)을 보고, 말풍선(💬)으로 안 읽은 새 댓글을 바로 찾아갑니다. 펜 메뉴의 <b>[알림 확인]</b>에서 지난 공지도 언제든 다시 볼 수 있습니다.</p>
-                </div>
-                <div class="p-2.5 rounded-xl bg-indigo-50/60 border border-indigo-200/80 space-y-1">
-                    <h4 class="font-black text-indigo-950 flex items-center justify-between">
-                        <span>⚙️ 5. 공지·알림 관리 및 목원·직분 설정</span>
-                        <span class="text-[9.5px] px-1.5 py-0.5 rounded bg-white text-indigo-800 border border-indigo-200 font-bold">관리자</span>
-                    </h4>
-                    <p class="text-[11.5px] text-slate-600">목자님은 <b>[공지·알림]</b>에서 일자별 알림 등록 및 카톡방 공유를 할 수 있으며, <b>[설정]</b>(보안코드 입력)에서 목원·부목자 구분 및 직분(성도/집사/권사/안수집사/장로/간사)을 관리할 수 있습니다.</p>
-                </div>
-            </div>
-            <div class="p-2.5 bg-slate-50 border-t border-slate-200 shrink-0">
-                <button type="button" onclick="window.closeUserManualModal(event)" class="w-full py-2 rounded-xl church-primary text-white text-xs font-extrabold active:scale-95 transition-all">확인했습니다</button>
-            </div>
-        </div>
+        <iframe id="dcsghelp-secure-iframe" src="about:blank" class="flex-1 w-full max-w-md mx-auto border-0 bg-white"></iframe>
     </div>
 
     <script type="module">
@@ -2399,21 +2305,22 @@ function syncHeaderMokjangTitleDOM() {
             if (!popup) {
                 popup = document.createElement('div');
                 popup.id = 'online-users-mini-popover';
-                popup.className = 'fixed z-[85] bg-white/95 border border-emerald-200 rounded-xl shadow-lg px-3 py-2 text-xs text-slate-700 select-none transition-all';
+                popup.className = 'fixed z-[85] bg-white/98 border border-emerald-200 rounded-lg shadow-md px-1.5 py-1 text-[11px] text-slate-700 select-none transition-all w-auto inline-block';
                 document.body.appendChild(popup);
             }
-            popup.innerHTML = '<div class="text-[10px] font-extrabold text-emerald-800 mb-1 border-b border-emerald-100 pb-0.5">함께 들어온 가족 (' + names.length + '분)</div>' +
-                '<div class="flex flex-wrap gap-1 max-w-[210px]">' +
-                names.map(n => '<span class="px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-900 font-bold text-[11px]">' + escapeHtml(n) + '님</span>').join('') +
+            // '(0분)' 상단 제목 문구 없이 접속한 분들의 이름만 최소 여백으로 표시
+            popup.innerHTML = '<div class="flex flex-wrap items-center gap-1 max-w-[165px]">' +
+                names.map(n => '<span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-900 font-bold text-[10.5px] leading-tight whitespace-nowrap">' + escapeHtml(n) + '</span>').join('') +
                 '</div>';
 
+            popup.classList.remove('hidden');
             const triggerEl = document.getElementById('online-others-count-trigger') || document.getElementById('header-user-display');
             if (triggerEl) {
                 const rect = triggerEl.getBoundingClientRect();
-                popup.style.top = Math.round(rect.bottom + 6) + 'px';
-                popup.style.left = Math.max(10, Math.min(window.innerWidth - 220, Math.round(rect.left - 20))) + 'px';
+                const popW = popup.offsetWidth || 90;
+                popup.style.top = Math.round(rect.bottom + 4) + 'px';
+                popup.style.left = Math.max(8, Math.min(window.innerWidth - popW - 8, Math.round(rect.left + (rect.width / 2) - (popW / 2)))) + 'px';
             }
-            popup.classList.remove('hidden');
         };
 
         function updateWelcomeUserDisplay(usersOrCount = lastOnlineUsersList) {
@@ -7727,6 +7634,7 @@ function syncHeaderMokjangTitleDOM() {
             return '목장가족';
         }
 
+        // [작업 1] 상단에 순서대로 하트 / 엄지척 / 기도손 3열 배치 & 그 밑으로 터치 순서대로 이름 바짝 나열 & 폭은 댓글 아이콘부터 오른쪽 테두리까지
         window.showReactionUsersMiniModal = function(postId, anchorEl) {
             const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
             if (!post) return;
@@ -7735,7 +7643,7 @@ function syncHeaderMokjangTitleDOM() {
             if (!modal) {
                 modal = document.createElement('div');
                 modal.id = 'reaction-users-mini-modal';
-                modal.className = 'fixed z-[88] bg-white/95 border border-slate-200 rounded-2xl shadow-xl px-3.5 py-2.5 text-xs text-slate-800 select-none transition-all max-w-[260px]';
+                modal.className = 'fixed z-[88] bg-white/98 border border-slate-200 rounded-xl shadow-lg px-1.5 py-1 text-[11px] text-slate-800 select-none transition-all box-border';
                 document.body.appendChild(modal);
             }
 
@@ -7743,26 +7651,65 @@ function syncHeaderMokjangTitleDOM() {
             const thumbed = Array.isArray(post.thumbedUsers) ? post.thumbedUsers : [];
             const prayed = Array.isArray(post.prayedUsers) ? post.prayedUsers : [];
 
-            const rows = [];
-            liked.forEach(uid => rows.push({ icon: '<i class="fa-solid fa-heart text-rose-500 text-xs"></i>', name: resolveReactionUserName(uid, post) }));
-            thumbed.forEach(uid => rows.push({ icon: '<i class="fa-solid fa-thumbs-up text-sky-500 text-xs"></i>', name: resolveReactionUserName(uid, post) }));
-            prayed.forEach(uid => rows.push({ icon: '<i class="fa-solid fa-hands-praying text-amber-500 text-xs" style="transform:scaleX(0.84);"></i>', name: resolveReactionUserName(uid, post) }));
+            const renderNamesColumn = function(uidList) {
+                if (!uidList || uidList.length === 0) {
+                    return '<span class="text-[9.5px] text-slate-300 leading-none mt-0.5">-</span>';
+                }
+                return uidList.map(function(uid) {
+                    const uName = resolveReactionUserName(uid, post);
+                    return '<span class="block text-[10.5px] font-bold text-slate-700 leading-[1.15] tracking-tighter truncate w-full text-center">' + escapeHtml(uName) + '</span>';
+                }).join('');
+            };
 
-            if (rows.length === 0) {
-                modal.innerHTML = '<div class="text-[11px] font-bold text-slate-500 py-0.5">아직 표현된 공감 이모지가 없습니다.</div>';
-            } else {
-                modal.innerHTML = '<div class="flex flex-wrap gap-1.5 items-center">' +
-                    rows.map(r => '<span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-slate-50 border border-slate-200/80 font-bold text-[11px] text-slate-700">' + r.icon + '<span>' + escapeHtml(r.name) + '</span></span>').join('') +
-                    '</div>';
-            }
+            modal.innerHTML =
+                '<div class="grid grid-cols-3 gap-0.5 items-start text-center">' +
+                    '<div class="flex flex-col items-center min-w-0">' +
+                        '<div class="pb-0.5 mb-0.5 border-b border-slate-100 w-full flex items-center justify-center">' +
+                            '<i class="fa-solid fa-heart text-rose-500 text-[11px] leading-none"></i>' +
+                        '</div>' +
+                        '<div class="flex flex-col items-center space-y-0 w-full">' +
+                            renderNamesColumn(liked) +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="flex flex-col items-center min-w-0 border-x border-slate-100/80 px-0.5">' +
+                        '<div class="pb-0.5 mb-0.5 border-b border-slate-100 w-full flex items-center justify-center">' +
+                            '<i class="fa-solid fa-thumbs-up text-sky-500 text-[11px] leading-none"></i>' +
+                        '</div>' +
+                        '<div class="flex flex-col items-center space-y-0 w-full">' +
+                            renderNamesColumn(thumbed) +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="flex flex-col items-center min-w-0">' +
+                        '<div class="pb-0.5 mb-0.5 border-b border-slate-100 w-full flex items-center justify-center">' +
+                            '<i class="fa-solid fa-hands-praying text-amber-500 text-[11px] leading-none" style="transform:rotate(0deg) scaleX(0.84);"></i>' +
+                        '</div>' +
+                        '<div class="flex flex-col items-center space-y-0 w-full">' +
+                            renderNamesColumn(prayed) +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
 
             modal.classList.remove('hidden');
-            if (anchorEl && anchorEl.getBoundingClientRect) {
+
+            // 댓글 버튼 위치부터 해당 피드 카드 오른쪽 테두리까지의 폭과 위치로 정확히 배치
+            const cardEl = document.getElementById('post-card-' + postId) || (anchorEl && anchorEl.closest ? anchorEl.closest('[id^="post-card-"]') : null);
+            const commentCountSpan = cardEl ? cardEl.querySelector('[data-comment-count]') : null;
+            const commentBtnEl = commentCountSpan ? commentCountSpan.closest('button') : null;
+
+            if (cardEl && commentBtnEl) {
+                const cardRect = cardEl.getBoundingClientRect();
+                const commentRect = commentBtnEl.getBoundingClientRect();
+                const targetLeft = Math.round(commentRect.left);
+                const targetWidth = Math.max(135, Math.round(cardRect.right - commentRect.left));
+                modal.style.width = targetWidth + 'px';
+                modal.style.left = Math.max(6, Math.min(window.innerWidth - targetWidth - 6, targetLeft)) + 'px';
+                const modalH = modal.offsetHeight || 42;
+                modal.style.top = Math.max(54, Math.round(commentRect.top - modalH - 4)) + 'px';
+            } else if (anchorEl && anchorEl.getBoundingClientRect) {
                 const rect = anchorEl.getBoundingClientRect();
-                const topPos = Math.max(56, rect.top - (modal.offsetHeight || 44) - 8);
-                const leftPos = Math.max(10, Math.min(window.innerWidth - 265, rect.left));
-                modal.style.top = Math.round(topPos) + 'px';
-                modal.style.left = Math.round(leftPos) + 'px';
+                modal.style.width = '168px';
+                modal.style.left = Math.max(8, Math.min(window.innerWidth - 176, Math.round(rect.left))) + 'px';
+                modal.style.top = Math.max(54, Math.round(rect.top - (modal.offsetHeight || 42) - 4)) + 'px';
             }
         };
 
@@ -8726,7 +8673,6 @@ function getActiveMokjangCfg() {
     return cfg || {};
 }
 
-// [작업 4-2] 작성자 역할('목자' | '부목자' | '목원') 및 직분('성도' | '집사' | '권사' | '안수집사' | '장로' | '간사') 판별 헬퍼
 window.getAuthorRoleLabel = function(authorName) {
     const clean = String(authorName || "").trim();
     if (!clean) return "목원";
@@ -8782,26 +8728,43 @@ window.formatAuthorNameWithTitle = function(authorName) {
     return escapeHtml(raw);
 };
 
-// [작업 3] 사용설명서 모달 열기/닫기
+// [작업 4] 펜글씨 기능모음에서 '사용설명서' 터치 시 일회성 보안 패스 발급 후 같은 위치의 dcsghelp.html 로드 (주소창 직접 입력 차단 호환)
 window.openUserManualModal = function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     if (typeof closeAllHeaderQuickMenu === "function") closeAllHeaderQuickMenu();
-    const modal = document.getElementById("mokjang-user-manual-modal");
-    if (modal) {
-        modal.classList.remove("hidden");
-        modal.classList.add("flex");
-    }
-};
-window.closeUserManualModal = function(event) {
-    if (event) { event.preventDefault(); event.stopPropagation(); }
-    const modal = document.getElementById("mokjang-user-manual-modal");
-    if (modal) {
-        modal.classList.add("hidden");
-        modal.classList.remove("flex");
+    try {
+        sessionStorage.setItem("mokjang_help_pass", JSON.stringify({
+            target: "dcsghelp.html",
+            authorizedFromIndex: true,
+            token: "hlptk_" + Date.now() + "_" + Math.random().toString(36).slice(2),
+            mokjangCode: window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111",
+            userName: currentUser || localStorage.getItem("mokjang_user_name") || "목장가족",
+            issuedAt: Date.now()
+        }));
+    } catch (e) {}
+    const viewerModal = document.getElementById("dcsghelp-secure-viewer-modal");
+    const iframe = document.getElementById("dcsghelp-secure-iframe");
+    if (viewerModal && iframe) {
+        iframe.src = "dcsghelp.html?t=" + Date.now();
+        viewerModal.classList.remove("hidden");
+        viewerModal.classList.add("flex");
+    } else {
+        window.location.href = "dcsghelp.html";
     }
 };
 
-// [작업 2] 관리자(목자) 설정 클릭 시 패스코드 슬라이드 모달 열기/검증
+window.closeUserManualModal = function(event) {
+    if (event) { event.preventDefault(); event.stopPropagation(); }
+    const viewerModal = document.getElementById("dcsghelp-secure-viewer-modal");
+    const iframe = document.getElementById("dcsghelp-secure-iframe");
+    if (iframe) iframe.src = "about:blank";
+    if (viewerModal) {
+        viewerModal.classList.add("hidden");
+        viewerModal.classList.remove("flex");
+    }
+};
+
+// [작업 3] 관리자(목자) 로그인 후 설정 터치 시 밑으로 슬라이드 패스코드 입력창 -> 확인 시 보안관리 페이지(indexdm.html)로 즉시 이동
 window.openAdminPasscodeSlideModal = function() {
     const modal = document.getElementById("admin-passcode-slide-modal");
     const card = document.getElementById("admin-passcode-slide-card");
@@ -8852,238 +8815,11 @@ window.verifyAdminSlidePasscode = function() {
     if (entered === validAdminPass || entered === validMokjangCode || entered === "0000" || entered === "1111") {
         if (input) input.blur();
         window.closeAdminPasscodeSlideModal();
-        setTimeout(function() {
-            window.openAdminMemberManageModal();
-        }, 210);
+        window.proceedToExternalAdminPage();
     } else {
         if (msg) msg.textContent = "코드가 일치하지 않습니다.";
         if (input) { input.value = ""; input.focus(); }
     }
-};
-
-// [작업 4-1] 관리자 설정: 목원·부목자 구분 및 직분(성도,집사,권사,안수집사,장로,간사) 관리 모달
-window.openAdminMemberManageModal = function() {
-    const modal = document.getElementById("admin-member-role-title-modal");
-    if (!modal) return;
-    window.renderAdminManagedMembersList();
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-};
-
-window.closeAdminMemberManageModal = function(event) {
-    if (event) { event.preventDefault(); event.stopPropagation(); }
-    const modal = document.getElementById("admin-member-role-title-modal");
-    if (modal) {
-        modal.classList.add("hidden");
-        modal.classList.remove("flex");
-    }
-};
-
-function getNormalizedManagedMembersList() {
-    const cfg = getActiveMokjangCfg();
-    const rawMembers = Array.isArray(cfg.members) ? cfg.members : [];
-    const rolesMap = Object.assign({}, (cfg.memberRoles && typeof cfg.memberRoles === "object") ? cfg.memberRoles : {});
-    const titlesMap = Object.assign({}, (cfg.memberTitles && typeof cfg.memberTitles === "object") ? cfg.memberTitles : {});
-    const namesSet = new Set();
-
-    if (cfg.leaderName && String(cfg.leaderName).trim()) {
-        const ln = String(cfg.leaderName).trim();
-        namesSet.add(ln);
-        rolesMap[ln] = "leader";
-    }
-    if (cfg.subLeaderName && String(cfg.subLeaderName).trim()) {
-        const sn = String(cfg.subLeaderName).trim();
-        namesSet.add(sn);
-        if (!rolesMap[sn]) rolesMap[sn] = "subleader";
-    }
-    if (Array.isArray(cfg.subLeaders)) {
-        cfg.subLeaders.forEach(function(s) {
-            const sn = String(s || "").trim();
-            if (sn) {
-                namesSet.add(sn);
-                if (!rolesMap[sn]) rolesMap[sn] = "subleader";
-            }
-        });
-    }
-    rawMembers.forEach(function(m) {
-        const n = (typeof m === "object" && m !== null) ? String(m.name || "").trim() : String(m || "").trim();
-        if (n && n !== "1111") {
-            namesSet.add(n);
-            if (typeof m === "object" && m !== null) {
-                if (m.role && !rolesMap[n]) rolesMap[n] = m.role;
-                if (m.title && !titlesMap[n]) titlesMap[n] = m.title;
-            }
-        }
-    });
-
-    const list = Array.from(namesSet).map(function(name) {
-        const role = rolesMap[name] || (name === cfg.leaderName ? "leader" : "member");
-        const title = titlesMap[name] || "성도";
-        return { name: name, role: role, title: title };
-    });
-
-    const roleOrder = { leader: 0, subleader: 1, member: 2 };
-    list.sort(function(a, b) {
-        const rDiff = (roleOrder[a.role] ?? 2) - (roleOrder[b.role] ?? 2);
-        if (rDiff !== 0) return rDiff;
-        return a.name.localeCompare(b.name, "ko");
-    });
-    return { list: list, rolesMap: rolesMap, titlesMap: titlesMap };
-}
-
-window.renderAdminManagedMembersList = function() {
-    const container = document.getElementById("admin-manage-members-list");
-    if (!container) return;
-    const { list } = getNormalizedManagedMembersList();
-    if (list.length === 0) {
-        container.innerHTML = '<div class="py-8 text-center text-xs text-slate-400 font-bold">등록된 목장 가족이 없습니다. 위에서 추가해 주세요.</div>';
-        return;
-    }
-    const titles = ["성도", "집사", "권사", "안수집사", "장로", "간사"];
-    container.innerHTML = list.map(function(item) {
-        const safeName = escapeHtml(item.name);
-        return '<div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-1.5">' +
-            '<div class="flex items-center justify-between">' +
-                '<div class="flex items-center space-x-1.5">' +
-                    window.renderAuthorRoleBadgeHtml(item.name) +
-                    '<span class="text-xs font-black text-slate-800">' + safeName + '</span>' +
-                    '<span class="text-[11px] font-bold text-emerald-800">' + escapeHtml(item.title) + '</span>' +
-                '</div>' +
-                '<button type="button" data-name="' + safeName + '" onclick="window.removeManagedMember(this.dataset.name)" class="w-6 h-6 rounded-full hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center text-xs active:scale-90" title="명단에서 삭제">' +
-                    '<i class="fa-solid fa-trash-can text-[10px]"></i>' +
-                '</button>' +
-            '</div>' +
-            '<div class="flex items-center space-x-1.5 pt-0.5">' +
-                '<select data-name="' + safeName + '" onchange="window.changeManagedMemberRole(this.dataset.name, this.value)" class="w-[105px] h-8 px-2 rounded-lg border border-slate-300 bg-white text-[11px] font-extrabold text-slate-700 focus:outline-none focus:border-[#3B5D50]">' +
-                    '<option value="member" ' + (item.role === "member" ? "selected" : "") + '>구분: 목원</option>' +
-                    '<option value="subleader" ' + (item.role === "subleader" ? "selected" : "") + '>구분: 부목자</option>' +
-                    '<option value="leader" ' + (item.role === "leader" ? "selected" : "") + '>구분: 목자</option>' +
-                '</select>' +
-                '<select data-name="' + safeName + '" onchange="window.changeManagedMemberTitle(this.dataset.name, this.value)" class="flex-1 h-8 px-2 rounded-lg border border-slate-300 bg-white text-[11px] font-extrabold text-emerald-900 focus:outline-none focus:border-[#3B5D50]">' +
-                    titles.map(function(t) {
-                        return '<option value="' + t + '" ' + (item.title === t ? "selected" : "") + '>직분: ' + t + '</option>';
-                    }).join("") +
-                '</select>' +
-            '</div>' +
-        '</div>';
-    }).join("");
-};
-
-async function persistManagedMembersConfig(nextList) {
-    const activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "1111").trim();
-    const curCfg = getActiveMokjangCfg();
-    const membersArr = [];
-    const memberRoles = {};
-    const memberTitles = {};
-    const subLeaders = [];
-    let leaderName = curCfg.leaderName || configuredLeaderName || "목자";
-
-    nextList.forEach(function(item) {
-        const n = String(item.name || "").trim();
-        if (!n) return;
-        membersArr.push(n);
-        memberRoles[n] = item.role || "member";
-        memberTitles[n] = item.title || "성도";
-        if (item.role === "leader") leaderName = n;
-        else if (item.role === "subleader") subLeaders.push(n);
-    });
-    if (!membersArr.includes("1111")) membersArr.push("1111");
-
-    const partial = {
-        members: membersArr,
-        memberRoles: memberRoles,
-        memberTitles: memberTitles,
-        leaderName: leaderName,
-        subLeaderName: subLeaders[0] || "",
-        subLeaders: subLeaders,
-        updatedAt: Date.now()
-    };
-
-    const mergedCfg = Object.assign({}, curCfg, partial);
-    window.liveMokjangConfig = mergedCfg;
-    window.allMokjangConfigsMap = window.allMokjangConfigsMap || {};
-    window.allMokjangConfigsMap[activeCode] = mergedCfg;
-    window.allMokjangConfigsMap["main"] = Object.assign({}, window.allMokjangConfigsMap["main"] || {}, partial);
-
-    configuredLeaderName = leaderName;
-    configuredSubLeaderName = subLeaders[0] || "";
-    configuredSubLeaders = subLeaders;
-
-    try {
-        localStorage.setItem("mokjang_config_backup", JSON.stringify(mergedCfg));
-        localStorage.setItem("mokjang_config_backup_" + activeCode, JSON.stringify(mergedCfg));
-    } catch (e) {}
-
-    window.renderAdminManagedMembersList();
-    const feedEl = document.getElementById("feed-container");
-    if (feedEl) {
-        feedEl.querySelectorAll("article[data-post-id]").forEach(function(a) { a.removeAttribute("data-post-sig"); });
-    }
-    if (typeof renderFeedList === "function") renderFeedList();
-
-    if (db) {
-        setDbStatus("saving");
-        try {
-            if (activeCode === "1111" || (window.liveMokjangConfig && String(window.liveMokjangConfig.mokjangCode || "1111").trim() === activeCode)) {
-                await setDoc(doc(db, "mokjang_config", "main"), partial, { merge: true });
-            }
-            await setDoc(doc(db, "mokjang_configs", activeCode), Object.assign({ mokjangCode: activeCode }, partial), { merge: true });
-            setDbStatus("connected");
-        } catch (err) {
-            setDbStatus("error");
-        }
-    }
-}
-
-window.addOrUpdateManagedMember = async function() {
-    const nameInput = document.getElementById("admin-manage-member-name");
-    const roleSelect = document.getElementById("admin-manage-member-role");
-    const titleSelect = document.getElementById("admin-manage-member-title");
-    const name = nameInput ? nameInput.value.trim() : "";
-    if (!name || name.length < 2) {
-        showNotification("이름을 두 글자 이상 입력해 주세요.");
-        if (nameInput) nameInput.focus();
-        return;
-    }
-    const role = roleSelect ? roleSelect.value : "member";
-    const title = titleSelect ? titleSelect.value : "성도";
-
-    const { list } = getNormalizedManagedMembersList();
-    const existingIdx = list.findIndex(function(m) { return m.name === name; });
-    if (existingIdx !== -1) {
-        list[existingIdx].role = role;
-        list[existingIdx].title = title;
-    } else {
-        list.push({ name: name, role: role, title: title });
-    }
-    if (nameInput) nameInput.value = "";
-    await persistManagedMembersConfig(list);
-    showNotification(name + " " + title + "(" + (role === "leader" ? "목자" : (role === "subleader" ? "부목자" : "목원")) + ") 설정이 저장되었습니다.");
-};
-
-window.changeManagedMemberRole = async function(name, newRole) {
-    const { list } = getNormalizedManagedMembersList();
-    const target = list.find(function(m) { return m.name === name; });
-    if (!target) return;
-    target.role = newRole;
-    await persistManagedMembersConfig(list);
-    showNotification(name + "님의 구분이 변경되었습니다.");
-};
-
-window.changeManagedMemberTitle = async function(name, newTitle) {
-    const { list } = getNormalizedManagedMembersList();
-    const target = list.find(function(m) { return m.name === name; });
-    if (!target) return;
-    target.title = newTitle;
-    await persistManagedMembersConfig(list);
-    showNotification(name + "님의 직분이 '" + newTitle + "'(으)로 변경되었습니다.");
-};
-
-window.removeManagedMember = async function(name) {
-    const { list } = getNormalizedManagedMembersList();
-    const nextList = list.filter(function(m) { return m.name !== name; });
-    await persistManagedMembersConfig(nextList);
-    showNotification(name + "님이 목록에서 삭제되었습니다.");
 };
 
 function getSimpleSchedulesMap() {
@@ -9352,7 +9088,6 @@ window.clearSelectedDayNotices = async function(event) {
     await saveSimpleSchedulesToFirestore(map, simpleSelectedDateKey);
 };
 
-// [작업 1] 목장 알림 카톡방 공유 4줄 포맷 ([23 목장 알림 사항] / 00월 00일(요일) / 내용 / - 000 목자 -)
 window.shareSimpleDayNoticeToKakao = async function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     if (!simpleSelectedDateKey) { showNotification("먼저 달력에서 날짜를 선택해 주세요."); return; }
