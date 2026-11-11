@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>우리들의 목장 이야기 - 사용설명서</title>
-    <!-- [보안 가드: 브라우저 주소창에 dcsghelp.html 직접 입력 시 진입 원천 차단 & 우클릭/소스보기 차단] -->
+    <title>우리들의 목장 이야기 - 체험형 사용설명서</title>
+    <!-- [보안 가드: 브라우저 주소창에 dcsghelp.html 직접 입력 시 진입 원천 차단] -->
     <script>
         (function() {
             try {
@@ -23,16 +23,6 @@
                 return;
             }
             document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; }, true);
-            window.addEventListener('keydown', function(e) {
-                var key = (e.key || '').toLowerCase();
-                var code = e.keyCode || e.which;
-                var ctrl = e.ctrlKey || e.metaKey;
-                if (code === 123 || key === 'f12' || (ctrl && (key === 'u' || key === 's' || code === 85 || code === 83))) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-            }, true);
         })();
     </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
@@ -55,256 +45,386 @@
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             scroll-behavior: smooth;
-            padding-bottom: 60px;
+            padding-bottom: 80px;
         }
-        #manual-scroll-container::-webkit-scrollbar {
-            width: 4px;
+        #manual-scroll-container::-webkit-scrollbar { width: 4px; }
+        #manual-scroll-container::-webkit-scrollbar-thumb { background-color: rgba(15, 23, 42, 0.15); border-radius: 4px; }
+        .practice-box {
+            background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
         }
-        #manual-scroll-container::-webkit-scrollbar-thumb {
-            background-color: rgba(15, 23, 42, 0.15);
-            border-radius: 4px;
+        @keyframes pulseHighlight {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
         }
-        .guide-card {
-            transition: all 0.2s ease;
-        }
-        .guide-body {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease;
-            opacity: 0;
-        }
-        .guide-card.open .guide-body {
-            max-height: 520px;
-            opacity: 1;
-        }
-        .guide-card.open .chevron-icon {
-            transform: rotate(180deg);
+        .demo-fluorescent {
+            background-color: #fef08a !important;
+            color: #111827 !important;
+            padding: 1px 4px !important;
+            border-radius: 4px !important;
+            font-weight: 800 !important;
+            animation: pulseHighlight 1.2s ease-in-out infinite;
         }
     </style>
 </head>
 <body class="flex flex-col h-full w-full max-w-md mx-auto bg-[#F8FAFC] select-none">
 
-    <!-- 상단 고정 카테고리 탭 바 (터치 시 빠른 필터링 & 스크롤 이동) -->
+    <!-- 상단 탭 내비게이션 -->
     <div class="shrink-0 bg-white border-b border-slate-200 px-3.5 py-2.5 shadow-2xs z-20">
         <div class="flex items-center justify-between mb-2">
             <div class="flex items-center space-x-2">
                 <span class="px-2 py-0.5 rounded-md bg-[#3B5D50] text-white text-[11px] font-black tracking-tight">세종꿈의교회</span>
-                <h1 class="text-sm font-black text-slate-800 tracking-tight">꿈의 목장 사용설명서</h1>
+                <h1 class="text-sm font-black text-slate-800 tracking-tight">직접 눌러보는 체험형 설명서</h1>
             </div>
-            <button type="button" onclick="toggleAllCards()" id="toggle-all-btn" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-extrabold active:scale-95 transition-all">
-                전체 접기
-            </button>
+            <span class="text-[10.5px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">터치 체험 모드</span>
         </div>
         <div class="grid grid-cols-3 gap-1.5 text-center">
             <button type="button" onclick="filterManual('all')" id="tab-all" class="py-1.5 rounded-xl text-xs font-extrabold bg-[#3B5D50] text-white shadow-2xs transition-all">
-                전체보기
+                전체 체험 (6)
             </button>
             <button type="button" onclick="filterManual('common')" id="tab-common" class="py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">
-                공통 기능
+                공통 기능 (4)
             </button>
             <button type="button" onclick="filterManual('leader')" id="tab-leader" class="py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">
-                목자 관리
+                목자 관리 (2)
             </button>
         </div>
     </div>
 
-    <!-- 메인 터치 & 스크롤 컨테이너 -->
-    <main id="manual-scroll-container" class="flex-1 px-3.5 pt-3 space-y-2.5">
+    <!-- 스크롤 본문 영역 -->
+    <main id="manual-scroll-container" class="flex-1 px-3.5 pt-3 space-y-3">
 
-        <!-- 안내 배너: 역할 및 직분 표기 안내 (새싹/잎/왕관 이모지 없이 진한 문자만 표시) -->
-        <div class="p-3 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-2">
+        <!-- 0. 진한 문자 구분 안내 (이모지 완전 제거) -->
+        <div class="p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-2">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-black text-slate-800">목장 가족 구분 및 직분 표시 안내</span>
-                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">진한 문자 표기</span>
+                <span class="text-xs font-black text-slate-800">목장 가족 구분 및 직분 표시</span>
+                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">진한 문자 표기</span>
             </div>
-            <p class="text-[11.5px] text-slate-600 leading-relaxed">
-                목장 앱 내 모든 게시글과 환영 인사에는 아이콘 없이 <span class="font-black text-slate-900">목원</span>, <span class="font-black text-amber-900">부목자</span>, <span class="font-black text-emerald-800">목자</span>가 진한 문자로 선명하게 표시되며, 이름 뒤에는 설정된 직분(<span class="font-extrabold text-slate-800">성도, 집사, 권사, 안수집사, 장로, 간사</span>)이 함께 나타납니다.
+            <p class="text-[11.5px] text-slate-600 leading-snug">
+                게시글 작성자 왼쪽에는 성씨 대신 <span class="font-black text-slate-900">목원</span>, <span class="font-black text-amber-900">부목자</span>, <span class="font-black text-emerald-800">목자</span>가 진한 문자로 표시되며, 이름 뒤에는 직분(<span class="font-extrabold text-slate-800">성도, 집사, 권사, 안수집사, 장로, 간사</span>)이 붙습니다.
             </p>
-            <div class="flex items-center gap-1.5 pt-0.5">
-                <span class="px-2.5 py-1 rounded-full bg-[#E8F0EC] text-[#3B5D50] border border-emerald-200 font-black text-[11px]">목원</span>
-                <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-black text-[11px]">부목자</span>
-                <span class="px-2.5 py-1 rounded-full bg-emerald-700 text-white font-black text-[11px]">목자</span>
+            <div class="flex items-center gap-2 pt-0.5">
+                <span class="px-2.5 h-6 rounded-full bg-[#E8F0EC] text-[#3B5D50] border border-emerald-200 font-extrabold text-[10.5px] inline-flex items-center">목원</span>
+                <span class="px-2.5 h-6 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-extrabold text-[10.5px] inline-flex items-center">부목자</span>
+                <span class="px-2.5 h-6 rounded-full bg-emerald-700 text-white font-extrabold text-[10.5px] inline-flex items-center">목자</span>
+                <span class="text-xs font-black text-slate-800 ml-1">홍길동 <span class="text-[11px] font-semibold text-emerald-800">집사</span></span>
             </div>
         </div>
 
-        <!-- 1. 로그인 및 홈 화면 추가 (공통) -->
-        <section data-category="common" class="guide-card open bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-            <button type="button" onclick="toggleCard(this)" class="w-full px-3.5 py-3 flex items-center justify-between text-left active:bg-slate-50">
+        <!-- [체험 1] 상단 환영 문구 '두분' 터치 체험 (공통) -->
+        <section data-category="common" class="guide-section bg-white rounded-2xl border border-slate-200 shadow-2xs p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <span class="w-5 h-5 rounded-md bg-emerald-700 text-white font-black text-[11px] flex items-center justify-center shrink-0">1</span>
-                    <span class="text-[13px] font-black text-slate-800">코드 로그인 · 홈 화면 추가 · 접속자 확인</span>
+                    <span class="w-5 h-5 rounded-md bg-emerald-700 text-white font-black text-[11px] flex items-center justify-center">1</span>
+                    <h2 class="text-[13px] font-black text-slate-800">접속한 가족 이름 확인하기</h2>
                 </div>
-                <div class="flex items-center space-x-1.5 shrink-0">
-                    <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">공통</span>
-                    <i class="fa-solid fa-chevron-down chevron-icon text-xs text-slate-400 transition-transform duration-200"></i>
+                <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">공통</span>
+            </div>
+            <p class="text-[11.5px] text-slate-600 leading-snug">
+                상단 타이틀 아래 환영 문구에서 초록색 밑줄이 그어진 <b class="text-emerald-700 font-extrabold">'두분'</b>을 직접 터치해 보세요! 현재 함께 들어와 있는 가족 이름이 심플하게 나타납니다.
+            </p>
+            <!-- 체험 박스 -->
+            <div class="practice-box p-3 rounded-xl border border-emerald-200/80 text-center space-y-2 relative">
+                <div class="text-[10px] font-extrabold text-emerald-800">👇 아래 초록색 '두분' 글자를 직접 눌러보세요</div>
+                <p class="text-xs text-slate-600 font-medium">
+                    <span class="text-slate-800 font-bold">김사랑</span> <span class="font-semibold">목원</span>님 외
+                    <button type="button" onclick="toggleDemoOnlineNames()" class="text-emerald-600 font-extrabold underline decoration-emerald-400 underline-offset-2 cursor-pointer px-1 py-0.5 rounded hover:bg-emerald-50 active:scale-95">두분</button>이 들어왔어요.
+                </p>
+                <div id="demo-online-popover" class="hidden mx-auto w-fit bg-white border border-emerald-200 rounded-lg shadow-md px-2 py-1 text-[11px]">
+                    <div class="flex items-center gap-1">
+                        <span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-900 font-bold text-[10.5px]">박은혜</span>
+                        <span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-900 font-bold text-[10.5px]">이믿음</span>
+                    </div>
                 </div>
-            </button>
-            <div class="guide-body px-3.5 pb-3.5 text-xs text-slate-600 space-y-2 border-t border-slate-100 pt-2.5 leading-relaxed">
-                <p>• <b class="text-slate-900 font-extrabold">자동 코드 로그인</b>: 목장 4자리 코드를 입력하고 <b class="text-slate-900 font-extrabold">[기억하기]</b>에 체크해 두면, 다음부터는 코드 4자리 입력 즉시 자동으로 입장됩니다.</p>
-                <p>• <b class="text-slate-900 font-extrabold">홈 화면에 추가</b>: 로그인 버튼 왼쪽 아이콘을 눌러 안내에 따라 스마트폰 홈 화면에 추가해 두시면 전용 앱처럼 바로 열립니다.</p>
-                <p>• <b class="text-slate-900 font-extrabold">함께 들어온 가족 확인</b>: 상단 타이틀 아래 <b class="text-emerald-700 font-extrabold">'000 목원님 외 두분이 들어왔어요.'</b>에서 <b class="underline text-emerald-700 font-extrabold">'두분'</b> 글자를 터치하면 현재 접속 중인 가족의 이름이 심플하게 표시됩니다.</p>
             </div>
         </section>
 
-        <!-- 2. 글쓰기 · 긴글(1,500자) · 파일 첨부 (공통) -->
-        <section data-category="common" class="guide-card open bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-            <button type="button" onclick="toggleCard(this)" class="w-full px-3.5 py-3 flex items-center justify-between text-left active:bg-slate-50">
+        <!-- [체험 2] 사진 1번 터치 펼침 & 3번 연속 터치 편집창 열기 체험 (공통) -->
+        <section data-category="common" class="guide-section bg-white rounded-2xl border border-slate-200 shadow-2xs p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <span class="w-5 h-5 rounded-md bg-emerald-700 text-white font-black text-[11px] flex items-center justify-center shrink-0">2</span>
-                    <span class="text-[13px] font-black text-slate-800">목장 이야기 글쓰기 · 긴글 · 파일 첨부</span>
+                    <span class="w-5 h-5 rounded-md bg-emerald-700 text-white font-black text-[11px] flex items-center justify-center">2</span>
+                    <h2 class="text-[13px] font-black text-slate-800">사진 1터치 펼침 & 3연속 터치 편집 체험</h2>
                 </div>
-                <div class="flex items-center space-x-1.5 shrink-0">
-                    <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">공통</span>
-                    <i class="fa-solid fa-chevron-down chevron-icon text-xs text-slate-400 transition-transform duration-200"></i>
+                <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">공통</span>
+            </div>
+            <p class="text-[11.5px] text-slate-600 leading-snug">
+                사진을 <b>1번 터치</b>하면 크게 펼쳐지고, <b>빠르게 3번 연속 터치</b>하면 마법봉·회전·자르기 편집창이 열립니다. 아래 예시 사진을 직접 터치해 보세요!
+            </p>
+            <!-- 체험 박스 -->
+            <div class="practice-box p-3 rounded-xl border border-emerald-200/80 space-y-2">
+                <div class="flex items-center justify-between text-[10.5px] font-extrabold text-emerald-900">
+                    <span>👇 아래 사진 카드를 1번 또는 3번 연속 터치해 보세요!</span>
+                    <span id="demo-tap-status" class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">대기 중</span>
                 </div>
-            </button>
-            <div class="guide-body px-3.5 pb-3.5 text-xs text-slate-600 space-y-2 border-t border-slate-100 pt-2.5 leading-relaxed">
-                <p>• <b class="text-slate-900 font-extrabold">글쓰기 열기</b>: 우측 상단 펜 아이콘 ➔ <b class="text-slate-900 font-extrabold">[글쓰기]</b>를 터치합니다.</p>
-                <p>• <b class="text-slate-900 font-extrabold">사진 & 글씨체 20종</b>: 사진은 한 번에 최대 4장까지 자동 고효율 압축으로 올라가며, 한글 10종·영문 10종 글씨체를 자유롭게 선택할 수 있습니다.</p>
-                <p>• <b class="text-slate-900 font-extrabold">긴글쓰기 (최대 1,500자)</b>: 은혜로운 간증이나 긴 기도제목은 <b class="text-amber-900 font-extrabold">[긴글쓰기]</b> 버튼을 눌러 작성하세요. 등록 후 피드에서 <b class="text-amber-900 font-extrabold">[긴글읽기]</b>를 누르면 5단계 글자 크기 조절로 편하게 읽을 수 있습니다.</p>
-                <p>• <b class="text-slate-900 font-extrabold">파일 첨부 및 보관함</b>: 주보, 문서 등 최대 1MB 파일을 첨부할 수 있으며, 게시글 우측 상단 <b class="text-slate-900 font-extrabold">[+] ➔ [파일보관함]</b>에서 전체 첨부파일을 모아볼 수 있습니다.</p>
+                <div id="demo-photo-box" onclick="handleDemoPhotoTap()" class="w-full h-24 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-600 text-white flex flex-col items-center justify-center cursor-pointer active:scale-[0.99] transition-all shadow-sm relative overflow-hidden">
+                    <i class="fa-regular fa-images text-2xl mb-1"></i>
+                    <span id="demo-photo-label" class="text-xs font-extrabold">목장 나눔 샘플 사진 (격자 모드)</span>
+                    <span class="text-[10px] text-emerald-100 mt-0.5">1번 터치: 펼침/접기 · 3번 연속 터치: 편집창 열기</span>
+                </div>
+                <!-- 3터치 시 나타나는 미니 편집창 시뮬레이션 -->
+                <div id="demo-lightbox-sim" class="hidden p-2.5 rounded-xl bg-slate-900 text-white space-y-2 text-center">
+                    <div class="text-[11px] font-black text-amber-300">✨ 3번 연속 터치 성공! 사진 편집틀이 열렸습니다</div>
+                    <div class="flex items-center justify-center gap-1.5 text-[10.5px]">
+                        <button type="button" onclick="demoPhotoEffect('마법봉 자동 보정이 적용되었습니다!')" class="px-2 py-1 rounded bg-white/15 hover:bg-white/25 font-bold"><i class="fa-solid fa-wand-magic-sparkles text-amber-300 mr-1"></i>마법봉</button>
+                        <button type="button" onclick="demoPhotoEffect('사진이 90도 회전되었습니다!')" class="px-2 py-1 rounded bg-white/15 hover:bg-white/25 font-bold"><i class="fa-solid fa-rotate-right mr-1"></i>회전</button>
+                        <button type="button" onclick="document.getElementById('demo-lightbox-sim').classList.add('hidden')" class="px-2 py-1 rounded bg-emerald-600 font-extrabold">저장 후 닫기</button>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- 3. 사진 펼쳐보기 & 3번 연속 터치 사진 편집 (공통) -->
-        <section data-category="common" class="guide-card open bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-            <button type="button" onclick="toggleCard(this)" class="w-full px-3.5 py-3 flex items-center justify-between text-left active:bg-slate-50">
+        <!-- [체험 3] 공감(하트·엄지척·기도손) & 긴글 글자크기 5단계 체험 (공통) -->
+        <section data-category="common" class="guide-section bg-white rounded-2xl border border-slate-200 shadow-2xs p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <span class="w-5 h-5 rounded-md bg-emerald-700 text-white font-black text-[11px] flex items-center justify-center shrink-0">3</span>
-                    <span class="text-[13px] font-black text-slate-800">사진 펼쳐보기 · 3터치 편집 · 사진 이야기</span>
+                    <span class="w-5 h-5 rounded-md bg-emerald-700 text-white font-black text-[11px] flex items-center justify-center">3</span>
+                    <h2 class="text-[13px] font-black text-slate-800">공감 표현 & 긴글 글자크기 조절 체험</h2>
                 </div>
-                <div class="flex items-center space-x-1.5 shrink-0">
-                    <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">공통</span>
-                    <i class="fa-solid fa-chevron-down chevron-icon text-xs text-slate-400 transition-transform duration-200"></i>
+                <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">공통</span>
+            </div>
+            <p class="text-[11.5px] text-slate-600 leading-snug">
+                하트·엄지척·기도손을 눌러 공감을 표현하고, 최대 1,500자 <b>[긴글읽기]</b>에서 1~5단계 글자 크기를 조절해 보세요.
+            </p>
+            <div class="practice-box p-3 rounded-xl border border-emerald-200/80 space-y-2.5">
+                <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                    <div class="flex items-center space-x-4">
+                        <button type="button" onclick="toggleDemoReaction('like')" id="demo-btn-like" class="flex items-center space-x-1 text-slate-500 active:scale-90 transition-transform">
+                            <i class="fa-regular fa-heart text-[14px]"></i>
+                            <span id="demo-cnt-like" class="text-xs font-semibold">3</span>
+                        </button>
+                        <button type="button" onclick="toggleDemoReaction('thumb')" id="demo-btn-thumb" class="flex items-center space-x-1 text-slate-500 active:scale-90 transition-transform">
+                            <i class="fa-regular fa-thumbs-up text-[14px]"></i>
+                            <span id="demo-cnt-thumb" class="text-xs font-semibold">2</span>
+                        </button>
+                        <button type="button" onclick="toggleDemoReaction('pray')" id="demo-btn-pray" class="flex items-center space-x-1 text-slate-500 active:scale-90 transition-transform">
+                            <i class="fa-solid fa-hands-praying text-[14px]" style="transform: rotate(0deg) scaleX(0.84);"></i>
+                            <span id="demo-cnt-pray" class="text-xs font-semibold">5</span>
+                        </button>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-400">👈 직접 눌러보세요</span>
                 </div>
-            </button>
-            <div class="guide-body px-3.5 pb-3.5 text-xs text-slate-600 space-y-2 border-t border-slate-100 pt-2.5 leading-relaxed">
-                <p>• <b class="text-slate-900 font-extrabold">1번 터치 (펼쳐보기)</b>: 2장 이상 올라간 사진을 가볍게 1번 터치하면 세로로 큼직하게 펼쳐지며, 화면을 스크롤하면 다시 깔끔한 격자로 자동 복귀합니다.</p>
-                <p>• <b class="text-slate-900 font-extrabold">3번 연속 터치 (사진 편집틀)</b>: 본인이 올린 사진(또는 <span class="font-black text-slate-900">목자</span>)을 <b class="text-emerald-800 font-extrabold">연속 3번 빠르게 터치</b>하면 <b class="text-slate-900 font-extrabold">마법봉(자동 밝기·대비 보정), 회전, 원하는 영역 크롭(자르기), 개별 사진 삭제</b>가 가능한 정밀 편집창이 열립니다.</p>
-                <p>• <b class="text-slate-900 font-extrabold">사진별 펜 이야기</b>: 각 사진 우측 하단의 작은 연필 버튼을 누르면 해당 사진 바로 밑에 설명이나 댓글을 달 수 있습니다.</p>
+                <!-- 긴글 글자크기 체험 -->
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-extrabold text-amber-900">📜 긴글 글자크기 5단계 체험</span>
+                        <div class="inline-flex items-center space-x-1">
+                            <button type="button" onclick="setDemoFontSize(14, 1)" id="df-1" class="w-5 h-5 rounded text-[10px] font-bold bg-white border border-amber-200">1</button>
+                            <button type="button" onclick="setDemoFontSize(16, 2)" id="df-2" class="w-5 h-5 rounded text-[10px] font-bold bg-amber-600 text-white">2</button>
+                            <button type="button" onclick="setDemoFontSize(18, 3)" id="df-3" class="w-5 h-5 rounded text-[10px] font-bold bg-white border border-amber-200">3</button>
+                            <button type="button" onclick="setDemoFontSize(20, 4)" id="df-4" class="w-5 h-5 rounded text-[10px] font-bold bg-white border border-amber-200">4</button>
+                            <button type="button" onclick="setDemoFontSize(22, 5)" id="df-5" class="w-5 h-5 rounded text-[10px] font-bold bg-white border border-amber-200">5</button>
+                        </div>
+                    </div>
+                    <div id="demo-long-text" class="p-2 rounded-lg bg-[#FAF8F5] border border-amber-200 text-slate-800 leading-relaxed transition-all" style="font-size: 16px;">
+                        사랑하는 목장 가족 여러분, 이번 한 주간도 주님의 은혜 안에서 평안하시길 기도합니다.
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- 4. 공감 버튼 · 댓글 · 내보내기(이미지/PDF/인쇄) (공통) -->
-        <section data-category="common" class="guide-card open bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-            <button type="button" onclick="toggleCard(this)" class="w-full px-3.5 py-3 flex items-center justify-between text-left active:bg-slate-50">
+        <!-- [체험 4] 책갈피 새댓글 노란 형광펜 & 지난 알림 확인(24시간제) 체험 (공통) -->
+        <section data-category="common" class="guide-section bg-white rounded-2xl border border-slate-200 shadow-2xs p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <span class="w-5 h-5 rounded-md bg-emerald-700 text-white font-black text-[11px] flex items-center justify-center shrink-0">4</span>
-                    <span class="text-[13px] font-black text-slate-800">공감 표현 · 댓글 수정/삭제 · 이미지/PDF 저장</span>
+                    <span class="w-5 h-5 rounded-md bg-emerald-700 text-white font-black text-[11px] flex items-center justify-center">4</span>
+                    <h2 class="text-[13px] font-black text-slate-800">새댓글 형광펜 찾기 & 지난 알림 확인</h2>
                 </div>
-                <div class="flex items-center space-x-1.5 shrink-0">
-                    <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">공통</span>
-                    <i class="fa-solid fa-chevron-down chevron-icon text-xs text-slate-400 transition-transform duration-200"></i>
+                <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">공통</span>
+            </div>
+            <p class="text-[11.5px] text-slate-600 leading-snug">
+                우측 책갈피의 말풍선(💬)을 누르면 안 읽은 새 댓글을 노란 형광펜으로 비춰주며, 펜 메뉴의 <b>[알림 확인]</b>에서는 일자와 등록 시각(24시간제 회색 표기)이 포함된 알림을 언제든 다시 볼 수 있습니다.
+            </p>
+            <div class="practice-box p-3 rounded-xl border border-emerald-200/80 space-y-2">
+                <div class="flex items-center justify-between">
+                    <button type="button" onclick="triggerDemoNewCommentHighlight()" class="px-2.5 py-1 rounded-full bg-emerald-700 text-white text-[11px] font-extrabold shadow-2xs active:scale-95">
+                        💬 새댓글 찾기 버튼 눌러보기
+                    </button>
+                    <span class="text-[10.5px] text-slate-500 font-bold">알림 표기: <span class="text-[#8C6239] font-black">10/25(주일)</span> <span class="text-[10px] text-gray-400 font-mono">14:30</span></span>
                 </div>
-            </button>
-            <div class="guide-body px-3.5 pb-3.5 text-xs text-slate-600 space-y-2 border-t border-slate-100 pt-2.5 leading-relaxed">
-                <p>• <b class="text-slate-900 font-extrabold">공감 아이콘</b>: 게시글 하단의 <b class="text-rose-500 font-extrabold">하트</b>, <b class="text-sky-500 font-extrabold">엄지척</b>, <b class="text-amber-600 font-extrabold">기도손</b>을 터치하여 따뜻한 마음과 중보기도를 표현하세요.</p>
-                <p>• <b class="text-slate-900 font-extrabold">댓글 작성 및 수정·삭제</b>: 말풍선(+) 아이콘을 눌러 댓글을 등록할 수 있으며, 본인이 쓴 댓글을 한 번 터치하면 우측에 <b class="text-emerald-700 font-extrabold">수정(연필)</b> 및 <b class="text-rose-600 font-extrabold">삭제(X)</b> 버튼이 나타납니다.</p>
-                <p>• <b class="text-slate-900 font-extrabold">이미지 · PDF 저장 · 인쇄</b>: 게시글 우측 하단 꺾쇠(<i class="fa-solid fa-chevron-down text-[10px]"></i>)를 누르면 해당 게시글과 사진·댓글을 깔끔한 이미지나 A4 PDF로 저장할 수 있습니다.</p>
+                <div class="p-2 rounded-lg bg-white border border-slate-200 text-xs flex items-center justify-between">
+                    <div>
+                        <span class="font-bold text-slate-800">이믿음 :</span>
+                        <span id="demo-comment-target" class="text-slate-700 ml-1 transition-all">아멘! 함께 중보하며 기도하겠습니다.</span>
+                    </div>
+                    <span class="text-[9px] text-slate-400 font-mono">10/25 14:30</span>
+                </div>
             </div>
         </section>
 
-        <!-- 5. 플로팅 책갈피 달력 · 새댓글 추적 · 지난 알림 확인 (공통) -->
-        <section data-category="common" class="guide-card open bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-            <button type="button" onclick="toggleCard(this)" class="w-full px-3.5 py-3 flex items-center justify-between text-left active:bg-slate-50">
+        <!-- [체험 5] 목자 전용: 공지·알림 달력 하트(♥) 즉시 반응 & 카톡 4줄 공유 체험 (관리자) -->
+        <section data-category="leader" class="guide-section bg-white rounded-2xl border border-amber-200 shadow-2xs p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <span class="w-5 h-5 rounded-md bg-emerald-700 text-white font-black text-[11px] flex items-center justify-center shrink-0">5</span>
-                    <span class="text-[13px] font-black text-slate-800">책갈피 달력 · 새댓글 이동 · 알림 확인</span>
+                    <span class="w-5 h-5 rounded-md bg-amber-600 text-white font-black text-[11px] flex items-center justify-center">5</span>
+                    <h2 class="text-[13px] font-black text-slate-800">공지·알림 하트(♥) 반응 & 카톡 4줄 공유</h2>
                 </div>
-                <div class="flex items-center space-x-1.5 shrink-0">
-                    <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">공통</span>
-                    <i class="fa-solid fa-chevron-down chevron-icon text-xs text-slate-400 transition-transform duration-200"></i>
+                <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">관리자</span>
+            </div>
+            <p class="text-[11.5px] text-slate-600 leading-snug">
+                <span class="font-black text-slate-900">목자</span>님이 날짜를 선택해 알림을 <b>[저장]</b>하면 즉시 달력에 하트(♥) 각주가 생기고, <b>[삭제]</b>하면 즉시 사라집니다. 아래에서 직접 눌러보세요!
+            </p>
+            <div class="practice-box p-3 rounded-xl border border-amber-200 space-y-2">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-1.5">
+                        <div class="w-9 h-8 rounded bg-[#F6EBD8] ring-1 ring-[#C8A97E] flex items-center justify-center relative font-black text-xs text-[#5A3E28]">
+                            <span>25</span>
+                            <span id="demo-cal-heart" class="absolute top-[1px] right-[2px] text-[9px] text-rose-500 leading-none">♥</span>
+                        </div>
+                        <span class="text-xs font-extrabold text-emerald-900">10월 25일(주일)</span>
+                    </div>
+                    <div class="flex items-center space-x-1">
+                        <button type="button" onclick="demoNoticeAction('delete')" class="px-2.5 py-1 rounded bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-600 border border-gray-200 text-[11px] font-bold active:scale-95">삭제</button>
+                        <button type="button" onclick="demoNoticeAction('save')" class="px-2.5 py-1 rounded bg-[#F6EBD8] text-[#5A3E28] border border-[#E6D5B8] text-[11px] font-extrabold active:scale-95">저장</button>
+                        <button type="button" onclick="demoNoticeAction('kakao')" class="px-2.5 py-1 rounded bg-[#FEE500] text-[#3A1D1D] text-[11px] font-extrabold active:scale-95">카톡방 공유</button>
+                    </div>
                 </div>
-            </button>
-            <div class="guide-body px-3.5 pb-3.5 text-xs text-slate-600 space-y-2 border-t border-slate-100 pt-2.5 leading-relaxed">
-                <p>• <b class="text-slate-900 font-extrabold">스마트 책갈피 & 월 달력</b>: 피드를 스크롤할 때 나타나는 책갈피는 좌우 원하는 위치로 끌어서 옮길 수 있습니다. 달력 아이콘을 누르면 월별 게시글 수(보라색), 댓글 수(분홍색), 목장 일정(♥)을 한눈에 보고 해당 날짜 글로 즉시 이동합니다.</p>
-                <p>• <b class="text-slate-900 font-extrabold">안 읽은 새댓글 바로가기</b>: 책갈피 하단 말풍선(💬)에 빨간 숫자가 뜨면 터치해 보세요. 새로 달린 댓글 위치를 노란 형광펜으로 비추며 차례대로 안내합니다.</p>
-                <p>• <b class="text-slate-900 font-extrabold">알림 확인 (목원용)</b>: 로그인 시 뜬 공지 알림창을 닫았더라도, 우측 상단 펜 메뉴 ➔ <b class="text-amber-700 font-extrabold">[알림 확인]</b>을 누르면 지난 알림 사항과 등록 시각(24시간제)을 언제든 다시 볼 수 있습니다.</p>
+                <input type="text" id="demo-notice-input" value="주일 오후 2시 목장 모임이 있습니다." class="w-full px-2.5 py-1.5 rounded-lg border border-dashed border-slate-300 text-xs bg-white text-slate-800">
+                <pre id="demo-kakao-preview" class="hidden p-2 rounded-lg bg-amber-50/90 border border-amber-200 text-[11px] text-amber-950 font-sans leading-snug whitespace-pre-wrap">[23 목장 알림 사항]
+10월 25일(주일)
+주일 오후 2시 목장 모임이 있습니다.
+- 홍길동 목자 -</pre>
             </div>
         </section>
 
-        <!-- 6. 목자 전용: 공지·알림 관리 및 카톡방 4줄 공유 (관리자) -->
-        <section data-category="leader" class="guide-card open bg-white rounded-2xl border border-amber-200 shadow-2xs overflow-hidden">
-            <button type="button" onclick="toggleCard(this)" class="w-full px-3.5 py-3 flex items-center justify-between text-left bg-amber-50/40 active:bg-amber-50">
+        <!-- [체험 6] 목자 전용: 설정 슬라이드 패스코드 보안창 체험 (관리자) -->
+        <section data-category="leader" class="guide-section bg-white rounded-2xl border border-amber-200 shadow-2xs p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <span class="w-5 h-5 rounded-md bg-amber-600 text-white font-black text-[11px] flex items-center justify-center shrink-0">6</span>
-                    <span class="text-[13px] font-black text-slate-800">공지·알림 관리 및 카톡방 공유</span>
+                    <span class="w-5 h-5 rounded-md bg-amber-600 text-white font-black text-[11px] flex items-center justify-center">6</span>
+                    <h2 class="text-[13px] font-black text-slate-800">설정 슬라이드 패스코드 보안창 체험</h2>
                 </div>
-                <div class="flex items-center space-x-1.5 shrink-0">
-                    <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">관리자</span>
-                    <i class="fa-solid fa-chevron-down chevron-icon text-xs text-slate-400 transition-transform duration-200"></i>
-                </div>
-            </button>
-            <div class="guide-body px-3.5 pb-3.5 text-xs text-slate-600 space-y-2 border-t border-amber-100 pt-2.5 leading-relaxed">
-                <p>• <b class="text-slate-900 font-extrabold">일자별 알림 저장 및 삭제</b>: <span class="font-black text-slate-900">목자</span>로 로그인 후 펜 메뉴 ➔ <b class="text-amber-800 font-extrabold">[공지·알림]</b>에서 날짜를 선택하고 3줄(60자) 이내로 내용을 작성해 <b class="text-slate-900 font-extrabold">[저장]</b>을 누르면 달력에 즉시 하트(♥) 각주가 표시됩니다. <b class="text-rose-600 font-extrabold">[삭제]</b>를 누르면 하트와 알림이 영구 삭제됩니다.</p>
-                <p>• <b class="text-slate-900 font-extrabold">로그인 시 자동 알림 (24시간제 시각 표시)</b>: '로그인시 알림'을 켜두면 목장 가족이 로그인할 때 상단 일자와 등록 시각(24시간제 회색 표기)이 포함된 알림판이 자동으로 나타납니다.</p>
-                <p>• <b class="text-slate-900 font-extrabold">카톡방 4줄 공유</b>: <b class="text-slate-900 font-extrabold">[카톡방 공유]</b>를 누르면 1줄 <code class="bg-slate-100 px-1 rounded">[00 목장 알림 사항]</code>, 2줄 <code class="bg-slate-100 px-1 rounded">00월 00일(요일)</code>, 3줄 <code class="bg-slate-100 px-1 rounded">내용</code>, 4줄 <code class="bg-slate-100 px-1 rounded">- 000 목자 -</code> 형식으로 깔끔하게 공유됩니다.</p>
+                <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">관리자</span>
             </div>
-        </section>
-
-        <!-- 7. 목자 전용: 보안 패스코드 확인 및 설정 페이지 (관리자) -->
-        <section data-category="leader" class="guide-card open bg-white rounded-2xl border border-amber-200 shadow-2xs overflow-hidden">
-            <button type="button" onclick="toggleCard(this)" class="w-full px-3.5 py-3 flex items-center justify-between text-left bg-amber-50/40 active:bg-amber-50">
-                <div class="flex items-center space-x-2">
-                    <span class="w-5 h-5 rounded-md bg-amber-600 text-white font-black text-[11px] flex items-center justify-center shrink-0">7</span>
-                    <span class="text-[13px] font-black text-slate-800">보안 설정 진입 및 목원·부목자·직분 관리</span>
+            <p class="text-[11.5px] text-slate-600 leading-snug">
+                펜 메뉴에서 <b>[설정]</b>을 터치하면 위에서 아래로 패스코드 입력창이 슬라이드되며, 확인 후 보안관리 페이지(목원·부목자 및 성도/집사/권사/안수집사/장로/간사 직분 관리)로 이동합니다.
+            </p>
+            <div class="practice-box p-3 rounded-xl border border-amber-200 space-y-2">
+                <button type="button" onclick="toggleDemoSlidePass()" class="w-full py-2 rounded-xl bg-slate-800 text-white text-xs font-extrabold active:scale-95 transition-all">
+                    ⚙️ 눌러서 슬라이드 패스코드 입력창 체험하기
+                </button>
+                <div id="demo-slide-box" class="hidden p-3 rounded-xl bg-white border border-slate-200 shadow-md space-y-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-extrabold text-slate-700 shrink-0">코드 :</span>
+                        <input type="text" id="demo-pass-val" value="1234" maxlength="4" class="flex-1 h-8 px-2 rounded-lg border border-slate-300 text-center font-mono font-black tracking-widest text-xs">
+                        <button type="button" onclick="alert('패스코드 확인 완료! 실제 앱에서는 즉시 보안관리 페이지로 이동합니다.')" class="h-8 px-3 rounded-lg bg-[#3B5D50] text-white text-xs font-extrabold">확인</button>
+                    </div>
                 </div>
-                <div class="flex items-center space-x-1.5 shrink-0">
-                    <span class="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">관리자</span>
-                    <i class="fa-solid fa-chevron-down chevron-icon text-xs text-slate-400 transition-transform duration-200"></i>
-                </div>
-            </button>
-            <div class="guide-body px-3.5 pb-3.5 text-xs text-slate-600 space-y-2 border-t border-amber-100 pt-2.5 leading-relaxed">
-                <p>• <b class="text-slate-900 font-extrabold">2중 패스코드 보안 인증</b>: 펜 메뉴 ➔ <b class="text-slate-900 font-extrabold">[설정]</b>을 터치하면 위에서 아래로 슬라이드 보안창(<b class="text-slate-900 font-extrabold">코드 : 입력창</b>)이 내려오며, 관리자 패스코드를 입력하고 확인을 누르면 보안관리 페이지로 이동합니다.</p>
-                <p>• <b class="text-slate-900 font-extrabold">목원·부목자 및 직분 설정</b>: 관리 페이지에서 가족의 이름과 역할 구분(<span class="font-black text-slate-900">목원</span> / <span class="font-black text-slate-900">부목자</span> / <span class="font-black text-slate-900">목자</span>), 그리고 직분(<span class="font-extrabold text-slate-900">성도, 집사, 권사, 안수집사, 장로, 간사</span>)을 관리할 수 있습니다.</p>
             </div>
         </section>
 
     </main>
 
     <script>
-        let allExpanded = true;
-
-        function toggleCard(btnEl) {
-            const card = btnEl.closest('.guide-card');
-            if (!card) return;
-            card.classList.toggle('open');
+        function toggleDemoOnlineNames() {
+            const pop = document.getElementById('demo-online-popover');
+            if (pop) pop.classList.toggle('hidden');
         }
 
-        function toggleAllCards() {
-            allExpanded = !allExpanded;
-            const cards = document.querySelectorAll('.guide-card');
-            cards.forEach(c => {
-                if (allExpanded) c.classList.add('open');
-                else c.classList.remove('open');
-            });
-            const btn = document.getElementById('toggle-all-btn');
-            if (btn) btn.textContent = allExpanded ? '전체 접기' : '전체 펼치기';
+        let demoTapCount = 0;
+        let demoTapTimer = null;
+        let isDemoExpanded = false;
+
+        function handleDemoPhotoTap() {
+            demoTapCount++;
+            const statusEl = document.getElementById('demo-tap-status');
+            const boxEl = document.getElementById('demo-photo-box');
+            const labelEl = document.getElementById('demo-photo-label');
+            const simEl = document.getElementById('demo-lightbox-sim');
+
+            if (demoTapTimer) clearTimeout(demoTapTimer);
+            if (demoTapCount >= 3) {
+                demoTapCount = 0;
+                if (statusEl) statusEl.textContent = '3연속 터치! 편집창 열림';
+                if (simEl) simEl.classList.remove('hidden');
+                return;
+            }
+            demoTapTimer = setTimeout(() => {
+                if (demoTapCount === 1) {
+                    isDemoExpanded = !isDemoExpanded;
+                    if (boxEl) boxEl.style.height = isDemoExpanded ? '148px' : '96px';
+                    if (labelEl) labelEl.textContent = isDemoExpanded ? '목장 나눔 샘플 사진 (크게 펼쳐짐!)' : '목장 나눔 샘플 사진 (격자 모드)';
+                    if (statusEl) statusEl.textContent = isDemoExpanded ? '1번 터치: 펼쳐보기 됨' : '1번 터치: 격자로 접힘';
+                } else if (demoTapCount === 2) {
+                    if (statusEl) statusEl.textContent = '2번 터치됨 (3번 연속 누르면 편집창!)';
+                }
+                demoTapCount = 0;
+            }, 300);
+        }
+
+        function demoPhotoEffect(msg) {
+            const statusEl = document.getElementById('demo-tap-status');
+            if (statusEl) statusEl.textContent = msg;
+        }
+
+        const demoReactState = { like: false, thumb: false, pray: false };
+        function toggleDemoReaction(type) {
+            demoReactState[type] = !demoReactState[type];
+            const cntEl = document.getElementById('demo-cnt-' + type);
+            const btnEl = document.getElementById('demo-btn-' + type);
+            if (!cntEl || !btnEl) return;
+            let cur = parseInt(cntEl.textContent, 10) || 0;
+            cntEl.textContent = demoReactState[type] ? (cur + 1) : Math.max(0, cur - 1);
+            if (type === 'like') btnEl.className = 'flex items-center space-x-1 active:scale-90 transition-transform ' + (demoReactState[type] ? 'text-rose-500 font-bold' : 'text-slate-500');
+            if (type === 'thumb') btnEl.className = 'flex items-center space-x-1 active:scale-90 transition-transform ' + (demoReactState[type] ? 'text-sky-500 font-bold' : 'text-slate-500');
+            if (type === 'pray') btnEl.className = 'flex items-center space-x-1 active:scale-90 transition-transform ' + (demoReactState[type] ? 'text-amber-500 font-bold' : 'text-slate-500');
+        }
+
+        function setDemoFontSize(px, idx) {
+            const textEl = document.getElementById('demo-long-text');
+            if (textEl) textEl.style.fontSize = px + 'px';
+            for (let i = 1; i <= 5; i++) {
+                const b = document.getElementById('df-' + i);
+                if (b) b.className = (i === idx) ? 'w-5 h-5 rounded text-[10px] font-bold bg-amber-600 text-white' : 'w-5 h-5 rounded text-[10px] font-bold bg-white border border-amber-200';
+            }
+        }
+
+        function triggerDemoNewCommentHighlight() {
+            const target = document.getElementById('demo-comment-target');
+            if (!target) return;
+            target.classList.remove('demo-fluorescent');
+            void target.offsetWidth;
+            target.classList.add('demo-fluorescent');
+        }
+
+        function demoNoticeAction(action) {
+            const heart = document.getElementById('demo-cal-heart');
+            const input = document.getElementById('demo-notice-input');
+            const preview = document.getElementById('demo-kakao-preview');
+            if (action === 'delete') {
+                if (heart) heart.classList.add('hidden');
+                if (input) input.value = '';
+                if (preview) preview.classList.add('hidden');
+            } else if (action === 'save') {
+                if (input && !input.value.trim()) input.value = '주일 오후 2시 목장 모임이 있습니다.';
+                if (heart) heart.classList.remove('hidden');
+            } else if (action === 'kakao') {
+                if (heart) heart.classList.remove('hidden');
+                const txt = (input && input.value.trim()) ? input.value.trim() : '주일 오후 2시 목장 모임이 있습니다.';
+                if (preview) {
+                    preview.textContent = '[23 목장 알림 사항]\n10월 25일(주일)\n' + txt + '\n- 홍길동 목자 -';
+                    preview.classList.remove('hidden');
+                }
+            }
+        }
+
+        function toggleDemoSlidePass() {
+            const box = document.getElementById('demo-slide-box');
+            if (box) box.classList.toggle('hidden');
         }
 
         function filterManual(category) {
-            const tabs = ['all', 'common', 'leader'];
-            tabs.forEach(t => {
+            ['all', 'common', 'leader'].forEach(t => {
                 const el = document.getElementById('tab-' + t);
                 if (!el) return;
-                if (t === category) {
-                    el.className = 'py-1.5 rounded-xl text-xs font-extrabold bg-[#3B5D50] text-white shadow-2xs transition-all';
-                } else {
-                    el.className = 'py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all';
-                }
+                el.className = (t === category)
+                    ? 'py-1.5 rounded-xl text-xs font-extrabold bg-[#3B5D50] text-white shadow-2xs transition-all'
+                    : 'py-1.5 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all';
             });
-
-            const cards = document.querySelectorAll('.guide-card');
-            cards.forEach(c => {
-                const cat = c.getAttribute('data-category');
-                if (category === 'all' || cat === category) {
-                    c.classList.remove('hidden');
-                    c.classList.add('open');
-                } else {
-                    c.classList.add('hidden');
-                }
+            document.querySelectorAll('.guide-section').forEach(sec => {
+                const cat = sec.getAttribute('data-category');
+                if (category === 'all' || cat === category) sec.classList.remove('hidden');
+                else sec.classList.add('hidden');
             });
-
             const container = document.getElementById('manual-scroll-container');
             if (container) container.scrollTo({ top: 0, behavior: 'smooth' });
         }
