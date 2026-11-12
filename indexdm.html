@@ -158,10 +158,29 @@
                     <p class="text-[10.5px] text-slate-500 font-semibold mt-0.5 whitespace-nowrap">신입 목원님의 열람 시작일을 지정하세요.</p>
                 </div>
                 <div class="space-y-1.5 bg-white p-2 rounded-xl border border-slate-200/80">
-                    <div class="flex items-center gap-1 w-full">
-                        <select id="new-member-role-select" class="shrink-0 px-1.5 py-1.5 rounded-xl font-bold text-xs dashed-input"><option value="member">목원</option><option value="subleader">부목자</option></select>
+                    <div class="flex items-center gap-1.5 w-full">
                         <input type="text" id="new-member-name-input" maxlength="8" placeholder="목원 이름 입력 (2~6자)" onkeydown="if(event.key==='Enter'){event.preventDefault();addMokjangMember();}" class="flex-1 min-w-0 w-full px-2.5 py-1.5 rounded-xl font-bold dashed-input">
-                        <button type="button" onclick="addMokjangMember()" class="shrink-0 px-2.5 py-1.5 church-primary text-white rounded-xl text-xs font-extrabold active:scale-95 transition-all whitespace-nowrap"><i class="fa-solid fa-plus mr-0.5 text-[10px]"></i>추가</button>
+                        <button type="button" onclick="addMokjangMember()" class="shrink-0 px-3 py-1.5 church-primary text-white rounded-xl text-xs font-extrabold active:scale-95 transition-all whitespace-nowrap"><i class="fa-solid fa-plus mr-0.5 text-[10px]"></i>추가</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1.5 pt-0.5">
+                        <div class="flex items-center bg-slate-50 px-2 py-1 rounded-xl border border-slate-200/80">
+                            <span class="text-[10.5px] font-extrabold text-slate-500 mr-1.5 shrink-0 whitespace-nowrap">구분:</span>
+                            <select id="new-member-role-select" class="flex-1 min-w-0 py-0.5 rounded-lg font-extrabold text-xs text-slate-800 bg-transparent focus:outline-none cursor-pointer">
+                                <option value="member">목원</option>
+                                <option value="subleader">부목자</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center bg-slate-50 px-2 py-1 rounded-xl border border-slate-200/80">
+                            <span class="text-[10.5px] font-extrabold text-slate-500 mr-1.5 shrink-0 whitespace-nowrap">직분:</span>
+                            <select id="new-member-title-select" class="flex-1 min-w-0 py-0.5 rounded-lg font-extrabold text-xs text-emerald-900 bg-transparent focus:outline-none cursor-pointer">
+                                <option value="집사" selected>집사</option>
+                                <option value="성도">성도</option>
+                                <option value="권사">권사</option>
+                                <option value="안수집사">안수집사</option>
+                                <option value="장로">장로</option>
+                                <option value="간사">간사</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="flex items-center justify-between text-[11px] px-0.5 pt-0.5 whitespace-nowrap">
                         <span class="font-bold text-slate-600 shrink-0"><i class="fa-regular fa-calendar-check text-emerald-700 mr-1"></i>열람범위:</span>
@@ -238,7 +257,8 @@
             subLeaderName: "",
             subLeaders: [],
             members: [verifiedPass.leaderName || "목자"],
-            memberJoinedAt: {}
+            memberJoinedAt: {},
+            memberTitles: {}
         };
 
         function showToast(msg) {
@@ -297,7 +317,8 @@
             b.subLeaderName = String(b.subLeaderName || b.subleaderName || "").trim();
             b.subLeaders = Array.isArray(b.subLeaders) ? b.subLeaders : [];
             b.members = (Array.isArray(b.members) && b.members.length > 0) ? b.members : [b.leaderName];
-            b.memberJoinedAt = b.memberJoinedAt || {};
+            b.memberJoinedAt = Object.assign({}, (mainData && mainData.memberJoinedAt) || {}, (codeData && codeData.memberJoinedAt) || {}, b.memberJoinedAt || {});
+            b.memberTitles = Object.assign({}, (mainData && mainData.memberTitles) || {}, (codeData && codeData.memberTitles) || {}, b.memberTitles || {});
             return b;
         }
 
@@ -359,13 +380,18 @@
             var rawMembers = Array.isArray(mokjangConfig.members) ? mokjangConfig.members : [];
             var combined = [leaderName].concat(subList).concat(rawMembers.filter(function(m) { return m && m !== "1111"; }));
             var allMembers = [];
-            combined.forEach(function(item) { if (item && allMembers.indexOf(item) === -1) allMembers.push(item); });
+            combined.forEach(function(item) {
+                var cleanName = typeof item === "object" && item !== null ? String(item.name || "").trim() : String(item || "").trim();
+                if (cleanName && allMembers.indexOf(cleanName) === -1) allMembers.push(cleanName);
+            });
             var joinedMap = mokjangConfig.memberJoinedAt || {};
+            var titlesMap = mokjangConfig.memberTitles || {};
             if (countEl) countEl.textContent = String(allMembers.length);
 
             allMembers.forEach(function(m) {
                 var isLeader = (m === leaderName);
                 var isSub = (!isLeader && subList.indexOf(m) !== -1);
+                var curTitle = titlesMap[m] ? String(titlesMap[m]).trim() : "";
                 var row = document.createElement("div");
                 row.className = "flex items-center justify-between px-2 py-1.5 rounded-xl bg-white border border-slate-200/80 text-xs whitespace-nowrap";
 
@@ -384,14 +410,29 @@
                 }
                 var nameSpan = document.createElement("span");
                 nameSpan.className = "font-extrabold text-slate-800 text-[13px] whitespace-nowrap";
-                nameSpan.textContent = m;
+                nameSpan.textContent = curTitle ? (m + " " + curTitle) : m;
                 leftDiv.appendChild(badge);
                 leftDiv.appendChild(nameSpan);
 
                 var rightDiv = document.createElement("div");
                 rightDiv.className = "flex items-center space-x-1 shrink-0";
+
+                var titleSel = document.createElement("select");
+                titleSel.className = "px-1.5 py-0.5 rounded-lg bg-emerald-50/80 border border-emerald-200 text-[10px] font-extrabold text-emerald-900 focus:outline-none cursor-pointer";
+                titleSel.title = m + " 님 직분 변경";
+                var titleOptions = ["", "성도", "집사", "권사", "안수집사", "장로", "간사"];
+                titleOptions.forEach(function(optVal) {
+                    var opt = document.createElement("option");
+                    opt.value = optVal;
+                    opt.textContent = optVal ? optVal : "직분선택";
+                    if (optVal === curTitle) opt.selected = true;
+                    titleSel.appendChild(opt);
+                });
+                titleSel.onchange = function() { window.changeMemberTitle(m, this.value); };
+                rightDiv.appendChild(titleSel);
+
                 var joinTs = Number(joinedMap[m] || 0);
-                var dateLabel = isLeader ? "전체기간(고정)" : (joinTs > 0 ? new Date(joinTs).toISOString().split("T")[0] + " 이후" : "전체기간 열람");
+                var dateLabel = isLeader ? "전체(고정)" : (joinTs > 0 ? new Date(joinTs).toISOString().split("T")[0] + " 이후" : "전체기간");
 
                 if (!isLeader) {
                     var dateBtn = document.createElement("button");
@@ -410,7 +451,7 @@
                     rightDiv.appendChild(delBtn);
                 } else {
                     var fixedSpan = document.createElement("span");
-                    fixedSpan.className = "text-[10px] text-amber-700 font-semibold whitespace-nowrap";
+                    fixedSpan.className = "text-[10px] text-amber-700 font-semibold whitespace-nowrap px-1";
                     fixedSpan.textContent = dateLabel;
                     rightDiv.appendChild(fixedSpan);
                 }
@@ -420,6 +461,20 @@
                 listEl.appendChild(row);
             });
         }
+
+        window.changeMemberTitle = async function(memberName, newTitle) {
+            if (!mokjangConfig.memberTitles) mokjangConfig.memberTitles = {};
+            var cleanTitle = String(newTitle || "").trim();
+            if (cleanTitle) {
+                mokjangConfig.memberTitles[memberName] = cleanTitle;
+                showToast(memberName + " " + cleanTitle + "(으)로 직분이 저장되었습니다.");
+            } else {
+                delete mokjangConfig.memberTitles[memberName];
+                showToast(memberName + " 님의 직분 표시가 해제되었습니다.");
+            }
+            await persistConfigToFirestore();
+            renderMembersList();
+        };
 
         window.changeMemberJoinDate = async function(memberName) {
             if (!mokjangConfig.memberJoinedAt) mokjangConfig.memberJoinedAt = {};
@@ -490,18 +545,27 @@
             if (!isDataUnlocked) return;
             var nameInput = document.getElementById("new-member-name-input");
             var roleSelect = document.getElementById("new-member-role-select");
+            var titleSelect = document.getElementById("new-member-title-select");
             var checked = document.querySelector("input[name=\"new-member-access-mode\"]:checked");
             var accessMode = checked ? checked.value : "all";
             var dateInput = document.getElementById("new-member-join-date");
             var name = nameInput.value.trim();
+            var selectedTitle = titleSelect ? titleSelect.value.trim() : "집사";
             if (!name || name.length < 2) { showToast("이름을 2자 이상 입력해 주세요."); return; }
             if (!Array.isArray(mokjangConfig.members)) mokjangConfig.members = [];
             if (!Array.isArray(mokjangConfig.subLeaders)) mokjangConfig.subLeaders = [];
             if (!mokjangConfig.memberJoinedAt) mokjangConfig.memberJoinedAt = {};
+            if (!mokjangConfig.memberTitles) mokjangConfig.memberTitles = {};
             if (mokjangConfig.members.indexOf(name) === -1) mokjangConfig.members.push(name);
-            if (roleSelect.value === "subleader" && mokjangConfig.subLeaders.indexOf(name) === -1) {
-                mokjangConfig.subLeaders.push(name);
+            if (roleSelect.value === "subleader") {
+                if (mokjangConfig.subLeaders.indexOf(name) === -1) mokjangConfig.subLeaders.push(name);
                 if (!mokjangConfig.subLeaderName) mokjangConfig.subLeaderName = name;
+            } else {
+                mokjangConfig.subLeaders = mokjangConfig.subLeaders.filter(function(s) { return s !== name; });
+                if (mokjangConfig.subLeaderName === name) mokjangConfig.subLeaderName = mokjangConfig.subLeaders[0] || "";
+            }
+            if (selectedTitle) {
+                mokjangConfig.memberTitles[name] = selectedTitle;
             }
             if (accessMode === "from_date" && dateInput && dateInput.value) {
                 mokjangConfig.memberJoinedAt[name] = new Date(dateInput.value + "T00:00:00").getTime();
@@ -511,7 +575,7 @@
             nameInput.value = "";
             await persistConfigToFirestore();
             renderMembersList();
-            showToast(name + " 님이 등록되었습니다.");
+            showToast(name + (selectedTitle ? " " + selectedTitle : "") + " 님이 등록되었습니다.");
         };
 
         window.removeMokjangMemberByName = async function(targetName) {
@@ -520,6 +584,7 @@
             mokjangConfig.subLeaders = (mokjangConfig.subLeaders || []).filter(function(s) { return s !== targetName; });
             if (mokjangConfig.subLeaderName === targetName) mokjangConfig.subLeaderName = mokjangConfig.subLeaders[0] || "";
             if (mokjangConfig.memberJoinedAt) delete mokjangConfig.memberJoinedAt[targetName];
+            if (mokjangConfig.memberTitles) delete mokjangConfig.memberTitles[targetName];
             await persistConfigToFirestore();
             renderMembersList();
             showToast(targetName + " 님이 명단에서 제외되었습니다.");
@@ -584,7 +649,7 @@
             }
             return "<div class=\"w-full bg-white rounded-2xl border border-gray-200 p-3 text-left flex flex-col justify-between h-full shadow-2xs\">" +
                 "<div><div class=\"flex items-center justify-between pb-1.5 mb-1.5 border-b border-gray-100\">" +
-                "<span class=\"text-xs font-extrabold text-gray-800\">" + escapeHtml(post.author || "목장가족") + "</span>" +
+                "<span class=\"text-xs font-extrabold text-gray-800\">" + escapeHtml((post.author || "목장가족") + ((mokjangConfig.memberTitles && mokjangConfig.memberTitles[post.author]) ? (" " + mokjangConfig.memberTitles[post.author]) : "")) + "</span>" +
                 "<span class=\"text-[9.5px] text-gray-400\">" + formatDate(post.createdAt) + "</span></div>" +
                 (post.content ? "<div class=\"text-xs text-gray-800 leading-relaxed whitespace-pre-wrap mb-1.5\">" + post.content + "</div>" : "") +
                 "</div><div class=\"mt-auto\">" + photosHtml + commentsHtml + "</div></div>";
