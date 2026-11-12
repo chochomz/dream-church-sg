@@ -39,6 +39,14 @@
     <!-- [PWA & 모바일 브라우저 최적화 메타 & 인라인 SVG 파비콘] -->
     <link rel="icon" type="image/png" href="hdclogo.png">
     <link rel="apple-touch-icon" href="hdclogo.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" id="meta-apple-app-title" content="꿈의 목장">
+    <meta name="application-name" id="meta-app-name" content="꿈의 목장">
+    <meta property="og:title" id="meta-og-title" content="꿈의목장 들어가기">
+    <meta property="og:description" id="meta-og-desc" content="사랑의 공동체 세종꿈의교회 목장 나눔방">
+    <meta property="og:image" content="hdclogo.png">
+    <link rel="manifest" id="dynamic-pwa-manifest" href="">
     <meta name="theme-color" content="#ffffff">
     <!-- [카카오톡 공식 JavaScript SDK] -->
     <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"></script>
@@ -545,7 +553,7 @@
                     <div class="flex items-center space-x-2.5">
                         <img src="hdclogo.png" alt="꿈의목장 아이콘" onerror="this.src='tlogo.png'" class="w-8 h-8 object-contain shrink-0 drop-shadow-2xs">
                         <div>
-                            <h4 class="text-[14px] font-black text-[#163172] leading-tight">모바일 홈 화면 추가 방법</h4>
+                            <h4 class="text-[14px] font-black text-[#163172] leading-tight"><span id="homescreen-guide-mokjang-label" class="text-[#C81E45]">꿈의 목장</span> 홈 화면 추가 방법</h4>
                             <p class="text-[10.5px] text-slate-500 font-medium mt-0.5">아이콘을 추가하면 앱처럼 바로 들어옵니다</p>
                         </div>
                     </div>
@@ -645,6 +653,7 @@ window.syncAdminGearVisibility = function(role, userName) {
     var noticeBtn = document.getElementById('header-notice-btn');
     var memberNoticeBtn = document.getElementById('header-member-notice-btn');
     var manualBtn = document.getElementById('header-manual-btn');
+    var shareAddrBtn = document.getElementById('header-share-address-btn');
     var r = role || localStorage.getItem('mokjang_user_role') || 'member';
     var u = userName || localStorage.getItem('mokjang_user_name') || '';
     var isLeaderOnly = (r === 'leader' || u === '목자' || u === '관리자');
@@ -660,9 +669,13 @@ window.syncAdminGearVisibility = function(role, userName) {
         if (!isLeaderOnly) { memberNoticeBtn.classList.remove('hidden'); memberNoticeBtn.style.display = 'flex'; }
         else { memberNoticeBtn.classList.add('hidden'); memberNoticeBtn.style.display = 'none'; }
     }
+    if (shareAddrBtn) {
+        if (isLeaderOnly) { shareAddrBtn.classList.remove('hidden'); shareAddrBtn.style.display = 'flex'; }
+        else { shareAddrBtn.classList.add('hidden'); shareAddrBtn.style.display = 'none'; }
+    }
     if (manualBtn) {
         if (isLeaderOnly) {
-            manualBtn.className = "col-span-2 relative h-[42px] px-3 rounded-[14px] bg-white hover:bg-indigo-50/60 border border-slate-200/90 shadow-2xs flex items-center justify-center space-x-2 active:scale-95 transition-all";
+            manualBtn.className = "col-span-1 relative h-[48px] px-2 rounded-[14px] bg-white hover:bg-indigo-50/60 border border-slate-200/90 shadow-2xs flex items-center justify-center space-x-1.5 active:scale-95 transition-all";
         } else {
             manualBtn.className = "col-span-1 relative h-[60px] rounded-[16px] bg-white hover:bg-indigo-50/60 border border-slate-200/90 shadow-2xs flex flex-col items-center justify-center space-y-1 active:scale-95 transition-all";
         }
@@ -760,6 +773,7 @@ window.handleGateCodeInput = function(el) {
     if (msgEl) msgEl.textContent = '';
     if (cleaned.length === 4) {
         if (window.isValidMokjangCodeCheck(cleaned)) {
+            if (typeof window.syncHomeScreenAppMeta === "function") { var _cCfg = window.getMergedMokjangConfigByCode(cleaned); window.syncHomeScreenAppMeta(_cCfg ? _cCfg.mokjangName : ""); }
             var nameInput = document.getElementById('gate-input-name');
             var remChk = document.getElementById('gate-remember-name-chk');
             var isRemembered = (remChk && remChk.checked) || localStorage.getItem('mokjang_remember_name_checked') === 'true';
@@ -940,12 +954,17 @@ window.proceedToExternalAdminPage = function() {
                         </div>
                         <span class="text-[11px] font-extrabold text-slate-700 tracking-tight leading-none">설정</span>
                     </button>
-                    <button type="button" id="header-manual-btn" onclick="window.openUserManualModal(event)" class="col-span-2 relative h-[42px] px-3 rounded-[14px] bg-white hover:bg-indigo-50/60 border border-slate-200/90 shadow-2xs flex items-center justify-center space-x-2 active:scale-95 transition-all" title="목장 앱 사용설명서 (dcsghelp.html)">
-                        <span class="absolute top-1 right-2 text-[8.5px] font-bold text-slate-400 leading-none">공통</span>
-                        <div class="w-6 h-6 rounded-[8px] bg-indigo-50 text-indigo-700 border border-indigo-200/80 flex items-center justify-center shrink-0">
-                            <i class="fa-solid fa-book-open text-[10px]"></i>
+                    <button type="button" id="header-manual-btn" onclick="window.openUserManualModal(event)" class="col-span-1 relative h-[48px] px-2 rounded-[14px] bg-white hover:bg-indigo-50/60 border border-slate-200/90 shadow-2xs flex items-center justify-center space-x-1.5 active:scale-95 transition-all" title="목장 앱 사용설명서 (dcsghelp.html)">
+                        <span class="absolute top-1 right-1.5 text-[8px] font-bold text-slate-400 leading-none">공통</span>
+                        <div class="w-5 h-5 rounded-[7px] bg-indigo-50 text-indigo-700 border border-indigo-200/80 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-book-open text-[9.5px]"></i>
                         </div>
-                        <span class="text-[11px] font-extrabold text-slate-700 tracking-tight leading-none">사용설명서</span>
+                        <span class="text-[10.5px] font-extrabold text-slate-700 tracking-tight leading-none whitespace-nowrap">사용설명서</span>
+                    </button>
+                    <button type="button" id="header-share-address-btn" onclick="window.openMokjangAddressShareModal(event)" class="hidden col-span-1 relative h-[48px] px-2 rounded-[14px] bg-white hover:bg-amber-50/80 border border-slate-200/90 shadow-2xs items-center justify-center space-x-1 active:scale-95 transition-all" title="카톡방에 우리 목장 주소 공유하기">
+                        <span class="absolute top-1 right-1.5 text-[8px] font-extrabold text-emerald-800 leading-none">관리자</span>
+                        <img src="hdclogo.png" alt="" onerror="this.src='tlogo.png'" class="w-5 h-5 object-contain shrink-0 rounded-[5px]">
+                        <span class="text-[10px] font-extrabold text-slate-700 tracking-tighter leading-none whitespace-nowrap">목장주소/공유</span>
                     </button>
                 </div>
                 <div id="combined-cloud-badge" class="w-full h-[32px] px-2.5 rounded-[13px] bg-white border border-slate-200/90 shadow-2xs flex items-center justify-between text-slate-700 select-none" title="클라우드 실시간 연동 및 1GB 무료 용량 사용 현황">
@@ -1691,7 +1710,39 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
-        <!-- [1. 목자 전용 심플 공지·알림 관리 모달] -->
+        <!-- [목장주소/공유 심플 카톡방 공유 모달 (홈아이콘 + 한줄 아래 "00목장 들어가기")] -->
+    <div id="mokjang-address-share-modal" onclick="window.closeMokjangAddressShareModal(event)" class="fixed inset-0 z-[98] bg-black/55 flex items-center justify-center p-4 hidden select-none" style="touch-action: none;">
+        <div onclick="event.stopPropagation()" class="bg-white rounded-[24px] w-full max-w-[290px] p-5 shadow-2xl border border-slate-200 text-center space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <span class="text-xs font-extrabold text-slate-700 flex items-center space-x-1.5">
+                    <i class="fa-solid fa-share-nodes text-emerald-700 text-xs"></i>
+                    <span>우리 목장주소 공유</span>
+                </span>
+                <button type="button" onclick="window.closeMokjangAddressShareModal(event)" class="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs active:scale-90">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="py-4 px-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col items-center justify-center space-y-2.5 shadow-inner">
+                <div class="w-16 h-16 rounded-2xl bg-white border border-slate-200/90 shadow-xs p-2 flex items-center justify-center">
+                    <img id="mokjang-addr-share-icon" src="hdclogo.png" alt="홈화면 아이콘" onerror="this.src='tlogo.png'" class="w-full h-full object-contain select-none pointer-events-none">
+                </div>
+                <p id="mokjang-addr-share-label" class="text-[15px] font-black text-[#163172] tracking-tight leading-snug">23목장 들어가기</p>
+                <p id="mokjang-addr-share-url" class="text-[10px] font-mono text-slate-400 truncate max-w-[220px]"></p>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-0.5">
+                <button type="button" onclick="window.copyMokjangAddressOnly(event)" class="py-2.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-extrabold active:scale-95 transition-all flex items-center justify-center space-x-1">
+                    <i class="fa-regular fa-copy text-[11px]"></i>
+                    <span>주소 복사</span>
+                </button>
+                <button type="button" onclick="window.executeMokjangAddressKakaoShare(event)" class="py-2.5 px-2 bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] rounded-xl text-xs font-extrabold shadow-xs active:scale-95 transition-all flex items-center justify-center space-x-1">
+                    <i class="fa-solid fa-comment text-[11px]"></i>
+                    <span>카톡방 공유</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- [1. 목자 전용 심플 공지·알림 관리 모달] -->
     <div id="mokjang-notice-admin-modal" onclick="window.closeNoticeAdminModal(event)" class="fixed inset-0 z-[95] bg-black/50 flex items-center justify-center p-2.5 hidden select-none" style="touch-action: none;">
         <div onclick="event.stopPropagation()" class="bg-white rounded-2xl w-full max-w-[344px] shadow-2xl border border-[#E6D5B8] flex flex-col overflow-hidden">
             <!-- 1) 타이틀 중앙 정렬 & 23목장 사이즈 +1포인트 증가 -->
@@ -2182,7 +2233,7 @@ function syncHeaderMokjangTitleDOM() {
             const mokjangSpan = document.getElementById("title-mokjang-name");
             if (prefixEl) prefixEl.innerHTML = '<span id="title-char-se">세</span>종꿈의교<span id="title-char-hoe">회</span>';
             if (mokjangSpan) { mokjangSpan.textContent = mokjangPart; mokjangSpan.className = "ml-1 relative inline-block text-[#3B5D50]"; }
-            document.title = "우리들의 목장 이야기 - " + currentMokjang;
+            if (typeof window.syncHomeScreenAppMeta === "function") { window.syncHomeScreenAppMeta(mokjangPart); } else { document.title = mokjangPart.replace(/\s*목장$/, "") + " 목장"; }
             const renameBtn = document.getElementById("lightbox-rename-btn");
             if (renameBtn) { if (isCurrentUserAdmin) renameBtn.classList.remove("hidden"); else renameBtn.classList.add("hidden"); }
             if (typeof window.syncAdminGearVisibility === "function") window.syncAdminGearVisibility(currentUserRole, currentUser);
@@ -8990,6 +9041,186 @@ window.syncLoginSessionToFeed = function(name, role, isAdmin, mokjangShort, code
     syncHeaderMokjangTitleDOM(); updateWelcomeUserDisplay(lastOnlineCount); loadMokjangFeed(); ensureMokjangFilesLoaded(); if (typeof window.checkAndAutoShowNoticeAfterLogin === "function") window.checkAndAutoShowNoticeAfterLogin();
     if (typeof showNotification === "function") showNotification(name + "님 환영합니다!");
 };
+// [HOMESCREEN_AND_SHARE_V2_START]
+window.formatSpacedMokjangTitle = function(rawName) {
+    var s = String(rawName || "").trim().replace(/^세종꿈의교회\s*-?\s*/, "").trim();
+    if (!s) {
+        var code = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "").trim();
+        var cfg = (typeof window.getMergedMokjangConfigByCode === "function") ? window.getMergedMokjangConfigByCode(code) : null;
+        if (cfg && cfg.mokjangName) s = String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*-?\s*/, "").trim();
+        else s = String(localStorage.getItem("mokjang_short_name") || "").trim();
+    }
+    if (!s) return "꿈의 목장";
+    var prefix = s.replace(/\s*목장$/, "").trim();
+    return prefix ? (prefix + " 목장") : "꿈의 목장";
+};
+
+window.formatCompactMokjangTitle = function(rawName) {
+    var spaced = window.formatSpacedMokjangTitle(rawName);
+    return spaced.replace(/\s+목장$/, "목장");
+};
+
+window.syncHomeScreenAppMeta = function(rawMokjangName) {
+    try {
+        var spacedName = window.formatSpacedMokjangTitle(rawMokjangName);
+        var compactName = window.formatCompactMokjangTitle(rawMokjangName);
+        var enterLabel = compactName + " 들어가기";
+        document.title = spacedName;
+        var appleMeta = document.getElementById("meta-apple-app-title");
+        if (appleMeta) appleMeta.setAttribute("content", spacedName);
+        var appNameMeta = document.getElementById("meta-app-name");
+        if (appNameMeta) appNameMeta.setAttribute("content", spacedName);
+        var ogTitleMeta = document.getElementById("meta-og-title");
+        if (ogTitleMeta) ogTitleMeta.setAttribute("content", enterLabel);
+        var guideLabel = document.getElementById("homescreen-guide-mokjang-label");
+        if (guideLabel) guideLabel.textContent = spacedName;
+
+        var baseHref = window.location.href.split("?")[0].split("#")[0];
+        var baseDir = baseHref.substring(0, baseHref.lastIndexOf("/") + 1);
+        var iconAbsUrl = baseDir + "hdclogo.png";
+        var activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "").trim();
+        var startUrl = activeCode ? (baseHref + "?code=" + encodeURIComponent(activeCode)) : baseHref;
+
+        var manifestObj = {
+            name: spacedName,
+            short_name: spacedName,
+            description: enterLabel,
+            start_url: startUrl,
+            display: "standalone",
+            background_color: "#ffffff",
+            theme_color: "#ffffff",
+            icons: [
+                { src: iconAbsUrl, sizes: "192x192", type: "image/png", purpose: "any" },
+                { src: iconAbsUrl, sizes: "512x512", type: "image/png", purpose: "any" }
+            ]
+        };
+        var manifestJson = JSON.stringify(manifestObj);
+        var manifestDataUrl = "data:application/manifest+json;charset=utf-8," + encodeURIComponent(manifestJson);
+        var manifestLink = document.getElementById("dynamic-pwa-manifest");
+        if (manifestLink) manifestLink.setAttribute("href", manifestDataUrl);
+    } catch (e) {}
+};
+
+var __origOpenHomeGuide = window.openHomeScreenGuideModal;
+window.openHomeScreenGuideModal = function(event) {
+    try {
+        var codeInput = document.getElementById("gate-input-code");
+        var typedCode = (codeInput && codeInput.value) ? codeInput.value.trim() : "";
+        var targetCode = typedCode.length === 4 ? typedCode : (window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "");
+        var cfg = (typeof window.getMergedMokjangConfigByCode === "function") ? window.getMergedMokjangConfigByCode(targetCode) : null;
+        var mName = (cfg && cfg.mokjangName) ? cfg.mokjangName : (localStorage.getItem("mokjang_short_name") || "");
+        window.syncHomeScreenAppMeta(mName);
+    } catch (e) {}
+    if (typeof __origOpenHomeGuide === "function") __origOpenHomeGuide(event);
+};
+
+(function applyUrlMokjangCodeParam() {
+    try {
+        var params = new URLSearchParams(window.location.search || "");
+        var urlCode = (params.get("code") || "").replace(/[^0-9]/g, "").slice(0, 4);
+        if (urlCode && urlCode.length === 4) {
+            window.currentMokjangCode = urlCode;
+            localStorage.setItem("mokjang_active_code", urlCode);
+            var codeInput = document.getElementById("gate-input-code");
+            if (codeInput && !codeInput.value) codeInput.value = urlCode;
+        }
+        window.syncHomeScreenAppMeta();
+    } catch (e) {}
+})();
+
+window.getMokjangShareUrlAndLabel = function() {
+    var compactName = window.formatCompactMokjangTitle(currentMokjangShort);
+    var enterLabel = compactName + " 들어가기";
+    var baseHref = window.location.href.split("?")[0].split("#")[0];
+    var baseDir = baseHref.substring(0, baseHref.lastIndexOf("/") + 1);
+    var iconUrl = baseDir + "hdclogo.png";
+    var shareUrl = baseHref;
+    return { compactName: compactName, spacedName: window.formatSpacedMokjangTitle(currentMokjangShort), enterLabel: enterLabel, shareUrl: shareUrl, iconUrl: iconUrl };
+};
+
+window.openMokjangAddressShareModal = function(event) {
+    if (event) { event.preventDefault(); event.stopPropagation(); }
+    if (typeof closeAllHeaderQuickMenu === "function") closeAllHeaderQuickMenu();
+    var info = window.getMokjangShareUrlAndLabel();
+    window.syncHomeScreenAppMeta(info.spacedName);
+    var labelEl = document.getElementById("mokjang-addr-share-label");
+    var urlEl = document.getElementById("mokjang-addr-share-url");
+    if (labelEl) labelEl.textContent = info.enterLabel;
+    if (urlEl) urlEl.textContent = info.shareUrl;
+    var modal = document.getElementById("mokjang-address-share-modal");
+    if (modal) modal.classList.remove("hidden");
+};
+
+window.closeMokjangAddressShareModal = function(event) {
+    if (event) { event.preventDefault(); event.stopPropagation(); }
+    var modal = document.getElementById("mokjang-address-share-modal");
+    if (modal) modal.classList.add("hidden");
+};
+
+window.copyMokjangAddressOnly = async function(event) {
+    if (event) { event.preventDefault(); event.stopPropagation(); }
+    var info = window.getMokjangShareUrlAndLabel();
+    var shareText = info.enterLabel + "\n" + info.shareUrl;
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(shareText);
+        }
+    } catch (e) {}
+    window.closeMokjangAddressShareModal();
+    if (typeof showNotification === "function") {
+        showNotification("'" + info.enterLabel + "' 주소가 복사되었습니다! 카톡방에 붙여넣기 하세요.");
+    }
+};
+
+window.executeMokjangAddressKakaoShare = async function(event) {
+    if (event) { event.preventDefault(); event.stopPropagation(); }
+    var info = window.getMokjangShareUrlAndLabel();
+    var shareText = info.enterLabel + "\n" + info.shareUrl;
+    window.closeMokjangAddressShareModal();
+
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(shareText);
+        }
+    } catch (e) {}
+
+    try {
+        if (window.Kakao && window.Kakao.isInitialized() && window.Kakao.Share) {
+            window.Kakao.Share.sendDefault({
+                objectType: "feed",
+                content: {
+                    title: info.enterLabel,
+                    imageUrl: info.iconUrl,
+                    imageWidth: 300,
+                    imageHeight: 300,
+                    link: { mobileWebUrl: info.shareUrl, webUrl: info.shareUrl }
+                },
+                buttons: [
+                    { title: info.enterLabel, link: { mobileWebUrl: info.shareUrl, webUrl: info.shareUrl } }
+                ]
+            });
+            return;
+        }
+    } catch (kakaoErr) {}
+
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: info.enterLabel,
+                text: info.enterLabel,
+                url: info.shareUrl
+            });
+            return;
+        } catch (err) {
+            if (err && err.name === "AbortError") return;
+        }
+    }
+
+    if (typeof showNotification === "function") {
+        showNotification("'" + info.enterLabel + "' 주소가 복사되었습니다! 카톡방에 붙여넣기 하세요.");
+    }
+};
+// [HOMESCREEN_AND_SHARE_V2_END]
 // [BRIDGE_V24_END]
     </script>
 </body>
