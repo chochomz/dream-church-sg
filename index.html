@@ -1852,7 +1852,9 @@ window.proceedToExternalAdminPage = function() {
 
         function getAuthorTitleName(authorName) {
             const rawName = String(authorName || currentUser || "목장가족").trim();
-            if (/(?:목자|부목자|목원|집사|권사|장로)$/.test(rawName) || rawName === "목장가족") return rawName;
+            if (/(?:목자|부목자|목원|성도|집사|권사|안수집사|장로|간사)$/.test(rawName) || rawName === "목장가족") return rawName;
+            const churchTitle = (typeof window.getAuthorChurchTitle === "function") ? window.getAuthorChurchTitle(rawName) : "";
+            if (churchTitle) return rawName + " " + churchTitle;
             const role = (typeof currentUserRole !== 'undefined' ? currentUserRole : '') || localStorage.getItem('mokjang_user_role') || 'member';
             const isLeader = (role === 'leader' || rawName === (typeof configuredLeaderName !== 'undefined' ? configuredLeaderName : '목자') || rawName === '관리자');
             const isSubLeader = (!isLeader && (role === 'subleader' || rawName === (typeof configuredSubLeaderName !== 'undefined' ? configuredSubLeaderName : '부목자') || (Array.isArray(configuredSubLeaders) && configuredSubLeaders.includes(rawName))));
@@ -8422,7 +8424,7 @@ window.formatAuthorNameWithTitle = function(authorName) {
     }
     const title = window.getAuthorChurchTitle(raw);
     if (title) {
-        return escapeHtml(raw) + ' <span class="text-[11px] font-semibold text-emerald-800">' + escapeHtml(title) + '</span>';
+        return escapeHtml(raw + " " + title);
     }
     return escapeHtml(raw);
 };
@@ -8838,8 +8840,6 @@ window.shareSimpleDayNoticeToKakao = async function(event) {
     showNotification("알림 공유 문구가 복사되었습니다! 카톡방에 붙여넣기 하세요.");
 };
 
-window.saveSimpleDayNotice = window.saveSimpleDayNoticeOnly;
-
 // 알림 확인 창 & 로그인 시 뜨는 알림 창에 '일자 + 시간(24시간제, 작은 회색 문자)' 표시
 window.openMemberNoticeHistoryModal = function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
@@ -8975,6 +8975,7 @@ try {
                     const calPopup = document.getElementById("bookmark-calendar-popup");
                     if (calPopup && !calPopup.classList.contains("hidden")) renderBookmarkCalendar(calendarCurrentYear, calendarCurrentMonth);
                 }
+                if (typeof renderFeedList === "function") renderFeedList();
             }
         });
     });
