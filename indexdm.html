@@ -114,7 +114,7 @@
     </style>
 </head>
 <body class="h-full w-full max-w-full overflow-y-auto overflow-x-hidden bg-[#F1F5F9] py-2 px-1.5 select-none">
-    <div class="w-full max-w-md mx-auto bg-white rounded-3xl border border-slate-200/90 shadow-sm px-2.5 py-3 space-y-2.5">
+    <div class="w-full max-w-md mx-auto bg-white rounded-2xl border border-slate-200/90 shadow-sm px-2 py-2 space-y-2">
         <div class="flex items-center justify-center min-h-[40px] pb-2 border-b border-slate-100">
             <div class="flex items-center justify-center space-x-2 min-w-0">
                 <div class="w-8 h-8 rounded-xl border border-slate-200 bg-slate-50 p-1 flex items-center justify-center shrink-0 shadow-2xs">
@@ -134,7 +134,7 @@
             </button>
         </div>
         <div id="security-unlocked-data-container" class="space-y-2.5">
-            <section class="w-full bg-slate-50/70 rounded-2xl border church-border p-2.5 space-y-2">
+            <section class="w-full bg-slate-50/70 rounded-xl border church-border p-2 space-y-1.5">
                 <div class="flex items-center border-b border-slate-200/70 pb-1.5 whitespace-nowrap">
                     <h3 class="text-xs font-extrabold text-slate-800 flex items-center space-x-1.5"><i class="fa-solid fa-key church-primary-text text-[11px]"></i><span>우리 목장 기본 설정</span></h3>
                 </div>
@@ -152,7 +152,7 @@
                 </div>
                 <button type="button" onclick="saveMokjangConfigToFirestore()" class="w-full py-2.5 church-primary hover:opacity-95 active:scale-98 text-white rounded-xl text-xs font-extrabold shadow-xs transition-all flex items-center justify-center space-x-1.5 whitespace-nowrap"><i class="fa-solid fa-floppy-disk"></i><span>우리 목장 기본 설정 저장</span></button>
             </section>
-            <section class="w-full bg-slate-50/70 rounded-2xl border church-border p-2.5 space-y-2">
+            <section class="w-full bg-slate-50/70 rounded-xl border church-border p-2 space-y-1.5">
                 <div class="border-b border-slate-200/70 pb-1.5 text-left">
                     <h3 class="text-xs font-extrabold text-slate-800 flex items-center space-x-1.5 whitespace-nowrap"><i class="fa-solid fa-users church-primary-text text-[11px]"></i><span>목원 · 부목자 추가 관리 (<span id="member-count-text" class="text-emerald-700">0</span>명)</span></h3>
                     <p class="text-[10.5px] text-slate-500 font-semibold mt-0.5 whitespace-nowrap">신입 목원님의 열람 시작일을 지정하세요.</p>
@@ -194,7 +194,7 @@
                         <input type="date" id="new-member-join-date" class="px-2 py-0.5 rounded-lg border border-emerald-300 bg-white text-xs font-mono font-bold text-emerald-900">
                     </div>
                 </div>
-                <div id="admin-member-list" class="space-y-1.5 max-h-64 overflow-y-auto pt-0.5"></div>
+                <div id="admin-member-list" class="bg-white rounded-xl border border-slate-200/80 divide-y divide-slate-100 max-h-64 overflow-y-auto px-2 py-0.5"></div>
             </section>
         </div>
     </div>
@@ -393,65 +393,71 @@
                 var isSub = (!isLeader && subList.indexOf(m) !== -1);
                 var curTitle = titlesMap[m] ? String(titlesMap[m]).trim() : "";
                 var row = document.createElement("div");
-                row.className = "flex items-center justify-between px-2 py-1.5 rounded-xl bg-white border border-slate-200/80 text-xs whitespace-nowrap";
+                row.className = "flex items-center justify-between py-1 px-0.5 text-xs whitespace-nowrap";
 
                 var leftDiv = document.createElement("div");
-                leftDiv.className = "flex items-center space-x-1.5 flex-1 min-w-0 pr-1";
+                leftDiv.className = "flex items-center space-x-1.5 min-w-0 flex-1 pr-1 overflow-hidden";
                 var badge = document.createElement("span");
                 if (isLeader) {
-                    badge.className = "px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9.5px] font-extrabold shrink-0";
+                    badge.className = "w-[36px] text-center py-0.5 rounded bg-amber-100 text-amber-800 text-[9.5px] font-extrabold shrink-0";
                     badge.textContent = "목자";
                 } else if (isSub) {
-                    badge.className = "px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 text-[9.5px] font-extrabold shrink-0";
+                    badge.className = "w-[36px] text-center py-0.5 rounded bg-sky-100 text-sky-800 text-[9.5px] font-extrabold shrink-0";
                     badge.textContent = "부목자";
                 } else {
-                    badge.className = "px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9.5px] font-bold shrink-0";
+                    badge.className = "w-[36px] text-center py-0.5 rounded bg-emerald-50 text-emerald-700 text-[9.5px] font-bold shrink-0";
                     badge.textContent = "목원";
                 }
-                var nameSpan = document.createElement("span");
-                nameSpan.className = "font-extrabold text-slate-800 text-[13px] whitespace-nowrap";
-                nameSpan.textContent = curTitle ? (m + " " + curTitle) : m;
-                leftDiv.appendChild(badge);
-                leftDiv.appendChild(nameSpan);
 
-                var rightDiv = document.createElement("div");
-                rightDiv.className = "flex items-center space-x-1 shrink-0";
+                // 이름 + 직분 표시 (터치 시 직분 변경 드롭다운 즉시 오픈, 별도 공간 차지 없음)
+                var nameWrap = document.createElement("div");
+                nameWrap.className = "relative inline-flex items-center min-w-0 cursor-pointer group";
+                nameWrap.title = "터치하여 직분 변경";
+                var nameSpan = document.createElement("span");
+                nameSpan.className = "font-extrabold text-slate-800 text-[12.5px] truncate group-hover:text-emerald-800";
+                nameSpan.textContent = curTitle ? (m + " " + curTitle) : m;
 
                 var titleSel = document.createElement("select");
-                titleSel.className = "px-1.5 py-0.5 rounded-lg bg-emerald-50/80 border border-emerald-200 text-[10px] font-extrabold text-emerald-900 focus:outline-none cursor-pointer";
-                titleSel.title = m + " 님 직분 변경";
+                titleSel.className = "absolute inset-0 w-full h-full opacity-0 cursor-pointer";
                 var titleOptions = ["", "성도", "집사", "권사", "안수집사", "장로", "간사"];
                 titleOptions.forEach(function(optVal) {
                     var opt = document.createElement("option");
                     opt.value = optVal;
-                    opt.textContent = optVal ? optVal : "직분선택";
+                    opt.textContent = optVal ? (m + " - " + optVal) : (m + " - 직분없음");
                     if (optVal === curTitle) opt.selected = true;
                     titleSel.appendChild(opt);
                 });
                 titleSel.onchange = function() { window.changeMemberTitle(m, this.value); };
-                rightDiv.appendChild(titleSel);
+                nameWrap.appendChild(nameSpan);
+                nameWrap.appendChild(titleSel);
+
+                leftDiv.appendChild(badge);
+                leftDiv.appendChild(nameWrap);
+
+                var rightDiv = document.createElement("div");
+                rightDiv.className = "flex items-center space-x-1 shrink-0";
 
                 var joinTs = Number(joinedMap[m] || 0);
-                var dateLabel = isLeader ? "전체(고정)" : (joinTs > 0 ? new Date(joinTs).toISOString().split("T")[0] + " 이후" : "전체기간");
+                var dateLabel = isLeader ? "전체(고정)" : (joinTs > 0 ? new Date(joinTs).toISOString().split("T")[0].slice(2) + " 이후" : "전체기간");
 
                 if (!isLeader) {
                     var dateBtn = document.createElement("button");
                     dateBtn.type = "button";
-                    dateBtn.className = "px-1.5 py-0.5 rounded-lg bg-slate-50 border border-slate-200 text-[10px] font-bold text-slate-600 hover:border-emerald-400 hover:text-emerald-800 whitespace-nowrap";
-                    dateBtn.textContent = "📅 " + dateLabel;
+                    dateBtn.className = "px-1.5 py-0.5 rounded bg-slate-50 border border-slate-200/90 text-[10px] font-bold text-slate-600 hover:border-emerald-400 hover:text-emerald-800 whitespace-nowrap";
+                    dateBtn.textContent = dateLabel;
                     dateBtn.onclick = function() { window.changeMemberJoinDate(m); };
 
                     var delBtn = document.createElement("button");
                     delBtn.type = "button";
                     delBtn.className = "w-5 h-5 rounded-full hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center shrink-0";
-                    delBtn.innerHTML = "<i class=\"fa-solid fa-xmark\"></i>";
+                    delBtn.innerHTML = "<i class=\"fa-solid fa-xmark text-[11px]\"></i>";
                     delBtn.onclick = function() { window.removeMokjangMemberByName(m); };
 
                     rightDiv.appendChild(dateBtn);
                     rightDiv.appendChild(delBtn);
                 } else {
                     var fixedSpan = document.createElement("span");
-                    fixedSpan.className = "text-[10px] text-amber-700 font-semibold whitespace-nowrap px-1";
+                    fixedSpan.className = "text-[10px] text-amber-700 font-semibold whitespace-nowrap pr-1";
                     fixedSpan.textContent = dateLabel;
                     rightDiv.appendChild(fixedSpan);
                 }
