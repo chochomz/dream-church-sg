@@ -45,7 +45,9 @@
     <meta name="application-name" id="meta-app-name" content="꿈의 목장">
     <meta property="og:title" id="meta-og-title" content="꿈의목장 들어가기">
     <meta property="og:description" id="meta-og-desc" content="사랑의 공동체 목장 나눔방">
-    <meta property="og:image" content="hdclogo.png">
+    <meta property="og:image" id="meta-og-image" content="kakao_share_logo.png">
+    <meta property="og:image:width" content="800">
+    <meta property="og:image:height" content="400">
     <link rel="manifest" id="dynamic-pwa-manifest" href="">
     <meta name="theme-color" content="#ffffff">
     <!-- [카카오톡 공식 JavaScript SDK] -->
@@ -1884,7 +1886,7 @@ window.proceedToExternalAdminPage = function() {
 
         // [작업 4-가, 나, 다, 라: 로그인 세션 기반 사용자 이름 및 목자/부목자/일반목원 권한 체계 초기화]
                         // [카카오톡 공유 모달 및 클립보드 복사 로직 (직분 호칭 포함)]
-        const KAKAO_JAVASCRIPT_KEY = "";
+        const KAKAO_JAVASCRIPT_KEY = "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d";
         function initKakaoSDK() {
             try { if (window.Kakao && !window.Kakao.isInitialized() && KAKAO_JAVASCRIPT_KEY.trim()) window.Kakao.init(KAKAO_JAVASCRIPT_KEY.trim()); } catch (e) {}
         }
@@ -1933,6 +1935,29 @@ window.proceedToExternalAdminPage = function() {
                 : (localStorage.getItem("mokjang_short_name") || "꿈의목장");
             const textToShare = pendingKakaoShareText || (displayName + "님이 " + mokjangLabel + " 나눔 앱에 글을 올렸습니다.");
             closeKakaoShareModal();
+            try {
+                if (window.Kakao && !window.Kakao.isInitialized() && KAKAO_JAVASCRIPT_KEY.trim()) {
+                    window.Kakao.init(KAKAO_JAVASCRIPT_KEY.trim());
+                }
+                if (window.Kakao && window.Kakao.isInitialized() && window.Kakao.Share) {
+                    const baseHref = window.location.href.split("?")[0].split("#")[0];
+                    const baseDir = baseHref.substring(0, baseHref.lastIndexOf("/") + 1);
+                    const shareLogoUrl = baseDir + "kakao_share_logo.png";
+                    const enterTitle = (typeof window.getDreamMokjangEnterTitle === "function") ? window.getDreamMokjangEnterTitle(mokjangLabel) : ("꿈의 " + mokjangLabel + " 들어가기");
+                    window.Kakao.Share.sendDefault({
+                        objectType: "feed",
+                        content: {
+                            title: textToShare,
+                            description: enterTitle,
+                            imageUrl: shareLogoUrl,
+                            imageWidth: 800,
+                            imageHeight: 400,
+                            link: { mobileWebUrl: baseHref, webUrl: baseHref }
+                        }
+                    });
+                    return;
+                }
+            } catch (e) {}
             try {
                 if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(textToShare);
             } catch (e) {}
@@ -9134,14 +9159,14 @@ window.getMokjangShareUrlAndLabel = function() {
     var cleanMessage = enterLabel + "\n" + subLabel;
     var baseHref = window.location.href.split("?")[0].split("#")[0];
     var baseDir = baseHref.substring(0, baseHref.lastIndexOf("/") + 1);
-    var iconUrl = baseDir + "hdclogo.png";
+    var kakaoShareLogoUrl = baseDir + "kakao_share_logo.png";
     return {
         spacedName: window.formatSpacedMokjangTitle(currentMokjangShort),
         enterLabel: enterLabel,
         subLabel: subLabel,
         cleanMessage: cleanMessage,
         shareUrl: baseHref,
-        iconUrl: iconUrl
+        kakaoShareLogoUrl: kakaoShareLogoUrl
     };
 };
 
@@ -9169,40 +9194,43 @@ window.executeMokjangAddressKakaoShare = async function(event) {
     var info = window.getMokjangShareUrlAndLabel();
     window.closeMokjangAddressShareModal();
 
+    // 카카오 공식 SDK 공유: 깃허브 URL 텍스트 노출 없이 카드만 표시되고 카드를 누르면 바로 이동!
     try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(info.cleanMessage);
+        if (window.Kakao && !window.Kakao.isInitialized() && KAKAO_JAVASCRIPT_KEY.trim()) {
+            window.Kakao.init(KAKAO_JAVASCRIPT_KEY.trim());
         }
-    } catch (e) {}
-
-    try {
         if (window.Kakao && window.Kakao.isInitialized() && window.Kakao.Share) {
             window.Kakao.Share.sendDefault({
                 objectType: "feed",
                 content: {
                     title: info.enterLabel,
                     description: info.subLabel,
-                    imageUrl: info.iconUrl,
-                    imageWidth: 300,
-                    imageHeight: 300,
+                    imageUrl: info.kakaoShareLogoUrl,
+                    imageWidth: 800,
+                    imageHeight: 400,
                     link: { mobileWebUrl: info.shareUrl, webUrl: info.shareUrl }
                 }
             });
             return;
         }
-    } catch (kakaoErr) {}
+    } catch (kakaoErr) {
+        console.warn("Kakao SDK 공유 오류:", kakaoErr);
+    }
 
+    // 폴백(카카오 키 미설정 시)
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(info.cleanMessage);
+        }
+    } catch (e) {}
     if (navigator.share) {
         try {
-            await navigator.share({
-                text: info.cleanMessage
-            });
+            await navigator.share({ text: info.cleanMessage });
             return;
         } catch (err) {
             if (err && err.name === "AbortError") return;
         }
     }
-
     if (typeof showNotification === "function") {
         showNotification("공유 문구가 복사되었습니다! 카톡방에 붙여넣기 하세요.");
     }
