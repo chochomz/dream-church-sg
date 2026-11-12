@@ -44,7 +44,7 @@
     <meta name="apple-mobile-web-app-title" id="meta-apple-app-title" content="꿈의 목장">
     <meta name="application-name" id="meta-app-name" content="꿈의 목장">
     <meta property="og:title" id="meta-og-title" content="꿈의목장 들어가기">
-    <meta property="og:description" id="meta-og-desc" content="사랑의 공동체 세종꿈의교회 목장 나눔방">
+    <meta property="og:description" id="meta-og-desc" content="사랑의 공동체 목장 나눔방">
     <meta property="og:image" content="hdclogo.png">
     <link rel="manifest" id="dynamic-pwa-manifest" href="">
     <meta name="theme-color" content="#ffffff">
@@ -1710,29 +1710,21 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
-        <!-- [목장주소/공유 심플 카톡방 공유 모달 (홈아이콘 + 한줄 아래 "00목장 들어가기")] -->
+        <!-- [목장주소/공유 심플 카톡방 공유 모달 (홈아이콘 + 꿈의 00목장 들어가기 + 사랑의 공동체 목장 나눔방)] -->
     <div id="mokjang-address-share-modal" onclick="window.closeMokjangAddressShareModal(event)" class="fixed inset-0 z-[98] bg-black/55 flex items-center justify-center p-4 hidden select-none" style="touch-action: none;">
-        <div onclick="event.stopPropagation()" class="bg-white rounded-[24px] w-full max-w-[290px] p-5 shadow-2xl border border-slate-200 text-center space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                <span class="text-xs font-extrabold text-slate-700 flex items-center space-x-1.5">
-                    <i class="fa-solid fa-share-nodes text-emerald-700 text-xs"></i>
-                    <span>우리 목장주소 공유</span>
-                </span>
-                <button type="button" onclick="window.closeMokjangAddressShareModal(event)" class="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center text-xs active:scale-90">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+        <div onclick="event.stopPropagation()" class="bg-white rounded-[24px] w-full max-w-[276px] p-5 shadow-2xl border border-slate-200 text-center space-y-4">
             <div class="py-4 px-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col items-center justify-center space-y-2.5 shadow-inner">
                 <div class="w-16 h-16 rounded-2xl bg-white border border-slate-200/90 shadow-xs p-2 flex items-center justify-center">
-                    <img id="mokjang-addr-share-icon" src="hdclogo.png" alt="홈화면 아이콘" onerror="this.src='tlogo.png'" class="w-full h-full object-contain select-none pointer-events-none">
+                    <img id="mokjang-addr-share-icon" src="hdclogo.png" alt="" onerror="this.src='tlogo.png'" class="w-full h-full object-contain select-none pointer-events-none">
                 </div>
-                <p id="mokjang-addr-share-label" class="text-[15px] font-black text-[#163172] tracking-tight leading-snug">23목장 들어가기</p>
-                <p id="mokjang-addr-share-url" class="text-[10px] font-mono text-slate-400 truncate max-w-[220px]"></p>
+                <div class="space-y-1 text-center">
+                    <p id="mokjang-addr-share-label" class="text-[15.5px] font-black text-[#163172] tracking-tight leading-tight">꿈의 23목장 들어가기</p>
+                    <p id="mokjang-addr-share-sub" class="text-[12px] font-bold text-[#C81E45] tracking-tight leading-tight">사랑의 공동체 목장 나눔방</p>
+                </div>
             </div>
-            <div class="grid grid-cols-2 gap-2 pt-0.5">
-                <button type="button" onclick="window.copyMokjangAddressOnly(event)" class="py-2.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-extrabold active:scale-95 transition-all flex items-center justify-center space-x-1">
-                    <i class="fa-regular fa-copy text-[11px]"></i>
-                    <span>주소 복사</span>
+            <div class="grid grid-cols-2 gap-2">
+                <button type="button" onclick="window.closeMokjangAddressShareModal(event)" class="py-2.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-extrabold active:scale-95 transition-all">
+                    닫기
                 </button>
                 <button type="button" onclick="window.executeMokjangAddressKakaoShare(event)" class="py-2.5 px-2 bg-[#FEE500] hover:bg-[#FDD835] text-[#191919] rounded-xl text-xs font-extrabold shadow-xs active:scale-95 transition-all flex items-center justify-center space-x-1">
                     <i class="fa-solid fa-comment text-[11px]"></i>
@@ -8881,7 +8873,7 @@ window.shareSimpleDayNoticeToKakao = async function(event) {
     }
     const leaderFooter = "- " + leaderRawName + " 목자 -";
 
-    const shareMsg = "[" + headerTitle + "]\n" + dateLabel + "\n" + shareBodyText + "\n" + leaderFooter;
+    const shareMsg = ("[" + headerTitle + "]\n\n" + dateLabel + "\n" + shareBodyText.trim() + "\n\n" + leaderFooter).trimEnd();
     try {
         if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(shareMsg);
     } catch (e) {}
@@ -9043,12 +9035,12 @@ window.syncLoginSessionToFeed = function(name, role, isAdmin, mokjangShort, code
 };
 // [HOMESCREEN_AND_SHARE_V2_START]
 window.formatSpacedMokjangTitle = function(rawName) {
-    var s = String(rawName || "").trim().replace(/^세종꿈의교회\s*-?\s*/, "").trim();
+    var s = String(rawName || "").trim().replace(/^세종꿈의교회\s*-?\s*/, "").replace(/^꿈의\s*/, "").trim();
     if (!s) {
         var code = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "").trim();
         var cfg = (typeof window.getMergedMokjangConfigByCode === "function") ? window.getMergedMokjangConfigByCode(code) : null;
-        if (cfg && cfg.mokjangName) s = String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*-?\s*/, "").trim();
-        else s = String(localStorage.getItem("mokjang_short_name") || "").trim();
+        if (cfg && cfg.mokjangName) s = String(cfg.mokjangName).trim().replace(/^세종꿈의교회\s*-?\s*/, "").replace(/^꿈의\s*/, "").trim();
+        else s = String(localStorage.getItem("mokjang_short_name") || "").replace(/^꿈의\s*/, "").trim();
     }
     if (!s) return "꿈의 목장";
     var prefix = s.replace(/\s*목장$/, "").trim();
@@ -9060,11 +9052,17 @@ window.formatCompactMokjangTitle = function(rawName) {
     return spaced.replace(/\s+목장$/, "목장");
 };
 
+window.getDreamMokjangEnterTitle = function(rawName) {
+    var compact = window.formatCompactMokjangTitle(rawName);
+    if (compact.indexOf("꿈의") === 0) return compact + " 들어가기";
+    return "꿈의 " + compact + " 들어가기";
+};
+
 window.syncHomeScreenAppMeta = function(rawMokjangName) {
     try {
         var spacedName = window.formatSpacedMokjangTitle(rawMokjangName);
-        var compactName = window.formatCompactMokjangTitle(rawMokjangName);
-        var enterLabel = compactName + " 들어가기";
+        var enterLabel = window.getDreamMokjangEnterTitle(rawMokjangName);
+        var subLabel = "사랑의 공동체 목장 나눔방";
         document.title = spacedName;
         var appleMeta = document.getElementById("meta-apple-app-title");
         if (appleMeta) appleMeta.setAttribute("content", spacedName);
@@ -9072,6 +9070,8 @@ window.syncHomeScreenAppMeta = function(rawMokjangName) {
         if (appNameMeta) appNameMeta.setAttribute("content", spacedName);
         var ogTitleMeta = document.getElementById("meta-og-title");
         if (ogTitleMeta) ogTitleMeta.setAttribute("content", enterLabel);
+        var ogDescMeta = document.getElementById("meta-og-desc");
+        if (ogDescMeta) ogDescMeta.setAttribute("content", subLabel);
         var guideLabel = document.getElementById("homescreen-guide-mokjang-label");
         if (guideLabel) guideLabel.textContent = spacedName;
 
@@ -9084,7 +9084,7 @@ window.syncHomeScreenAppMeta = function(rawMokjangName) {
         var manifestObj = {
             name: spacedName,
             short_name: spacedName,
-            description: enterLabel,
+            description: subLabel,
             start_url: startUrl,
             display: "standalone",
             background_color: "#ffffff",
@@ -9129,13 +9129,20 @@ window.openHomeScreenGuideModal = function(event) {
 })();
 
 window.getMokjangShareUrlAndLabel = function() {
-    var compactName = window.formatCompactMokjangTitle(currentMokjangShort);
-    var enterLabel = compactName + " 들어가기";
+    var enterLabel = window.getDreamMokjangEnterTitle(currentMokjangShort);
+    var subLabel = "사랑의 공동체 목장 나눔방";
+    var cleanMessage = enterLabel + "\n" + subLabel;
     var baseHref = window.location.href.split("?")[0].split("#")[0];
     var baseDir = baseHref.substring(0, baseHref.lastIndexOf("/") + 1);
     var iconUrl = baseDir + "hdclogo.png";
-    var shareUrl = baseHref;
-    return { compactName: compactName, spacedName: window.formatSpacedMokjangTitle(currentMokjangShort), enterLabel: enterLabel, shareUrl: shareUrl, iconUrl: iconUrl };
+    return {
+        spacedName: window.formatSpacedMokjangTitle(currentMokjangShort),
+        enterLabel: enterLabel,
+        subLabel: subLabel,
+        cleanMessage: cleanMessage,
+        shareUrl: baseHref,
+        iconUrl: iconUrl
+    };
 };
 
 window.openMokjangAddressShareModal = function(event) {
@@ -9144,9 +9151,9 @@ window.openMokjangAddressShareModal = function(event) {
     var info = window.getMokjangShareUrlAndLabel();
     window.syncHomeScreenAppMeta(info.spacedName);
     var labelEl = document.getElementById("mokjang-addr-share-label");
-    var urlEl = document.getElementById("mokjang-addr-share-url");
+    var subEl = document.getElementById("mokjang-addr-share-sub");
     if (labelEl) labelEl.textContent = info.enterLabel;
-    if (urlEl) urlEl.textContent = info.shareUrl;
+    if (subEl) subEl.textContent = info.subLabel;
     var modal = document.getElementById("mokjang-address-share-modal");
     if (modal) modal.classList.remove("hidden");
 };
@@ -9157,30 +9164,14 @@ window.closeMokjangAddressShareModal = function(event) {
     if (modal) modal.classList.add("hidden");
 };
 
-window.copyMokjangAddressOnly = async function(event) {
-    if (event) { event.preventDefault(); event.stopPropagation(); }
-    var info = window.getMokjangShareUrlAndLabel();
-    var shareText = info.enterLabel + "\n" + info.shareUrl;
-    try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(shareText);
-        }
-    } catch (e) {}
-    window.closeMokjangAddressShareModal();
-    if (typeof showNotification === "function") {
-        showNotification("'" + info.enterLabel + "' 주소가 복사되었습니다! 카톡방에 붙여넣기 하세요.");
-    }
-};
-
 window.executeMokjangAddressKakaoShare = async function(event) {
     if (event) { event.preventDefault(); event.stopPropagation(); }
     var info = window.getMokjangShareUrlAndLabel();
-    var shareText = info.enterLabel + "\n" + info.shareUrl;
     window.closeMokjangAddressShareModal();
 
     try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(shareText);
+            await navigator.clipboard.writeText(info.cleanMessage);
         }
     } catch (e) {}
 
@@ -9190,14 +9181,12 @@ window.executeMokjangAddressKakaoShare = async function(event) {
                 objectType: "feed",
                 content: {
                     title: info.enterLabel,
+                    description: info.subLabel,
                     imageUrl: info.iconUrl,
                     imageWidth: 300,
                     imageHeight: 300,
                     link: { mobileWebUrl: info.shareUrl, webUrl: info.shareUrl }
-                },
-                buttons: [
-                    { title: info.enterLabel, link: { mobileWebUrl: info.shareUrl, webUrl: info.shareUrl } }
-                ]
+                }
             });
             return;
         }
@@ -9206,9 +9195,7 @@ window.executeMokjangAddressKakaoShare = async function(event) {
     if (navigator.share) {
         try {
             await navigator.share({
-                title: info.enterLabel,
-                text: info.enterLabel,
-                url: info.shareUrl
+                text: info.cleanMessage
             });
             return;
         } catch (err) {
@@ -9217,7 +9204,7 @@ window.executeMokjangAddressKakaoShare = async function(event) {
     }
 
     if (typeof showNotification === "function") {
-        showNotification("'" + info.enterLabel + "' 주소가 복사되었습니다! 카톡방에 붙여넣기 하세요.");
+        showNotification("공유 문구가 복사되었습니다! 카톡방에 붙여넣기 하세요.");
     }
 };
 // [HOMESCREEN_AND_SHARE_V2_END]
