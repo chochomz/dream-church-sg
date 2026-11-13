@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#ffffff">
+<meta property="og:title" content="목장 이야기 사용설명서">
+<meta property="og:description" content="사랑의 공동체 목장 나눔방 쉬운 안내서">
+<meta property="og:image" content="kakao_share_logo.png">
+<title>목장 이야기 사용설명서</title>
+<script>
+(function () {
+  /* [보안] 우클릭 · 드래그 · 선택 · 개발자도구/소스보기/저장 단축키 차단 (로그인/통행증 리다이렉트 없음) */
+  var stop = function (e) { e.preventDefault(); return false; };
+  document.addEventListener("contextmenu", stop, true);
+  document.addEventListener("dragstart", stop, true);
+  document.addEventListener("selectstart", stop, true);
+  window.addEventListener("keydown", function (e) {
+    var k = (e.key || "").toLowerCase(), c = e.keyCode || e.which, m = e.ctrlKey || e.metaKey;
+    if (c === 123 || k === "f12" ||
+        (m && (e.shiftKey || e.altKey) && "ijckuIJCKU".indexOf(k) > -1) ||
+        (m && (k === "u" || k === "s" || k === "p"))) { e.preventDefault(); e.stopPropagation(); return false; }
+  }, true);
+})();
+</script>
+<style>
+:root{
+  --green:#3B5D50; --green-soft:#E8F0EC; --navy:#163172; --rose:#C81E45;
+  --paper:#FBFAF7; --ink:#25302B; --mute:#6B7770; --line:#DCE5E0; --gold:#F4E7C5;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%;background:#fff;color:var(--ink);overflow:hidden;
+  font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+@media print{body{display:none}}
+#app{max-width:430px;height:100%;margin:0 auto;display:flex;flex-direction:column;background:var(--paper);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+header{padding:14px 18px 10px;background:#fff;border-bottom:1px solid var(--line)}
+.header-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+header h1{font-size:17px;font-weight:800;color:var(--green);letter-spacing:-.02em}
+.go-app-btn{font:inherit;font-size:12px;font-weight:800;color:var(--green);background:var(--green-soft);border:1px solid var(--line);border-radius:10px;padding:6px 10px;cursor:pointer;white-space:nowrap}
+header p{font-size:12.5px;color:var(--mute);margin-top:3px}
+.steps{margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.steps .cap{font-size:13px;font-weight:800;color:var(--green);white-space:nowrap}
+.dots{display:flex;gap:6px}
+.dots button{width:9px;height:9px;padding:0;border:0;border-radius:50%;background:var(--line);cursor:pointer}
+.dots button.on{background:var(--green);width:22px;border-radius:5px}
+main{flex:1;overflow-y:auto;padding:16px 16px 8px;-webkit-overflow-scrolling:touch}
+.lead{font-size:14.5px;line-height:1.7;color:var(--ink);margin-bottom:14px}
+.lead b{color:var(--green)}
+.item{margin-bottom:12px}
+.tap{width:100%;display:flex;align-items:center;gap:12px;text-align:left;font:inherit;background:#fff;border:1.5px solid var(--line);
+  border-radius:16px;padding:13px 14px;cursor:pointer;transition:border-color .2s,background .2s}
+.tap .ic{width:42px;height:42px;border-radius:13px;background:var(--green-soft);display:flex;align-items:center;justify-content:center;font-size:21px;flex:none}
+.tap .tt{flex:1;min-width:0}
+.tap .tt strong{display:block;font-size:15px;font-weight:800;color:var(--ink)}
+.tap .tt span{display:block;font-size:12.5px;color:var(--mute);margin-top:2px}
+.tap .hint{font-size:12px;font-weight:700;color:var(--rose);flex:none;animation:nudge 1.6s ease-in-out infinite}
+.item.open .tap{border-color:var(--green);background:#F6FAF8}
+.item.open .hint,.item.seen .hint{animation:none;color:var(--green)}
+@keyframes nudge{50%{transform:translateX(3px)}}
+.say{display:none;margin:8px 4px 0 18px;padding:13px 15px;background:var(--gold);border-radius:4px 16px 16px 16px;
+  font-size:14px;line-height:1.75;color:#3A3322}
+.item.open .say{display:block;animation:pop .22s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.say ol,.say ul{padding-left:18px;margin-top:4px}
+.say li{margin-top:3px}
+.react{display:flex;gap:8px;margin-bottom:14px}
+.react button{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:11px 0;font:inherit;
+  font-size:13px;font-weight:700;color:var(--mute);cursor:pointer}
+.react button i{display:block;font-style:normal;font-size:22px;margin-bottom:2px}
+.react button.on.h{color:var(--rose);border-color:var(--rose);background:#FDF0F3}
+.react button.on.t{color:#0369A1;border-color:#0369A1;background:#EEF7FD}
+.react button.on.p{color:#B45309;border-color:#B45309;background:#FEF6E7}
+nav{display:flex;gap:10px;padding:10px 16px 14px;background:#fff;border-top:1px solid var(--line)}
+nav button{flex:1;font:inherit;font-size:14.5px;font-weight:800;padding:13px 0;border-radius:14px;border:0;cursor:pointer}
+#prev{background:var(--green-soft);color:var(--green)}
+#next{background:var(--green);color:#fff}
+nav button[disabled]{opacity:.35}
+.prog{font-size:12px;color:var(--mute);text-align:center;margin:4px 0 10px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-top">
+      <h1>목장 이야기 사용설명서</h1>
+      <button type="button" class="go-app-btn" onclick="finishManual()">목장 들어가기</button>
+    </div>
+    <p>궁금한 곳을 살짝 눌러 보세요. 쉽게 알려 드릴게요 😊</p>
+    <div class="steps" id="steps"></div>
+  </header>
+  <main id="main"></main>
+  <nav>
+    <button id="prev">이전</button>
+    <button id="next">다음</button>
+  </nav>
+</div>
+<script>
+function finishManual(){
+  try{
+    if(window.parent && window.parent!==window && window.parent.closeUserManualModal){
+      window.parent.closeUserManualModal();
+      return;
+    }
+  }catch(e){}
+  window.location.href="index.html";
+}
+
+var pages=[
+ {tab:"시작하기",lead:"목장 이야기를 처음 쓰시는 분도 <b>천천히 따라오시면</b> 돼요. 아래 카드를 하나씩 눌러 보세요.",
+  items:[
+   {ic:"✒️",t:"오른쪽 위 펜 버튼",s:"자주 쓰는 메뉴가 모여 있어요",
+    say:"화면 오른쪽 위의 <b>펜 모양 버튼</b>을 누르면 작은 메뉴가 열려요.<ul><li>글쓰기: 새 이야기를 남겨요</li><li>검색: 지난 이야기를 찾아요</li><li>알림 확인: 목장 소식을 모아 봐요</li><li>사용설명서: 지금 보시는 이 안내예요</li></ul>"},
+   {ic:"📱",t:"홈 화면에 추가하기",s:"앱처럼 바로 열고 싶을 때",
+    say:"<b>아이폰</b>: 화면 아래 가운데 [공유] 버튼 → [홈 화면에 추가]<br><b>안드로이드</b>: 브라우저 메뉴(⋮ 또는 ≡) → [홈 화면에 추가]<br>카카오톡에서 열렸다면 먼저 오른쪽 아래 [⋮] → [다른 브라우저로 열기]를 눌러 주세요."},
+   {ic:"🟢",t:"함께 들어와 있는 가족",s:"위쪽 환영 문구를 눌러 보세요",
+    say:"위쪽 환영 문구에 <b>지금 함께 들어와 있는 가족 수</b>가 나와요. 그 부분을 누르면 어떤 가족이 접속 중인지 작은 창으로 볼 수 있어요."}
+  ]},
+ {tab:"이야기 남기기",lead:"목장 가족과 나누고 싶은 <b>하루의 이야기</b>를 남겨 보세요. 사진 한 장만 있어도 충분해요.",
+  items:[
+   {ic:"📝",t:"글쓰기",s:"메뉴에서 [글쓰기]를 눌러요",
+    say:"펜 버튼 → <b>글쓰기</b>를 누르면 작성 창이 열려요. 오늘의 마음이나 감사한 일을 편하게 적고 저장해 주세요.<br>저장 전에 한 번 더 확인해 드려서 안심하셔도 돼요."},
+   {ic:"📷",t:"사진 올리기",s:"사진과 함께 나누면 더 따뜻해요",
+    say:"작성 창에서 사진 버튼을 눌러 <b>휴대폰 속 사진</b>을 골라 주세요. 여러 장을 한꺼번에 올릴 수 있고, 사진 한 장이 너무 크면 안내 말씀을 드려요."},
+   {ic:"📜",t:"긴글쓰기",s:"마음이 길어질 때는 여기로",
+    say:"하고 싶은 말이 많을 때는 <b>긴글쓰기</b>를 눌러 주세요. 최대 <b>1,500자</b>까지 쓸 수 있어요.<br>읽는 분들은 글자 크기를 <b>5단계</b>로 바꿔서 편하게 보실 수 있어요."},
+   {ic:"📎",t:"파일 첨부",s:"함께 보면 좋은 자료가 있다면",
+    say:"작성 창의 <b>파일 첨부하기</b>로 자료를 함께 올릴 수 있어요. 파일 하나는 <b>1MB</b>까지예요. 올린 파일은 파일 보관함에 차곡차곡 모여요."},
+   {ic:"🔤",t:"글꼴 고르기",s:"내 마음에 맞는 글씨체로",
+    say:"작성 창에서 <b>한글 글꼴</b>과 <b>영문 글꼴</b>을 골라 이야기의 분위기를 바꿔 볼 수 있어요. 손글씨체부터 단정한 글씨체까지 다양하게 준비되어 있어요."}
+  ]},
+ {tab:"사진 다루기",lead:"올린 사진은 <b>터치하는 횟수</b>에 따라 다르게 열려요. 숨어 있는 기능이니 꼭 살펴보세요 🌿",
+  items:[
+   {ic:"👆",t:"사진 한 번 터치",s:"크게 보기와 모아 보기",
+    say:"사진이 여러 장일 때 한 번 터치하면 <b>한 장씩 크게</b> 펼쳐져요. 다시 터치하면 <b>격자(모아 보기)</b>로 돌아와요. 화면을 스크롤하면 저절로 원래대로 돌아가요."},
+   {ic:"🖼️",t:"사진 3번 연속 터치",s:"사진 편집틀이 열려요",
+    say:"사진을 <b>빠르게 3번 연속</b> 터치하면 <b>편집틀</b>이 열리고 폰이 살짝 진동해요. 1~2번만 눌렀을 때는 한 번 더 눌러 달라는 안내가 나와요."},
+   {ic:"🪄",t:"자동 보정 · 밝기 · 대비",s:"어두운 사진도 환하게",
+    say:"편집틀에서 <b>마법봉(자동 보정)</b>을 누르면 사진이 알맞게 다듬어져요. <b>밝기</b>와 <b>대비</b>는 직접 조절할 수 있고, 마음에 안 들면 <b>초기화</b>로 처음 상태로 돌아가요."},
+   {ic:"🔄",t:"회전 · 자르기",s:"사진 방향과 모양 바꾸기",
+    say:"옆으로 누워 찍힌 사진은 <b>회전</b> 버튼으로 바로 세워 주세요. 필요하면 사진을 잘라서 저장할 수도 있어요."},
+   {ic:"✍️",t:"사진 이야기 · 사진 삭제",s:"사진마다 한 줄을 남겨요",
+    say:"편집틀에서 사진마다 <b>한 줄 이야기</b>를 쓰거나 고칠 수 있어요. 올린 사진이 마음에 안 들면 <b>사진삭제</b>로 그 사진만 지울 수 있어요."}
+  ]},
+ {tab:"마음 나누기",lead:"이야기를 읽고 <b>마음을 전하는 방법</b>이에요. 아래 세 버튼을 먼저 직접 눌러 보세요!",
+  react:true,
+  items:[
+   {ic:"💬",t:"댓글 남기기",s:"따뜻한 한마디가 큰 힘이 돼요",
+    say:"이야기 아래 <b>댓글</b> 버튼을 누르고 응원의 말을 남겨 주세요. 댓글은 <b>300자</b>까지 쓸 수 있어요."},
+   {ic:"✏️",t:"댓글 고치고 지우기",s:"내가 쓴 댓글 옆의 작은 버튼",
+    say:"내가 쓴 댓글 옆에 <b>수정</b>과 <b>삭제</b> 버튼이 나타나요. 오타가 있어도 걱정하지 마시고 편하게 고쳐 주세요."}
+  ]},
+ {tab:"책갈피와 달력",lead:"화면 오른쪽에 떠 있는 <b>🍁 책갈피</b>에 편리한 기능이 숨어 있어요.",
+  items:[
+   {ic:"🍁",t:"책갈피 옮기기",s:"원하는 자리로 끌어다 놓아요",
+    say:"책갈피를 <b>손가락으로 끌어서</b> 보기 편한 자리로 옮길 수 있어요. 지금 보고 있는 이야기의 <b>날짜와 순서</b>도 함께 보여 줘요."},
+   {ic:"🗓️",t:"월 달력 열기",s:"날짜나 달력 모양을 눌러요",
+    say:"책갈피의 <b>날짜</b>나 <b>📅 버튼</b>을 누르거나, 책갈피를 <b>두 번 연속</b> 눌러도 월 달력이 열려요. 이야기와 댓글이 있는 날은 개수도 볼 수 있어요."},
+   {ic:"📌",t:"날짜로 이야기 찾아가기",s:"달력의 날짜를 눌러 보세요",
+    say:"달력에서 날짜를 누르면 <b>그날의 이야기</b>로 바로 이동해요. 지난 모임의 기억을 다시 찾아볼 때 편해요."},
+   {ic:"💬",t:"새로운 댓글 모아보기",s:"책갈피 아래 말풍선 버튼",
+    say:"책갈피의 <b>💬 버튼</b>을 누르면 새 댓글만 모아서 볼 수 있어요. 읽지 않은 댓글 수가 숫자로 표시되고, 위아래 화살표로 차례로 이동해요. 작은 캡슐은 <b>끌어서</b> 옮길 수 있어요."}
+  ]},
+ {tab:"찾고 저장하기",lead:"필요한 이야기를 <b>찾고, 간직하고, 전하는</b> 방법이에요.",
+  items:[
+   {ic:"🔍",t:"이야기 찾기",s:"한 글자만 적어도 찾아요",
+    say:"펜 버튼 → <b>검색</b>을 누르고 단어를 한 글자만 적어도 찾아 드려요. 찾은 곳은 위아래 화살표로 차례로 볼 수 있어요."},
+   {ic:"🖼️",t:"이미지로 저장",s:"이야기를 사진처럼 간직해요",
+    say:"이야기 아래의 <b>이미지 저장</b>을 누르면 글이 사진처럼 만들어져요. 공유 창에서 이미지 저장을 누르면 갤러리에 보관돼요."},
+   {ic:"📄",t:"PDF 저장 · 인쇄",s:"문서로 두고두고 보관해요",
+    say:"<b>PDF 저장</b>을 누르면 이야기가 문서로 저장되고, <b>인쇄</b>로 종이에 뽑아 둘 수도 있어요. 저장 및 인쇄 메뉴에서 한꺼번에 고를 수 있어요."},
+   {ic:"💛",t:"카카오톡으로 나누기",s:"목장 밖 가족에게도 전해요",
+    say:"이야기의 공유 버튼을 누르면 <b>카카오톡</b>으로 소식을 전할 수 있어요. 공유 문구가 복사되면 카톡방에 붙여넣기만 하세요."},
+   {ic:"🗂️",t:"파일 보관함",s:"올린 파일이 모여 있어요",
+    say:"글을 쓸 때 첨부한 파일은 <b>파일 보관함</b>에 모여요. 이야기마다 있는 첨부 버튼으로 파일을 열어 보거나 내려받을 수 있어요."}
+  ]},
+ {tab:"알아두면 좋아요",lead:"마지막으로 <b>알아두시면 편한 점</b>을 정리해 드릴게요. 수고 많으셨어요 😊",
+  items:[
+   {ic:"🔒",t:"수정과 삭제는 누가 할 수 있나요?",s:"소중한 이야기를 지키기 위해서예요",
+    say:"이야기와 댓글은 <b>작성자 본인 또는 목자님</b>만 고치거나 지울 수 있어요. 다른 가족의 글은 읽고 마음만 전해 주세요."},
+   {ic:"📢",t:"공지 팝업",s:"들어올 때 뜨는 작은 안내창",
+    say:"목장 소식이 있으면 들어올 때 작은 안내창이 나와요. 오늘 다시 보고 싶지 않으시면 <b>오늘 하루 안보기</b>를 눌러 주세요."},
+   {ic:"🔔",t:"알림 확인",s:"놓친 소식을 모아 봐요",
+    say:"펜 버튼 → <b>알림 확인</b>을 누르면 그동안의 목장 소식을 한곳에서 다시 볼 수 있어요."},
+   {ic:"📏",t:"용량 안내",s:"넉넉하게 쓰기 위한 약속이에요",
+    say:"사진은 한 장에 <b>15MB</b>까지, 첨부 파일은 <b>1MB</b>까지, 긴글은 <b>1,500자</b>까지 쓸 수 있어요. 넘으면 친절하게 안내해 드려요."}
+  ]}
+];
+var cur=0, seen={}, main=document.getElementById("main"), steps=document.getElementById("steps");
+var prev=document.getElementById("prev"), next=document.getElementById("next");
+
+function render(){
+  var pg=pages[cur], h='<p class="lead">'+pg.lead+'</p>';
+  if(pg.react){
+    h+='<div class="react"><button class="h" data-r="h"><i>❤️</i>하트</button><button class="t" data-r="t"><i>👍</i>엄지</button><button class="p" data-r="p"><i>🙏</i>기도</button></div>'+
+       '<div class="say" id="rsay" style="display:none;margin:-4px 0 14px;border-radius:16px"></div>';
+  }
+  var done=0;
+  pg.items.forEach(function(it,i){ if(seen[cur+"-"+i]) done++; });
+  h+='<p class="prog">살펴본 카드 '+done+' / '+pg.items.length+'</p>';
+  pg.items.forEach(function(it,i){
+    var k=cur+"-"+i;
+    h+='<div class="item'+(seen[k]?' seen':'')+'" data-k="'+k+'"><button class="tap"><span class="ic">'+it.ic+'</span><span class="tt"><strong>'+it.t+'</strong><span>'+it.s+'</span></span><span class="hint">'+(seen[k]?'✓ 확인':'눌러 보세요')+'</span></button><div class="say">'+it.say+'</div></div>';
+  });
+  main.innerHTML=h; main.scrollTop=0;
+  steps.innerHTML='<span class="cap">'+(cur+1)+' / '+pages.length+' · '+pg.tab+'</span><span class="dots">'+pages.map(function(p,i){return '<button aria-label="'+(i+1)+'쪽" class="'+(i===cur?'on':'')+'" data-p="'+i+'"></button>';}).join("")+'</span>';
+  prev.disabled=(cur===0);
+  next.textContent=(cur===pages.length-1)?"설명서 마치기":"다음";
+}
+var msg={
+  h:["❤️ 하트","'좋아요'처럼 공감하는 마음을 전해요. 한 번 더 누르면 취소돼요."],
+  t:["👍 엄지","'잘했어요, 수고했어요' 하고 칭찬하고 싶을 때 눌러 주세요."],
+  p:["🙏 기도","'함께 기도할게요' 하는 마음을 전해요. 힘든 일을 나눈 이웃에게 큰 위로가 돼요."]
+};
+main.addEventListener("click",function(e){
+  var r=e.target.closest("[data-r]");
+  if(r){
+    var on=r.classList.toggle("on"), box=document.getElementById("rsay"), m=msg[r.dataset.r];
+    box.style.display="block";
+    box.innerHTML="<b>"+m[0]+"</b><br>"+(on?m[1]:"눌렀던 마음을 거두었어요. 언제든 다시 눌러 주세요 🙂");
+    return;
+  }
+  var it=e.target.closest(".item");
+  if(!it) return;
+  var wasOpen=it.classList.contains("open");
+  main.querySelectorAll(".item.open").forEach(function(x){x.classList.remove("open");});
+  if(!wasOpen){
+    it.classList.add("open"); it.classList.add("seen"); seen[it.dataset.k]=1;
+    it.querySelector(".hint").textContent="✓ 확인";
+    var d=0, n=pages[cur].items.length; for(var i=0;i<n;i++) if(seen[cur+"-"+i]) d++;
+    main.querySelector(".prog").textContent="살펴본 카드 "+d+" / "+n;
+  }
+});
+steps.addEventListener("click",function(e){var b=e.target.closest("[data-p]"); if(b){cur=+b.dataset.p; render();}});
+prev.addEventListener("click",function(){ if(cur>0){cur--; render();} });
+next.addEventListener("click",function(){
+  if(cur<pages.length-1){cur++; render();}
+  else { finishManual(); }
+});
+render();
+</script>
+</body>
+</html>
