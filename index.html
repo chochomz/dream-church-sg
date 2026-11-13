@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title> ㄹ목장 이야기 - 세종꿈의교회</title>
+    <title>우리들의 목장 이야기 - 세종꿈의교회</title>
         <!-- [PATCH v1.2: 우클릭 · 단축키 · 소스보기 원천 차단 보안] -->
     <script>
         (function() {
@@ -1712,22 +1712,21 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
-        <!-- [목장주소/공유 심플 카톡방 공유 모달 (홈아이콘 + 꿈의 00목장 들어가기 + 사랑의 공동체 목장 나눔방 + 하단 tdcsghelp.html 링크)] -->
+            <!-- [목장주소/공유 심플 카톡방 공유 모달 (홈아이콘 + 꿈의 00목장 들어가기 + 사랑의 공동체 목장 나눔방)] -->
     <div id="mokjang-address-share-modal" onclick="window.closeMokjangAddressShareModal(event)" class="fixed inset-0 z-[98] bg-black/55 flex items-center justify-center p-4 hidden select-none" style="touch-action: none;">
-        <div onclick="event.stopPropagation()" class="bg-white rounded-[24px] w-full max-w-[292px] p-5 shadow-2xl border border-slate-200 text-center space-y-4">
-            <div class="py-4 px-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col items-center justify-center space-y-3 shadow-inner text-center">
+        <div onclick="event.stopPropagation()" class="bg-white rounded-[24px] w-full max-w-[288px] p-5 shadow-2xl border border-slate-200 text-center space-y-4">
+            <div class="py-4 px-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col items-center justify-center space-y-2.5 shadow-inner text-center">
                 <div class="w-16 h-16 rounded-2xl bg-white border border-slate-200/90 shadow-xs p-2 flex items-center justify-center mx-auto">
                     <img id="mokjang-addr-share-icon" src="hdclogo.png" alt="" onerror="this.src='tlogo.png'" class="w-full h-full object-contain select-none pointer-events-none">
                 </div>
                 <div class="w-full space-y-1 text-center">
-                    <p id="mokjang-addr-share-label" style="font-size: 16.5px !important; font-weight: 900 !important; text-align: center !important;" class="w-full text-center text-[16.5px] font-black text-[#163172] tracking-tight leading-snug mx-auto">꿈의 23목장 들어가기</p>
-                    <p id="mokjang-addr-share-sub" style="text-align: center !important;" class="w-full text-center text-[12px] font-bold text-[#C81E45] tracking-tight leading-snug mx-auto">사랑의 공동체 목장 나눔방</p>
+                    <p id="mokjang-addr-share-label" style="font-size: 16.5px !important; font-weight: 900 !important; text-align: center !important;" class="w-full text-center text-[16.5px] font-black text-[#163172] tracking-tight leading-tight mx-auto">꿈의 23목장 들어가기</p>
+                    <p id="mokjang-addr-share-sub" style="text-align: center !important;" class="w-full text-center text-[12px] font-bold text-[#C81E45] tracking-tight leading-tight mx-auto">사랑의 공동체 목장 나눔방</p>
                 </div>
-                <div class="w-full pt-2.5 border-t border-slate-200/80 flex items-center justify-center">
-                    <a id="mokjang-addr-share-manual-link" href="tdcsghelp.html" class="inline-flex items-center justify-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-indigo-50/90 hover:bg-indigo-100 text-[#163172] border border-indigo-200/90 shadow-2xs active:scale-95 transition-all cursor-pointer mx-auto">
+                <div class="w-full pt-2 border-t border-slate-200/80 flex items-center justify-center">
+                    <a id="mokjang-addr-share-manual-link" href="tdcsghelp.html" class="inline-flex items-center justify-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-[#163172] border border-indigo-200 shadow-2xs active:scale-95 transition-all cursor-pointer mx-auto">
                         <i class="fa-solid fa-book-open text-[11px]"></i>
                         <span class="text-[11.5px] font-extrabold underline underline-offset-2">목장 앱 사용설명서</span>
-                        <i class="fa-solid fa-chevron-right text-[9px] opacity-75"></i>
                     </a>
                 </div>
             </div>
@@ -1742,6 +1741,73 @@ window.proceedToExternalAdminPage = function() {
             </div>
         </div>
     </div>
+
+    <!-- [1. 목자 전용 심플 공지·알림 관리 모달] -->
+    <div id="mokjang-notice-admin-modal" onclick="window.closeNoticeAdminModal(event)" class="fixed inset-0 z-[95] bg-black/50 flex items-center justify-center p-2.5 hidden select-none" style="touch-action: none;">
+        <div onclick="event.stopPropagation()" class="bg-white rounded-2xl w-full max-w-[344px] shadow-2xl border border-[#E6D5B8] flex flex-col overflow-hidden">
+            <!-- 1) 타이틀 중앙 정렬 & 23목장 사이즈 +1포인트 증가 -->
+            <div class="relative px-3.5 py-2.5 bg-[#F6EBD8] text-[#5A3E28] border-b border-[#E6D5B8] flex items-center justify-center shrink-0">
+                <h3 id="notice-admin-modal-title" class="text-center tracking-tight truncate px-6 leading-none">
+                    <span id="notice-admin-title-mokjang" class="text-[14.5px] font-black">23목장</span>
+                    <span class="text-[13px] font-extrabold ml-0.5">공지. 알림 관리</span>
+                </h3>
+                <button type="button" onclick="window.closeNoticeAdminModal(event)" class="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-white/60 hover:bg-white text-[#5A3E28] flex items-center justify-center text-xs active:scale-90">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-2.5 space-y-2 bg-white overflow-hidden shrink-0">
+                <!-- 2) & 3) 상하 높이 고정 + 요일/일자 폰트 +2pt 확대 + 주일 좌우 간격 넓게 & 무테두리 배경 강조 -->
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between pb-1 border-b border-gray-100">
+                        <button type="button" onclick="window.changeSimpleNoticeMonth(-1, event)" class="w-6 h-6 rounded hover:bg-gray-100 text-gray-700 flex items-center justify-center text-[11px] font-black active:scale-90">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <div class="flex items-center space-x-1.5">
+                            <span id="simple-notice-cal-title" class="text-[13px] font-black text-gray-800 tracking-tight whitespace-nowrap">2026년 10월</span>
+                            <button type="button" onclick="window.goSimpleNoticeToday(event)" class="px-1.5 py-0.5 rounded bg-[#F6EBD8]/70 text-[#5A3E28] border border-[#E6D5B8] text-[10px] font-black active:scale-95">오늘</button>
+                        </div>
+                        <button type="button" onclick="window.changeSimpleNoticeMonth(1, event)" class="w-6 h-6 rounded hover:bg-gray-100 text-gray-700 flex items-center justify-center text-[11px] font-black active:scale-90">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="grid items-center text-center text-[12.5px] font-black py-0.5 text-gray-700 border-b border-gray-100" style="grid-template-columns: 1.45fr repeat(6, 1fr);">
+                        <span class="bg-rose-50/90 text-rose-600 rounded-sm py-0.5 mx-0.5 leading-none">주일</span>
+                        <span>월</span>
+                        <span>화</span>
+                        <span>수</span>
+                        <span>목</span>
+                        <span>금</span>
+                        <span class="text-sky-600">토</span>
+                    </div>
+                    <div id="simple-notice-cal-grid" class="grid gap-y-0.5 text-center pt-0.5" style="grid-template-columns: 1.45fr repeat(6, 1fr);"></div>
+                </div>
+                <!-- 4)~8) 3줄 알림 입력창 & 하단 3버튼 (입력 / 삭제 / 카톡방 공유) -->
+                <div id="simple-notice-editor-box" class="-mt-1 pt-0 space-y-1.5 text-left">
+                    <div class="flex items-center justify-between whitespace-nowrap px-0.5">
+                        <span id="simple-notice-selected-date-text" class="text-[12px] font-extrabold text-emerald-900">날짜를 선택하세요</span>
+                        <label class="inline-flex items-center space-x-1 cursor-pointer select-none whitespace-nowrap">
+                            <input type="checkbox" id="simple-notice-popup-chk" checked="" class="accent-[#3B5D50] w-3.5 h-3.5 rounded-xs">
+                            <span class="text-[11px] font-bold text-gray-700">로그인시 알림</span>
+                        </label>
+                    </div>
+                    <textarea id="simple-notice-input" rows="3" maxlength="60" oninput="window.handleSimpleNoticeInputLimit(this)" placeholder="해당일자의 알림 내용은 3줄(60자) 이내로 하시고 긴글은 글쓰기로 하세요.^^" class="w-full h-[68px] px-2.5 py-1.5 rounded-lg text-xs text-gray-900 placeholder-gray-400 leading-[1.35] resize-none overflow-y-auto"></textarea>
+                    <div class="grid grid-cols-3 gap-1.5 pt-0.5">
+                        <button type="button" onclick="window.clearSelectedDayNotices(event)" class="py-2 px-1.5 rounded-md bg-gray-100 hover:bg-rose-50 text-gray-700 hover:text-rose-600 border border-gray-200/80 text-[11.5px] font-bold active:scale-95 transition-all text-center">
+                            삭제
+                        </button>
+                        <button type="button" onclick="window.saveSimpleDayNoticeOnly(event)" class="py-2 px-1.5 rounded-md bg-[#F6EBD8] hover:bg-[#EFE0C6] text-[#5A3E28] border border-[#E6D5B8] text-[11.5px] font-extrabold shadow-2xs active:scale-95 transition-all text-center">
+                            저장
+                        </button>
+                        <button type="button" onclick="window.shareSimpleDayNoticeToKakao(event)" class="py-2 px-1.5 rounded-md bg-[#FEE500]/90 hover:bg-[#FEE500] text-[#3A1D1D] border border-amber-300/80 text-[11.5px] font-extrabold shadow-2xs active:scale-95 transition-all text-center">
+                            카톡방 공유
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 
     <!-- [2. 로그인 시 나타나는 작고 심플한 저속 스윙 공지 알림판 (흰 바탕에 테두리 없이 문자만 표시)] -->
     <div id="mokjang-login-mini-notice-popup" onclick="window.closeLoginMiniNoticePopup(event)" class="fixed inset-0 z-[92] bg-black/35 flex items-center justify-center p-4 hidden select-none">
@@ -9101,19 +9167,14 @@ window.getMokjangShareUrlAndLabel = function() {
     var baseHref = window.location.href.split("?")[0].split("#")[0];
     var baseDir = baseHref.substring(0, baseHref.lastIndexOf("/") + 1);
     var kakaoShareLogoUrl = baseDir + "kakao_share_logo.png";
-    var activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "").trim();
-    var shareUrl = activeCode ? (baseHref + "?code=" + encodeURIComponent(activeCode)) : baseHref;
     var helpUrl = baseDir + "tdcsghelp.html";
-    var cleanMessage =
-        "   " + subLabel + "\n\n" +
-        "👉 " + enterLabel + " :\n" + shareUrl + "\n\n" +
-        "📖 목장 앱 사용설명서 :\n" + helpUrl;
+    var cleanMessage = subLabel + "\n\n👉 " + enterLabel + " :\n" + baseHref + "\n\n📖 목장 앱 사용설명서 :\n" + helpUrl;
     return {
         spacedName: window.formatSpacedMokjangTitle(currentMokjangShort),
         enterLabel: enterLabel,
         subLabel: subLabel,
         cleanMessage: cleanMessage,
-        shareUrl: shareUrl,
+        shareUrl: baseHref,
         helpUrl: helpUrl,
         kakaoShareLogoUrl: kakaoShareLogoUrl
     };
@@ -9145,40 +9206,38 @@ window.executeMokjangAddressKakaoShare = async function(event) {
     var info = window.getMokjangShareUrlAndLabel();
     window.closeMokjangAddressShareModal();
 
+    // 카카오 공식 SDK 공유: 상단 중복 타이틀 삭제(로고 아래에 '사랑의 공동체 목장 나눔방'만 표시) + 버튼 2개(꿈의 00목장 들어가기 / 목장 앱 사용설명서 -> tdcsghelp.html)
     try {
-        var trimmedKakaoKey = (typeof KAKAO_JAVASCRIPT_KEY === "string") ? KAKAO_JAVASCRIPT_KEY.trim() : "";
-        var isPlaceholderKey = (!trimmedKakaoKey || trimmedKakaoKey === "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d");
-        if (!isPlaceholderKey && window.Kakao) {
-            if (!window.Kakao.isInitialized()) {
-                window.Kakao.init(trimmedKakaoKey);
-            }
-            if (window.Kakao.isInitialized() && window.Kakao.Share) {
-                window.Kakao.Share.sendDefault({
-                    objectType: "feed",
-                    content: {
-                        title: "   " + info.subLabel,
-                        imageUrl: info.kakaoShareLogoUrl,
-                        imageWidth: 800,
-                        imageHeight: 400,
+        if (window.Kakao && !window.Kakao.isInitialized() && KAKAO_JAVASCRIPT_KEY.trim()) {
+            window.Kakao.init(KAKAO_JAVASCRIPT_KEY.trim());
+        }
+        if (window.Kakao && window.Kakao.isInitialized() && window.Kakao.Share) {
+            window.Kakao.Share.sendDefault({
+                objectType: "feed",
+                content: {
+                    title: info.subLabel,
+                    imageUrl: info.kakaoShareLogoUrl,
+                    imageWidth: 800,
+                    imageHeight: 400,
+                    link: { mobileWebUrl: info.shareUrl, webUrl: info.shareUrl }
+                },
+                buttons: [
+                    {
+                        title: info.enterLabel,
                         link: { mobileWebUrl: info.shareUrl, webUrl: info.shareUrl }
                     },
-                    buttons: [
-                        {
-                            title: info.enterLabel,
-                            link: { mobileWebUrl: info.shareUrl, webUrl: info.shareUrl }
-                        },
-                        {
-                            title: "목장 앱 사용설명서",
-                            link: { mobileWebUrl: info.helpUrl, webUrl: info.helpUrl }
-                        }
-                    ]
-                });
-                return;
-            }
+                    {
+                        title: "목장 앱 사용설명서",
+                        link: { mobileWebUrl: info.helpUrl, webUrl: info.helpUrl }
+                    }
+                ]
+            });
+            return;
         }
     } catch (kakaoErr) {
         console.warn("Kakao SDK 공유 오류:", kakaoErr);
     }
+
     try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(info.cleanMessage);
@@ -9186,17 +9245,14 @@ window.executeMokjangAddressKakaoShare = async function(event) {
     } catch (e) {}
     if (navigator.share) {
         try {
-            await navigator.share({
-                title: info.enterLabel,
-                text: info.cleanMessage
-            });
+            await navigator.share({ text: info.cleanMessage });
             return;
         } catch (err) {
             if (err && err.name === "AbortError") return;
         }
     }
     if (typeof showNotification === "function") {
-        showNotification("공유 문구와 사용설명서 링크가 복사되었습니다! 카톡방에 붙여넣기 하세요.");
+        showNotification("공유 문구가 복사되었습니다! 카톡방에 붙여넣기 하세요.");
     }
 };
 // [HOMESCREEN_AND_SHARE_V2_END]
