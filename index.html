@@ -4,6 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>우리들의 목장 이야기 - 세종꿈의교회</title>
+    <!-- [PATCH: 카카오톡 인앱 브라우저 종속 방지 -> 외부 기본 브라우저(새 창) 자동 열기] -->
+    <script>
+        (function() {
+            var ua = navigator.userAgent || '';
+            if (!/KAKAOTALK/i.test(ua)) return;
+            var targetUrl = window.location.href;
+            // 1. 안드로이드 및 카카오톡 공식 외부 브라우저 호출 스킴 실행 (새 창 열기)
+            if (/Android/i.test(ua)) {
+                window.location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(targetUrl);
+                return;
+            }
+            // 2. 아이폰(iOS)에서도 openExternal 먼저 시도 후, 인앱에 남아있으면 안내 배너 표시
+            try {
+                window.location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(targetUrl);
+            } catch (e) {}
+            window.addEventListener('DOMContentLoaded', function() {
+                if (document.getElementById('kakao-ios-escape-banner')) return;
+                var banner = document.createElement('div');
+                banner.id = 'kakao-ios-escape-banner';
+                banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#163172;color:#fff;padding:10px 14px;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+                banner.innerHTML = '<span>💡 카톡에 종속되지 않으려면 우측 하단 <b>[⋮]</b> ➔ <b>[Safari로 열기]</b>를 눌러주세요!</span><button type="button" onclick="this.parentNode.remove()" style="margin-left:8px;padding:3px 8px;background:rgba(255,255,255,0.2);border-radius:6px;font-size:11px;">닫기</button>';
+                document.body.appendChild(banner);
+            });
+        })();
+    </script>
         <!-- [PATCH v1.2: 우클릭 · 단축키 · 소스보기 원천 차단 보안] -->
     <script>
         (function() {
@@ -1712,7 +1737,7 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
-            <!-- [목장주소/공유 심플 카톡방 공유 모달 (홈아이콘 + 꿈의 00목장 들어가기 + 사랑의 공동체 목장 나눔방)] -->
+                <!-- [목장주소/공유 심플 카톡방 공유 모달 (홈아이콘 + 꿈의 00목장 들어가기 + 사랑의 공동체 목장 나눔방)] -->
     <div id="mokjang-address-share-modal" onclick="window.closeMokjangAddressShareModal(event)" class="fixed inset-0 z-[98] bg-black/55 flex items-center justify-center p-4 hidden select-none" style="touch-action: none;">
         <div onclick="event.stopPropagation()" class="bg-white rounded-[24px] w-full max-w-[288px] p-5 shadow-2xl border border-slate-200 text-center space-y-4">
             <div class="py-4 px-3 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col items-center justify-center space-y-2.5 shadow-inner text-center">
@@ -1724,7 +1749,7 @@ window.proceedToExternalAdminPage = function() {
                     <p id="mokjang-addr-share-sub" style="text-align: center !important;" class="w-full text-center text-[12px] font-bold text-[#C81E45] tracking-tight leading-tight mx-auto">사랑의 공동체 목장 나눔방</p>
                 </div>
                 <div class="w-full pt-2 border-t border-slate-200/80 flex items-center justify-center">
-                    <a id="mokjang-addr-share-manual-link" href="tdcsghelp.html" class="inline-flex items-center justify-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-[#163172] border border-indigo-200 shadow-2xs active:scale-95 transition-all cursor-pointer mx-auto">
+                    <a id="mokjang-addr-share-manual-link" href="tdcsghelp.html" target="_blank" rel="noopener" class="inline-flex items-center justify-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-[#163172] border border-indigo-200 shadow-2xs active:scale-95 transition-all cursor-pointer mx-auto">
                         <i class="fa-solid fa-book-open text-[11px]"></i>
                         <span class="text-[11.5px] font-extrabold underline underline-offset-2">목장 앱 사용설명서</span>
                     </a>
@@ -1806,6 +1831,8 @@ window.proceedToExternalAdminPage = function() {
             </div>
         </div>
     </div>
+
+
 
 
 
@@ -9206,7 +9233,6 @@ window.executeMokjangAddressKakaoShare = async function(event) {
     var info = window.getMokjangShareUrlAndLabel();
     window.closeMokjangAddressShareModal();
 
-    // 카카오 공식 SDK 공유: 상단 중복 타이틀 삭제(로고 아래에 '사랑의 공동체 목장 나눔방'만 표시) + 버튼 2개(꿈의 00목장 들어가기 / 목장 앱 사용설명서 -> tdcsghelp.html)
     try {
         if (window.Kakao && !window.Kakao.isInitialized() && KAKAO_JAVASCRIPT_KEY.trim()) {
             window.Kakao.init(KAKAO_JAVASCRIPT_KEY.trim());
