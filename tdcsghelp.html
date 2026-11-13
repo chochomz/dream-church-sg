@@ -9,9 +9,33 @@
 <meta property="og:description" content="사랑의 공동체 목장 나눔방 쉬운 안내서">
 <meta property="og:image" content="kakao_share_logo.png">
 <title>목장 이야기 사용설명서</title>
+    <!-- [PATCH: 카카오톡 인앱 브라우저 종속 방지 -> 외부 기본 브라우저(새 창) 자동 열기] -->
+    <script>
+        (function() {
+            var ua = navigator.userAgent || '';
+            if (!/KAKAOTALK/i.test(ua)) return;
+            var targetUrl = window.location.href;
+            // 1. 안드로이드 및 카카오톡 공식 외부 브라우저 호출 스킴 실행 (새 창 열기)
+            if (/Android/i.test(ua)) {
+                window.location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(targetUrl);
+                return;
+            }
+            // 2. 아이폰(iOS)에서도 openExternal 먼저 시도 후, 인앱에 남아있으면 안내 배너 표시
+            try {
+                window.location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(targetUrl);
+            } catch (e) {}
+            window.addEventListener('DOMContentLoaded', function() {
+                if (document.getElementById('kakao-ios-escape-banner')) return;
+                var banner = document.createElement('div');
+                banner.id = 'kakao-ios-escape-banner';
+                banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#163172;color:#fff;padding:10px 14px;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+                banner.innerHTML = '<span>💡 카톡에 종속되지 않으려면 우측 하단 <b>[⋮]</b> ➔ <b>[Safari로 열기]</b>를 눌러주세요!</span><button type="button" onclick="this.parentNode.remove()" style="margin-left:8px;padding:3px 8px;background:rgba(255,255,255,0.2);border-radius:6px;font-size:11px;">닫기</button>';
+                document.body.appendChild(banner);
+            });
+        })();
+    </script>
 <script>
 (function () {
-  /* [보안] 우클릭 · 드래그 · 선택 · 개발자도구/소스보기/저장 단축키 차단 (로그인/통행증 리다이렉트 없음) */
   var stop = function (e) { e.preventDefault(); return false; };
   document.addEventListener("contextmenu", stop, true);
   document.addEventListener("dragstart", stop, true);
@@ -108,7 +132,6 @@ function finishManual(){
   }catch(e){}
   window.location.href="index.html";
 }
-
 var pages=[
  {tab:"시작하기",lead:"목장 이야기를 처음 쓰시는 분도 <b>천천히 따라오시면</b> 돼요. 아래 카드를 하나씩 눌러 보세요.",
   items:[
