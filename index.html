@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>우리들의 목장 이야기 - 세종꿈의교회</title>
+    <title> 목장 이야기 - 세종꿈의교회</title>
     <!-- [PATCH: 카카오톡 인앱 브라우저 종속 방지 -> 외부 기본 브라우저(새 창) 자동 열기] -->
     <script>
         (function() {
@@ -8604,22 +8604,20 @@ window.verifyAdminSlidePasscode = function() {
     const input = document.getElementById("admin-slide-passcode-input");
     const msg = document.getElementById("admin-slide-passcode-msg");
     const entered = input ? input.value.trim() : "";
-    if (!entered) {
-        if (msg) msg.textContent = "관리자 패스코드를 입력해 주세요.";
+    if (!/^[0-9]{4}$/.test(entered)) {
+        if (msg) msg.textContent = "관리 패스코드 4자리를 입력해 주세요.";
         if (input) input.focus();
         return;
     }
-    const activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || '').trim();
     const cfg = getActiveMokjangCfg();
     const validAdminPass = String(cfg.adminPasscode || cfg.passcode || cfg.securityCode || "0000").trim();
-    const validMokjangCode = String(cfg.mokjangCode || activeCode || '').trim();
 
-    if ((validAdminPass && entered === validAdminPass) || (validMokjangCode && entered === validMokjangCode)) {
+    if (validAdminPass && entered === validAdminPass) {
         if (input) input.blur();
         window.closeAdminPasscodeSlideModal();
         window.proceedToExternalAdminPage();
     } else {
-        if (msg) msg.textContent = "코드가 일치하지 않습니다.";
+        if (msg) msg.textContent = "관리 패스코드가 일치하지 않습니다.";
         if (input) { input.value = ""; input.focus(); }
     }
 };
