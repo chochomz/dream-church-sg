@@ -1712,7 +1712,7 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
-        <!-- [목장주소/공유 심플 카톡방 공유 모달 (홈아이콘 + 꿈의 00목장 들어가기 + 사랑의 공동체 목장 나눔방 + 하단 목장 앱 사용설명서 링크)] -->
+        <!-- [목장주소/공유 심플 카톡방 공유 모달 (홈아이콘 + 꿈의 00목장 들어가기 + 사랑의 공동체 목장 나눔방 + 하단 tdcsghelp.html 링크)] -->
     <div id="mokjang-address-share-modal" onclick="window.closeMokjangAddressShareModal(event)" class="fixed inset-0 z-[98] bg-black/55 flex items-center justify-center p-4 hidden select-none" style="touch-action: none;">
         <div onclick="event.stopPropagation()" class="bg-white rounded-[24px] w-full max-w-[292px] p-5 shadow-2xl border border-slate-200 text-center space-y-4">
             <div class="py-4 px-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col items-center justify-center space-y-3 shadow-inner text-center">
@@ -1724,11 +1724,11 @@ window.proceedToExternalAdminPage = function() {
                     <p id="mokjang-addr-share-sub" style="text-align: center !important;" class="w-full text-center text-[12px] font-bold text-[#C81E45] tracking-tight leading-snug mx-auto">사랑의 공동체 목장 나눔방</p>
                 </div>
                 <div class="w-full pt-2.5 border-t border-slate-200/80 flex items-center justify-center">
-                    <button type="button" id="mokjang-addr-share-manual-link" onclick="window.closeMokjangAddressShareModal(event); window.openUserManualModal(event);" class="inline-flex items-center justify-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-indigo-50/90 hover:bg-indigo-100 text-[#163172] border border-indigo-200/90 shadow-2xs active:scale-95 transition-all cursor-pointer mx-auto">
+                    <a id="mokjang-addr-share-manual-link" href="tdcsghelp.html" class="inline-flex items-center justify-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-indigo-50/90 hover:bg-indigo-100 text-[#163172] border border-indigo-200/90 shadow-2xs active:scale-95 transition-all cursor-pointer mx-auto">
                         <i class="fa-solid fa-book-open text-[11px]"></i>
                         <span class="text-[11.5px] font-extrabold underline underline-offset-2">목장 앱 사용설명서</span>
                         <i class="fa-solid fa-chevron-right text-[9px] opacity-75"></i>
-                    </button>
+                    </a>
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-2">
@@ -1741,7 +1741,6 @@ window.proceedToExternalAdminPage = function() {
                 </button>
             </div>
         </div>
-    </div>
     </div>
 
     <!-- [2. 로그인 시 나타나는 작고 심플한 저속 스윙 공지 알림판 (흰 바탕에 테두리 없이 문자만 표시)] -->
@@ -1829,7 +1828,7 @@ window.proceedToExternalAdminPage = function() {
 
         // [작업 4-가, 나, 다, 라: 로그인 세션 기반 사용자 이름 및 목자/부목자/일반목원 권한 체계 초기화]
                         // [카카오톡 공유 모달 및 클립보드 복사 로직 (직분 호칭 포함)]
-        const KAKAO_JAVASCRIPT_KEY = "4360f9a1800d4f344e023a838f384577";
+        const KAKAO_JAVASCRIPT_KEY = "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d";
         function initKakaoSDK() {
             try { if (window.Kakao && !window.Kakao.isInitialized() && KAKAO_JAVASCRIPT_KEY.trim()) window.Kakao.init(KAKAO_JAVASCRIPT_KEY.trim()); } catch (e) {}
         }
@@ -9104,9 +9103,8 @@ window.getMokjangShareUrlAndLabel = function() {
     var kakaoShareLogoUrl = baseDir + "kakao_share_logo.png";
     var activeCode = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "").trim();
     var shareUrl = activeCode ? (baseHref + "?code=" + encodeURIComponent(activeCode)) : baseHref;
-    var helpUrl = shareUrl + (shareUrl.indexOf("?") === -1 ? "?help=1" : "&help=1");
+    var helpUrl = baseDir + "tdcsghelp.html";
     var cleanMessage =
-        "   " + enterLabel + "\n" +
         "   " + subLabel + "\n\n" +
         "👉 " + enterLabel + " :\n" + shareUrl + "\n\n" +
         "📖 목장 앱 사용설명서 :\n" + helpUrl;
@@ -9128,8 +9126,10 @@ window.openMokjangAddressShareModal = function(event) {
     window.syncHomeScreenAppMeta(info.spacedName);
     var labelEl = document.getElementById("mokjang-addr-share-label");
     var subEl = document.getElementById("mokjang-addr-share-sub");
+    var linkEl = document.getElementById("mokjang-addr-share-manual-link");
     if (labelEl) labelEl.textContent = info.enterLabel;
     if (subEl) subEl.textContent = info.subLabel;
+    if (linkEl) linkEl.setAttribute("href", "tdcsghelp.html");
     var modal = document.getElementById("mokjang-address-share-modal");
     if (modal) modal.classList.remove("hidden");
 };
@@ -9145,9 +9145,6 @@ window.executeMokjangAddressKakaoShare = async function(event) {
     var info = window.getMokjangShareUrlAndLabel();
     window.closeMokjangAddressShareModal();
 
-    // 카카오 공식 SDK 공유:
-    // 1) '꿈의 00목장 들어가기' + '사랑의 공동체 목장 나눔방' 중앙정렬 배치
-    // 2) 하단에 '꿈의 00목장 들어가기' 버튼 + '목장 앱 사용설명서'(?help=1 보안 연동) 버튼 구성
     try {
         var trimmedKakaoKey = (typeof KAKAO_JAVASCRIPT_KEY === "string") ? KAKAO_JAVASCRIPT_KEY.trim() : "";
         var isPlaceholderKey = (!trimmedKakaoKey || trimmedKakaoKey === "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d");
@@ -9159,8 +9156,7 @@ window.executeMokjangAddressKakaoShare = async function(event) {
                 window.Kakao.Share.sendDefault({
                     objectType: "feed",
                     content: {
-                        title: "   " + info.enterLabel,
-                        description: "    " + info.subLabel,
+                        title: "   " + info.subLabel,
                         imageUrl: info.kakaoShareLogoUrl,
                         imageWidth: 800,
                         imageHeight: 400,
@@ -9183,8 +9179,6 @@ window.executeMokjangAddressKakaoShare = async function(event) {
     } catch (kakaoErr) {
         console.warn("Kakao SDK 공유 오류:", kakaoErr);
     }
-
-    // 폴백(카카오 키 입력 전 또는 일반 공유 시): 초대 문구 + 입장 링크 + 하단 사용설명서 링크 함께 공유
     try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(info.cleanMessage);
@@ -9202,30 +9196,9 @@ window.executeMokjangAddressKakaoShare = async function(event) {
         }
     }
     if (typeof showNotification === "function") {
-        showNotification("공유카드 문구와 사용설명서 링크가 복사되었습니다! 카톡방에 붙여넣기 하세요.");
+        showNotification("공유 문구와 사용설명서 링크가 복사되었습니다! 카톡방에 붙여넣기 하세요.");
     }
 };
-
-// 카톡방 공유카드의 '목장 앱 사용설명서(?help=1)' 링크를 눌러 진입한 경우 보안 패스 발급 후 즉시 설명서 뷰어(dcsghelp.html) 오픈
-(function checkAutoOpenHelpViewerFromUrl() {
-    try {
-        var params = new URLSearchParams(window.location.search || "");
-        if (params.get("help") === "1" || params.get("guide") === "1") {
-            setTimeout(function() {
-                if (typeof window.openUserManualModal === "function") {
-                    window.openUserManualModal();
-                }
-                if (window.history && typeof window.history.replaceState === "function") {
-                    params.delete("help");
-                    params.delete("guide");
-                    var restQuery = params.toString();
-                    var cleanUrl = window.location.pathname + (restQuery ? ("?" + restQuery) : "") + (window.location.hash || "");
-                    window.history.replaceState(null, document.title, cleanUrl);
-                }
-            }, 180);
-        }
-    } catch (e) {}
-})();
 // [HOMESCREEN_AND_SHARE_V2_END]
 // [BRIDGE_V24_END]
     </script>
