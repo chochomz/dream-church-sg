@@ -529,40 +529,11 @@
             animation: slowNoticeSwing 5.5s ease-in-out infinite !important;
             transform-origin: top center !important;
         }
-            /* [PATCH v2.2: 80% 투명 오버레이 슬림 메뉴 & 스르르 사라짐 & 가로보기 회전] */
+            /* [PATCH v2.3: 인위적 창조절 제거 & 순수 16:9 가로 플레이어 & 사이드 밀어서 닫기] */
         #post-video-title, input[id^="post-video-url-"] { font-size: 16px !important; }
-        #yt-overlay-top-bar {
-            background: rgba(15, 18, 22, 0.22) !important;
-            transition: opacity 0.45s ease, transform 0.45s ease !important;
-            opacity: 0.85;
-        }
-        #yt-overlay-top-bar.yt-bar-hidden {
-            opacity: 0 !important;
-            pointer-events: none !important;
-            transform: translateY(-8px) !important;
-        }
-        .yt-translucent-pill {
-            background-color: rgba(252, 231, 243, 0.25) !important;
-            color: rgba(255, 255, 255, 0.92) !important;
-            border: 1px solid rgba(255, 255, 255, 0.22) !important;
-        }
-        .yt-translucent-pill:hover, .yt-translucent-pill:active {
-            background-color: rgba(244, 114, 182, 0.45) !important;
-        }
-        #youtube-clean-player-modal.yt-landscape-active { padding: 0 !important; background: #000 !important; }
-        #youtube-clean-player-modal.yt-landscape-active #youtube-modal-card {
-            max-width: none !important; width: 100vw !important; height: 100vh !important; height: 100dvh !important;
-            border-radius: 0 !important; border: none !important; display: flex !important; flex-direction: column !important; background: #000 !important;
-        }
-        #youtube-clean-player-modal.yt-landscape-active #youtube-ratio-box {
-            padding-bottom: 0 !important; flex: 1 !important; width: 100% !important; height: 100% !important;
-        }
-        @media (orientation: portrait) {
-            #youtube-clean-player-modal.yt-landscape-active #youtube-modal-card {
-                position: fixed !important; top: 50% !important; left: 50% !important;
-                width: 100vh !important; width: 100dvh !important; height: 100vw !important;
-                transform: translate(-50%, -50%) rotate(90deg) !important; transform-origin: center center !important; z-index: 9999 !important;
-            }
+        #youtube-modal-card {
+            transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.22s ease;
+            will-change: transform, opacity;
         }
     </style>
 </head>
@@ -1967,25 +1938,17 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
-    <!-- [유튜브 클린 모달창 v2.2] -->
-    <div id="youtube-clean-player-modal" onclick="window.closeYoutubeCleanPlayerModal(event)" class="fixed inset-0 z-[118] bg-black/80 hidden flex-col items-center justify-center p-2.5 select-none" style="touch-action: none;">
-        <div id="youtube-modal-card" onclick="window.handleYoutubeModalCardTap(event)" class="relative w-full max-w-[368px] bg-black rounded-xl border border-white/15 shadow-2xl overflow-hidden flex flex-col transition-all duration-200">
-            <div id="yt-overlay-top-bar" class="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-2 py-1 pointer-events-auto">
-                <div class="flex items-center space-x-1.5 min-w-0 flex-1 mr-1.5">
-                    <button type="button" id="youtube-clean-modal-badge" onclick="window.handleLeftBadgeModeToggle(event)" class="yt-translucent-pill px-2 py-0.5 rounded-md text-[10.5px] font-extrabold shrink-0 flex items-center space-x-1 active:scale-95 transition-all cursor-pointer">
-                        <span>🎬</span>
-                        <span id="youtube-left-badge-text">보기</span>
-                    </button>
-                    <h3 id="youtube-clean-modal-title" class="text-[11px] font-bold text-white/80 truncate pointer-events-none drop-shadow"></h3>
-                </div>
-                <button type="button" onclick="window.closeYoutubeCleanPlayerModal(event)" class="yt-translucent-pill px-2 py-0.5 rounded-md text-[10.5px] font-extrabold flex items-center space-x-0.5 active:scale-95 transition-all shrink-0 cursor-pointer">
-                    <i class="fa-solid fa-xmark text-[10px]"></i>
-                    <span>닫기</span>
-                </button>
+    <!-- [유튜브 클린 모달창 v2.3: 인위적 메뉴 완전 삭제 & 순수 16:9 가로뷰 & 사이드 밀어서 닫기] -->
+    <div id="youtube-clean-player-modal" class="fixed inset-0 z-[118] bg-black/85 hidden flex-col items-center justify-center px-1.5 sm:px-4 select-none" style="touch-action: pan-y;">
+        <div id="youtube-modal-card" onclick="event.stopPropagation()" class="relative w-full max-w-[680px] bg-black rounded-xl overflow-hidden shadow-2xl flex flex-col">
+            <!-- 상단 스와이프 손잡이 영역 (터치해서 좌우 사이드로 밀면 닫힘) -->
+            <div class="w-full h-5 bg-transparent flex items-center justify-center cursor-grab active:cursor-grabbing">
+                <div class="w-9 h-1 rounded-full bg-white/25"></div>
             </div>
+            <!-- 16:9 가로보기 고정 비율 순수 유튜브 플레이어 -->
             <div id="youtube-ratio-box" class="relative w-full bg-black" style="padding-bottom: 56.25%;">
                 <div id="youtube-clean-iframe-wrapper" class="absolute inset-0 w-full h-full"></div>
-                <div onclick="window.wakeUpYoutubeTopBar(event)" class="absolute top-0 left-0 right-0 h-[22px] z-20 bg-transparent"></div>
+                <!-- 삭제된 영상 안내 박스 -->
                 <div id="youtube-deleted-error-box" class="hidden absolute inset-0 w-full h-full bg-slate-900 flex-col items-center justify-center p-4 text-center space-y-2.5 z-25">
                     <div class="text-3xl leading-none animate-bounce">😊</div>
                     <p class="text-white font-extrabold text-xs sm:text-sm leading-relaxed break-keep">
@@ -1995,6 +1958,10 @@ window.proceedToExternalAdminPage = function() {
                         확인
                     </button>
                 </div>
+            </div>
+            <!-- 하단 스와이프 영역 (터치해서 좌우 사이드로 밀면 닫힘) -->
+            <div class="w-full h-5 bg-transparent flex items-center justify-center text-[10px] text-white/35 font-medium">
+                <span>◀ 옆으로 밀면 닫힙니다 ▶</span>
             </div>
         </div>
     </div>
@@ -4605,12 +4572,8 @@ function syncHeaderMokjangTitleDOM() {
         let videoUrlsDraft = [''];
         let ytIframeApiReady = false;
         let currentYtPlayerInstance = null;
-        let isYtLandscapeMode = false;
-        let isYtVideoPlaying = false;
-        let ytPlayRevealTimer = null;
-        let ytMenuAutoHideTimer = null;
-        let lastDeviceGamma = null;
-        let lastDeviceBeta = null;
+        let savedFeedScrollTopBeforeVideo = 0;
+        let isYtSwipeBound = false;
 
         function ensureYtIframeApi() {
             if (ytIframeApiReady || window.YT) { ytIframeApiReady = true; return; }
@@ -4759,106 +4722,99 @@ function syncHeaderMokjangTitleDOM() {
             updateCombinedAttachIndicator();
         }
 
-        window.wakeUpYoutubeTopBar = function(event) {
-            if (event && event.stopPropagation) event.stopPropagation();
-            const topBar = document.getElementById('yt-overlay-top-bar');
-            if (!topBar) return;
-            topBar.classList.remove('yt-bar-hidden');
-            if (ytMenuAutoHideTimer) clearTimeout(ytMenuAutoHideTimer);
-            if (isYtVideoPlaying) {
-                ytMenuAutoHideTimer = setTimeout(() => {
-                    const errBox = document.getElementById('youtube-deleted-error-box');
-                    if (errBox && !errBox.classList.contains('hidden')) return;
-                    topBar.classList.add('yt-bar-hidden');
-                }, 2600);
-            }
-        };
-
-        window.handleYoutubeModalCardTap = function(event) {
-            if (event) event.stopPropagation();
-            window.wakeUpYoutubeTopBar();
-        };
-
-        window.addEventListener('deviceorientation', function(e) {
+        // 세로보기 상태에서 터치하여 좌/우 사이드로 밀어버리면(Swipe) 즉시 닫기 & 피드 위치 유지
+        function initYoutubeSideSwipeToClose() {
+            if (isYtSwipeBound) return;
             const modal = document.getElementById('youtube-clean-player-modal');
-            if (!modal || modal.classList.contains('hidden')) return;
-            const g = e.gamma || 0;
-            const b = e.beta || 0;
-            if (lastDeviceGamma !== null && lastDeviceBeta !== null) {
-                if (Math.abs(g - lastDeviceGamma) > 16 || Math.abs(b - lastDeviceBeta) > 16) {
-                    window.wakeUpYoutubeTopBar();
+            const card = document.getElementById('youtube-modal-card');
+            if (!modal || !card) return;
+            isYtSwipeBound = true;
+
+            let startX = 0;
+            let startY = 0;
+            let currentDeltaX = 0;
+            let isSwiping = false;
+
+            modal.addEventListener('touchstart', function(e) {
+                if (e.touches.length !== 1) return;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                currentDeltaX = 0;
+                isSwiping = true;
+                card.style.transition = 'none';
+            }, { passive: true });
+
+            modal.addEventListener('touchmove', function(e) {
+                if (!isSwiping || e.touches.length !== 1) return;
+                const dx = e.touches[0].clientX - startX;
+                const dy = e.touches[0].clientY - startY;
+                if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)) {
+                    currentDeltaX = dx;
+                    const opacity = Math.max(0.2, 1 - (Math.abs(dx) / 260));
+                    card.style.transform = 'translateX(' + dx + 'px)';
+                    card.style.opacity = String(opacity);
                 }
-            }
-            lastDeviceGamma = g;
-            lastDeviceBeta = b;
-        }, { passive: true });
+            }, { passive: true });
 
-        window.addEventListener('orientationchange', function() {
-            const modal = document.getElementById('youtube-clean-player-modal');
-            if (modal && !modal.classList.contains('hidden')) window.wakeUpYoutubeTopBar();
-        });
+            const finishSwipe = function() {
+                if (!isSwiping) return;
+                isSwiping = false;
+                card.style.transition = 'transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.22s ease';
+                if (Math.abs(currentDeltaX) > 55) {
+                    const outX = currentDeltaX > 0 ? window.innerWidth : -window.innerWidth;
+                    card.style.transform = 'translateX(' + outX + 'px)';
+                    card.style.opacity = '0';
+                    setTimeout(() => {
+                        window.closeYoutubeCleanPlayerModal();
+                    }, 180);
+                } else {
+                    card.style.transform = 'translateX(0px)';
+                    card.style.opacity = '1';
+                }
+                currentDeltaX = 0;
+            };
 
-        window.onYoutubePlayStarted = function() {
-            const errBox = document.getElementById('youtube-deleted-error-box');
-            if (errBox && !errBox.classList.contains('hidden')) return;
-            isYtVideoPlaying = true;
-            const leftTxt = document.getElementById('youtube-left-badge-text');
-            if (leftTxt) leftTxt.textContent = isYtLandscapeMode ? '세로보기' : '가로보기';
-            window.wakeUpYoutubeTopBar();
-        };
+            modal.addEventListener('touchend', finishSwipe, { passive: true });
+            modal.addEventListener('touchcancel', finishSwipe, { passive: true });
 
-        window.handleLeftBadgeModeToggle = async function(event) {
-            if (event) { event.preventDefault(); event.stopPropagation(); }
-            const modal = document.getElementById('youtube-clean-player-modal');
-            const leftTxt = document.getElementById('youtube-left-badge-text');
-            if (!modal) return;
-            isYtLandscapeMode = !isYtLandscapeMode;
-            isYtVideoPlaying = true;
-            if (isYtLandscapeMode) {
-                modal.classList.add('yt-landscape-active');
-                if (leftTxt) leftTxt.textContent = '세로보기';
-                try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (e) {}
-            } else {
-                modal.classList.remove('yt-landscape-active');
-                if (leftTxt) leftTxt.textContent = '가로보기';
-                try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
-            }
-            window.wakeUpYoutubeTopBar();
-        };
+            // 배경 빈 공간 가볍게 터치/클릭 시에도 닫기 지원
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) window.closeYoutubeCleanPlayerModal();
+            });
+        }
 
         window.showDeletedYoutubeMessage = function() {
-            if (ytPlayRevealTimer) clearTimeout(ytPlayRevealTimer);
-            if (ytMenuAutoHideTimer) clearTimeout(ytMenuAutoHideTimer);
-            isYtVideoPlaying = false;
             const errBox = document.getElementById('youtube-deleted-error-box');
             const wrap = document.getElementById('youtube-clean-iframe-wrapper');
-            const topBar = document.getElementById('yt-overlay-top-bar');
             if (wrap) wrap.innerHTML = '';
-            if (topBar) topBar.classList.remove('yt-bar-hidden');
             if (errBox) { errBox.classList.remove('hidden'); errBox.classList.add('flex'); }
         };
 
         window.openYoutubeCleanPlayerModal = function(videoIdOrUrl, videoTitle, badgeLabel, event) {
             if (event && event.preventDefault) { event.preventDefault(); event.stopPropagation(); }
             ensureYtIframeApi();
+            initYoutubeSideSwipeToClose();
+
+            // 현재 보고 있던 웹앱 피드 스크롤 위치 정확히 저장
+            const feedContainer = document.getElementById('feed-container');
+            if (feedContainer) savedFeedScrollTopBeforeVideo = feedContainer.scrollTop;
+
+            // 영상 시청 중 좌측/우측 책갈피 숨김
+            const bookmarkEl = document.getElementById('feed-bookmark-indicator');
+            if (bookmarkEl) { bookmarkEl.classList.remove('bookmark-visible'); bookmarkEl.classList.add('bookmark-hidden'); }
+
             const vid = window.extractYoutubeId(videoIdOrUrl);
             const modal = document.getElementById('youtube-clean-player-modal');
-            const titleEl = document.getElementById('youtube-clean-modal-title');
-            const leftTxt = document.getElementById('youtube-left-badge-text');
-            const topBar = document.getElementById('yt-overlay-top-bar');
+            const card = document.getElementById('youtube-modal-card');
             const wrap = document.getElementById('youtube-clean-iframe-wrapper');
             const errBox = document.getElementById('youtube-deleted-error-box');
             if (!modal) return;
 
-            isYtLandscapeMode = false;
-            isYtVideoPlaying = false;
-            lastDeviceGamma = null;
-            lastDeviceBeta = null;
-            if (ytMenuAutoHideTimer) clearTimeout(ytMenuAutoHideTimer);
-            modal.classList.remove('yt-landscape-active');
-            if (topBar) topBar.classList.remove('yt-bar-hidden');
-            if (leftTxt) leftTxt.textContent = badgeLabel || '보기';
-            if (titleEl) titleEl.textContent = (videoTitle && String(videoTitle).trim()) ? String(videoTitle).trim() : '';
+            if (card) {
+                card.style.transition = 'none';
+                card.style.transform = 'translateX(0px)';
+                card.style.opacity = '1';
+            }
             if (errBox) { errBox.classList.add('hidden'); errBox.classList.remove('flex'); }
             if (wrap) wrap.innerHTML = '';
 
@@ -4877,14 +4833,12 @@ function syncHeaderMokjangTitleDOM() {
             };
             probeImg.src = 'https://i.ytimg.com/vi/' + encodeURIComponent(vid) + '/mqdefault.jpg';
 
+            // 유튜브 기본 기능(fs=1 전체화면 버튼 포함) + 군더더기 제거(rel=0, modestbranding=1, iv_load_policy=3, cc_load_policy=0)
             const frameId = 'yt-clean-active-iframe';
-            const embedUrl = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(vid) + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&cc_load_policy=0&hl=ko&enablejsapi=1';
+            const embedUrl = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(vid) + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&fs=1&iv_load_policy=3&cc_load_policy=0&hl=ko&enablejsapi=1';
             if (wrap) {
-                wrap.innerHTML = '<iframe id="' + frameId + '" src="' + embedUrl + '" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+                wrap.innerHTML = '<iframe id="' + frameId + '" src="' + embedUrl + '" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>';
             }
-
-            if (ytPlayRevealTimer) clearTimeout(ytPlayRevealTimer);
-            ytPlayRevealTimer = setTimeout(() => { window.onYoutubePlayStarted(); }, 1300);
 
             if (window.YT && window.YT.Player) {
                 try {
@@ -4896,10 +4850,6 @@ function syncHeaderMokjangTitleDOM() {
                             onStateChange: function(ev) {
                                 if (ev && ev.data === 1) {
                                     try { ev.target.unloadModule('captions'); ev.target.unloadModule('cc'); } catch (e) {}
-                                    window.onYoutubePlayStarted();
-                                } else if (ev && (ev.data === 2 || ev.data === 0)) {
-                                    isYtVideoPlaying = false;
-                                    window.wakeUpYoutubeTopBar();
                                 }
                             },
                             onError: function(ev) {
@@ -4913,24 +4863,24 @@ function syncHeaderMokjangTitleDOM() {
 
         window.closeYoutubeCleanPlayerModal = function(event) {
             if (event && event.preventDefault) { event.preventDefault(); event.stopPropagation(); }
-            if (ytPlayRevealTimer) clearTimeout(ytPlayRevealTimer);
-            if (ytMenuAutoHideTimer) clearTimeout(ytMenuAutoHideTimer);
-            isYtVideoPlaying = false;
-            isYtLandscapeMode = false;
             if (currentYtPlayerInstance && typeof currentYtPlayerInstance.destroy === 'function') {
                 try { currentYtPlayerInstance.destroy(); } catch (e) {}
                 currentYtPlayerInstance = null;
             }
-            try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
+            try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); } catch (e) {}
             const modal = document.getElementById('youtube-clean-player-modal');
+            const card = document.getElementById('youtube-modal-card');
             const wrap = document.getElementById('youtube-clean-iframe-wrapper');
             const errBox = document.getElementById('youtube-deleted-error-box');
             if (wrap) wrap.innerHTML = '';
             if (errBox) { errBox.classList.add('hidden'); errBox.classList.remove('flex'); }
-            if (modal) {
-                modal.classList.remove('yt-landscape-active');
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
+            if (card) { card.style.transform = 'translateX(0px)'; card.style.opacity = '1'; }
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+
+            // 닫힌 직후 원래 보고 있던 웹앱 피드 위치 그대로 유지
+            const feedContainer = document.getElementById('feed-container');
+            if (feedContainer && typeof savedFeedScrollTopBeforeVideo === 'number') {
+                feedContainer.scrollTop = savedFeedScrollTopBeforeVideo;
             }
         };
 
@@ -7635,8 +7585,9 @@ function syncHeaderMokjangTitleDOM() {
             let videoBannerHtml = '';
             if (postVideoList.length > 0) {
                 const totalVids = postVideoList.length;
+                // 1개일 땐 '보기', 여러 개일 땐 '보기1', '2', '3' 으로 간략 표시!
                 const buttonsHtml = postVideoList.map((vItem, vIdx) => {
-                    const btnLabel = totalVids === 1 ? '보기' : ('보기' + (vIdx + 1));
+                    const btnLabel = totalVids === 1 ? '보기' : (vIdx === 0 ? '보기1' : String(vIdx + 1));
                     const safeVArg = escapeHtml(String(vItem)).replace(/'/g, "\\'");
                     return '<button type="button" onclick="event.stopPropagation(); window.openYoutubeCleanPlayerModal(\'' + safeVArg + '\', \'' + safeVidTitleArg + '\', \'' + btnLabel + '\', event)" class="no-export shrink-0 px-1.5 py-0.5 rounded bg-pink-100 hover:bg-pink-200/90 active:scale-95 text-rose-800 border border-pink-200/90 font-extrabold text-[10.5px] leading-tight transition-all">' + btnLabel + '</button>';
                 }).join('');
