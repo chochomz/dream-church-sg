@@ -4636,18 +4636,9 @@ function syncHeaderMokjangTitleDOM() {
         window.toggleKeepYoutubeAudio = function(isChecked, event) {
             if (event && event.stopPropagation) event.stopPropagation();
             keepYoutubeAudioOnHide = Boolean(isChecked);
-            document.querySelectorAll('.feed-yt-keep-audio-chk').forEach(chk => {
-                chk.checked = keepYoutubeAudioOnHide;
-            });
             const modalChk = document.getElementById('yt-modal-keep-audio-chk');
             if (modalChk) modalChk.checked = keepYoutubeAudioOnHide;
-
-            const card = document.getElementById('youtube-modal-card');
-            const modal = document.getElementById('youtube-clean-player-modal');
-            if (!keepYoutubeAudioOnHide && modal && !modal.classList.contains('hidden') && card && card.classList.contains('yt-audio-minimized')) {
-                window.closeYoutubeCleanPlayerModal(null, true);
-                showNotification('백그라운드 영상 소리가 종료되었습니다.');
-            } else if (keepYoutubeAudioOnHide) {
+            if (keepYoutubeAudioOnHide) {
                 showNotification('체크됨: 영상 창을 옆으로 밀어 숨겨도 소리가 계속 재생됩니다 🎵');
             }
         };
@@ -7736,14 +7727,10 @@ function syncHeaderMokjangTitleDOM() {
                     return '<button type="button" onclick="event.stopPropagation(); window.openYoutubeCleanPlayerModal(\'' + safeVArg + '\', event)" class="no-export shrink-0 px-1.5 py-0.5 rounded bg-pink-100 hover:bg-pink-200/90 active:scale-95 text-rose-800 border border-pink-200/90 font-extrabold text-[10.5px] leading-tight transition-all">' + btnLabel + '</button>';
                 }).join('');
                 const firstVidArg = escapeHtml(String(postVideoList[0])).replace(/'/g, "\\'");
-                const chkAttr = keepYoutubeAudioOnHide ? 'checked' : '';
                 videoBannerHtml = '<div class="mt-0.5 mb-0.5 px-2 py-1 rounded-lg bg-pink-50/30 border border-pink-200/60 flex items-center justify-between gap-1.5">' +
-                    '<div class="flex items-center space-x-1.5 min-w-0 flex-1">' +
-                        '<input type="checkbox" ' + chkAttr + ' onclick="event.stopPropagation();" onchange="window.toggleKeepYoutubeAudio(this.checked, event)" class="no-export feed-yt-keep-audio-chk w-3.5 h-3.5 accent-rose-600 rounded-xs shrink-0 cursor-pointer" title="체크하면 영상 창을 옆으로 밀어 숨겨도 소리가 계속 재생됩니다">' +
-                        '<div onclick="event.stopPropagation(); window.openYoutubeCleanPlayerModal(\'' + firstVidArg + '\', event)" class="flex items-center space-x-1 min-w-0 flex-1 cursor-pointer">' +
-                            '<i class="fa-brands fa-youtube text-rose-500 text-xs shrink-0"></i>' +
-                            '<span class="font-bold text-[13px] text-gray-800 truncate tracking-tight leading-snug">' + escapeHtml(safeVidTitleText) + '</span>' +
-                        '</div>' +
+                    '<div onclick="event.stopPropagation(); window.openYoutubeCleanPlayerModal(\'' + firstVidArg + '\', event)" class="flex items-center space-x-1.5 min-w-0 flex-1 cursor-pointer">' +
+                        '<i class="fa-brands fa-youtube text-rose-500 text-xs shrink-0"></i>' +
+                        '<span class="font-bold text-[13px] text-gray-800 truncate tracking-tight leading-snug">' + escapeHtml(safeVidTitleText) + '</span>' +
                     '</div>' +
                     '<div class="flex items-center space-x-1 shrink-0">' + buttonsHtml + '</div>' +
                 '</div>';
