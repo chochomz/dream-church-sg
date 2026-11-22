@@ -529,8 +529,26 @@
             animation: slowNoticeSwing 5.5s ease-in-out infinite !important;
             transform-origin: top center !important;
         }
-            /* [PATCH v2.1: 유튜브 다중 입력창 16px 고정 & 모바일 세로->가로 전체화면 전환 스타일] */
+            /* [PATCH v2.2: 80% 투명 오버레이 슬림 메뉴 & 스르르 사라짐 & 가로보기 회전] */
         #post-video-title, input[id^="post-video-url-"] { font-size: 16px !important; }
+        #yt-overlay-top-bar {
+            background: rgba(15, 18, 22, 0.22) !important;
+            transition: opacity 0.45s ease, transform 0.45s ease !important;
+            opacity: 0.85;
+        }
+        #yt-overlay-top-bar.yt-bar-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transform: translateY(-8px) !important;
+        }
+        .yt-translucent-pill {
+            background-color: rgba(252, 231, 243, 0.25) !important;
+            color: rgba(255, 255, 255, 0.92) !important;
+            border: 1px solid rgba(255, 255, 255, 0.22) !important;
+        }
+        .yt-translucent-pill:hover, .yt-translucent-pill:active {
+            background-color: rgba(244, 114, 182, 0.45) !important;
+        }
         #youtube-clean-player-modal.yt-landscape-active { padding: 0 !important; background: #000 !important; }
         #youtube-clean-player-modal.yt-landscape-active #youtube-modal-card {
             max-width: none !important; width: 100vw !important; height: 100vh !important; height: 100dvh !important;
@@ -1345,7 +1363,6 @@ window.proceedToExternalAdminPage = function() {
                         <span class="font-medium text-gray-700"><i class="fa-solid fa-film text-pink-500 mr-1"></i>영상 링크 / <i class="fa-solid fa-paperclip church-primary-text mx-0.5"></i>파일 첨부(1MB이내)</span>
                         <span id="attached-file-indicator" class="text-gray-400 font-medium">0개 첨부</span>
                     </div>
-
                     <div id="attached-video-display" class="hidden flex-col space-y-2 p-2.5 bg-pink-50/40 rounded-xl border border-pink-200/90 text-xs">
                         <div class="flex items-center justify-between border-b border-pink-200/60 pb-1">
                             <div class="flex items-center space-x-1.5 font-extrabold text-rose-900">
@@ -1359,33 +1376,29 @@ window.proceedToExternalAdminPage = function() {
                                 <span class="font-semibold text-rose-900"><i class="fa-solid fa-tag mr-1 text-[9px] text-pink-500"></i>영상 제목 (20자 이내)</span>
                                 <span id="video-title-char-indicator" class="text-gray-400 font-mono">0 / 20자</span>
                             </div>
-                            <input type="text" id="post-video-title" maxlength="20" oninput="updateVideoTitleCharCount(this)" placeholder="피드에 표시될 간단한 제목 (20자 이내)..." 
-                                   class="w-full px-2.5 py-1.5 rounded-lg border border-pink-200 bg-white text-xs text-gray-800 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-300 transition-all">
+                            <input type="text" id="post-video-title" maxlength="20" oninput="updateVideoTitleCharCount(this)" placeholder="피드에 표시될 간단한 제목 (20자 이내)..." class="w-full px-2.5 py-1.5 rounded-lg border border-pink-200 bg-white text-xs text-gray-800 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-300 transition-all">
                         </div>
                         <div class="w-full pt-0.5">
-                            <div class="flex justify-between items-center text-[10px] text-gray-500 mb-1">
-                                <div class="flex items-center space-x-1">
-                                    <span class="font-semibold text-rose-900"><i class="fa-brands fa-youtube mr-1 text-[10.5px] text-rose-500"></i>영상 링크 (유튜브 주소)</span>
-                                    <span id="video-url-count-badge" class="font-mono font-bold text-rose-700 bg-pink-100/90 px-1.5 py-0.2 rounded-full text-[9.5px]">(1/3)</span>
+                            <div class="flex justify-between items-center text-[10.5px] text-gray-600 mb-1 whitespace-nowrap">
+                                <div class="flex items-center space-x-1 shrink-0">
+                                    <span class="font-semibold text-rose-900"><i class="fa-brands fa-youtube mr-1 text-[11px] text-rose-500"></i>영상링크</span>
+                                    <span id="video-url-count-badge" class="font-mono font-bold text-rose-700 text-[10px]">(1/3)</span>
                                 </div>
-                                <div class="flex items-center space-x-1.5">
-                                    <span id="video-url-status-indicator" class="text-gray-400 font-medium text-[9.5px]">최대 3개</span>
-                                    <button type="button" id="add-video-url-slot-btn" onclick="addVideoUrlSlot()" class="w-6 h-6 rounded-lg bg-pink-100 hover:bg-pink-200 active:scale-90 text-rose-800 border border-pink-300 flex items-center justify-center shadow-2xs transition-all" title="링크 주소창 추가 (최대 3개)">
-                                        <i class="fa-solid fa-plus text-xs font-black" style="-webkit-text-stroke: 1.2px currentColor;"></i>
+                                <div class="flex items-center space-x-2 shrink-0">
+                                    <span id="video-url-status-indicator" class="font-mono font-black text-rose-600 text-[11px] tracking-tight"></span>
+                                    <button type="button" id="add-video-url-slot-btn" onclick="addVideoUrlSlot()" class="px-1 py-0.5 bg-transparent border-0 text-rose-700 hover:text-rose-900 active:scale-90 flex items-center justify-center transition-all cursor-pointer" title="링크 주소창 추가 (최대 3개)">
+                                        <i class="fa-solid fa-plus text-sm font-black" style="-webkit-text-stroke: 1.6px currentColor;"></i>
                                     </button>
                                 </div>
                             </div>
                             <div id="video-url-inputs-list" class="space-y-1.5"></div>
                         </div>
                     </div>
-
                     <button type="button" id="trigger-video-link-btn" onclick="openVideoLinkAttachment()" class="w-full py-2 border border-dashed border-pink-300 rounded-xl flex items-center justify-center space-x-1.5 text-xs text-rose-800 font-semibold hover:bg-pink-50/60 hover:border-pink-400 active:scale-98 transition-all bg-white shadow-2xs">
                         <i class="fa-solid fa-film text-pink-500 text-xs"></i>
                         <span>영상주소 링크하기</span>
                     </button>
-
                     <input type="file" id="post-file-attachment-input" class="hidden" onchange="handleSingleFileAttachment(event)">
-                    
                     <div id="attached-file-display" class="hidden flex-col space-y-1.5 p-2 bg-gray-50 rounded-xl border border-gray-200 text-xs">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center space-x-2 truncate mr-2">
@@ -1954,28 +1967,26 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
-    <!-- [유튜브 모바일 세로보기 즉시 오픈 & 플레이 시 가로보기 전환 클린 모달창 v2.1] -->
-    <div id="youtube-clean-player-modal" onclick="window.closeYoutubeCleanPlayerModal(event)" class="fixed inset-0 z-[118] bg-black/80 hidden flex-col items-center justify-center p-3 select-none" style="touch-action: none;">
-        <div id="youtube-modal-card" onclick="event.stopPropagation()" class="w-full max-w-[368px] bg-[#14171A] rounded-2xl border border-slate-700/90 shadow-2xl overflow-hidden flex flex-col transition-all duration-200">
-            <div class="flex items-center justify-between px-3 py-2 bg-[#1F2428] border-b border-slate-700/80 shrink-0">
-                <div class="flex items-center space-x-1.5 truncate mr-2">
-                    <span id="youtube-clean-modal-badge" class="px-1.5 py-0.5 rounded bg-pink-100 text-rose-900 text-[10px] font-black shrink-0">🎬 보기</span>
-                    <h3 id="youtube-clean-modal-title" class="text-xs font-extrabold text-white truncate">목장 영상 나눔</h3>
-                </div>
-                <div class="flex items-center space-x-1.5 shrink-0">
-                    <button type="button" id="yt-top-landscape-btn" onclick="window.toggleYoutubeLandscapeMode(event)" class="hidden px-2 py-1 rounded-lg bg-pink-100 hover:bg-pink-200 text-rose-900 text-[11px] font-extrabold items-center space-x-1 active:scale-95 transition-all">
-                        <i class="fa-solid fa-rotate text-[10px]"></i>
-                        <span id="yt-top-landscape-text">가로보기</span>
+    <!-- [유튜브 클린 모달창 v2.2] -->
+    <div id="youtube-clean-player-modal" onclick="window.closeYoutubeCleanPlayerModal(event)" class="fixed inset-0 z-[118] bg-black/80 hidden flex-col items-center justify-center p-2.5 select-none" style="touch-action: none;">
+        <div id="youtube-modal-card" onclick="window.handleYoutubeModalCardTap(event)" class="relative w-full max-w-[368px] bg-black rounded-xl border border-white/15 shadow-2xl overflow-hidden flex flex-col transition-all duration-200">
+            <div id="yt-overlay-top-bar" class="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-2 py-1 pointer-events-auto">
+                <div class="flex items-center space-x-1.5 min-w-0 flex-1 mr-1.5">
+                    <button type="button" id="youtube-clean-modal-badge" onclick="window.handleLeftBadgeModeToggle(event)" class="yt-translucent-pill px-2 py-0.5 rounded-md text-[10.5px] font-extrabold shrink-0 flex items-center space-x-1 active:scale-95 transition-all cursor-pointer">
+                        <span>🎬</span>
+                        <span id="youtube-left-badge-text">보기</span>
                     </button>
-                    <button type="button" onclick="window.closeYoutubeCleanPlayerModal(event)" class="px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-rose-600 text-white text-[11px] font-extrabold flex items-center space-x-1 active:scale-95 transition-all">
-                        <i class="fa-solid fa-xmark"></i>
-                        <span>닫기</span>
-                    </button>
+                    <h3 id="youtube-clean-modal-title" class="text-[11px] font-bold text-white/80 truncate pointer-events-none drop-shadow"></h3>
                 </div>
+                <button type="button" onclick="window.closeYoutubeCleanPlayerModal(event)" class="yt-translucent-pill px-2 py-0.5 rounded-md text-[10.5px] font-extrabold flex items-center space-x-0.5 active:scale-95 transition-all shrink-0 cursor-pointer">
+                    <i class="fa-solid fa-xmark text-[10px]"></i>
+                    <span>닫기</span>
+                </button>
             </div>
             <div id="youtube-ratio-box" class="relative w-full bg-black" style="padding-bottom: 56.25%;">
                 <div id="youtube-clean-iframe-wrapper" class="absolute inset-0 w-full h-full"></div>
-                <div id="youtube-deleted-error-box" class="hidden absolute inset-0 w-full h-full bg-slate-900 flex-col items-center justify-center p-4 text-center space-y-2.5 z-20">
+                <div onclick="window.wakeUpYoutubeTopBar(event)" class="absolute top-0 left-0 right-0 h-[22px] z-20 bg-transparent"></div>
+                <div id="youtube-deleted-error-box" class="hidden absolute inset-0 w-full h-full bg-slate-900 flex-col items-center justify-center p-4 text-center space-y-2.5 z-25">
                     <div class="text-3xl leading-none animate-bounce">😊</div>
                     <p class="text-white font-extrabold text-xs sm:text-sm leading-relaxed break-keep">
                         유튜브 영상이 삭제되었으니<br>피드된 주소를 수정/삭제해 주세요
@@ -1984,16 +1995,6 @@ window.proceedToExternalAdminPage = function() {
                         확인
                     </button>
                 </div>
-            </div>
-            <div id="yt-bottom-control-bar" class="hidden px-3 py-2 bg-[#1A1D21] border-t border-slate-800 items-center justify-between shrink-0">
-                <span class="text-[11px] text-slate-300 font-medium flex items-center space-x-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping inline-block"></span>
-                    <span>영상 재생 중</span>
-                </span>
-                <button type="button" onclick="window.toggleYoutubeLandscapeMode(event)" class="px-3 py-1 rounded-lg bg-pink-100 hover:bg-pink-200 text-rose-900 text-xs font-extrabold flex items-center space-x-1.5 shadow-sm active:scale-95 transition-all">
-                    <i class="fa-solid fa-mobile-screen-button rotate-90 text-xs"></i>
-                    <span id="yt-bottom-landscape-text">가로보기</span>
-                </button>
             </div>
         </div>
     </div>
@@ -3542,7 +3543,6 @@ function syncHeaderMokjangTitleDOM() {
             if (post.mokjangName) parts.push(post.mokjangName);
             if (post.fileName) parts.push(post.fileName);
             if (post.fileTitle) parts.push(post.fileTitle);
-            if (post.videoTitle) parts.push(post.videoTitle);
             if (post.photoCaptions && typeof post.photoCaptions === 'object') {
                 Object.values(post.photoCaptions).forEach(val => {
                     const info = extractPhotoCaptionInfo(val, post.author);
@@ -4606,7 +4606,11 @@ function syncHeaderMokjangTitleDOM() {
         let ytIframeApiReady = false;
         let currentYtPlayerInstance = null;
         let isYtLandscapeMode = false;
+        let isYtVideoPlaying = false;
         let ytPlayRevealTimer = null;
+        let ytMenuAutoHideTimer = null;
+        let lastDeviceGamma = null;
+        let lastDeviceBeta = null;
 
         function ensureYtIframeApi() {
             if (ytIframeApiReady || window.YT) { ytIframeApiReady = true; return; }
@@ -4686,24 +4690,18 @@ function syncHeaderMokjangTitleDOM() {
             const addBtn = document.getElementById('add-video-url-slot-btn');
             if (countBadge) countBadge.innerText = '(' + videoUrlsDraft.length + '/3)';
             if (addBtn) {
-                if (videoUrlsDraft.length >= 3) addBtn.classList.add('opacity-40');
-                else addBtn.classList.remove('opacity-40');
+                if (videoUrlsDraft.length >= 3) addBtn.classList.add('opacity-30');
+                else addBtn.classList.remove('opacity-30');
             }
             if (!badge) return;
-            const nonEmpty = videoUrlsDraft.map(u => String(u || '').trim()).filter(Boolean);
-            if (nonEmpty.length === 0) {
-                badge.innerText = '최대 3개';
-                badge.className = 'text-gray-400 font-medium text-[9.5px]';
-                return;
-            }
-            const allValid = nonEmpty.every(u => Boolean(window.extractYoutubeId(u)));
-            if (allValid) {
-                badge.innerText = '✓ ' + nonEmpty.length + '개 링크 확인됨';
-                badge.className = 'text-emerald-700 font-extrabold text-[9.5px]';
-            } else {
-                badge.innerText = '⚠ 주소를 확인해 주세요';
-                badge.className = 'text-rose-600 font-extrabold text-[9.5px]';
-            }
+            const badLabels = [];
+            videoUrlsDraft.forEach((u, idx) => {
+                const trimmed = String(u || '').trim();
+                if (trimmed.length > 0 && !window.extractYoutubeId(trimmed)) {
+                    badLabels.push((idx + 1) + 'x');
+                }
+            });
+            badge.innerText = badLabels.join(', ');
         }
 
         function renderVideoUrlInputsList() {
@@ -4713,7 +4711,7 @@ function syncHeaderMokjangTitleDOM() {
             videoUrlsDraft = videoUrlsDraft.slice(0, 3);
             listEl.innerHTML = videoUrlsDraft.map((urlVal, idx) => {
                 const delBtn = videoUrlsDraft.length > 1
-                    ? '<button type="button" onclick="removeVideoUrlSlot(' + idx + ')" class="w-6 h-6 rounded-lg bg-white hover:bg-rose-50 text-gray-400 hover:text-rose-600 border border-pink-200 flex items-center justify-center shrink-0 active:scale-90" title="이 링크 삭제"><i class="fa-solid fa-minus text-[10px]"></i></button>'
+                    ? '<button type="button" onclick="removeVideoUrlSlot(' + idx + ')" class="w-5 h-5 bg-transparent border-0 text-gray-400 hover:text-rose-600 flex items-center justify-center shrink-0 active:scale-90" title="이 링크 삭제"><i class="fa-solid fa-minus text-xs"></i></button>'
                     : '';
                 return '<div class="flex items-center space-x-1">' +
                     '<span class="w-4 text-[10px] font-mono font-bold text-rose-800 shrink-0 text-center">' + (idx + 1) + '.</span>' +
@@ -4755,48 +4753,88 @@ function syncHeaderMokjangTitleDOM() {
                 if (triggerBtn) triggerBtn.classList.remove('hidden');
                 const ind = document.getElementById('video-title-char-indicator');
                 if (ind) ind.innerText = '0 / 20자';
+                const badge = document.getElementById('video-url-status-indicator');
+                if (badge) badge.innerText = '';
             }
             updateCombinedAttachIndicator();
         }
 
-        window.revealYoutubeLandscapeButton = function() {
-            const errBox = document.getElementById('youtube-deleted-error-box');
-            if (errBox && !errBox.classList.contains('hidden')) return;
-            const bottomBar = document.getElementById('yt-bottom-control-bar');
-            const topBtn = document.getElementById('yt-top-landscape-btn');
-            if (bottomBar) { bottomBar.classList.remove('hidden'); bottomBar.classList.add('flex'); }
-            if (topBtn) { topBtn.classList.remove('hidden'); topBtn.classList.add('flex'); }
+        window.wakeUpYoutubeTopBar = function(event) {
+            if (event && event.stopPropagation) event.stopPropagation();
+            const topBar = document.getElementById('yt-overlay-top-bar');
+            if (!topBar) return;
+            topBar.classList.remove('yt-bar-hidden');
+            if (ytMenuAutoHideTimer) clearTimeout(ytMenuAutoHideTimer);
+            if (isYtVideoPlaying) {
+                ytMenuAutoHideTimer = setTimeout(() => {
+                    const errBox = document.getElementById('youtube-deleted-error-box');
+                    if (errBox && !errBox.classList.contains('hidden')) return;
+                    topBar.classList.add('yt-bar-hidden');
+                }, 2600);
+            }
         };
 
-        window.toggleYoutubeLandscapeMode = async function(event) {
+        window.handleYoutubeModalCardTap = function(event) {
+            if (event) event.stopPropagation();
+            window.wakeUpYoutubeTopBar();
+        };
+
+        window.addEventListener('deviceorientation', function(e) {
+            const modal = document.getElementById('youtube-clean-player-modal');
+            if (!modal || modal.classList.contains('hidden')) return;
+            const g = e.gamma || 0;
+            const b = e.beta || 0;
+            if (lastDeviceGamma !== null && lastDeviceBeta !== null) {
+                if (Math.abs(g - lastDeviceGamma) > 16 || Math.abs(b - lastDeviceBeta) > 16) {
+                    window.wakeUpYoutubeTopBar();
+                }
+            }
+            lastDeviceGamma = g;
+            lastDeviceBeta = b;
+        }, { passive: true });
+
+        window.addEventListener('orientationchange', function() {
+            const modal = document.getElementById('youtube-clean-player-modal');
+            if (modal && !modal.classList.contains('hidden')) window.wakeUpYoutubeTopBar();
+        });
+
+        window.onYoutubePlayStarted = function() {
+            const errBox = document.getElementById('youtube-deleted-error-box');
+            if (errBox && !errBox.classList.contains('hidden')) return;
+            isYtVideoPlaying = true;
+            const leftTxt = document.getElementById('youtube-left-badge-text');
+            if (leftTxt) leftTxt.textContent = isYtLandscapeMode ? '세로보기' : '가로보기';
+            window.wakeUpYoutubeTopBar();
+        };
+
+        window.handleLeftBadgeModeToggle = async function(event) {
             if (event) { event.preventDefault(); event.stopPropagation(); }
             const modal = document.getElementById('youtube-clean-player-modal');
-            const topTxt = document.getElementById('yt-top-landscape-text');
-            const botTxt = document.getElementById('yt-bottom-landscape-text');
+            const leftTxt = document.getElementById('youtube-left-badge-text');
             if (!modal) return;
             isYtLandscapeMode = !isYtLandscapeMode;
+            isYtVideoPlaying = true;
             if (isYtLandscapeMode) {
                 modal.classList.add('yt-landscape-active');
-                if (topTxt) topTxt.textContent = '세로보기';
-                if (botTxt) botTxt.textContent = '세로보기';
+                if (leftTxt) leftTxt.textContent = '세로보기';
                 try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (e) {}
             } else {
                 modal.classList.remove('yt-landscape-active');
-                if (topTxt) topTxt.textContent = '가로보기';
-                if (botTxt) botTxt.textContent = '가로보기';
+                if (leftTxt) leftTxt.textContent = '가로보기';
                 try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
             }
+            window.wakeUpYoutubeTopBar();
         };
 
         window.showDeletedYoutubeMessage = function() {
             if (ytPlayRevealTimer) clearTimeout(ytPlayRevealTimer);
+            if (ytMenuAutoHideTimer) clearTimeout(ytMenuAutoHideTimer);
+            isYtVideoPlaying = false;
             const errBox = document.getElementById('youtube-deleted-error-box');
             const wrap = document.getElementById('youtube-clean-iframe-wrapper');
-            const bottomBar = document.getElementById('yt-bottom-control-bar');
-            const topBtn = document.getElementById('yt-top-landscape-btn');
+            const topBar = document.getElementById('yt-overlay-top-bar');
             if (wrap) wrap.innerHTML = '';
-            if (bottomBar) { bottomBar.classList.add('hidden'); bottomBar.classList.remove('flex'); }
-            if (topBtn) { topBtn.classList.add('hidden'); topBtn.classList.remove('flex'); }
+            if (topBar) topBar.classList.remove('yt-bar-hidden');
             if (errBox) { errBox.classList.remove('hidden'); errBox.classList.add('flex'); }
         };
 
@@ -4806,24 +4844,21 @@ function syncHeaderMokjangTitleDOM() {
             const vid = window.extractYoutubeId(videoIdOrUrl);
             const modal = document.getElementById('youtube-clean-player-modal');
             const titleEl = document.getElementById('youtube-clean-modal-title');
-            const badgeEl = document.getElementById('youtube-clean-modal-badge');
+            const leftTxt = document.getElementById('youtube-left-badge-text');
+            const topBar = document.getElementById('yt-overlay-top-bar');
             const wrap = document.getElementById('youtube-clean-iframe-wrapper');
             const errBox = document.getElementById('youtube-deleted-error-box');
-            const bottomBar = document.getElementById('yt-bottom-control-bar');
-            const topBtn = document.getElementById('yt-top-landscape-btn');
-            const topTxt = document.getElementById('yt-top-landscape-text');
-            const botTxt = document.getElementById('yt-bottom-landscape-text');
             if (!modal) return;
 
             isYtLandscapeMode = false;
+            isYtVideoPlaying = false;
+            lastDeviceGamma = null;
+            lastDeviceBeta = null;
+            if (ytMenuAutoHideTimer) clearTimeout(ytMenuAutoHideTimer);
             modal.classList.remove('yt-landscape-active');
-            if (topTxt) topTxt.textContent = '가로보기';
-            if (botTxt) botTxt.textContent = '가로보기';
-            if (bottomBar) { bottomBar.classList.add('hidden'); bottomBar.classList.remove('flex'); }
-            if (topBtn) { topBtn.classList.add('hidden'); topBtn.classList.remove('flex'); }
-
-            if (badgeEl) badgeEl.textContent = '🎬 ' + (badgeLabel || '보기');
-            if (titleEl) titleEl.textContent = (videoTitle && String(videoTitle).trim()) ? String(videoTitle).trim() : '목장 영상 나눔';
+            if (topBar) topBar.classList.remove('yt-bar-hidden');
+            if (leftTxt) leftTxt.textContent = badgeLabel || '보기';
+            if (titleEl) titleEl.textContent = (videoTitle && String(videoTitle).trim()) ? String(videoTitle).trim() : '';
             if (errBox) { errBox.classList.add('hidden'); errBox.classList.remove('flex'); }
             if (wrap) wrap.innerHTML = '';
 
@@ -4843,19 +4878,30 @@ function syncHeaderMokjangTitleDOM() {
             probeImg.src = 'https://i.ytimg.com/vi/' + encodeURIComponent(vid) + '/mqdefault.jpg';
 
             const frameId = 'yt-clean-active-iframe';
-            const embedUrl = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(vid) + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&enablejsapi=1';
+            const embedUrl = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(vid) + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&cc_load_policy=0&hl=ko&enablejsapi=1';
             if (wrap) {
                 wrap.innerHTML = '<iframe id="' + frameId + '" src="' + embedUrl + '" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
             }
 
             if (ytPlayRevealTimer) clearTimeout(ytPlayRevealTimer);
-            ytPlayRevealTimer = setTimeout(() => { window.revealYoutubeLandscapeButton(); }, 1300);
+            ytPlayRevealTimer = setTimeout(() => { window.onYoutubePlayStarted(); }, 1300);
 
             if (window.YT && window.YT.Player) {
                 try {
                     currentYtPlayerInstance = new window.YT.Player(frameId, {
                         events: {
-                            onStateChange: function(ev) { if (ev && ev.data === 1) window.revealYoutubeLandscapeButton(); },
+                            onReady: function(ev) {
+                                try { ev.target.unloadModule('captions'); ev.target.unloadModule('cc'); } catch (e) {}
+                            },
+                            onStateChange: function(ev) {
+                                if (ev && ev.data === 1) {
+                                    try { ev.target.unloadModule('captions'); ev.target.unloadModule('cc'); } catch (e) {}
+                                    window.onYoutubePlayStarted();
+                                } else if (ev && (ev.data === 2 || ev.data === 0)) {
+                                    isYtVideoPlaying = false;
+                                    window.wakeUpYoutubeTopBar();
+                                }
+                            },
                             onError: function(ev) {
                                 if (ev && (ev.data === 100 || ev.data === 101 || ev.data === 150 || ev.data === 2)) window.showDeletedYoutubeMessage();
                             }
@@ -4868,11 +4914,13 @@ function syncHeaderMokjangTitleDOM() {
         window.closeYoutubeCleanPlayerModal = function(event) {
             if (event && event.preventDefault) { event.preventDefault(); event.stopPropagation(); }
             if (ytPlayRevealTimer) clearTimeout(ytPlayRevealTimer);
+            if (ytMenuAutoHideTimer) clearTimeout(ytMenuAutoHideTimer);
+            isYtVideoPlaying = false;
+            isYtLandscapeMode = false;
             if (currentYtPlayerInstance && typeof currentYtPlayerInstance.destroy === 'function') {
                 try { currentYtPlayerInstance.destroy(); } catch (e) {}
                 currentYtPlayerInstance = null;
             }
-            isYtLandscapeMode = false;
             try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
             const modal = document.getElementById('youtube-clean-player-modal');
             const wrap = document.getElementById('youtube-clean-iframe-wrapper');
@@ -4894,14 +4942,12 @@ function syncHeaderMokjangTitleDOM() {
         window.handleSingleFileAttachment = function(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const MAX_SIZE = 1 * 1024 * 1024;
             if (file.size > MAX_SIZE) {
-                showNotification("첨부한 파일은 1MB를 초과할 수 없습니다. (현재: " + (file.size / 1024 / 1024).toFixed(2) + "MB)");
+                showNotification('첨부한 파일은 1MB를 초과할 수 없습니다. (현재: ' + (file.size / 1024 / 1024).toFixed(2) + 'MB)');
                 event.target.value = '';
                 return;
             }
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 currentAttachedFile = {
@@ -4911,7 +4957,7 @@ function syncHeaderMokjangTitleDOM() {
                     dataUrl: e.target.result
                 };
                 renderAttachedFileUI();
-                showNotification(`파일('${file.name}')이 첨부되었습니다.`);
+                showNotification("파일('" + file.name + "')이 첨부되었습니다.");
             };
             reader.readAsDataURL(file);
             event.target.value = '';
@@ -4920,7 +4966,7 @@ function syncHeaderMokjangTitleDOM() {
         window.removeAttachedFile = function() {
             currentAttachedFile = null;
             renderAttachedFileUI();
-            showNotification("첨부파일이 제외되었습니다.");
+            showNotification('첨부파일이 제외되었습니다.');
         };
 
         function renderAttachedFileUI() {
@@ -4929,52 +4975,37 @@ function syncHeaderMokjangTitleDOM() {
             const nameEl = document.getElementById('attached-file-name');
             const sizeEl = document.getElementById('attached-file-size');
             const indEl = document.getElementById('attached-file-indicator');
-
             if (currentAttachedFile) {
-                if (display) {
-                    display.classList.remove('hidden');
-                    display.classList.add('flex');
-                }
+                if (display) { display.classList.remove('hidden'); display.classList.add('flex'); }
                 if (triggerBtn) triggerBtn.classList.add('hidden');
                 if (nameEl) nameEl.innerText = currentAttachedFile.fileName;
                 if (sizeEl) sizeEl.innerText = formatFileSize(currentAttachedFile.fileSize);
-                if (indEl) indEl.innerText = "1개 첨부됨";
+                if (indEl) indEl.innerText = '1개 첨부됨';
             } else {
-                if (display) {
-                    display.classList.add('hidden');
-                    display.classList.remove('flex');
-                }
+                if (display) { display.classList.add('hidden'); display.classList.remove('flex'); }
                 if (triggerBtn) triggerBtn.classList.remove('hidden');
-                if (indEl) indEl.innerText = "0개 첨부";
+                if (indEl) indEl.innerText = '0개 첨부';
             }
+            if (typeof updateCombinedAttachIndicator === 'function') updateCombinedAttachIndicator();
         }
 
-        // [작업 4-마: 글쓰기 모달 오픈 시 현재 로그인한 작성자 이름 표시]
-        window.openWriteModal = function(postId = null, existingContent = "", existingImages = [], existingFont = 'pretendard') {
+        window.openWriteModal = function(postId = null, existingContent = '', existingImages = [], existingFont = 'pretendard') {
             loadSpecialFonts();
             closeHeaderSearch();
-            document.getElementById('editing-post-id').value = postId || "";
-
+            document.getElementById('editing-post-id').value = postId || '';
             const authorWithTitle = typeof getAuthorTitleName === 'function' ? getAuthorTitleName(currentUser) : currentUser;
             const authorBadge = document.getElementById('write-modal-author-badge');
-            if (authorBadge) {
-                authorBadge.textContent = `작성: ${authorWithTitle}`;
-            }
-
+            if (authorBadge) authorBadge.textContent = '작성: ' + authorWithTitle;
             const contentEl = document.getElementById('post-content');
             if (contentEl) {
-                contentEl.setAttribute('data-placeholder', `${authorWithTitle}님, 목장 가족들과 나눌 따뜻한 이야기를 입력하세요...`);
-                contentEl.innerHTML = cleanPostHtmlContent(existingContent || "");
+                contentEl.setAttribute('data-placeholder', authorWithTitle + '님, 목장 가족들과 나눌 따뜻한 이야기를 입력하세요...');
+                contentEl.innerHTML = cleanPostHtmlContent(existingContent || '');
                 const plain = (contentEl.innerText || '').replace(/\u200B/g, '').trim();
-                if (!plain) {
-                    contentEl.setAttribute('data-empty', 'true');
-                } else {
-                    contentEl.removeAttribute('data-empty');
-                }
+                if (!plain) contentEl.setAttribute('data-empty', 'true');
+                else contentEl.removeAttribute('data-empty');
                 updateCharCount(contentEl);
             }
-
-            currentLongContentText = ""; currentLongContentFontSize = 2;
+            currentLongContentText = ''; currentLongContentFontSize = 2;
             if (postId) {
                 const editTargetObj = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
                 if (editTargetObj && editTargetObj.longContent) {
@@ -4993,7 +5024,6 @@ function syncHeaderMokjangTitleDOM() {
                 editingPhotoCaptionsList = selectedImagesList.map((_, idx) => oldCaps[idx] !== undefined ? oldCaps[idx] : (oldCaps[String(idx)] || null));
             }
             renderImagePreviews();
-            
             currentAttachedFile = null;
             const fileTitleInput = document.getElementById('post-file-title');
             if (fileTitleInput) fileTitleInput.value = '';
@@ -5002,27 +5032,22 @@ function syncHeaderMokjangTitleDOM() {
             const videoTitleInput = document.getElementById('post-video-title');
             if (videoTitleInput) videoTitleInput.value = '';
             if (postId) {
-                const editVidPost = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
-                if (editVidPost) {
-                    if (Array.isArray(editVidPost.videoUrls) && editVidPost.videoUrls.length > 0) {
+                const editTargetPost = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+                if (editTargetPost) {
+                    if (Array.isArray(editTargetPost.videoUrls) && editTargetPost.videoUrls.length > 0) {
                         isVideoLinkBoxOpen = true;
-                        videoUrlsDraft = editVidPost.videoUrls.slice(0, 3);
-                        if (videoTitleInput) videoTitleInput.value = editVidPost.videoTitle || '';
-                    } else if (Array.isArray(editVidPost.videoIds) && editVidPost.videoIds.length > 0) {
+                        videoUrlsDraft = editTargetPost.videoUrls.slice(0, 3);
+                        if (videoTitleInput) videoTitleInput.value = editTargetPost.videoTitle || '';
+                    } else if (Array.isArray(editTargetPost.videoIds) && editTargetPost.videoIds.length > 0) {
                         isVideoLinkBoxOpen = true;
-                        videoUrlsDraft = editVidPost.videoIds.slice(0, 3).map(id => 'https://youtu.be/' + id);
-                        if (videoTitleInput) videoTitleInput.value = editVidPost.videoTitle || '';
-                    } else if (editVidPost.videoUrl || editVidPost.videoId) {
+                        videoUrlsDraft = editTargetPost.videoIds.slice(0, 3).map(id => 'https://youtu.be/' + id);
+                        if (videoTitleInput) videoTitleInput.value = editTargetPost.videoTitle || '';
+                    } else if (editTargetPost.videoUrl || editTargetPost.videoId) {
                         isVideoLinkBoxOpen = true;
-                        videoUrlsDraft = [editVidPost.videoUrl || ('https://youtu.be/' + editVidPost.videoId)];
-                        if (videoTitleInput) videoTitleInput.value = editVidPost.videoTitle || '';
+                        videoUrlsDraft = [editTargetPost.videoUrl || ('https://youtu.be/' + editTargetPost.videoId)];
+                        if (videoTitleInput) videoTitleInput.value = editTargetPost.videoTitle || '';
                     }
                 }
-            }
-            renderAttachedVideoUI();
-
-            if (postId) {
-                const editTargetPost = cachedPosts.find(p => p.id === postId);
                 if (editTargetPost && (editTargetPost.fileName || editTargetPost.fileId)) {
                     const matchedFile = cachedMokjangFiles.find(f => f.id === editTargetPost.fileId || f.fileName === editTargetPost.fileName);
                     if (matchedFile) {
@@ -5038,14 +5063,14 @@ function syncHeaderMokjangTitleDOM() {
                     if (fileTitleInput) fileTitleInput.value = editTargetPost.fileTitle || '';
                 }
             }
+            renderAttachedVideoUI();
             renderAttachedFileUI();
-
             if (postId) {
-                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-pen-nib church-primary-text mr-1.5"></i>목장 이야기 수정하기`;
-                document.getElementById('submit-btn-text').innerHTML = `<i class="fa-solid fa-check"></i><span>수정 완료</span>`;
+                document.getElementById('modal-title-text').innerHTML = '<i class="fa-solid fa-pen-nib church-primary-text mr-1.5"></i>목장 이야기 수정하기';
+                document.getElementById('submit-btn-text').innerHTML = '<i class="fa-solid fa-check"></i><span>수정 완료</span>';
             } else {
-                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-pen-nib church-primary-text mr-1.5"></i>목장 이야기 올리기`;
-                document.getElementById('submit-btn-text').innerHTML = `<i class="fa-solid fa-check"></i><span>등록하기</span>`;
+                document.getElementById('modal-title-text').innerHTML = '<i class="fa-solid fa-pen-nib church-primary-text mr-1.5"></i>목장 이야기 올리기';
+                document.getElementById('submit-btn-text').innerHTML = '<i class="fa-solid fa-check"></i><span>등록하기</span>';
             }
             document.getElementById('write-modal').classList.remove('hidden');
         };
@@ -5060,7 +5085,7 @@ function syncHeaderMokjangTitleDOM() {
             const vTitleEl = document.getElementById('post-video-title');
             if (vTitleEl) vTitleEl.value = '';
             renderAttachedVideoUI();
-            currentLongContentText = "";
+            currentLongContentText = '';
             currentLongContentFontSize = 2;
             updateLongTextBtnBadge();
             renderAttachedFileUI();
@@ -5100,26 +5125,24 @@ function syncHeaderMokjangTitleDOM() {
                 }
                 const invalidIdx = extractedIds.findIndex(id => !id);
                 if (invalidIdx !== -1) {
-                    showNotification((invalidIdx + 1) + '번째 유튜브 영상 주소를 바르게 입력해 주세요.');
+                    updateVideoUrlStatusIndicator();
+                    showNotification((invalidIdx + 1) + '번째 유튜브 영상 주소를 확인해 주세요 (' + (invalidIdx + 1) + 'x).');
                     const badInput = document.getElementById('post-video-url-' + invalidIdx);
                     if (badInput) badInput.focus();
                     return;
                 }
             }
-
             if (!plainText && !currentLongContentText && selectedImagesList.length === 0 && !currentAttachedFile && extractedIds.length === 0) {
                 showNotification('이야기 내용, 사진, 영상 링크, 또는 첨부파일을 등록해 주세요.');
                 return;
             }
-
-            if (!plainText && selectedImagesList.length === 0 && currentAttachedFile) {
+            if (!plainText && selectedImagesList.length === 0 && currentAttachedFile && extractedIds.length === 0) {
                 if (!fileTitle) {
                     showNotification('파일만 첨부할 때는 파일 제목(15자 이내)을 입력해 주세요.');
                     if (fileTitleInput) fileTitleInput.focus();
                     return;
                 }
             }
-
             document.getElementById('save-confirm-modal').classList.remove('hidden');
         };
 
@@ -5137,73 +5160,47 @@ function syncHeaderMokjangTitleDOM() {
                 window.scrollTo(0, 0);
                 return;
             }
-
             isNavigatingToPost = true;
             if (navigationTimer) clearTimeout(navigationTimer);
             navigationTimer = setTimeout(() => { isNavigatingToPost = false; }, 2400);
-
             const targetIdx = cachedPosts.findIndex(p => p.id === postId || String(p.id) === String(postId));
             if (targetIdx !== -1 && targetIdx >= displayedFeedCount) {
                 displayedFeedCount = Math.min(cachedPosts.length, targetIdx + FEED_BATCH_SIZE);
                 renderFeedList();
             }
-
             const alignCardToTop = (useSmooth = true) => {
-                const targetCard = document.getElementById(`post-card-${postId}`);
+                const targetCard = document.getElementById('post-card-' + postId);
                 if (!targetCard || !feedContainer) return false;
-
                 window.scrollTo(0, 0);
                 const cardRect = targetCard.getBoundingClientRect();
                 const containerRect = feedContainer.getBoundingClientRect();
                 const targetScrollTop = Math.max(0, feedContainer.scrollTop + (cardRect.top - containerRect.top) - 8);
-
-                if (useSmooth) {
-                    feedContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
-                } else if (Math.abs((cardRect.top - containerRect.top) - 8) > 10) {
-                    feedContainer.scrollTop = targetScrollTop;
-                }
+                if (useSmooth) feedContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+                else if (Math.abs((cardRect.top - containerRect.top) - 8) > 10) feedContainer.scrollTop = targetScrollTop;
                 return true;
             };
-
             const checkAndScroll = (attempts = 0) => {
-                const targetCard = document.getElementById(`post-card-${postId}`);
+                const targetCard = document.getElementById('post-card-' + postId);
                 if (targetCard && feedContainer) {
                     alignCardToTop(true);
-
                     setTimeout(() => alignCardToTop(false), 180);
                     setTimeout(() => alignCardToTop(false), 380);
-
                     if (highlight) {
                         targetCard.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2');
                         void targetCard.offsetWidth;
                         targetCard.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-2', 'transition-all', 'duration-500');
-                        setTimeout(() => {
-                            targetCard.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2');
-                        }, 2200);
+                        setTimeout(() => { targetCard.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2'); }, 2200);
                     }
-
-                    if (targetIdx !== -1) {
-                        currentBookmarkTargetIndex = targetIdx;
-                        showBookmark();
-                    }
+                    if (targetIdx !== -1) { currentBookmarkTargetIndex = targetIdx; showBookmark(); }
                 } else if (attempts < 20) {
                     setTimeout(() => checkAndScroll(attempts + 1), 60);
                 }
             };
-
             requestAnimationFrame(() => checkAndScroll(0));
         };
 
-        // [작업 2-가 & 2-나 반영: 원형 진행 시계 퍼센트(20%~100%) & 1~5단계 지정 용어 표시]
-        const UPLOAD_STAGE_LABELS = [
-            "",
-            "1. 저장 준비 및 용량검사",
-            "2. 사진 고효율 압축처리",
-            "3. 클라우드 저장소 업로드",
-            "4. 저장소 위치 정리",
-            "5. 문서 저장"
-        ];
-        const COMPLETED_STAGE_5_TEXT = "게시글 등록 완료 했습니다";
+        const UPLOAD_STAGE_LABELS = ['', '1. 저장 준비 및 용량검사', '2. 사진 고효율 압축처리', '3. 클라우드 저장소 업로드', '4. 저장소 위치 정리', '5. 문서 저장'];
+        const COMPLETED_STAGE_5_TEXT = '게시글 등록 완료 했습니다';
         let isSubmittingPostLock = false;
 
         function setUploadProgressStage(activeStage, isCompleted = false) {
@@ -5214,51 +5211,35 @@ function syncHeaderMokjangTitleDOM() {
             const clockPercent = document.getElementById('upload-clock-percent');
             const clockIcon = document.getElementById('upload-clock-icon');
             if (modal) modal.classList.remove('hidden');
-
             const percentMap = [0, 20, 40, 60, 80, 100];
             const pct = isCompleted ? 100 : (percentMap[activeStage] || 20);
-
-            if (bar) {
-                bar.style.width = `${pct}%`;
-            }
-            if (clockPercent) {
-                clockPercent.textContent = `${pct}%`;
-            }
+            if (bar) bar.style.width = pct + '%';
+            if (clockPercent) clockPercent.textContent = pct + '%';
             if (clockRing) {
-                const circumference = 169.65; // 2 * PI * 27
+                const circumference = 169.65;
                 const offset = circumference - (pct / 100) * circumference;
                 clockRing.style.strokeDashoffset = offset.toFixed(2);
             }
             if (clockIcon) {
-                if (isCompleted) {
-                    clockIcon.className = "fa-solid fa-circle-check text-emerald-600 text-xs mb-0.5";
-                } else {
-                    clockIcon.className = "fa-regular fa-clock text-emerald-700 text-[11px] mb-0.5 animate-clock-hand";
-                }
+                if (isCompleted) clockIcon.className = 'fa-solid fa-circle-check text-emerald-600 text-xs mb-0.5';
+                else clockIcon.className = 'fa-regular fa-clock text-emerald-700 text-[11px] mb-0.5 animate-clock-hand';
             }
-
-            if (descEl) {
-                descEl.innerText = isCompleted ? `${COMPLETED_STAGE_5_TEXT} (100%)` : `${UPLOAD_STAGE_LABELS[activeStage]} (${pct}%)`;
-            }
-
+            if (descEl) descEl.innerText = isCompleted ? (COMPLETED_STAGE_5_TEXT + ' (100%)') : (UPLOAD_STAGE_LABELS[activeStage] + ' (' + pct + '%)');
             for (let i = 1; i <= 5; i++) {
-                const el = document.getElementById(`upload-stage-${i}`);
+                const el = document.getElementById('upload-stage-' + i);
                 if (!el) continue;
                 const icon = el.querySelector('.stage-icon');
                 const text = el.querySelector('.stage-text');
-                if (text) {
-                    text.innerText = UPLOAD_STAGE_LABELS[i];
-                }
-
+                if (text) text.innerText = UPLOAD_STAGE_LABELS[i];
                 if (i < activeStage || (i === 5 && isCompleted)) {
-                    el.className = "flex items-center space-x-2 text-emerald-700 font-semibold";
-                    if (icon) icon.innerText = "✅";
+                    el.className = 'flex items-center space-x-2 text-emerald-700 font-semibold';
+                    if (icon) icon.innerText = '✅';
                 } else if (i === activeStage) {
-                    el.className = "flex items-center space-x-2 text-emerald-800 font-bold animate-pulse";
-                    if (icon) icon.innerText = "⏳";
+                    el.className = 'flex items-center space-x-2 text-emerald-800 font-bold animate-pulse';
+                    if (icon) icon.innerText = '⏳';
                 } else {
-                    el.className = "flex items-center space-x-2 text-gray-400";
-                    if (icon) icon.innerText = "⚪";
+                    el.className = 'flex items-center space-x-2 text-gray-400';
+                    if (icon) icon.innerText = '⚪';
                 }
             }
         }
@@ -5272,15 +5253,13 @@ function syncHeaderMokjangTitleDOM() {
             if (isSubmittingPostLock) return;
             closeSaveConfirmModal();
             const postId = document.getElementById('editing-post-id').value;
-
             if (postId) {
                 const targetPost = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
                 if (targetPost && !canModifyPost(targetPost)) {
-                    showNotification("작성자 본인 또는 목자만 게시글을 수정할 수 있습니다.");
+                    showNotification('작성자 본인 또는 목자만 게시글을 수정할 수 있습니다.');
                     return;
                 }
             }
-
             isSubmittingPostLock = true;
             const contentEl = document.getElementById('post-content');
             let rawEditorHtml = contentEl ? contentEl.innerHTML.replace(/\u200B/g, '').trim() : '';
@@ -5294,12 +5273,10 @@ function syncHeaderMokjangTitleDOM() {
             setDbStatus('saving');
             setUploadProgressStage(1, false);
             await new Promise(r => setTimeout(r, 60));
-
             try {
                 const isImagesUnchanged = Boolean(postId && finalImages.length === originalEditingImages.length && finalImages.every((img, idx) => img === originalEditingImages[idx]));
                 setUploadProgressStage(2, false);
                 if (!isImagesUnchanged) await new Promise(r => setTimeout(r, 60));
-
                 setUploadProgressStage(3, false);
                 const uploadedImages = isImagesUnchanged
                     ? [...finalImages]
@@ -5307,10 +5284,8 @@ function syncHeaderMokjangTitleDOM() {
                         if (!imgData || imgData.startsWith('http://') || imgData.startsWith('https://') || (postId && originalEditingImages.includes(imgData))) return Promise.resolve(imgData);
                         return uploadPhotoToStorage(imgData);
                     }));
-
                 setUploadProgressStage(4, false);
                 await new Promise(r => setTimeout(r, 50));
-
                 syncVideoUrlsFromDOM();
                 const videoTitleInput = document.getElementById('post-video-title');
                 const rawVideoTitle = (isVideoLinkBoxOpen && videoTitleInput) ? videoTitleInput.value.trim().substring(0, 20) : '';
@@ -5329,7 +5304,6 @@ function syncHeaderMokjangTitleDOM() {
                 let savedFileId = null, savedFileName = null, savedFileSize = null;
                 const fileTitleInput = document.getElementById('post-file-title');
                 const fileTitle = fileTitleInput ? fileTitleInput.value.trim().substring(0, 15) : '';
-
                 if (fileToSave && fileToSave.isExisting) {
                     savedFileId = fileToSave.id || null;
                     savedFileName = fileToSave.fileName;
@@ -5345,7 +5319,6 @@ function syncHeaderMokjangTitleDOM() {
                     });
                     savedFileId = fileDocRef.id; savedFileName = fileToSave.fileName; savedFileSize = fileToSave.fileSize;
                 }
-
                 setUploadProgressStage(5, false);
                 let targetScrollId = postId;
                 if (postId) {
@@ -5360,7 +5333,7 @@ function syncHeaderMokjangTitleDOM() {
                         videoUrls: cleanVideoUrls, videoIds: cleanVideoIds,
                         photoCaptions: reindexedCaptions, updatedAt: new Date()
                     };
-                    if (!isImagesUnchanged) { updatePayload.images = uploadedImages; updatePayload.imageUrl = uploadedImages.length > 0 ? uploadedImages[0] : ""; }
+                    if (!isImagesUnchanged) { updatePayload.images = uploadedImages; updatePayload.imageUrl = uploadedImages.length > 0 ? uploadedImages[0] : ''; }
                     if (savedFileId) { updatePayload.fileId = savedFileId; updatePayload.fileName = savedFileName; updatePayload.fileSize = savedFileSize; updatePayload.fileTitle = fileTitle || ''; }
                     await updateDoc(getPostDocRef(postId), updatePayload);
                 } else {
@@ -5370,14 +5343,13 @@ function syncHeaderMokjangTitleDOM() {
                         longContent: currentLongContentText || '', longFontSize: currentLongContentFontSize || 2,
                         videoTitle: finalVideoTitle, videoUrl: finalVideoUrl, videoId: extractedVideoId,
                         videoUrls: cleanVideoUrls, videoIds: cleanVideoIds,
-                        images: uploadedImages, imageUrl: uploadedImages.length > 0 ? uploadedImages[0] : "",
+                        images: uploadedImages, imageUrl: uploadedImages.length > 0 ? uploadedImages[0] : '',
                         likes: 0, likedUsers: [], thumbsUp: 0, thumbedUsers: [], prayers: 0, prayedUsers: [], comments: [], photoCaptions: {}, createdAt: new Date()
                     };
                     if (savedFileId) { postPayload.fileId = savedFileId; postPayload.fileName = savedFileName; postPayload.fileSize = savedFileSize; postPayload.fileTitle = fileTitle || ''; }
                     const newDocRef = await addDoc(getPostsCollection(), postPayload);
                     targetScrollId = newDocRef.id;
                 }
-
                 setUploadProgressStage(5, true);
                 setDbStatus('connected');
                 await new Promise(r => setTimeout(r, 380));
@@ -5393,17 +5365,17 @@ function syncHeaderMokjangTitleDOM() {
                     }, 650);
                 }
             } catch (err) {
-                console.error("게시글 저장 오류:", err);
+                console.error('게시글 저장 오류:', err);
                 const descEl = document.getElementById('upload-stage-status-desc');
                 if (descEl) {
-                    descEl.innerText = "등록에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+                    descEl.innerText = '등록에 실패했습니다. 잠시 후 다시 시도해 주세요.';
                     descEl.classList.replace('text-emerald-700', 'text-rose-600');
                 }
                 setTimeout(() => {
                     closeUploadProgressModal();
                     if (descEl) descEl.classList.replace('text-rose-600', 'text-emerald-700');
                 }, 1800);
-                showNotification("게시글 등록 실패: " + err.message);
+                showNotification('게시글 등록 실패: ' + err.message);
                 setDbStatus('error');
             } finally {
                 isSubmittingPostLock = false;
@@ -7524,7 +7496,7 @@ function syncHeaderMokjangTitleDOM() {
             card.className = "w-full px-2 pt-0.5 pb-1 box-border";
             card.setAttribute('data-post-id', post.id);
             const sigImgs = Array.isArray(post.images) ? post.images.filter(Boolean) : (post.imageUrl ? [post.imageUrl] : []);
-            card.setAttribute('data-post-sig', `${post.id}|${sigImgs.length}|${sigImgs.join(',')}|${post.content || ''}|${post.fontFamily || ''}|${post.fileName || ''}|${post.longContent || ''}|${post.longFontSize || ''}|${(post.videoIds || []).join(',')}|${post.videoId || ''}|${post.videoTitle || ''}`);
+            card.setAttribute('data-post-sig', `${post.id}|${sigImgs.length}|${sigImgs.join(',')}|${post.content || ''}|${post.fontFamily || ''}|${post.fileName || ''}|${post.longContent || ''}|${post.longFontSize || ''}`);
 
             let imgArray = [];
             if (Array.isArray(post.images) && post.images.length > 0) {
@@ -7648,6 +7620,7 @@ function syncHeaderMokjangTitleDOM() {
             const hasLong = post.longContent && String(post.longContent).trim().length > 0;
             const isUnreadLong = hasLong && !isLongContentRead(post.id, post);
             const inlineLongBtn = hasLong ? `<span class="inline-block whitespace-nowrap ml-1"><button type="button" id="long-read-btn-${post.id}" onclick="event.stopPropagation(); openLongContentReader('${post.id}', event)" class="no-export inline-flex items-center space-x-0.5 px-1.5 py-0.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs text-[10.5px] font-bold active:scale-95 transition-transform align-middle select-none cursor-pointer" title="긴글 읽기"><span id="long-read-icon-${post.id}" class="text-[11px] leading-none ${isUnreadLong ? 'animate-scroll-unread' : ''}">📜</span><span>긴글읽기</span></button></span>` : '';
+
             let postVideoList = [];
             if (Array.isArray(post.videoIds) && post.videoIds.length > 0) {
                 postVideoList = post.videoIds.filter(Boolean).slice(0, 3);
@@ -7688,7 +7661,7 @@ function syncHeaderMokjangTitleDOM() {
             }
             formattedContent = videoBannerHtml + formattedContent;
 
-            card.innerHTML = `
+        card.innerHTML = `
                 <div id="post-card-${post.id}" class="w-full bg-white rounded-2xl border church-border shadow-xs flex flex-col p-2 box-border relative text-left">
                     <div class="flex items-center justify-between pb-0.5 relative">
                         <div class="flex items-center space-x-1.5">
@@ -7906,7 +7879,7 @@ function syncHeaderMokjangTitleDOM() {
 
             const getPostMediaSignature = (p) => {
                 const imgs = Array.isArray(p.images) ? p.images.filter(Boolean) : (p.imageUrl ? [p.imageUrl] : []);
-                return `${p.id}|${imgs.length}|${imgs.join(',')}|${p.content || ''}|${p.fontFamily || ''}|${p.fileName || ''}|${p.longContent || ''}|${p.longFontSize || ''}|${(p.videoIds || []).join(',')}|${p.videoId || ''}|${p.videoTitle || ''}`;
+                return `${p.id}|${imgs.length}|${imgs.join(',')}|${p.content || ''}|${p.fontFamily || ''}|${p.fileName || ''}|${p.longContent || ''}|${p.longFontSize || ''}`;
             };
             const existingArticles = Array.from(feedContainer.querySelectorAll('article[data-post-id]'));
             const existingSigs = existingArticles.map(a => a.getAttribute('data-post-sig') || '');
@@ -8050,7 +8023,7 @@ function syncHeaderMokjangTitleDOM() {
                     const hasValidVideo = Boolean((Array.isArray(data.videoIds) && data.videoIds.length > 0) || (Array.isArray(data.videoUrls) && data.videoUrls.length > 0) || (data.videoId && String(data.videoId).trim()) || (data.videoUrl && String(data.videoUrl).trim()));
                     if (!hasValidContent && !hasValidImages && !hasValidFile && !hasValidVideo) return;
 
-                    const createdMs = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : (typeof data.createdAt === 'number' ? data.createdAt : new Date(data.createdAt || 0).getTime());
+        const createdMs = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : (typeof data.createdAt === 'number' ? data.createdAt : new Date(data.createdAt || 0).getTime());
                     if (joinedLimit > 0 && currentUserRole !== 'leader' && createdMs > 0 && createdMs < joinedLimit) return;
 
                     data.likes = Math.max(0, parseInt(data.likes) || 0);
