@@ -540,11 +540,10 @@
             position: fixed !important;
             border-radius: 14px !important;
             border: none !important;
-            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45) !important;
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45) !important;
             background: #000000 !important;
             overflow: visible !important;
             touch-action: none !important;
-            cursor: move;
             will-change: left, top, width, transform, opacity;
         }
         #youtube-modal-card.yt-audio-minimized {
@@ -576,12 +575,69 @@
         #youtube-modal-card.yt-interacting iframe {
             pointer-events: none !important;
         }
+        /* 상단/좌우 엣지 림 투명 드래그 영역 (유튜브 중앙/타임라인 터치 완전 개방) */
+        .yt-drag-rim-top {
+            position: absolute;
+            top: 0; left: 24px; right: 24px; height: 26px;
+            z-index: 28;
+            cursor: move;
+            touch-action: none;
+        }
+        .yt-drag-rim-side {
+            position: absolute;
+            top: 26px; bottom: 20px; width: 18px;
+            z-index: 28;
+            cursor: move;
+            touch-action: none;
+        }
+        .yt-drag-rim-left { left: 0; }
+        .yt-drag-rim-right { right: 0; }
+
+        /* 4개 모서리 둥근 ㄱ 리사이즈 핸들 */
         .yt-resize-corner {
             position: absolute;
             width: 28px;
             height: 28px;
             z-index: 35;
             touch-action: none;
+        }
+
+        /* 하단 좌·우 대칭 탭 공통 스타일 (흰색 투명도 60%) */
+        .yt-bottom-symmetric-tab {
+            position: absolute;
+            bottom: -23px;
+            z-index: 32;
+            background: rgba(255, 255, 255, 0.60) !important;
+            backdrop-filter: blur(6px) !important;
+            -webkit-backdrop-filter: blur(6px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-top: none;
+            border-bottom-left-radius: 9px;
+            border-bottom-right-radius: 9px;
+            padding: 2.5px 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.22);
+            user-select: none;
+            color: #0F172A;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 1;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .yt-bottom-symmetric-tab:active {
+            transform: scale(0.94);
+            background: rgba(255, 255, 255, 0.85) !important;
+        }
+        #yt-bottom-drag-tab {
+            left: 16px;
+            cursor: move;
+            touch-action: none;
+        }
+        #yt-bottom-close-tab {
+            right: 16px;
+            cursor: pointer;
         }
         /* 우측 하단 볼록 [✕ 닫기] 버튼 탭 */
         #yt-bottom-close-tab {
@@ -2049,11 +2105,21 @@ window.proceedToExternalAdminPage = function() {
                         확인
                     </button>
                 </div>
+
+                <!-- 상단 및 좌우 엣지 투명 드래그 림 (중앙 재생 및 하단 타임라인 터치 100% 개방) -->
+                <div class="yt-drag-rim-top" title="잡고 어디든 이동 / 밖으로 던지면 숨기기"></div>
+                <div class="yt-drag-rim-side yt-drag-rim-left" title="잡고 어디든 이동 / 밖으로 던지면 숨기기"></div>
+                <div class="yt-drag-rim-side yt-drag-rim-right" title="잡고 어디든 이동 / 밖으로 던지면 숨기기"></div>
             </div>
 
-            <!-- 우측 하단 볼록 [✕ 닫기] 버튼 탭 -->
-            <button type="button" id="yt-bottom-close-tab" onpointerdown="event.stopPropagation();" onclick="window.closeYoutubeCleanPlayerModal(event, true)" title="유튜브 영상 및 소리를 완전히 종료합니다">
-                <i class="fa-solid fa-xmark mr-1 text-[10px]"></i><span>닫기</span>
+            <!-- 하단 좌측 볼록 [✥ Drag] 이동 탭 (흰색 60% 투명도) -->
+            <div id="yt-bottom-drag-tab" class="yt-bottom-symmetric-tab" title="잡고 어디든 이동하거나 밖으로 휙 던지세요">
+                <i class="fa-solid fa-arrows-up-down-left-right mr-1 text-[8.5px]"></i><span>Drag</span>
+            </div>
+
+            <!-- 하단 우측 볼록 [✕ 닫기] 종료 탭 (흰색 60% 투명도) -->
+            <button type="button" id="yt-bottom-close-tab" class="yt-bottom-symmetric-tab" onpointerdown="event.stopPropagation();" onclick="window.closeYoutubeCleanPlayerModal(event, true)" title="유튜브 영상 및 소리를 완전히 종료합니다">
+                <i class="fa-solid fa-xmark mr-1 text-[9.5px]"></i><span>닫기</span>
             </button>
 
             <!-- 4개 모서리 둥근 ㄱ 코너 리사이즈 핸들 -->
@@ -4881,9 +4947,17 @@ function syncHeaderMokjangTitleDOM() {
             let lastMoveTime = 0, velX = 0, velY = 0, lastClientX = 0, lastClientY = 0;
 
             card.addEventListener('pointerdown', function(e) {
-                if (e.target.closest('button, a, input, label, #yt-bottom-close-tab')) return;
+                if (e.target.closest('#yt-bottom-close-tab, button, a')) return;
                 const cornerEl = e.target.closest('.yt-resize-corner');
-                mode = cornerEl ? cornerEl.getAttribute('data-corner') : 'move';
+                const isDragArea = e.target.closest('#yt-bottom-drag-tab, .yt-drag-rim-top, .yt-drag-rim-side');
+                
+                if (cornerEl) {
+                    mode = cornerEl.getAttribute('data-corner');
+                } else if (isDragArea) {
+                    mode = 'move';
+                } else {
+                    return; // 유튜브 영상 내부 터치는 유튜브 고유 컨트롤에 100% 양보!
+                }
 
                 e.preventDefault();
                 e.stopPropagation();
@@ -4991,7 +5065,7 @@ function syncHeaderMokjangTitleDOM() {
 
                         card.style.transform = 'translate(' + transX + 'px, ' + transY + 'px)';
                         card.style.opacity = '0';
-                        // 360도 어디든 던지면 소리 유지하면서 책갈피 음표 활성화!
+                        // 화면 밖으로 던지면 소리는 계속 유지하면서 책갈피 핑크 음표 활성화!
                         setTimeout(() => window.closeYoutubeCleanPlayerModal(null, false), 200);
                         return;
                     }
@@ -5066,7 +5140,7 @@ function syncHeaderMokjangTitleDOM() {
             const audioBtn = document.getElementById('feed-bookmark-audio-btn');
             const isErrorShowing = errBox && !errBox.classList.contains('hidden');
 
-            // 슬라이드로 던졌을 때(forceStop === false)는 무조건 소리 유지 & 책갈피 음표 활성화
+            // 던져서 숨겼을 때는 소리 재생 유지 & 책갈피 핑크 음표 노출
             if (!forceStop && !isErrorShowing && wrap && wrap.innerHTML !== '') {
                 if (card) {
                     card.style.transform = 'translate(0px, 0px)';
@@ -5082,7 +5156,7 @@ function syncHeaderMokjangTitleDOM() {
                 return;
             }
 
-            // [✕ 닫기] 버튼을 눌렀을 때는 소리와 영상 완전히 종료
+            // 우측 [✕ 닫기] 탭 클릭 시 소리와 영상 완전 종료
             currentPlayingVid = '';
             if (wrap) wrap.innerHTML = '';
             if (errBox) { errBox.classList.add('hidden'); errBox.classList.remove('flex'); }
