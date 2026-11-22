@@ -529,7 +529,7 @@
             animation: slowNoticeSwing 5.5s ease-in-out infinite !important;
             transform-origin: top center !important;
         }
-                    /* [PATCH v2.5: 논블로킹 플로팅 PIP & 자유 이동 & 모서리 크기조절 & 둥근 모서리] */
+                            /* [PATCH v2.6: 배경 투명도 80% & 흰색 점선 테두리 & 흰색 문자/-,ㄴ] */
         #post-video-title, input[id^="post-video-url-"] { font-size: 16px !important; }
         #youtube-clean-player-modal {
             pointer-events: none !important;
@@ -539,12 +539,17 @@
             pointer-events: auto !important;
             position: fixed !important;
             border-radius: 18px !important;
-            border: 1.5px solid rgba(244, 114, 182, 0.55) !important;
-            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.38), 0 4px 14px rgba(15, 23, 42, 0.22) !important;
-            background: #0f172a !important;
+            border: 1.8px dashed #ffffff !important;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(0, 0, 0, 0.25) !important;
+            background: rgba(15, 23, 42, 0.20) !important;
             overflow: hidden !important;
             touch-action: none !important;
             will-change: left, top, width, transform, opacity;
+        }
+        #yt-drag-handle-top, #yt-drag-handle-bottom {
+            background: rgba(15, 23, 42, 0.20) !important;
+            color: #ffffff !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75) !important;
         }
         #youtube-modal-card.yt-interacting iframe {
             pointer-events: none !important;
@@ -1955,39 +1960,39 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
-    <!-- [유튜브 플로팅 PIP 모달창 v2.5: 백그라운드 앱 동시 사용 & 드래그 이동 & 모서리 크기조절 & 사이드 스와이프 닫기] -->
+    <!-- [유튜브 플로팅 PIP 모달창 v2.6: 배경 투명도 80% & 흰색 점선 테두리 & 흰색 문자/-,ㄴ] -->
     <div id="youtube-clean-player-modal" class="fixed inset-0 z-[118] hidden select-none">
         <div id="youtube-modal-card" style="width: 336px; left: 12px; top: 88px;" class="flex flex-col">
-            <!-- 상단 드래그 이동 & 사이드 밀어서 닫기 손잡이 바 -->
-            <div id="yt-drag-handle-top" class="w-full h-5 bg-slate-900/95 border-b border-white/10 flex items-center justify-center cursor-move active:cursor-grabbing select-none" title="잡고 원하는 위치로 이동 / 사이드 끝으로 밀면 닫기">
-                <div class="w-10 h-1 rounded-full bg-pink-300/60"></div>
+            <!-- 상단 드래그 이동 손잡이 바 (배경 투명도 80% + 흰색 -) -->
+            <div id="yt-drag-handle-top" class="w-full h-5 border-b border-dashed border-white/60 flex items-center justify-center cursor-move active:cursor-grabbing select-none" title="잡고 원하는 위치로 이동 / 사이드 끝으로 밀면 닫기">
+                <div class="w-10 h-1 rounded-full bg-white shadow-2xs"></div>
             </div>
             <!-- 16:9 가로보기 고정 비율 순수 유튜브 플레이어 -->
-            <div id="youtube-ratio-box" class="relative w-full bg-black" style="padding-bottom: 56.25%;">
+            <div id="youtube-ratio-box" class="relative w-full bg-black/20" style="padding-bottom: 56.25%;">
                 <div id="youtube-clean-iframe-wrapper" class="absolute inset-0 w-full h-full"></div>
                 <!-- 삭제된 영상 안내 박스 -->
-                <div id="youtube-deleted-error-box" class="hidden absolute inset-0 w-full h-full bg-slate-900 flex-col items-center justify-center p-4 text-center space-y-2 z-25">
+                <div id="youtube-deleted-error-box" class="hidden absolute inset-0 w-full h-full bg-slate-900/90 flex-col items-center justify-center p-4 text-center space-y-2 z-25">
                     <div class="text-2xl leading-none animate-bounce">😊</div>
                     <p class="text-white font-extrabold text-xs leading-relaxed break-keep">
                         유튜브 영상이 삭제되었으니<br>피드된 주소를 수정/삭제해 주세요
                     </p>
-                    <button type="button" onclick="window.closeYoutubeCleanPlayerModal(event)" class="mt-1 px-3.5 py-1 rounded-xl bg-pink-100 hover:bg-pink-200 text-rose-900 text-[11px] font-extrabold shadow active:scale-95 transition-all">
+                    <button type="button" onclick="window.closeYoutubeCleanPlayerModal(event)" class="mt-1 px-3.5 py-1 rounded-xl bg-white text-slate-900 text-[11px] font-extrabold shadow active:scale-95 transition-all">
                         확인
                     </button>
                 </div>
             </div>
-            <!-- 하단 드래그 이동 & 사이드 밀어서 닫기 손잡이 바 -->
-            <div id="yt-drag-handle-bottom" class="w-full h-4 bg-slate-900/95 border-t border-white/10 flex items-center justify-center text-[9.5px] text-pink-200/60 font-medium cursor-move active:cursor-grabbing select-none">
+            <!-- 하단 드래그 이동 손잡이 바 (배경 투명도 80% + 흰색 문자) -->
+            <div id="yt-drag-handle-bottom" class="w-full h-5 border-t border-dashed border-white/60 flex items-center justify-center text-[10px] text-white font-bold cursor-move active:cursor-grabbing select-none">
                 <span>◀ 잡고 이동 · 옆으로 밀면 닫기 ▶</span>
             </div>
-            <!-- 네 모서리 크기 조절(Resize) 투명 그립 + 하단 모서리 은은한 라운드 가이드 -->
+            <!-- 네 모서리 크기 조절(Resize) 그립 (하단 모서리 흰색 ㄴ, ┘ 표시) -->
             <div class="yt-resize-corner top-0 left-0 cursor-nwse-resize" data-corner="nw" title="모서리 잡고 크기 조절"></div>
             <div class="yt-resize-corner top-0 right-0 cursor-nesw-resize" data-corner="ne" title="모서리 잡고 크기 조절"></div>
             <div class="yt-resize-corner bottom-0 left-0 cursor-nesw-resize flex items-end justify-start p-1" data-corner="sw" title="모서리 잡고 크기 조절">
-                <span class="w-2.5 h-2.5 border-b-2 border-l-2 border-pink-300/70 rounded-bl-sm pointer-events-none"></span>
+                <span class="w-2.5 h-2.5 border-b-2 border-l-2 border-white rounded-bl-xs pointer-events-none drop-shadow"></span>
             </div>
             <div class="yt-resize-corner bottom-0 right-0 cursor-nwse-resize flex items-end justify-end p-1" data-corner="se" title="모서리 잡고 크기 조절">
-                <span class="w-2.5 h-2.5 border-b-2 border-r-2 border-pink-300/70 rounded-br-sm pointer-events-none"></span>
+                <span class="w-2.5 h-2.5 border-b-2 border-r-2 border-white rounded-br-xs pointer-events-none drop-shadow"></span>
             </div>
         </div>
     </div>
