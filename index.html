@@ -529,7 +529,7 @@
             animation: slowNoticeSwing 5.5s ease-in-out infinite !important;
             transform-origin: top center !important;
         }
-                            /* [PATCH v2.6: 배경 투명도 80% & 흰색 점선 테두리 & 흰색 문자/-,ㄴ] */
+                                    /* [PATCH v2.8 Master: 가는 흰색 실선 외곽 밀착 & 안쪽 테두리 삭제 & 80% 투명도 & 로고/제목 정비례 스케일링] */
         #post-video-title, input[id^="post-video-url-"] { font-size: 16px !important; }
         #youtube-clean-player-modal {
             pointer-events: none !important;
@@ -538,26 +538,31 @@
         #youtube-modal-card {
             pointer-events: auto !important;
             position: fixed !important;
-            border-radius: 18px !important;
-            border: 1.8px dashed #ffffff !important;
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32), 0 0 0 1px rgba(0, 0, 0, 0.25) !important;
+            border-radius: 14px !important;
+            border: 1px solid rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32) !important;
             background: rgba(15, 23, 42, 0.20) !important;
             overflow: hidden !important;
             touch-action: none !important;
             will-change: left, top, width, transform, opacity;
         }
         #yt-drag-handle-top, #yt-drag-handle-bottom {
-            background: rgba(15, 23, 42, 0.20) !important;
+            background: transparent !important;
+            border: none !important;
             color: #ffffff !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75) !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85) !important;
+        }
+        #youtube-clean-iframe-wrapper {
+            transform-origin: top left !important;
+            will-change: transform;
         }
         #youtube-modal-card.yt-interacting iframe {
             pointer-events: none !important;
         }
         .yt-resize-corner {
             position: absolute;
-            width: 26px;
-            height: 26px;
+            width: 24px;
+            height: 24px;
             z-index: 35;
             touch-action: none;
         }
@@ -1960,39 +1965,34 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
-    <!-- [유튜브 플로팅 PIP 모달창 v2.6: 배경 투명도 80% & 흰색 점선 테두리 & 흰색 문자/-,ㄴ] -->
+    <!-- [유튜브 플로팅 PIP 모달창 v2.8: 안쪽 테두리 삭제 & 바깥 1px 가는 흰색 실선 밀착 & 로고/제목 정비례 축소] -->
     <div id="youtube-clean-player-modal" class="fixed inset-0 z-[118] hidden select-none">
         <div id="youtube-modal-card" style="width: 336px; left: 12px; top: 88px;" class="flex flex-col">
-            <!-- 상단 드래그 이동 손잡이 바 (배경 투명도 80% + 흰색 -) -->
-            <div id="yt-drag-handle-top" class="w-full h-5 border-b border-dashed border-white/60 flex items-center justify-center cursor-move active:cursor-grabbing select-none" title="잡고 원하는 위치로 이동 / 사이드 끝으로 밀면 닫기">
-                <div class="w-10 h-1 rounded-full bg-white shadow-2xs"></div>
+            <div id="yt-drag-handle-top" class="w-full h-3.5 flex items-center justify-center cursor-move active:cursor-grabbing select-none" title="잡고 원하는 위치로 이동 / 사이드 끝으로 밀면 닫기">
+                <div id="yt-top-bar-line" class="w-8 h-[2px] rounded-full bg-white shadow-2xs"></div>
             </div>
-            <!-- 16:9 가로보기 고정 비율 순수 유튜브 플레이어 -->
-            <div id="youtube-ratio-box" class="relative w-full bg-black/20" style="padding-bottom: 56.25%;">
-                <div id="youtube-clean-iframe-wrapper" class="absolute inset-0 w-full h-full"></div>
-                <!-- 삭제된 영상 안내 박스 -->
-                <div id="youtube-deleted-error-box" class="hidden absolute inset-0 w-full h-full bg-slate-900/90 flex-col items-center justify-center p-4 text-center space-y-2 z-25">
-                    <div class="text-2xl leading-none animate-bounce">😊</div>
-                    <p class="text-white font-extrabold text-xs leading-relaxed break-keep">
+            <div id="youtube-ratio-box" class="relative w-full overflow-hidden bg-transparent" style="height: 189px;">
+                <div id="youtube-clean-iframe-wrapper" class="absolute top-0 left-0" style="width: 480px; height: 270px;"></div>
+                <div id="youtube-deleted-error-box" class="hidden absolute inset-0 w-full h-full bg-slate-900/90 flex-col items-center justify-center p-3 text-center space-y-1.5 z-25">
+                    <div class="text-xl leading-none animate-bounce">😊</div>
+                    <p class="text-white font-extrabold text-[11px] leading-snug break-keep">
                         유튜브 영상이 삭제되었으니<br>피드된 주소를 수정/삭제해 주세요
                     </p>
-                    <button type="button" onclick="window.closeYoutubeCleanPlayerModal(event)" class="mt-1 px-3.5 py-1 rounded-xl bg-white text-slate-900 text-[11px] font-extrabold shadow active:scale-95 transition-all">
+                    <button type="button" onclick="window.closeYoutubeCleanPlayerModal(event)" class="mt-0.5 px-3 py-0.5 rounded-lg bg-white text-slate-900 text-[10px] font-extrabold shadow active:scale-95 transition-all">
                         확인
                     </button>
                 </div>
             </div>
-            <!-- 하단 드래그 이동 손잡이 바 (배경 투명도 80% + 흰색 문자) -->
-            <div id="yt-drag-handle-bottom" class="w-full h-5 border-t border-dashed border-white/60 flex items-center justify-center text-[10px] text-white font-bold cursor-move active:cursor-grabbing select-none">
-                <span>◀ 잡고 이동 · 옆으로 밀면 닫기 ▶</span>
+            <div id="yt-drag-handle-bottom" class="w-full h-4 flex items-center justify-center text-white font-bold cursor-move active:cursor-grabbing select-none">
+                <span id="yt-bottom-help-text" style="font-size: 9.5px;" class="tracking-tight leading-none">◀ 잡고 이동 · 옆으로 밀면 닫기 ▶</span>
             </div>
-            <!-- 네 모서리 크기 조절(Resize) 그립 (하단 모서리 흰색 ㄴ, ┘ 표시) -->
             <div class="yt-resize-corner top-0 left-0 cursor-nwse-resize" data-corner="nw" title="모서리 잡고 크기 조절"></div>
             <div class="yt-resize-corner top-0 right-0 cursor-nesw-resize" data-corner="ne" title="모서리 잡고 크기 조절"></div>
-            <div class="yt-resize-corner bottom-0 left-0 cursor-nesw-resize flex items-end justify-start p-1" data-corner="sw" title="모서리 잡고 크기 조절">
-                <span class="w-2.5 h-2.5 border-b-2 border-l-2 border-white rounded-bl-xs pointer-events-none drop-shadow"></span>
+            <div class="yt-resize-corner bottom-0 left-0 cursor-nesw-resize flex items-end justify-start p-[0.5px]" data-corner="sw" title="모서리 잡고 크기 조절">
+                <span class="w-2 h-2 border-b-[1.5px] border-l-[1.5px] border-white rounded-bl-[2px] pointer-events-none"></span>
             </div>
-            <div class="yt-resize-corner bottom-0 right-0 cursor-nwse-resize flex items-end justify-end p-1" data-corner="se" title="모서리 잡고 크기 조절">
-                <span class="w-2.5 h-2.5 border-b-2 border-r-2 border-white rounded-br-xs pointer-events-none drop-shadow"></span>
+            <div class="yt-resize-corner bottom-0 right-0 cursor-nwse-resize flex items-end justify-end p-[0.5px]" data-corner="se" title="모서리 잡고 크기 조절">
+                <span class="w-2 h-2 border-b-[1.5px] border-r-[1.5px] border-white rounded-br-[2px] pointer-events-none"></span>
             </div>
         </div>
     </div>
@@ -4731,22 +4731,47 @@ function syncHeaderMokjangTitleDOM() {
             updateCombinedAttachIndicator();
         }
 
+        // 창 크기 조절 시 유튜브 내부 로고·제목·아이콘 및 상하단 손잡이까지 100% 정비례로 함께 축소/확대!
         function applyYtPipRectToDom() {
             const card = document.getElementById('youtube-modal-card');
+            const ratioBox = document.getElementById('youtube-ratio-box');
+            const iframeWrap = document.getElementById('youtube-clean-iframe-wrapper');
+            const botText = document.getElementById('yt-bottom-help-text');
+            const topBarLine = document.getElementById('yt-top-bar-line');
+            const topHandle = document.getElementById('yt-drag-handle-top');
+            const botHandle = document.getElementById('yt-drag-handle-bottom');
             if (!card) return;
-            card.style.width = Math.round(ytPipRect.width) + 'px';
+
+            const w = Math.round(ytPipRect.width);
+            const videoH = Math.round(w * 9 / 16);
+            const baseW = 480;
+            const baseH = 270;
+            const scale = w / baseW;
+            const uiRatio = w / 336;
+
+            card.style.width = w + 'px';
             card.style.left = Math.round(ytPipRect.left) + 'px';
             card.style.top = Math.round(ytPipRect.top) + 'px';
+
+            if (ratioBox) ratioBox.style.height = videoH + 'px';
+            if (iframeWrap) {
+                iframeWrap.style.width = baseW + 'px';
+                iframeWrap.style.height = baseH + 'px';
+                iframeWrap.style.transform = 'scale(' + scale.toFixed(4) + ')';
+            }
+            if (topHandle) topHandle.style.height = Math.max(10, Math.min(18, Math.round(14 * uiRatio))) + 'px';
+            if (botHandle) botHandle.style.height = Math.max(12, Math.min(20, Math.round(16 * uiRatio))) + 'px';
+            if (botText) botText.style.fontSize = Math.max(7, Math.min(11.5, (9.5 * uiRatio))).toFixed(1) + 'px';
+            if (topBarLine) topBarLine.style.width = Math.max(18, Math.min(46, Math.round(32 * uiRatio))) + 'px';
         }
 
-        // 자유 드래그 위치 이동 + 네 모서리 크기 조절(Resize) + 사이드 끝으로 밀어서 닫기
         function initYoutubePipInteractions() {
             if (isYtPipInteractionsBound) return;
             const card = document.getElementById('youtube-modal-card');
             if (!card) return;
             isYtPipInteractionsBound = true;
 
-            let mode = null; // 'move' | 'nw' | 'ne' | 'sw' | 'se'
+            let mode = null;
             let startX = 0, startY = 0;
             let startRect = { left: 0, top: 0, width: 336 };
             let lastMoveTime = 0, velocityX = 0, lastClientX = 0;
@@ -4789,21 +4814,14 @@ function syncHeaderMokjangTitleDOM() {
 
                 if (mode === 'move') {
                     ytPipRect.left = startRect.left + dx;
-                    ytPipRect.top = Math.max(4, Math.min(vh - 60, startRect.top + dy));
-
-                    // 화면 좌우 사이드 바깥으로 밀었을 때 투명도 피드백
+                    ytPipRect.top = Math.max(4, Math.min(vh - 50, startRect.top + dy));
                     const centerX = ytPipRect.left + (ytPipRect.width / 2);
                     const distFromEdge = Math.min(centerX, vw - centerX);
-                    if (distFromEdge < 45) {
-                        card.style.opacity = String(Math.max(0.25, distFromEdge / 45));
-                    } else {
-                        card.style.opacity = '1';
-                    }
+                    card.style.opacity = distFromEdge < 45 ? String(Math.max(0.25, distFromEdge / 45)) : '1';
                     applyYtPipRectToDom();
                 } else {
-                    // 모서리 잡고 16:9 비율 유지하며 줄이거나 늘리기 (최소 180px ~ 최대 화면 폭)
-                    const minW = 180;
-                    const maxW = Math.min(760, vw - 12);
+                    const minW = 160;
+                    const maxW = Math.min(760, vw - 10);
                     let newW = startRect.width;
                     let newLeft = startRect.left;
                     let newTop = startRect.top;
@@ -4815,12 +4833,12 @@ function syncHeaderMokjangTitleDOM() {
                         newLeft = startRect.left + (startRect.width - newW);
                     }
                     if (mode === 'nw' || mode === 'ne') {
-                        const oldH = (startRect.width * 9 / 16) + 36;
-                        const newH = (newW * 9 / 16) + 36;
+                        const oldH = (startRect.width * 9 / 16) + 30;
+                        const newH = (newW * 9 / 16) + 30;
                         newTop = Math.max(4, startRect.top + (oldH - newH));
                     }
                     ytPipRect.width = newW;
-                    ytPipRect.left = Math.max(4, Math.min(vw - newW - 4, newLeft));
+                    ytPipRect.left = Math.max(2, Math.min(vw - newW - 2, newLeft));
                     ytPipRect.top = newTop;
                     applyYtPipRectToDom();
                 }
@@ -4842,14 +4860,12 @@ function syncHeaderMokjangTitleDOM() {
 
                     card.style.transition = 'transform 0.22s ease, opacity 0.22s ease, left 0.18s ease';
                     if (isPushedLeftOut || isPushedRightOut) {
-                        const flyX = isPushedLeftOut ? -vw : vw;
-                        card.style.transform = 'translateX(' + flyX + 'px)';
+                        card.style.transform = 'translateX(' + (isPushedLeftOut ? -vw : vw) + 'px)';
                         card.style.opacity = '0';
                         setTimeout(() => window.closeYoutubeCleanPlayerModal(), 190);
                         return;
                     }
-                    // 화면 안에 안정적으로 안착
-                    ytPipRect.left = Math.max(6, Math.min(vw - w - 6, ytPipRect.left));
+                    ytPipRect.left = Math.max(4, Math.min(vw - w - 4, ytPipRect.left));
                     card.style.opacity = '1';
                     applyYtPipRectToDom();
                 }
@@ -4877,10 +4893,9 @@ function syncHeaderMokjangTitleDOM() {
             const errBox = document.getElementById('youtube-deleted-error-box');
             if (!modal || !card) return;
 
-            // 처음 열릴 때 화면 중앙 상단 보기 좋은 위치 및 크기로 초기화 (이미 열려있으면 사용자가 놓은 위치 유지)
             if (modal.classList.contains('hidden')) {
                 const vw = window.innerWidth;
-                const initW = Math.min(420, Math.max(260, vw - 24));
+                const initW = Math.min(400, Math.max(240, vw - 24));
                 ytPipRect = {
                     width: initW,
                     left: Math.round((vw - initW) / 2),
