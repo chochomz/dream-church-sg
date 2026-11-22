@@ -197,6 +197,8 @@
         }
         #post-content,
         #post-file-title,
+        #post-video-title,
+        #post-video-url,
         #feed-search-input,
         #rename-user-input {
             font-size: 16px !important;
@@ -1325,9 +1327,42 @@ window.proceedToExternalAdminPage = function() {
 
                 <div class="w-full pt-1.5 border-t border-gray-100 space-y-1.5" id="post-file-attach-container">
                     <div class="flex justify-between items-center text-[11px]">
-                        <span class="font-medium text-gray-700"><i class="fa-solid fa-paperclip church-primary-text mr-1"></i>파일 첨부 (최대 1MB)</span>
+                        <span class="font-medium text-gray-700"><i class="fa-solid fa-film text-rose-600 mr-1"></i>영상 링크 / <i class="fa-solid fa-paperclip church-primary-text mx-0.5"></i>파일 첨부(1MB이내)</span>
                         <span id="attached-file-indicator" class="text-gray-400 font-medium">0개 첨부</span>
                     </div>
+
+                    <!-- [신규: 유튜브 영상 제목(20자) 및 링크 입력 박스] -->
+                    <div id="attached-video-display" class="hidden flex-col space-y-1.5 p-2.5 bg-rose-50/50 rounded-xl border border-rose-200/90 text-xs">
+                        <div class="flex items-center justify-between border-b border-rose-200/60 pb-1">
+                            <div class="flex items-center space-x-1.5 font-extrabold text-rose-900">
+                                <span class="text-sm shrink-0">🎬</span>
+                                <span>유튜브 영상 링크</span>
+                            </div>
+                            <button type="button" onclick="removeAttachedVideo()" class="text-gray-400 hover:text-rose-600 p-0.5 shrink-0" title="영상 링크 취소"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="w-full pt-0.5">
+                            <div class="flex justify-between items-center text-[10px] text-gray-500 mb-0.5">
+                                <span class="font-semibold text-rose-900"><i class="fa-solid fa-tag mr-1 text-[9px]"></i>영상 제목 (20자 이내)</span>
+                                <span id="video-title-char-indicator" class="text-gray-400 font-mono">0 / 20자</span>
+                            </div>
+                            <input type="text" id="post-video-title" maxlength="20" oninput="updateVideoTitleCharCount(this)" placeholder="피드에 표시될 간단한 제목 (20자 이내)..." 
+                                   class="w-full px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-gray-800 focus:outline-none focus:border-rose-600 focus:ring-1 focus:ring-rose-500 transition-all">
+                        </div>
+                        <div class="w-full pt-0.5">
+                            <div class="flex justify-between items-center text-[10px] text-gray-500 mb-0.5">
+                                <span class="font-semibold text-rose-900"><i class="fa-brands fa-youtube mr-1 text-[10px] text-rose-600"></i>영상 링크 (유튜브 주소)</span>
+                                <span id="video-url-status-indicator" class="text-gray-400 font-medium">URL 붙여넣기</span>
+                            </div>
+                            <input type="url" id="post-video-url" oninput="handleVideoUrlInput(this)" placeholder="https://youtu.be/... 유튜브 주소를 붙여넣으세요" 
+                                   class="w-full px-2.5 py-1.5 rounded-lg border border-rose-200 bg-white text-xs text-gray-800 focus:outline-none focus:border-rose-600 focus:ring-1 focus:ring-rose-500 transition-all">
+                        </div>
+                    </div>
+
+                    <button type="button" id="trigger-video-link-btn" onclick="openVideoLinkAttachment()" class="w-full py-2 border border-dashed border-rose-300 rounded-xl flex items-center justify-center space-x-1.5 text-xs text-rose-800 font-semibold hover:bg-rose-50 hover:border-rose-400 active:scale-98 transition-all bg-white shadow-2xs">
+                        <i class="fa-solid fa-film text-rose-600 text-xs"></i>
+                        <span>영상주소 링크하기</span>
+                    </button>
+
                     <input type="file" id="post-file-attachment-input" class="hidden" onchange="handleSingleFileAttachment(event)">
                     
                     <div id="attached-file-display" class="hidden flex-col space-y-1.5 p-2 bg-gray-50 rounded-xl border border-gray-200 text-xs">
@@ -1577,7 +1612,7 @@ window.proceedToExternalAdminPage = function() {
             <div class="flex items-center justify-center space-x-1 sm:space-x-1.5 flex-nowrap whitespace-nowrap max-w-full">
                 <button type="button" id="lightbox-autofix-btn" onclick="toggleLightboxAdjustPanel()" class="h-8 px-2.5 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 rounded-lg flex items-center justify-center space-x-1 transition-all border border-gray-200 shadow-2xs text-xs font-semibold">
                     <i class="fa-solid fa-wand-magic-sparkles text-xs text-emerald-700"></i>
-                    <span>마법봉</span>
+                    <span>자동보정</span>
                 </button>
                 <button type="button" onclick="rotateLightboxImage()" class="h-8 px-2.5 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 rounded-lg flex items-center justify-center space-x-1 transition-all border border-gray-200 shadow-2xs text-xs font-semibold">
                     <i class="fa-solid fa-rotate-right text-xs text-gray-700"></i>
@@ -1898,12 +1933,42 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
+    <!-- [유튜브 가로보기(16:9) 클린 모달창 & 삭제된 영상 안내창] -->
+    <div id="youtube-clean-player-modal" onclick="window.closeYoutubeCleanPlayerModal(event)" class="fixed inset-0 z-[118] bg-black/85 hidden flex-col items-center justify-center p-2.5 sm:p-4 select-none" style="touch-action: none;">
+        <div onclick="event.stopPropagation()" class="w-full max-w-[780px] bg-[#14171A] rounded-2xl border-2 border-slate-700/90 shadow-2xl overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between px-3.5 py-2.5 bg-[#1F2428] border-b border-slate-700/80 shrink-0">
+                <div class="flex items-center space-x-2 truncate mr-2">
+                    <span class="px-2 py-0.5 rounded-md bg-rose-600 text-white text-[10px] font-black shrink-0">🎬 영상</span>
+                    <h3 id="youtube-clean-modal-title" class="text-xs sm:text-sm font-extrabold text-white truncate">목장 영상 나눔</h3>
+                </div>
+                <button type="button" onclick="window.closeYoutubeCleanPlayerModal(event)" class="px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-rose-600 text-white text-xs font-extrabold flex items-center space-x-1 active:scale-95 transition-all shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>닫기</span>
+                </button>
+            </div>
+            <!-- 16:9 가로보기 고정 비율 컨테이너 -->
+            <div class="relative w-full bg-black" style="padding-bottom: 56.25%;">
+                <div id="youtube-clean-iframe-wrapper" class="absolute inset-0 w-full h-full"></div>
+                <!-- 영상이 삭제되었거나 재생 불가할 때 뜨는 안내 박스 -->
+                <div id="youtube-deleted-error-box" class="hidden absolute inset-0 w-full h-full bg-slate-900 flex-col items-center justify-center p-5 text-center space-y-3 z-20">
+                    <div class="text-4xl leading-none animate-bounce">😊</div>
+                    <p class="text-white font-extrabold text-sm sm:text-base leading-relaxed break-keep">
+                        유튜브 영상이 삭제되었으니<br>피드된 주소를 수정/삭제해 주세요
+                    </p>
+                    <button type="button" onclick="window.closeYoutubeCleanPlayerModal(event)" class="mt-1 px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold shadow-lg active:scale-95 transition-all">
+                        확인
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- [dcsghelp.html 외부 주소 직접 입력 방지용 인앱 보안 뷰어 모달] -->
     <div id="dcsghelp-secure-viewer-modal" class="fixed inset-0 z-[115] bg-white hidden flex-col w-full h-full overflow-hidden select-none">
         <div class="h-[48px] px-4 bg-[#3B5D50] text-white flex items-center justify-between shrink-0 shadow-xs max-w-md w-full mx-auto">
             <div class="flex items-center space-x-2">
                 <i class="fa-solid fa-book-open text-xs"></i>
-                <h3 class="text-xs font-black tracking-tight">우리들의 목장 이야기 사용설명서</h3>
+                <h3 class="text-xs font-black tracking-tight">꿈의목장 이야기 사용설명서</h3>
             </div>
             <button type="button" onclick="window.closeUserManualModal(event)" class="px-2.5 py-1 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-extrabold flex items-center space-x-1 active:scale-95 transition-all">
                 <i class="fa-solid fa-xmark"></i>
@@ -2425,7 +2490,7 @@ function syncHeaderMokjangTitleDOM() {
                 lastOnlineUsersList = usersOrCount;
                 usersOrCount.forEach(item => {
                     const name = typeof item === 'string' ? item.trim() : (item && item.user ? String(item.user).trim() : '');
-                    if (name && name !== currentUser && !otherNames.includes(name)) otherNames.push(name);
+                    if (name && name !== '목장가족' && name !== currentUser && !otherNames.includes(name)) otherNames.push(name);
                 });
             } else if (typeof usersOrCount === 'number') {
                 lastOnlineCount = Math.max(1, usersOrCount);
@@ -3442,6 +3507,7 @@ function syncHeaderMokjangTitleDOM() {
             if (post.mokjangName) parts.push(post.mokjangName);
             if (post.fileName) parts.push(post.fileName);
             if (post.fileTitle) parts.push(post.fileTitle);
+            if (post.videoTitle) parts.push(post.videoTitle);
             if (post.photoCaptions && typeof post.photoCaptions === 'object') {
                 Object.values(post.photoCaptions).forEach(val => {
                     const info = extractPhotoCaptionInfo(val, post.author);
@@ -4132,6 +4198,9 @@ function syncHeaderMokjangTitleDOM() {
             const myRef = getPresenceDocRef(sessionId);
             const sendHeartbeat = async () => {
                 if (document.hidden) return;
+                const gateEl = document.getElementById('mokjang-login-gate');
+                const isGateVisible = gateEl && gateEl.style.display !== 'none' && !gateEl.classList.contains('hidden');
+                if (isGateVisible || !currentUser || currentUser === '목장가족') return;
                 try {
                     await setDoc(myRef, {
                         sessionId: sessionId, user: currentUser,
@@ -4140,6 +4209,7 @@ function syncHeaderMokjangTitleDOM() {
                     }, { merge: true });
                 } catch (e) {}
             };
+            window.triggerPresenceHeartbeat = sendHeartbeat;
             sendHeartbeat();
             if (onlineHeartbeatTimer) clearInterval(onlineHeartbeatTimer);
             onlineHeartbeatTimer = setInterval(sendHeartbeat, 90000);
@@ -4158,7 +4228,8 @@ function syncHeaderMokjangTitleDOM() {
                         if (data && typeof data.lastSeen === 'number') {
                             if (data.mokjangCode && String(data.mokjangCode).trim() !== activeCode) return;
                             if (now - data.lastSeen < timeoutWindow) {
-                                const rawName = (data.user && data.user.trim()) ? data.user.trim() : '목장가족';
+                                const rawName = (data.user && data.user.trim()) ? data.user.trim() : '';
+                                if (!rawName || rawName === '목장가족') return;
                                 const joined = data.joinedAt || data.lastSeen;
                                 if (!seenUsers.has(rawName) || joined < seenUsers.get(rawName).joinedAt) {
                                     seenUsers.set(rawName, { user: rawName, joinedAt: joined, lastSeen: data.lastSeen });
@@ -4495,6 +4566,179 @@ function syncHeaderMokjangTitleDOM() {
         }
 
         let currentAttachedFile = null;
+        let isVideoLinkBoxOpen = false;
+        let ytIframeApiReady = false;
+        let currentYtPlayerInstance = null;
+
+        function ensureYtIframeApi() {
+            if (ytIframeApiReady || window.YT) { ytIframeApiReady = true; return; }
+            ytIframeApiReady = true;
+            const s = document.createElement('script');
+            s.src = "https://www.youtube.com/iframe_api";
+            s.async = true;
+            document.head.appendChild(s);
+        }
+
+        window.extractYoutubeId = function(url) {
+            if (!url) return '';
+            const s = String(url).trim();
+            if (/^[a-zA-Z0-9_-]{11}$/.test(s)) return s;
+            const reg = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts|live)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const m = s.match(reg);
+            return (m && m[1]) ? m[1] : '';
+        };
+
+        window.openVideoLinkAttachment = function() {
+            isVideoLinkBoxOpen = true;
+            renderAttachedVideoUI();
+            const titleEl = document.getElementById('post-video-title');
+            if (titleEl) setTimeout(() => titleEl.focus(), 60);
+        };
+
+        window.removeAttachedVideo = function() {
+            isVideoLinkBoxOpen = false;
+            const titleEl = document.getElementById('post-video-title');
+            const urlEl = document.getElementById('post-video-url');
+            if (titleEl) titleEl.value = '';
+            if (urlEl) urlEl.value = '';
+            renderAttachedVideoUI();
+            showNotification("영상 링크가 제외되었습니다.");
+        };
+
+        window.updateVideoTitleCharCount = function(input) {
+            const ind = document.getElementById('video-title-char-indicator');
+            if (ind) ind.innerText = `${input.value.length} / 20자`;
+            updateCombinedAttachIndicator();
+        };
+
+        window.handleVideoUrlInput = function(input) {
+            const badge = document.getElementById('video-url-status-indicator');
+            const val = (input ? input.value : '').trim();
+            const vid = window.extractYoutubeId(val);
+            if (badge) {
+                if (!val) {
+                    badge.innerText = 'URL 붙여넣기';
+                    badge.className = 'text-gray-400 font-medium';
+                } else if (vid) {
+                    badge.innerText = '✓ 유튜브 영상 확인됨';
+                    badge.className = 'text-emerald-700 font-extrabold';
+                } else {
+                    badge.innerText = '⚠ 주소를 확인해 주세요';
+                    badge.className = 'text-rose-600 font-extrabold';
+                }
+            }
+            updateCombinedAttachIndicator();
+        };
+
+        function updateCombinedAttachIndicator() {
+            const indEl = document.getElementById('attached-file-indicator');
+            if (!indEl) return;
+            const urlEl = document.getElementById('post-video-url');
+            const titleEl = document.getElementById('post-video-title');
+            const hasVideo = isVideoLinkBoxOpen && ((urlEl && urlEl.value.trim()) || (titleEl && titleEl.value.trim()));
+            const hasFile = Boolean(currentAttachedFile);
+            const count = (hasVideo ? 1 : 0) + (hasFile ? 1 : 0);
+            indEl.innerText = count > 0 ? `${count}개 첨부됨` : "0개 첨부";
+        }
+
+        function renderAttachedVideoUI() {
+            const display = document.getElementById('attached-video-display');
+            const triggerBtn = document.getElementById('trigger-video-link-btn');
+            const titleEl = document.getElementById('post-video-title');
+            const urlEl = document.getElementById('post-video-url');
+            if (isVideoLinkBoxOpen) {
+                if (display) { display.classList.remove('hidden'); display.classList.add('flex'); }
+                if (triggerBtn) triggerBtn.classList.add('hidden');
+                if (titleEl) window.updateVideoTitleCharCount(titleEl);
+                if (urlEl) window.handleVideoUrlInput(urlEl);
+            } else {
+                if (display) { display.classList.add('hidden'); display.classList.remove('flex'); }
+                if (triggerBtn) triggerBtn.classList.remove('hidden');
+                const ind = document.getElementById('video-title-char-indicator');
+                if (ind) ind.innerText = '0 / 20자';
+                const badge = document.getElementById('video-url-status-indicator');
+                if (badge) { badge.innerText = 'URL 붙여넣기'; badge.className = 'text-gray-400 font-medium'; }
+            }
+            updateCombinedAttachIndicator();
+        }
+
+        window.showDeletedYoutubeMessage = function() {
+            const errBox = document.getElementById('youtube-deleted-error-box');
+            const wrap = document.getElementById('youtube-clean-iframe-wrapper');
+            if (wrap) wrap.innerHTML = '';
+            if (errBox) { errBox.classList.remove('hidden'); errBox.classList.add('flex'); }
+        };
+
+        window.openYoutubeCleanPlayerModal = function(videoIdOrUrl, videoTitle, event) {
+            if (event) { event.preventDefault(); event.stopPropagation(); }
+            ensureYtIframeApi();
+            const vid = window.extractYoutubeId(videoIdOrUrl);
+            const modal = document.getElementById('youtube-clean-player-modal');
+            const titleEl = document.getElementById('youtube-clean-modal-title');
+            const wrap = document.getElementById('youtube-clean-iframe-wrapper');
+            const errBox = document.getElementById('youtube-deleted-error-box');
+            if (!modal) return;
+
+            if (titleEl) titleEl.textContent = (videoTitle && String(videoTitle).trim()) ? String(videoTitle).trim() : '목장 영상 나눔';
+            if (errBox) { errBox.classList.add('hidden'); errBox.classList.remove('flex'); }
+            if (wrap) wrap.innerHTML = '';
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            if (!vid) {
+                window.showDeletedYoutubeMessage();
+                return;
+            }
+
+            // 1. oEmbed 메타데이터 체크 + 2. 고해상도 썸네일(mqdefault: 삭제된 영상은 120x90 기본 이미지 반환) 이중 검증
+            fetch('https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=' + encodeURIComponent(vid) + '&format=json')
+                .then(res => { if (!res.ok) window.showDeletedYoutubeMessage(); })
+                .catch(() => {});
+
+            const probeImg = new Image();
+            probeImg.onload = function() {
+                if (probeImg.naturalWidth === 120 && probeImg.naturalHeight === 90) {
+                    window.showDeletedYoutubeMessage();
+                }
+            };
+            probeImg.src = 'https://i.ytimg.com/vi/' + encodeURIComponent(vid) + '/mqdefault.jpg';
+
+            // 3. 클린 플레이어(youtube-nocookie) 및 YT.Player onError 이벤트 감지
+            const frameId = 'yt-clean-active-iframe';
+            const embedUrl = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(vid) + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&enablejsapi=1';
+            if (wrap) {
+                wrap.innerHTML = '<iframe id="' + frameId + '" src="' + embedUrl + '" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+            }
+
+            if (window.YT && window.YT.Player) {
+                try {
+                    currentYtPlayerInstance = new window.YT.Player(frameId, {
+                        events: {
+                            onError: function(ev) {
+                                if (ev && (ev.data === 100 || ev.data === 101 || ev.data === 150 || ev.data === 2)) {
+                                    window.showDeletedYoutubeMessage();
+                                }
+                            }
+                        }
+                    });
+                } catch (e) {}
+            }
+        };
+
+        window.closeYoutubeCleanPlayerModal = function(event) {
+            if (event) { event.preventDefault(); event.stopPropagation(); }
+            if (currentYtPlayerInstance && typeof currentYtPlayerInstance.destroy === 'function') {
+                try { currentYtPlayerInstance.destroy(); } catch (e) {}
+                currentYtPlayerInstance = null;
+            }
+            const modal = document.getElementById('youtube-clean-player-modal');
+            const wrap = document.getElementById('youtube-clean-iframe-wrapper');
+            const errBox = document.getElementById('youtube-deleted-error-box');
+            if (wrap) wrap.innerHTML = '';
+            if (errBox) { errBox.classList.add('hidden'); errBox.classList.remove('flex'); }
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        };
 
         window.triggerFileAttachmentPicker = function() {
             const input = document.getElementById('post-file-attachment-input');
@@ -4557,6 +4801,7 @@ function syncHeaderMokjangTitleDOM() {
                 if (triggerBtn) triggerBtn.classList.remove('hidden');
                 if (indEl) indEl.innerText = "0개 첨부";
             }
+            if (typeof updateCombinedAttachIndicator === 'function') updateCombinedAttachIndicator();
         }
 
         // [작업 4-마: 글쓰기 모달 오픈 시 현재 로그인한 작성자 이름 표시]
@@ -4607,6 +4852,20 @@ function syncHeaderMokjangTitleDOM() {
             currentAttachedFile = null;
             const fileTitleInput = document.getElementById('post-file-title');
             if (fileTitleInput) fileTitleInput.value = '';
+            isVideoLinkBoxOpen = false;
+            const videoTitleInput = document.getElementById('post-video-title');
+            const videoUrlInput = document.getElementById('post-video-url');
+            if (videoTitleInput) videoTitleInput.value = '';
+            if (videoUrlInput) videoUrlInput.value = '';
+            if (postId) {
+                const editVidPost = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+                if (editVidPost && (editVidPost.videoUrl || editVidPost.videoId)) {
+                    isVideoLinkBoxOpen = true;
+                    if (videoTitleInput) videoTitleInput.value = editVidPost.videoTitle || '';
+                    if (videoUrlInput) videoUrlInput.value = editVidPost.videoUrl || ('https://youtu.be/' + editVidPost.videoId);
+                }
+            }
+            renderAttachedVideoUI();
 
             if (postId) {
                 const editTargetPost = cachedPosts.find(p => p.id === postId);
@@ -4642,6 +4901,12 @@ function syncHeaderMokjangTitleDOM() {
             selectedImagesList = [];
             originalEditingImages = [];
             currentAttachedFile = null;
+            isVideoLinkBoxOpen = false;
+            const vTitleEl = document.getElementById('post-video-title');
+            const vUrlEl = document.getElementById('post-video-url');
+            if (vTitleEl) vTitleEl.value = '';
+            if (vUrlEl) vUrlEl.value = '';
+            renderAttachedVideoUI();
             currentLongContentText = "";
             currentLongContentFontSize = 2;
             updateLongTextBtnBadge();
@@ -4662,9 +4927,27 @@ function syncHeaderMokjangTitleDOM() {
             const plainText = (contentEl ? contentEl.innerText : '').replace(/\u200B/g, '').trim();
             const fileTitleInput = document.getElementById('post-file-title');
             const fileTitle = fileTitleInput ? fileTitleInput.value.trim() : '';
+            const videoTitleInput = document.getElementById('post-video-title');
+            const videoUrlInput = document.getElementById('post-video-url');
+            const videoTitle = (isVideoLinkBoxOpen && videoTitleInput) ? videoTitleInput.value.trim() : '';
+            const videoUrl = (isVideoLinkBoxOpen && videoUrlInput) ? videoUrlInput.value.trim() : '';
+            const videoId = window.extractYoutubeId(videoUrl);
 
-            if (!plainText && !currentLongContentText && selectedImagesList.length === 0 && !currentAttachedFile) {
-                showNotification('이야기 내용, 사진, 또는 첨부파일을 등록해 주세요.');
+            if (isVideoLinkBoxOpen && (videoTitle || videoUrl)) {
+                if (!videoTitle) {
+                    showNotification('영상 제목(20자 이내)을 입력해 주세요.');
+                    if (videoTitleInput) videoTitleInput.focus();
+                    return;
+                }
+                if (!videoId) {
+                    showNotification('올바른 유튜브 영상 주소를 입력해 주세요.');
+                    if (videoUrlInput) videoUrlInput.focus();
+                    return;
+                }
+            }
+
+            if (!plainText && !currentLongContentText && selectedImagesList.length === 0 && !currentAttachedFile && !videoId) {
+                showNotification('이야기 내용, 사진, 영상 링크, 또는 첨부파일을 등록해 주세요.');
                 return;
             }
 
@@ -4867,6 +5150,14 @@ function syncHeaderMokjangTitleDOM() {
                 setUploadProgressStage(4, false);
                 await new Promise(r => setTimeout(r, 50));
 
+                const videoTitleInput = document.getElementById('post-video-title');
+                const videoUrlInput = document.getElementById('post-video-url');
+                const rawVideoTitle = (isVideoLinkBoxOpen && videoTitleInput) ? videoTitleInput.value.trim().substring(0, 20) : '';
+                const rawVideoUrl = (isVideoLinkBoxOpen && videoUrlInput) ? videoUrlInput.value.trim() : '';
+                const extractedVideoId = isVideoLinkBoxOpen ? window.extractYoutubeId(rawVideoUrl) : '';
+                const finalVideoTitle = extractedVideoId ? (rawVideoTitle || '목장 영상 나눔') : '';
+                const finalVideoUrl = extractedVideoId ? rawVideoUrl : '';
+
                 let savedFileId = null, savedFileName = null, savedFileSize = null;
                 const fileTitleInput = document.getElementById('post-file-title');
                 const fileTitle = fileTitleInput ? fileTitleInput.value.trim().substring(0, 15) : '';
@@ -4897,6 +5188,7 @@ function syncHeaderMokjangTitleDOM() {
                     const updatePayload = {
                         content: content, fontFamily: currentSelectedFont || 'pretendard',
                         longContent: currentLongContentText || '', longFontSize: currentLongContentFontSize || 2,
+                        videoTitle: finalVideoTitle, videoUrl: finalVideoUrl, videoId: extractedVideoId,
                         photoCaptions: reindexedCaptions, updatedAt: new Date()
                     };
                     if (!isImagesUnchanged) { updatePayload.images = uploadedImages; updatePayload.imageUrl = uploadedImages.length > 0 ? uploadedImages[0] : ""; }
@@ -4905,8 +5197,9 @@ function syncHeaderMokjangTitleDOM() {
                 } else {
                     const postPayload = {
                         mokjangName: currentMokjang, mokjangCode: (typeof currentMokjangCode !== 'undefined' ? currentMokjangCode : ''),
-                        author: currentUser, authorUid: reactionUserId, content: content, fontFamily: currentSelectedFont || 'pretendard',
+                        author: currentUser, authorTitle: (typeof window.getAuthorChurchTitle === 'function' ? window.getAuthorChurchTitle(currentUser) : ''), authorUid: reactionUserId, content: content, fontFamily: currentSelectedFont || 'pretendard',
                         longContent: currentLongContentText || '', longFontSize: currentLongContentFontSize || 2,
+                        videoTitle: finalVideoTitle, videoUrl: finalVideoUrl, videoId: extractedVideoId,
                         images: uploadedImages, imageUrl: uploadedImages.length > 0 ? uploadedImages[0] : "",
                         likes: 0, likedUsers: [], thumbsUp: 0, thumbedUsers: [], prayers: 0, prayedUsers: [], comments: [], photoCaptions: {}, createdAt: new Date()
                     };
@@ -6539,7 +6832,7 @@ function syncHeaderMokjangTitleDOM() {
                     <div class="flex items-center space-x-2">
                         ${window.renderAuthorRoleBadgeHtml ? window.renderAuthorRoleBadgeHtml(post.author) : '<div class="px-2 h-6 rounded-full church-accent church-primary-text flex items-center justify-center font-extrabold text-[10px] shrink-0 shadow-2xs">목원</div>'}
                         <div>
-                            <h4 class="text-xs font-bold text-gray-800 leading-tight">${window.formatAuthorNameWithTitle ? window.formatAuthorNameWithTitle(post.author) : escapeHtml(post.author || '목장가족')}</h4>
+                            <h4 class="text-xs font-bold text-gray-800 leading-tight">${window.formatAuthorNameWithTitle ? window.formatAuthorNameWithTitle(post.author, post) : escapeHtml(post.author || '목장가족')}</h4>
                             <p class="text-[9.5px] text-gray-400 leading-none mt-0.5">${formatDate(post.createdAt)}</p>
                         </div>
                     </div>
@@ -6932,6 +7225,122 @@ function syncHeaderMokjangTitleDOM() {
             `;
         }
 
+        
+        // [1일 1인 1회 조회수 카운트 시스템]
+        let postViewObserver = null;
+        const postViewTimers = {};
+        const postViewInFlight = new Set();
+
+        function getTodayKstDateString() {
+            const now = new Date();
+            const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+            return kst.toISOString().slice(0, 10);
+        }
+
+        function getViewerUniqueKey() {
+            const cleanUser = (currentUser && currentUser !== '목장가족') ? currentUser.trim() : '';
+            return cleanUser ? ('u_' + cleanUser) : ('d_' + reactionUserId);
+        }
+
+        function getLocalDailyViewLog() {
+            try {
+                const raw = localStorage.getItem('mokjang_daily_view_log_v1');
+                return raw ? (JSON.parse(raw) || {}) : {};
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function setLocalDailyViewLog(postId, dayKey) {
+            try {
+                const log = getLocalDailyViewLog();
+                log[postId] = dayKey;
+                localStorage.setItem('mokjang_daily_view_log_v1', JSON.stringify(log));
+            } catch (e) {}
+        }
+
+        window.recordPostDailyView = async function(postId) {
+            if (!postId || !db || !isAuthReady) return;
+            const gateEl = document.getElementById('mokjang-login-gate');
+            if (gateEl && gateEl.style.display !== 'none' && !gateEl.classList.contains('hidden')) return;
+
+            const post = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+            if (!post) return;
+
+            const todayStr = getTodayKstDateString();
+            const viewerKey = todayStr + '_' + getViewerUniqueKey();
+            const localCheckKey = todayStr + '|' + getViewerUniqueKey();
+
+            const localLog = getLocalDailyViewLog();
+            if (localLog[postId] === localCheckKey) return;
+
+            if (!Array.isArray(post.dailyViewers)) post.dailyViewers = [];
+            if (post.dailyViewers.includes(viewerKey)) {
+                setLocalDailyViewLog(postId, localCheckKey);
+                return;
+            }
+
+            if (postViewInFlight.has(postId)) return;
+            postViewInFlight.add(postId);
+
+            try {
+                setLocalDailyViewLog(postId, localCheckKey);
+                const todayPrefix = todayStr + '_';
+                const filteredViewers = post.dailyViewers.filter(v => typeof v === 'string' && v.startsWith(todayPrefix));
+                if (!filteredViewers.includes(viewerKey)) {
+                    filteredViewers.push(viewerKey);
+                }
+                const nextViews = Math.max(0, (parseInt(post.views) || 0)) + 1;
+                post.views = nextViews;
+                post.dailyViewers = filteredViewers;
+
+                const cardEl = document.getElementById('post-card-' + postId);
+                if (cardEl) {
+                    const viewCntEl = cardEl.querySelector('[data-view-count]');
+                    if (viewCntEl) viewCntEl.textContent = String(nextViews);
+                }
+
+                await updateDoc(getPostDocRef(postId), {
+                    views: increment(1),
+                    dailyViewers: arrayUnion(viewerKey)
+                });
+            } catch (err) {
+                // 오프라인 등 예외 시 로컬 카운트 유지
+            } finally {
+                setTimeout(() => { postViewInFlight.delete(postId); }, 500);
+            }
+        };
+
+        function observePostCardForDailyView(cardEl) {
+            if (!cardEl || !('IntersectionObserver' in window)) return;
+            if (!postViewObserver) {
+                const feedContainer = document.getElementById('feed-container');
+                postViewObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        const pid = entry.target.getAttribute('data-post-id');
+                        if (!pid) return;
+                        if (entry.isIntersecting && entry.intersectionRatio >= 0.35) {
+                            if (!postViewTimers[pid]) {
+                                postViewTimers[pid] = setTimeout(() => {
+                                    delete postViewTimers[pid];
+                                    window.recordPostDailyView(pid);
+                                }, 450);
+                            }
+                        } else {
+                            if (postViewTimers[pid]) {
+                                clearTimeout(postViewTimers[pid]);
+                                delete postViewTimers[pid];
+                            }
+                        }
+                    });
+                }, {
+                    root: feedContainer || null,
+                    threshold: [0, 0.35, 0.7]
+                });
+            }
+            postViewObserver.observe(cardEl);
+        }
+
         function buildPostCardElement(post) {
             const hasLiked = Array.isArray(post.likedUsers) && post.likedUsers.includes(reactionUserId);
             const likesCount = Math.max(0, parseInt(post.likes) || 0);
@@ -6939,12 +7348,13 @@ function syncHeaderMokjangTitleDOM() {
             const hasThumbed = Array.isArray(post.thumbedUsers) && post.thumbedUsers.includes(reactionUserId);
             const prayersCount = Math.max(0, parseInt(post.prayers) || 0);
             const hasPrayed = Array.isArray(post.prayedUsers) && post.prayedUsers.includes(reactionUserId);
+            const viewsCount = Math.max(0, parseInt(post.views) || 0);
 
             const card = document.createElement('article');
             card.className = "w-full px-2 pt-0.5 pb-1 box-border";
             card.setAttribute('data-post-id', post.id);
             const sigImgs = Array.isArray(post.images) ? post.images.filter(Boolean) : (post.imageUrl ? [post.imageUrl] : []);
-            card.setAttribute('data-post-sig', `${post.id}|${sigImgs.length}|${sigImgs.join(',')}|${post.content || ''}|${post.fontFamily || ''}|${post.fileName || ''}|${post.longContent || ''}|${post.longFontSize || ''}`);
+            card.setAttribute('data-post-sig', `${post.id}|${sigImgs.length}|${sigImgs.join(',')}|${post.content || ''}|${post.fontFamily || ''}|${post.fileName || ''}|${post.longContent || ''}|${post.longFontSize || ''}|${post.videoId || ''}|${post.videoTitle || ''}`);
 
             let imgArray = [];
             if (Array.isArray(post.images) && post.images.length > 0) {
@@ -7068,20 +7478,41 @@ function syncHeaderMokjangTitleDOM() {
             const hasLong = post.longContent && String(post.longContent).trim().length > 0;
             const isUnreadLong = hasLong && !isLongContentRead(post.id, post);
             const inlineLongBtn = hasLong ? `<span class="inline-block whitespace-nowrap ml-1"><button type="button" id="long-read-btn-${post.id}" onclick="event.stopPropagation(); openLongContentReader('${post.id}', event)" class="no-export inline-flex items-center space-x-0.5 px-1.5 py-0.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs text-[10.5px] font-bold active:scale-95 transition-transform align-middle select-none cursor-pointer" title="긴글 읽기"><span id="long-read-icon-${post.id}" class="text-[11px] leading-none ${isUnreadLong ? 'animate-scroll-unread' : ''}">📜</span><span>긴글읽기</span></button></span>` : '';
+            const postVidId = post.videoId || (post.videoUrl ? window.extractYoutubeId(post.videoUrl) : '');
+            const hasVideoLink = Boolean(postVidId || (post.videoUrl && String(post.videoUrl).trim()));
+            const safeVidArg = escapeHtml(postVidId || post.videoUrl || '').replace(/'/g, "\\'");
+            const safeVidTitleText = (post.videoTitle && String(post.videoTitle).trim()) ? String(post.videoTitle).trim() : '목장 영상 나눔';
+            const safeVidTitleArg = escapeHtml(safeVidTitleText).replace(/'/g, "\\'");
+            const videoBannerHtml = hasVideoLink ? `
+                <div onclick="event.stopPropagation(); window.openYoutubeCleanPlayerModal('${safeVidArg}', '${safeVidTitleArg}', event)" class="mt-1 mb-1 px-2.5 py-2 rounded-xl bg-gradient-to-r from-rose-50/90 via-white to-rose-50/75 border border-rose-200/90 shadow-2xs flex items-center justify-between gap-2 cursor-pointer hover:border-rose-300 active:scale-[0.99] transition-all">
+                    <div class="flex items-center space-x-2 min-w-0 flex-1">
+                        <span class="w-6 h-6 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                            <i class="fa-solid fa-play text-[9px] ml-0.5"></i>
+                        </span>
+                        <span class="font-extrabold text-[13.5px] text-gray-900 truncate tracking-tight">${escapeHtml(safeVidTitleText)}</span>
+                    </div>
+                    <button type="button" onclick="event.stopPropagation(); window.openYoutubeCleanPlayerModal('${safeVidArg}', '${safeVidTitleArg}', event)" class="no-export shrink-0 px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[11px] shadow-2xs flex items-center space-x-1">
+                        <i class="fa-solid fa-tv text-[9.5px]"></i>
+                        <span>바로보기</span>
+                    </button>
+                </div>
+            ` : '';
+
             let formattedContent = '';
             if (post.content && post.content.trim()) {
                 formattedContent = `<div class="post-content-body ${postFontClass} pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight text-left break-words overflow-wrap-anywhere whitespace-pre-wrap" style="text-align: left !important; text-indent: 0 !important; margin: 0 !important; padding-left: 2px !important; direction: ltr !important; width: 100% !important; display: block !important;">${renderPostContentHtml(post.content.trim())}${inlineLongBtn}</div>`;
             } else if (hasLong) {
                 formattedContent = `<div class="post-content-body font-gowun-dodum pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight text-left">${inlineLongBtn}</div>`;
             }
+            formattedContent = videoBannerHtml + formattedContent;
 
             card.innerHTML = `
                 <div id="post-card-${post.id}" class="w-full bg-white rounded-2xl border church-border shadow-xs flex flex-col p-2 box-border relative text-left">
                     <div class="flex items-center justify-between pb-0.5 relative">
                         <div class="flex items-center space-x-1.5">
-                            ${window.renderAuthorRoleBadgeHtml ? window.renderAuthorRoleBadgeHtml(post.author) : '<div class="px-2 h-6 rounded-full church-accent church-primary-text flex items-center justify-center font-extrabold text-[10px] shrink-0 shadow-2xs">목원</div>'}
+                            <span data-author-role-slot>${window.renderAuthorRoleBadgeHtml ? window.renderAuthorRoleBadgeHtml(post.author) : '<div class="px-2 h-6 rounded-full church-accent church-primary-text flex items-center justify-center font-extrabold text-[10px] shrink-0 shadow-2xs">목원</div>'}</span>
                             <div>
-                                <h4 class="text-xs font-bold text-gray-800 leading-tight">${window.formatAuthorNameWithTitle ? window.formatAuthorNameWithTitle(post.author) : escapeHtml(post.author || '목장가족')}</h4>
+                                <h4 data-author-name class="text-xs font-bold text-gray-800 leading-tight">${window.formatAuthorNameWithTitle ? window.formatAuthorNameWithTitle(post.author, post) : escapeHtml(post.author || '목장가족')}</h4>
                                 <p class="text-[9px] text-gray-400 leading-none mt-0.5">${formatDate(post.createdAt)}</p>
                             </div>
                         </div>
@@ -7153,6 +7584,11 @@ function syncHeaderMokjangTitleDOM() {
                                 </span>
                                 <span class="text-xs" data-comment-count>${commentCount}</span>
                             </button>
+
+                            <span data-view-count-badge class="flex items-center space-x-1 text-[11px] text-slate-400 font-medium select-none pl-0.5" title="1일 1인 1회 조회수">
+                                <span>조회수</span>
+                                <span class="text-xs font-semibold text-slate-500 font-mono" data-view-count>${viewsCount}</span>
+                            </span>
                         </div>
 
                         <div class="relative flex items-center">
@@ -7205,6 +7641,19 @@ function syncHeaderMokjangTitleDOM() {
         function updatePostReactionDOM(postId, post) {
             const cardEl = document.getElementById(`post-card-${postId}`);
             if (!cardEl || !post) return false;
+
+            const authorNameEl = cardEl.querySelector('[data-author-name]');
+            if (authorNameEl && typeof window.formatAuthorNameWithTitle === 'function') {
+                authorNameEl.innerHTML = window.formatAuthorNameWithTitle(post.author, post);
+            }
+            const roleSlotEl = cardEl.querySelector('[data-author-role-slot]');
+            if (roleSlotEl && typeof window.renderAuthorRoleBadgeHtml === 'function') {
+                roleSlotEl.innerHTML = window.renderAuthorRoleBadgeHtml(post.author);
+            }
+            const viewCountEl = cardEl.querySelector('[data-view-count]');
+            if (viewCountEl) {
+                viewCountEl.textContent = String(Math.max(0, parseInt(post.views) || 0));
+            }
 
             const likeBtn = cardEl.querySelector('[data-reaction-btn="like"]');
             const hasLiked = Array.isArray(post.likedUsers) && post.likedUsers.includes(reactionUserId);
@@ -7275,7 +7724,7 @@ function syncHeaderMokjangTitleDOM() {
 
             const getPostMediaSignature = (p) => {
                 const imgs = Array.isArray(p.images) ? p.images.filter(Boolean) : (p.imageUrl ? [p.imageUrl] : []);
-                return `${p.id}|${imgs.length}|${imgs.join(',')}|${p.content || ''}|${p.fontFamily || ''}|${p.fileName || ''}|${p.longContent || ''}|${p.longFontSize || ''}`;
+                return `${p.id}|${imgs.length}|${imgs.join(',')}|${p.content || ''}|${p.fontFamily || ''}|${p.fileName || ''}|${p.longContent || ''}|${p.longFontSize || ''}|${p.videoId || ''}|${p.videoTitle || ''}`;
             };
             const existingArticles = Array.from(feedContainer.querySelectorAll('article[data-post-id]'));
             const existingSigs = existingArticles.map(a => a.getAttribute('data-post-sig') || '');
@@ -7296,6 +7745,7 @@ function syncHeaderMokjangTitleDOM() {
                 const card = buildPostCardElement(post);
                 feedContainer.appendChild(card);
                 if (postLayoutObserver) postLayoutObserver.observe(card);
+                if (typeof observePostCardForDailyView === 'function') observePostCardForDailyView(card);
             });
 
             if (displayedFeedCount < cachedPosts.length) {
@@ -7349,6 +7799,7 @@ function syncHeaderMokjangTitleDOM() {
                 const card = buildPostCardElement(post);
                 feedContainer.appendChild(card);
                 if (postLayoutObserver) postLayoutObserver.observe(card);
+                if (typeof observePostCardForDailyView === 'function') observePostCardForDailyView(card);
             });
 
             if (displayedFeedCount < cachedPosts.length) {
@@ -7414,7 +7865,8 @@ function syncHeaderMokjangTitleDOM() {
                     const hasValidContent = Boolean((data.content && data.content.trim()) || (data.longContent && data.longContent.trim()));
                     const hasValidImages = (Array.isArray(data.images) && data.images.length > 0) || Boolean(rawImg && rawImg.trim());
                     const hasValidFile = Boolean((data.fileName && data.fileName.trim()) || (data.fileId && data.fileId.trim()));
-                    if (!hasValidContent && !hasValidImages && !hasValidFile) return;
+                    const hasValidVideo = Boolean((data.videoId && String(data.videoId).trim()) || (data.videoUrl && String(data.videoUrl).trim()));
+                    if (!hasValidContent && !hasValidImages && !hasValidFile && !hasValidVideo) return;
 
                     const createdMs = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : (typeof data.createdAt === 'number' ? data.createdAt : new Date(data.createdAt || 0).getTime());
                     if (joinedLimit > 0 && currentUserRole !== 'leader' && createdMs > 0 && createdMs < joinedLimit) return;
@@ -7422,6 +7874,7 @@ function syncHeaderMokjangTitleDOM() {
                     data.likes = Math.max(0, parseInt(data.likes) || 0);
                     data.thumbsUp = Math.max(0, parseInt(data.thumbsUp) || 0);
                     data.prayers = Math.max(0, parseInt(data.prayers) || 0);
+                    data.views = Math.max(0, parseInt(data.views) || 0);
                     data._sortMs = createdMs || 0;
 
                     posts.push({ id: docSnap.id, ...data });
@@ -8467,22 +8920,34 @@ function getFormattedMokjangSpaceTitle(suffix) {
 }
 
 function getActiveMokjangCfg() {
-    const code = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || '').trim();
-    if (window.allMokjangConfigsMap && window.allMokjangConfigsMap[code]) {
+    const code = String(window.currentMokjangCode || localStorage.getItem("mokjang_active_code") || "").trim();
+    if (typeof window.getMergedMokjangConfigByCode === "function") {
+        const merged = window.getMergedMokjangConfigByCode(code);
+        if (merged && Object.keys(merged).length > 0) return merged;
+    }
+    if (code && window.allMokjangConfigsMap && window.allMokjangConfigsMap[code]) {
         return window.allMokjangConfigsMap[code];
     }
-    const cfg = (typeof window.getMergedMokjangConfigByCode === "function")
-        ? window.getMergedMokjangConfigByCode(code)
-        : (window.liveMokjangConfig || {});
-    return cfg || {};
+    if (window.liveMokjangConfig && Object.keys(window.liveMokjangConfig).length > 0) {
+        return window.liveMokjangConfig;
+    }
+    try {
+        if (code) {
+            const rawByCode = localStorage.getItem("mokjang_config_backup_" + code);
+            if (rawByCode) return JSON.parse(rawByCode);
+        }
+        const rawMain = localStorage.getItem("mokjang_config_backup");
+        if (rawMain) return JSON.parse(rawMain);
+    } catch (e) {}
+    return {};
 }
 
 window.getAuthorRoleLabel = function(authorName) {
-    const clean = String(authorName || "").trim();
+    const clean = String(authorName || "").trim().replace(/\s+(성도|집사|권사|안수집사|장로|간사|목사|전도사|사모|목자|부목자|목원)$/, "").trim();
     if (!clean) return "목원";
     const cfg = getActiveMokjangCfg();
     const rolesMap = (cfg && cfg.memberRoles && typeof cfg.memberRoles === "object") ? cfg.memberRoles : {};
-    if (rolesMap[clean] === "leader" || clean === cfg.leaderName || clean === configuredLeaderName || clean === "목자" || clean === "관리자") {
+    if (rolesMap[clean] === "leader" || clean === String(cfg.leaderName || "").trim() || clean === configuredLeaderName || clean === "목자" || clean === "관리자") {
         return "목자";
     }
     const subList = Array.isArray(cfg.subLeaders) ? cfg.subLeaders.map(s => String(s).trim()) : configuredSubLeaders;
@@ -8492,20 +8957,137 @@ window.getAuthorRoleLabel = function(authorName) {
     return "목원";
 };
 
-window.getAuthorChurchTitle = function(authorName) {
+window.getAuthorChurchTitle = function(authorName, postObj = null) {
+    if (postObj && postObj.authorTitle && String(postObj.authorTitle).trim()) {
+        return String(postObj.authorTitle).trim();
+    }
     const clean = String(authorName || "").trim();
-    if (!clean) return "";
-    const cfg = getActiveMokjangCfg();
-    const titlesMap = (cfg && cfg.memberTitles && typeof cfg.memberTitles === "object") ? cfg.memberTitles : {};
-    if (titlesMap[clean]) return String(titlesMap[clean]).trim();
-    if (Array.isArray(cfg.members)) {
-        for (let i = 0; i < cfg.members.length; i++) {
-            const m = cfg.members[i];
-            if (typeof m === "object" && m !== null && String(m.name || "").trim() === clean && m.title) {
-                return String(m.title).trim();
+    if (!clean || clean === "목장가족") return "";
+    const knownTitles = ["안수집사", "전도사", "성도", "집사", "권사", "장로", "간사", "목사", "사모"];
+
+    for (let i = 0; i < knownTitles.length; i++) {
+        const t = knownTitles[i];
+        const inlineRegex = new RegExp("[\\s(\\[/_-]" + t + "[)\\]]?$");
+        if (inlineRegex.test(clean)) return t;
+    }
+
+    const baseName = clean
+        .replace(/[(\[/_-](안수집사|전도사|성도|집사|권사|장로|간사|목사|사모|목자|부목자|목원)[)\]]?$/g, "")
+        .replace(/\s+(안수집사|전도사|성도|집사|권사|장로|간사|목사|사모|목자|부목자|목원)$/, "")
+        .trim();
+
+    const extractFromEntry = function(val) {
+        if (!val) return "";
+        if (typeof val === "string") {
+            const s = val.trim();
+            if (knownTitles.includes(s)) return s;
+            for (let k = 0; k < knownTitles.length; k++) {
+                if (s.includes(knownTitles[k])) return knownTitles[k];
+            }
+            return s;
+        }
+        if (typeof val === "object") {
+            const t = val.title || val.churchTitle || val.position || val.duty || val.jikbun || val.rank || val.grade || val.roleTitle || val.office || "";
+            return String(t).trim();
+        }
+        return "";
+    };
+
+    const searchInCfg = function(c) {
+        if (!c || typeof c !== "object") return "";
+        const maps = [c.memberTitles, c.titles, c.churchTitles, c.positions, c.memberPositions, c.jikbunMap, c.memberInfo, c.membersMap];
+        for (let mIdx = 0; mIdx < maps.length; mIdx++) {
+            const mapObj = maps[mIdx];
+            if (mapObj && typeof mapObj === "object" && !Array.isArray(mapObj)) {
+                if (mapObj[baseName]) {
+                    const r = extractFromEntry(mapObj[baseName]);
+                    if (r) return r;
+                }
+                if (mapObj[clean]) {
+                    const r = extractFromEntry(mapObj[clean]);
+                    if (r) return r;
+                }
+                const keys = Object.keys(mapObj);
+                for (let kIdx = 0; kIdx < keys.length; kIdx++) {
+                    const kName = keys[kIdx].trim();
+                    if (kName === baseName || kName.replace(/\s+/g, "") === baseName.replace(/\s+/g, "")) {
+                        const r = extractFromEntry(mapObj[keys[kIdx]]);
+                        if (r) return r;
+                    }
+                }
             }
         }
+        const lName = String(c.leaderName || "").trim().replace(/\s+(안수집사|전도사|성도|집사|권사|장로|간사|목사|사모)$/, "").trim();
+        if (baseName === lName) {
+            if (c.leaderTitle || c.leaderChurchTitle || c.leaderPosition) {
+                return String(c.leaderTitle || c.leaderChurchTitle || c.leaderPosition).trim();
+            }
+            for (let i = 0; i < knownTitles.length; i++) {
+                if (String(c.leaderName || "").includes(knownTitles[i])) return knownTitles[i];
+            }
+        }
+        const subName = String(c.subLeaderName || c.subleaderName || "").trim().replace(/\s+(안수집사|전도사|성도|집사|권사|장로|간사|목사|사모)$/, "").trim();
+        if (baseName && baseName === subName) {
+            if (c.subLeaderTitle || c.subleaderTitle || c.subLeaderPosition) {
+                return String(c.subLeaderTitle || c.subleaderTitle || c.subLeaderPosition).trim();
+            }
+            for (let i = 0; i < knownTitles.length; i++) {
+                if (String(c.subLeaderName || c.subleaderName || "").includes(knownTitles[i])) return knownTitles[i];
+            }
+        }
+        const arrList = [c.members, c.memberList, c.mokjangMembers, c.subLeaders];
+        for (let aIdx = 0; aIdx < arrList.length; aIdx++) {
+            const arr = arrList[aIdx];
+            if (!Array.isArray(arr)) continue;
+            for (let i = 0; i < arr.length; i++) {
+                const m = arr[i];
+                if (typeof m === "object" && m !== null) {
+                    const rawMName = String(m.name || m.userName || m.memberName || "").trim();
+                    const cleanMName = rawMName.replace(/[(\[/_\s-](안수집사|전도사|성도|집사|권사|장로|간사|목사|사모)[)\]]?$/, "").trim();
+                    if (rawMName === baseName || cleanMName === baseName || rawMName === clean) {
+                        const mTitle = extractFromEntry(m);
+                        if (mTitle) return mTitle;
+                        for (let k = 0; k < knownTitles.length; k++) {
+                            if (rawMName.includes(knownTitles[k])) return knownTitles[k];
+                        }
+                    }
+                } else if (typeof m === "string") {
+                    const strM = m.trim();
+                    if (strM.startsWith(baseName)) {
+                        const rest = strM.slice(baseName.length).replace(/^[\s(\[/_-]+|[)\]]+$/g, "").trim();
+                        if (rest && (knownTitles.includes(rest) || rest.length <= 4)) return rest;
+                    }
+                }
+            }
+        }
+        return "";
+    };
+
+    const activeCfg = getActiveMokjangCfg();
+    let found = searchInCfg(activeCfg);
+    if (found) return found;
+
+    if (window.liveMokjangConfig) {
+        found = searchInCfg(window.liveMokjangConfig);
+        if (found) return found;
     }
+    if (window.allMokjangConfigsMap && typeof window.allMokjangConfigsMap === "object") {
+        const keys = Object.keys(window.allMokjangConfigsMap);
+        for (let i = 0; i < keys.length; i++) {
+            found = searchInCfg(window.allMokjangConfigsMap[keys[i]]);
+            if (found) return found;
+        }
+    }
+    try {
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith("mokjang_config_backup")) {
+                const parsed = JSON.parse(localStorage.getItem(k) || "{}");
+                found = searchInCfg(parsed);
+                if (found) return found;
+            }
+        }
+    } catch (e) {}
     return "";
 };
 
@@ -8519,17 +9101,22 @@ window.renderAuthorRoleBadgeHtml = function(authorName) {
     return '<div class="px-2 h-6 rounded-full church-accent church-primary-text border border-emerald-200/80 flex items-center justify-center font-extrabold text-[10px] tracking-tight shrink-0 shadow-2xs select-none">목원</div>';
 };
 
-window.formatAuthorNameWithTitle = function(authorName) {
+window.formatAuthorNameWithTitle = function(authorName, postObj = null) {
     const raw = String(authorName || "목장가족").trim();
-    const knownTitles = ["성도", "집사", "권사", "안수집사", "장로", "간사"];
+    if (!raw || raw === "목장가족") return escapeHtml(raw);
+    const knownTitles = ["안수집사", "전도사", "성도", "집사", "권사", "장로", "간사", "목사", "사모"];
+    const baseName = raw
+        .replace(/[(\[/_-](안수집사|전도사|성도|집사|권사|장로|간사|목사|사모|목자|부목자|목원)[)\]]?$/g, "")
+        .replace(/\s+(안수집사|전도사|성도|집사|권사|장로|간사|목사|사모|목자|부목자|목원)$/, "")
+        .trim();
+    const title = window.getAuthorChurchTitle(raw, postObj);
+    if (title) {
+        return escapeHtml(baseName + " " + title);
+    }
     for (let i = 0; i < knownTitles.length; i++) {
         if (raw.endsWith(" " + knownTitles[i])) return escapeHtml(raw);
     }
-    const title = window.getAuthorChurchTitle(raw);
-    if (title) {
-        return escapeHtml(raw + " " + title);
-    }
-    return escapeHtml(raw);
+    return escapeHtml(baseName || raw);
 };
 
 window.openUserManualModal = function(event) {
@@ -9088,7 +9675,7 @@ window.syncLoginSessionToFeed = function(name, role, isAdmin, mokjangShort, code
     var cleanM = String(mokjangShort || "").trim().replace(/^세종꿈의교회\s*-?\s*/, "");
     currentMokjangShort = cleanM; currentMokjang = cleanM ? ("세종꿈의교회 " + cleanM) : "세종꿈의교회";
     if (typeof window.syncAdminGearVisibility === "function") window.syncAdminGearVisibility(role, name);
-    syncHeaderMokjangTitleDOM(); updateWelcomeUserDisplay(lastOnlineCount); loadMokjangFeed(); ensureMokjangFilesLoaded(); if (typeof window.checkAndAutoShowNoticeAfterLogin === "function") window.checkAndAutoShowNoticeAfterLogin();
+    syncHeaderMokjangTitleDOM(); if (typeof window.triggerPresenceHeartbeat === "function") window.triggerPresenceHeartbeat(); updateWelcomeUserDisplay(lastOnlineUsersList); loadMokjangFeed(); if (typeof renderFeedList === "function") renderFeedList(); ensureMokjangFilesLoaded(); if (typeof window.checkAndAutoShowNoticeAfterLogin === "function") window.checkAndAutoShowNoticeAfterLogin();
     if (typeof showNotification === "function") showNotification(name + "님 환영합니다!");
 };
 // [HOMESCREEN_AND_SHARE_V2_START]
