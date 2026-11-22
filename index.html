@@ -539,11 +539,12 @@
             pointer-events: auto !important;
             position: fixed !important;
             border-radius: 14px !important;
-            border: 1px solid rgba(255, 255, 255, 0.95) !important;
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34) !important;
-            background: rgba(15, 23, 42, 0.20) !important;
-            overflow: hidden !important;
+            border: 1.5px solid rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38) !important;
+            background: #000000 !important;
+            overflow: visible !important;
             touch-action: none !important;
+            cursor: move;
             will-change: left, top, width, transform, opacity;
         }
         #youtube-modal-card.yt-audio-minimized {
@@ -551,25 +552,54 @@
             pointer-events: none !important;
             left: -9999px !important;
         }
-        #yt-drag-handle-top, #yt-drag-handle-bottom {
-            background: transparent !important;
-            border: none !important;
-            color: #ffffff !important;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85) !important;
+        #youtube-ratio-box {
+            position: relative !important;
+            width: 100% !important;
+            aspect-ratio: 16 / 9 !important;
+            border-radius: 12px !important;
+            overflow: hidden !important;
+            background: #000000 !important;
         }
         #youtube-clean-iframe-wrapper {
-            transform-origin: top left !important;
-            will-change: transform;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        #youtube-clean-iframe-wrapper iframe {
+            width: 100% !important;
+            height: 100% !important;
+            border: 0 !important;
+            display: block !important;
         }
         #youtube-modal-card.yt-interacting iframe {
             pointer-events: none !important;
         }
         .yt-resize-corner {
             position: absolute;
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             z-index: 35;
             touch-action: none;
+        }
+        /* 우측 하단 크기조절 모서리와 간섭 없는 부드러운 볼록 소리유지 탭 */
+        #yt-bottom-convex-tab {
+            position: absolute;
+            right: 30px;
+            bottom: -22px;
+            z-index: 32;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-top: none;
+            border-bottom-left-radius: 9px;
+            border-bottom-right-radius: 9px;
+            padding: 3px 8px;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            user-select: none;
         }
     </style>
 </head>
@@ -1149,6 +1179,14 @@ window.proceedToExternalAdminPage = function() {
                         title="새로운 댓글 모아보기">
                     <span>💬</span>
                     <span id="unread-comments-badge" class="hidden absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-rose-500 text-white text-[8.5px] font-mono font-black flex items-center justify-center shadow-xs border border-white leading-none">0</span>
+                </button>
+
+                <!-- [소리유지 시 나타나는 연분홍 배경 + 흰색 음표 복귀 버튼] -->
+                <button type="button" onpointerdown="event.stopPropagation();" onclick="event.stopPropagation(); window.restoreMinimizedYoutubeModal(event)" 
+                        id="feed-bookmark-audio-btn" 
+                        class="hidden relative w-5 h-5 rounded-full bg-pink-300 hover:bg-pink-400 text-white items-center justify-center text-[9.5px] font-bold shadow-xs active:scale-90 transition-transform pointer-events-auto shrink-0 select-none animate-pulse" 
+                        title="터치하면 영상 화면이 복귀합니다">
+                    <i class="fa-solid fa-music text-[9px] text-white"></i>
                 </button>
             </div>
 
@@ -1972,12 +2010,9 @@ window.proceedToExternalAdminPage = function() {
 
     <!-- [유튜브 플로팅 PIP 모달창 v3.0: 멀티태스킹 소리유지 & 가는 흰색 실선 & 로고/제목 정비례 축소] -->
     <div id="youtube-clean-player-modal" class="fixed inset-0 z-[118] hidden select-none">
-        <div id="youtube-modal-card" style="width: 336px; left: 12px; top: 88px;" class="flex flex-col">
-            <div id="yt-drag-handle-top" class="w-full h-3.5 flex items-center justify-center cursor-move active:cursor-grabbing select-none" title="잡고 원하는 위치로 이동 / 사이드 끝으로 밀면 닫기(체크 시 소리 유지)">
-                <div id="yt-top-bar-line" class="w-8 h-[2px] rounded-full bg-white shadow-2xs"></div>
-            </div>
-            <div id="youtube-ratio-box" class="relative w-full overflow-hidden bg-transparent" style="height: 189px;">
-                <div id="youtube-clean-iframe-wrapper" class="absolute top-0 left-0" style="width: 480px; height: 270px;"></div>
+        <div id="youtube-modal-card" style="width: 320px; left: 16px; top: 88px;" class="flex flex-col">
+            <div id="youtube-ratio-box" class="relative w-full overflow-hidden bg-black">
+                <div id="youtube-clean-iframe-wrapper"></div>
                 <div id="youtube-deleted-error-box" class="hidden absolute inset-0 w-full h-full bg-slate-900/90 flex-col items-center justify-center p-3 text-center space-y-1.5 z-25">
                     <div class="text-xl leading-none animate-bounce">😊</div>
                     <p class="text-white font-extrabold text-[11px] leading-snug break-keep">
@@ -1988,30 +2023,22 @@ window.proceedToExternalAdminPage = function() {
                     </button>
                 </div>
             </div>
-            <div id="yt-drag-handle-bottom" class="w-full h-4 px-2 flex items-center justify-between text-white font-bold cursor-move active:cursor-grabbing select-none">
-                <label onpointerdown="event.stopPropagation();" onclick="event.stopPropagation();" class="inline-flex items-center space-x-1 cursor-pointer select-none" title="체크하면 창을 옆으로 밀어 숨겨도 소리가 계속 나옵니다">
-                    <input type="checkbox" id="yt-modal-keep-audio-chk" onchange="window.toggleKeepYoutubeAudio(this.checked)" class="w-3 h-3 accent-rose-600 rounded-xs cursor-pointer">
-                    <span id="yt-modal-keep-audio-label" style="font-size: 9px;" class="text-white leading-none">소리유지</span>
-                </label>
-                <span id="yt-bottom-help-text" style="font-size: 9px;" class="tracking-tight leading-none mx-auto pr-3">◀ 이동 · 밀면 닫기 ▶</span>
-            </div>
+
+            <!-- 우측 하단 크기조절 모서리와 간섭 없는 부드러운 볼록 소리유지 탭 -->
+            <label id="yt-bottom-convex-tab" onpointerdown="event.stopPropagation();" onclick="event.stopPropagation();" title="체크하면 창을 어느 방향으로든 밀어 숨겨도 소리가 계속 나옵니다">
+                <input type="checkbox" id="yt-modal-keep-audio-chk" onchange="window.toggleKeepYoutubeAudio(this.checked)" class="w-3 h-3 accent-rose-500 rounded-xs cursor-pointer">
+                <span class="text-white text-[9.5px] font-extrabold tracking-tight leading-none ml-1">소리유지</span>
+            </label>
+
+            <!-- 4개 모서리 크기 조절 핸들 -->
             <div class="yt-resize-corner top-0 left-0 cursor-nwse-resize" data-corner="nw" title="모서리 잡고 크기 조절"></div>
             <div class="yt-resize-corner top-0 right-0 cursor-nesw-resize" data-corner="ne" title="모서리 잡고 크기 조절"></div>
-            <div class="yt-resize-corner bottom-0 left-0 cursor-nesw-resize flex items-end justify-start p-[0.5px]" data-corner="sw" title="모서리 잡고 크기 조절">
-                <span class="w-2 h-2 border-b-[1.5px] border-l-[1.5px] border-white rounded-bl-[2px] pointer-events-none"></span>
+            <div class="yt-resize-corner bottom-0 left-0 cursor-nesw-resize flex items-end justify-start p-[1px]" data-corner="sw" title="모서리 잡고 크기 조절">
+                <span class="w-2.5 h-2.5 border-b-2 border-l-2 border-white rounded-bl-[3px] pointer-events-none drop-shadow"></span>
             </div>
-            <div class="yt-resize-corner bottom-0 right-0 cursor-nwse-resize flex items-end justify-end p-[0.5px]" data-corner="se" title="모서리 잡고 크기 조절">
-                <span class="w-2 h-2 border-b-[1.5px] border-r-[1.5px] border-white rounded-br-[2px] pointer-events-none"></span>
+            <div class="yt-resize-corner bottom-0 right-0 cursor-nwse-resize flex items-end justify-end p-[1px]" data-corner="se" title="모서리 잡고 크기 조절">
+                <span class="w-2.5 h-2.5 border-b-2 border-r-2 border-white rounded-br-[3px] pointer-events-none drop-shadow"></span>
             </div>
-        </div>
-        <div id="yt-minimized-audio-pill" style="pointer-events: auto; top: 105px;" class="hidden fixed right-0 z-[119] bg-rose-600/90 hover:bg-rose-600 text-white rounded-l-full pl-2 pr-1.5 py-1 shadow-lg border-y border-l border-white/80 items-center space-x-1 cursor-pointer active:scale-95 transition-all">
-            <span onclick="window.restoreMinimizedYoutubeModal(event)" class="flex items-center space-x-1 text-[10.5px] font-extrabold" title="터치하면 영상 창이 다시 나타납니다">
-                <span class="animate-pulse">🎵</span>
-                <span>영상켜기</span>
-            </span>
-            <button type="button" onclick="window.closeYoutubeCleanPlayerModal(event, true)" class="w-4 h-4 rounded-full bg-black/25 hover:bg-black/40 text-white flex items-center justify-center text-[9px] ml-0.5" title="소리 완전히 끄기">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
         </div>
     </div>
 
@@ -4777,41 +4804,29 @@ function syncHeaderMokjangTitleDOM() {
 
         function applyYtPipRectToDom() {
             const card = document.getElementById('youtube-modal-card');
-            const ratioBox = document.getElementById('youtube-ratio-box');
-            const iframeWrap = document.getElementById('youtube-clean-iframe-wrapper');
-            const botText = document.getElementById('yt-bottom-help-text');
-            const keepLabel = document.getElementById('yt-modal-keep-audio-label');
-            const topBarLine = document.getElementById('yt-top-bar-line');
-            const topHandle = document.getElementById('yt-drag-handle-top');
-            const botHandle = document.getElementById('yt-drag-handle-bottom');
             if (!card) return;
 
             const w = Math.round(ytPipRect.width);
-            const videoH = Math.round(w * 9 / 16);
-            const baseW = 480;
-            const baseH = 270;
-            const scale = w / baseW;
-            const uiRatio = w / 336;
-
             card.style.width = w + 'px';
             if (!card.classList.contains('yt-audio-minimized')) {
                 card.style.left = Math.round(ytPipRect.left) + 'px';
             }
             card.style.top = Math.round(ytPipRect.top) + 'px';
-
-            if (ratioBox) ratioBox.style.height = videoH + 'px';
-            if (iframeWrap) {
-                iframeWrap.style.width = baseW + 'px';
-                iframeWrap.style.height = baseH + 'px';
-                iframeWrap.style.transform = 'scale(' + scale.toFixed(4) + ')';
-            }
-            if (topHandle) topHandle.style.height = Math.max(10, Math.min(18, Math.round(14 * uiRatio))) + 'px';
-            if (botHandle) botHandle.style.height = Math.max(13, Math.min(22, Math.round(17 * uiRatio))) + 'px';
-            const fontPx = Math.max(7, Math.min(11, (9 * uiRatio))).toFixed(1) + 'px';
-            if (botText) botText.style.fontSize = fontPx;
-            if (keepLabel) keepLabel.style.fontSize = fontPx;
-            if (topBarLine) topBarLine.style.width = Math.max(18, Math.min(46, Math.round(32 * uiRatio))) + 'px';
         }
+
+        window.restoreMinimizedYoutubeModal = function(event) {
+            if (event && event.stopPropagation) event.stopPropagation();
+            const card = document.getElementById('youtube-modal-card');
+            const audioBtn = document.getElementById('feed-bookmark-audio-btn');
+            if (audioBtn) { audioBtn.classList.add('hidden'); audioBtn.classList.remove('flex'); }
+            if (card) {
+                card.classList.remove('yt-audio-minimized');
+                card.style.transition = 'transform 0.24s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.22s ease';
+                card.style.transform = 'translate(0px, 0px)';
+                card.style.opacity = '1';
+                applyYtPipRectToDom();
+            }
+        };
 
         function initYoutubePipInteractions() {
             if (isYtPipInteractionsBound) return;
@@ -4821,23 +4836,23 @@ function syncHeaderMokjangTitleDOM() {
 
             let mode = null;
             let startX = 0, startY = 0;
-            let startRect = { left: 0, top: 0, width: 336 };
-            let lastMoveTime = 0, velocityX = 0, lastClientX = 0;
+            let startRect = { left: 0, top: 0, width: 320 };
+            let lastMoveTime = 0, velX = 0, velY = 0, lastClientX = 0, lastClientY = 0;
 
             card.addEventListener('pointerdown', function(e) {
                 if (e.target.closest('input, label, button')) return;
                 const cornerEl = e.target.closest('.yt-resize-corner');
-                const handleEl = e.target.closest('#yt-drag-handle-top, #yt-drag-handle-bottom');
-                if (!cornerEl && !handleEl) return;
+                mode = cornerEl ? cornerEl.getAttribute('data-corner') : 'move';
 
                 e.preventDefault();
                 e.stopPropagation();
-                mode = cornerEl ? cornerEl.getAttribute('data-corner') : 'move';
                 startX = e.clientX;
                 startY = e.clientY;
                 lastClientX = e.clientX;
+                lastClientY = e.clientY;
                 lastMoveTime = Date.now();
-                velocityX = 0;
+                velX = 0;
+                velY = 0;
                 startRect = { ...ytPipRect };
 
                 card.style.transition = 'none';
@@ -4852,8 +4867,10 @@ function syncHeaderMokjangTitleDOM() {
 
                 const now = Date.now();
                 const dt = Math.max(1, now - lastMoveTime);
-                velocityX = (e.clientX - lastClientX) / dt;
+                velX = (e.clientX - lastClientX) / dt;
+                velY = (e.clientY - lastClientY) / dt;
                 lastClientX = e.clientX;
+                lastClientY = e.clientY;
                 lastMoveTime = now;
 
                 const dx = e.clientX - startX;
@@ -4863,14 +4880,26 @@ function syncHeaderMokjangTitleDOM() {
 
                 if (mode === 'move') {
                     ytPipRect.left = startRect.left + dx;
-                    ytPipRect.top = Math.max(4, Math.min(vh - 50, startRect.top + dy));
-                    const centerX = ytPipRect.left + (ytPipRect.width / 2);
-                    const distFromEdge = Math.min(centerX, vw - centerX);
-                    card.style.opacity = distFromEdge < 45 ? String(Math.max(0.25, distFromEdge / 45)) : '1';
-                    applyYtPipRectToDom();
+                    ytPipRect.top = startRect.top + dy;
+                    card.style.left = Math.round(ytPipRect.left) + 'px';
+                    card.style.top = Math.round(ytPipRect.top) + 'px';
+
+                    const cardW = ytPipRect.width;
+                    const cardH = (cardW * 9 / 16);
+                    const outLeft = Math.max(0, -ytPipRect.left);
+                    const outRight = Math.max(0, (ytPipRect.left + cardW) - vw);
+                    const outTop = Math.max(0, -ytPipRect.top);
+                    const outBottom = Math.max(0, (ytPipRect.top + cardH) - vh);
+                    const maxOut = Math.max(outLeft, outRight, outTop, outBottom);
+
+                    if (maxOut > 25) {
+                        card.style.opacity = String(Math.max(0.3, 1 - (maxOut - 25) / (cardW * 0.45)));
+                    } else {
+                        card.style.opacity = '1';
+                    }
                 } else {
-                    const minW = 160;
-                    const maxW = Math.min(760, vw - 10);
+                    const minW = 180;
+                    const maxW = Math.min(680, vw - 16);
                     let newW = startRect.width;
                     let newLeft = startRect.left;
                     let newTop = startRect.top;
@@ -4882,12 +4911,12 @@ function syncHeaderMokjangTitleDOM() {
                         newLeft = startRect.left + (startRect.width - newW);
                     }
                     if (mode === 'nw' || mode === 'ne') {
-                        const oldH = (startRect.width * 9 / 16) + 30;
-                        const newH = (newW * 9 / 16) + 30;
-                        newTop = Math.max(4, startRect.top + (oldH - newH));
+                        const oldH = (startRect.width * 9 / 16);
+                        const newH = (newW * 9 / 16);
+                        newTop = startRect.top + (oldH - newH);
                     }
                     ytPipRect.width = newW;
-                    ytPipRect.left = Math.max(2, Math.min(vw - newW - 2, newLeft));
+                    ytPipRect.left = newLeft;
                     ytPipRect.top = newTop;
                     applyYtPipRectToDom();
                 }
@@ -4902,20 +4931,32 @@ function syncHeaderMokjangTitleDOM() {
 
                 if (endedMode === 'move') {
                     const vw = window.innerWidth;
+                    const vh = window.innerHeight;
                     const w = ytPipRect.width;
-                    const rightEdge = ytPipRect.left + w;
-                    const isPushedLeftOut = (ytPipRect.left < -w * 0.28) || (ytPipRect.left < 15 && velocityX < -0.65);
-                    const isPushedRightOut = (rightEdge > vw + w * 0.28) || (rightEdge > vw - 15 && velocityX > 0.65);
+                    const h = w * 9 / 16;
 
-                    card.style.transition = 'transform 0.22s ease, opacity 0.22s ease, left 0.18s ease';
-                    if (isPushedLeftOut || isPushedRightOut) {
-                        ytPipRect.left = Math.max(8, Math.min(vw - w - 8, startRect.left));
-                        card.style.transform = 'translateX(' + (isPushedLeftOut ? -vw : vw) + 'px)';
+                    const isOutLeft = (ytPipRect.left < -w * 0.25) || (velX < -0.7);
+                    const isOutRight = (ytPipRect.left + w > vw + w * 0.25) || (velX > 0.7);
+                    const isOutTop = (ytPipRect.top < -h * 0.3) || (velY < -0.7);
+                    const isOutBottom = (ytPipRect.top + h > vh + h * 0.3) || (velY > 0.7);
+
+                    if (isOutLeft || isOutRight || isOutTop || isOutBottom) {
+                        card.style.transition = 'transform 0.22s ease-out, opacity 0.22s ease-out';
+                        let transX = 0, transY = 0;
+                        if (isOutLeft) transX = -vw;
+                        else if (isOutRight) transX = vw;
+                        if (isOutTop) transY = -vh;
+                        else if (isOutBottom) transY = vh;
+
+                        card.style.transform = 'translate(' + transX + 'px, ' + transY + 'px)';
                         card.style.opacity = '0';
-                        setTimeout(() => window.closeYoutubeCleanPlayerModal(null, false), 190);
+                        setTimeout(() => window.closeYoutubeCleanPlayerModal(null, false), 200);
                         return;
                     }
+
                     ytPipRect.left = Math.max(4, Math.min(vw - w - 4, ytPipRect.left));
+                    ytPipRect.top = Math.max(50, Math.min(vh - h - 35, ytPipRect.top));
+                    card.style.transition = 'left 0.18s ease, top 0.18s ease, opacity 0.18s ease';
                     card.style.opacity = '1';
                     applyYtPipRectToDom();
                 }
@@ -4924,13 +4965,6 @@ function syncHeaderMokjangTitleDOM() {
             card.addEventListener('pointerup', finishInteraction);
             card.addEventListener('pointercancel', finishInteraction);
         }
-
-        window.showDeletedYoutubeMessage = function() {
-            const errBox = document.getElementById('youtube-deleted-error-box');
-            const wrap = document.getElementById('youtube-clean-iframe-wrapper');
-            if (wrap) wrap.innerHTML = '';
-            if (errBox) { errBox.classList.remove('hidden'); errBox.classList.add('flex'); }
-        };
 
         window.openYoutubeCleanPlayerModal = function(videoIdOrUrl, event) {
             if (event && event.preventDefault) { event.preventDefault(); event.stopPropagation(); }
@@ -4941,12 +4975,12 @@ function syncHeaderMokjangTitleDOM() {
             const card = document.getElementById('youtube-modal-card');
             const wrap = document.getElementById('youtube-clean-iframe-wrapper');
             const errBox = document.getElementById('youtube-deleted-error-box');
-            const pill = document.getElementById('yt-minimized-audio-pill');
+            const audioBtn = document.getElementById('feed-bookmark-audio-btn');
             const modalChk = document.getElementById('yt-modal-keep-audio-chk');
             if (!modal || !card) return;
 
             if (modalChk) modalChk.checked = keepYoutubeAudioOnHide;
-            if (pill) { pill.classList.add('hidden'); pill.classList.remove('flex'); }
+            if (audioBtn) { audioBtn.classList.add('hidden'); audioBtn.classList.remove('flex'); }
 
             if (!modal.classList.contains('hidden') && card.classList.contains('yt-audio-minimized') && currentPlayingVid === vid && wrap && wrap.innerHTML !== '') {
                 window.restoreMinimizedYoutubeModal();
@@ -4955,17 +4989,17 @@ function syncHeaderMokjangTitleDOM() {
 
             if (modal.classList.contains('hidden')) {
                 const vw = window.innerWidth;
-                const initW = Math.min(400, Math.max(240, vw - 24));
+                const initW = Math.min(340, Math.max(260, Math.round(vw * 0.88)));
                 ytPipRect = {
                     width: initW,
                     left: Math.round((vw - initW) / 2),
-                    top: Math.max(64, Math.round(window.innerHeight * 0.18))
+                    top: Math.max(68, Math.round(window.innerHeight * 0.18))
                 };
             }
 
             card.classList.remove('yt-audio-minimized');
             card.style.transition = 'none';
-            card.style.transform = 'translateX(0px)';
+            card.style.transform = 'translate(0px, 0px)';
             card.style.opacity = '1';
             applyYtPipRectToDom();
 
@@ -4982,7 +5016,7 @@ function syncHeaderMokjangTitleDOM() {
 
             const embedUrl = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(vid) + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&fs=1&iv_load_policy=3&cc_load_policy=0&hl=ko';
             if (wrap) {
-                wrap.innerHTML = '<iframe src="' + embedUrl + '" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+                wrap.innerHTML = '<iframe src="' + embedUrl + '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>';
             }
         };
 
@@ -4993,18 +5027,20 @@ function syncHeaderMokjangTitleDOM() {
             const card = document.getElementById('youtube-modal-card');
             const wrap = document.getElementById('youtube-clean-iframe-wrapper');
             const errBox = document.getElementById('youtube-deleted-error-box');
-            const pill = document.getElementById('yt-minimized-audio-pill');
+            const audioBtn = document.getElementById('feed-bookmark-audio-btn');
             const isErrorShowing = errBox && !errBox.classList.contains('hidden');
 
             if (keepYoutubeAudioOnHide && !forceStop && !isErrorShowing && wrap && wrap.innerHTML !== '') {
                 if (card) {
-                    card.style.transform = 'translateX(0px)';
+                    card.style.transform = 'translate(0px, 0px)';
                     card.classList.add('yt-audio-minimized');
                 }
-                if (pill) {
-                    pill.style.top = Math.max(60, Math.min(window.innerHeight - 60, Math.round(ytPipRect.top))) + 'px';
-                    pill.classList.remove('hidden');
-                    pill.classList.add('flex');
+                if (audioBtn) {
+                    audioBtn.classList.remove('hidden');
+                    audioBtn.classList.add('flex');
+                }
+                if (typeof showNotification === 'function') {
+                    showNotification('소리 재생 중 🎵 (책갈피 핑크 음표를 누르면 영상이 복귀합니다)');
                 }
                 return;
             }
@@ -5012,10 +5048,10 @@ function syncHeaderMokjangTitleDOM() {
             currentPlayingVid = '';
             if (wrap) wrap.innerHTML = '';
             if (errBox) { errBox.classList.add('hidden'); errBox.classList.remove('flex'); }
-            if (pill) { pill.classList.add('hidden'); pill.classList.remove('flex'); }
+            if (audioBtn) { audioBtn.classList.add('hidden'); audioBtn.classList.remove('flex'); }
             if (card) {
                 card.classList.remove('yt-audio-minimized');
-                card.style.transform = 'translateX(0px)';
+                card.style.transform = 'translate(0px, 0px)';
                 card.style.opacity = '1';
             }
             if (modal) { modal.classList.add('hidden'); }
