@@ -529,38 +529,21 @@
             animation: slowNoticeSwing 5.5s ease-in-out infinite !important;
             transform-origin: top center !important;
         }
-    
-        /* [PATCH v2.0: 유튜브 다중 입력창 16px 고정 & 모바일 세로->가로 전체화면 전환 스타일] */
+            /* [PATCH v2.1: 유튜브 다중 입력창 16px 고정 & 모바일 세로->가로 전체화면 전환 스타일] */
         #post-video-title, input[id^="post-video-url-"] { font-size: 16px !important; }
         #youtube-clean-player-modal.yt-landscape-active { padding: 0 !important; background: #000 !important; }
         #youtube-clean-player-modal.yt-landscape-active #youtube-modal-card {
-            max-width: none !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            height: 100dvh !important;
-            border-radius: 0 !important;
-            border: none !important;
-            display: flex !important;
-            flex-direction: column !important;
-            background: #000 !important;
+            max-width: none !important; width: 100vw !important; height: 100vh !important; height: 100dvh !important;
+            border-radius: 0 !important; border: none !important; display: flex !important; flex-direction: column !important; background: #000 !important;
         }
         #youtube-clean-player-modal.yt-landscape-active #youtube-ratio-box {
-            padding-bottom: 0 !important;
-            flex: 1 !important;
-            width: 100% !important;
-            height: 100% !important;
+            padding-bottom: 0 !important; flex: 1 !important; width: 100% !important; height: 100% !important;
         }
         @media (orientation: portrait) {
             #youtube-clean-player-modal.yt-landscape-active #youtube-modal-card {
-                position: fixed !important;
-                top: 50% !important;
-                left: 50% !important;
-                width: 100vh !important;
-                width: 100dvh !important;
-                height: 100vw !important;
-                transform: translate(-50%, -50%) rotate(90deg) !important;
-                transform-origin: center center !important;
-                z-index: 9999 !important;
+                position: fixed !important; top: 50% !important; left: 50% !important;
+                width: 100vh !important; width: 100dvh !important; height: 100vw !important;
+                transform: translate(-50%, -50%) rotate(90deg) !important; transform-origin: center center !important; z-index: 9999 !important;
             }
         }
     </style>
@@ -1363,7 +1346,6 @@ window.proceedToExternalAdminPage = function() {
                         <span id="attached-file-indicator" class="text-gray-400 font-medium">0개 첨부</span>
                     </div>
 
-                    <!-- [신규 v2.0: 유튜브 영상 제목(20자) 및 다중 링크(최대 3개, 두꺼운 '+' 버튼) 입력 박스] -->
                     <div id="attached-video-display" class="hidden flex-col space-y-2 p-2.5 bg-pink-50/40 rounded-xl border border-pink-200/90 text-xs">
                         <div class="flex items-center justify-between border-b border-pink-200/60 pb-1">
                             <div class="flex items-center space-x-1.5 font-extrabold text-rose-900">
@@ -1972,10 +1954,9 @@ window.proceedToExternalAdminPage = function() {
         </div>
     </div>
 
-    <!-- [유튜브 모바일 세로보기 즉시 오픈 & 플레이 시 가로보기 전환 클린 모달창 v2.0] -->
+    <!-- [유튜브 모바일 세로보기 즉시 오픈 & 플레이 시 가로보기 전환 클린 모달창 v2.1] -->
     <div id="youtube-clean-player-modal" onclick="window.closeYoutubeCleanPlayerModal(event)" class="fixed inset-0 z-[118] bg-black/80 hidden flex-col items-center justify-center p-3 select-none" style="touch-action: none;">
         <div id="youtube-modal-card" onclick="event.stopPropagation()" class="w-full max-w-[368px] bg-[#14171A] rounded-2xl border border-slate-700/90 shadow-2xl overflow-hidden flex flex-col transition-all duration-200">
-            <!-- 상단 헤더 바 -->
             <div class="flex items-center justify-between px-3 py-2 bg-[#1F2428] border-b border-slate-700/80 shrink-0">
                 <div class="flex items-center space-x-1.5 truncate mr-2">
                     <span id="youtube-clean-modal-badge" class="px-1.5 py-0.5 rounded bg-pink-100 text-rose-900 text-[10px] font-black shrink-0">🎬 보기</span>
@@ -1992,10 +1973,8 @@ window.proceedToExternalAdminPage = function() {
                     </button>
                 </div>
             </div>
-            <!-- 영상 플레이어 영역 -->
             <div id="youtube-ratio-box" class="relative w-full bg-black" style="padding-bottom: 56.25%;">
                 <div id="youtube-clean-iframe-wrapper" class="absolute inset-0 w-full h-full"></div>
-                <!-- 영상이 삭제되었거나 재생 불가할 때 뜨는 안내 박스 -->
                 <div id="youtube-deleted-error-box" class="hidden absolute inset-0 w-full h-full bg-slate-900 flex-col items-center justify-center p-4 text-center space-y-2.5 z-20">
                     <div class="text-3xl leading-none animate-bounce">😊</div>
                     <p class="text-white font-extrabold text-xs sm:text-sm leading-relaxed break-keep">
@@ -2006,7 +1985,6 @@ window.proceedToExternalAdminPage = function() {
                     </button>
                 </div>
             </div>
-            <!-- 하단 컨트롤 바: 영상 플레이(재생) 시작 시 '가로보기' 버튼이 나타남 -->
             <div id="yt-bottom-control-bar" class="hidden px-3 py-2 bg-[#1A1D21] border-t border-slate-800 items-center justify-between shrink-0">
                 <span class="text-[11px] text-slate-300 font-medium flex items-center space-x-1">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping inline-block"></span>
@@ -4624,7 +4602,7 @@ function syncHeaderMokjangTitleDOM() {
 
         let currentAttachedFile = null;
         let isVideoLinkBoxOpen = false;
-        let videoUrlsDraft = ['']; // 최대 3개 유튜브 주소 저장 배열
+        let videoUrlsDraft = [''];
         let ytIframeApiReady = false;
         let currentYtPlayerInstance = null;
         let isYtLandscapeMode = false;
@@ -4634,7 +4612,7 @@ function syncHeaderMokjangTitleDOM() {
             if (ytIframeApiReady || window.YT) { ytIframeApiReady = true; return; }
             ytIframeApiReady = true;
             const s = document.createElement('script');
-            s.src = "https://www.youtube.com/iframe_api";
+            s.src = 'https://www.youtube.com/iframe_api';
             s.async = true;
             document.head.appendChild(s);
         }
@@ -4650,9 +4628,7 @@ function syncHeaderMokjangTitleDOM() {
 
         window.openVideoLinkAttachment = function() {
             isVideoLinkBoxOpen = true;
-            if (!Array.isArray(videoUrlsDraft) || videoUrlsDraft.length === 0) {
-                videoUrlsDraft = [''];
-            }
+            if (!Array.isArray(videoUrlsDraft) || videoUrlsDraft.length === 0) videoUrlsDraft = [''];
             renderAttachedVideoUI();
             const titleEl = document.getElementById('post-video-title');
             if (titleEl) setTimeout(() => titleEl.focus(), 60);
@@ -4664,13 +4640,13 @@ function syncHeaderMokjangTitleDOM() {
             const titleEl = document.getElementById('post-video-title');
             if (titleEl) titleEl.value = '';
             renderAttachedVideoUI();
-            showNotification("영상 링크가 제외되었습니다.");
+            showNotification('영상 링크가 제외되었습니다.');
         };
 
         window.addVideoUrlSlot = function() {
             syncVideoUrlsFromDOM();
             if (videoUrlsDraft.length >= 3) {
-                showNotification("유튜브 영상 링크는 최대 3개까지만 추가할 수 있습니다.");
+                showNotification('유튜브 영상 링크는 최대 3개까지만 추가할 수 있습니다.');
                 return;
             }
             videoUrlsDraft.push('');
@@ -4682,11 +4658,8 @@ function syncHeaderMokjangTitleDOM() {
 
         window.removeVideoUrlSlot = function(slotIdx) {
             syncVideoUrlsFromDOM();
-            if (videoUrlsDraft.length <= 1) {
-                videoUrlsDraft = [''];
-            } else {
-                videoUrlsDraft.splice(slotIdx, 1);
-            }
+            if (videoUrlsDraft.length <= 1) { videoUrlsDraft = ['']; }
+            else { videoUrlsDraft.splice(slotIdx, 1); }
             renderVideoUrlInputsList();
         };
 
@@ -4711,13 +4684,10 @@ function syncHeaderMokjangTitleDOM() {
             const badge = document.getElementById('video-url-status-indicator');
             const countBadge = document.getElementById('video-url-count-badge');
             const addBtn = document.getElementById('add-video-url-slot-btn');
-            if (countBadge) countBadge.innerText = `(${videoUrlsDraft.length}/3)`;
+            if (countBadge) countBadge.innerText = '(' + videoUrlsDraft.length + '/3)';
             if (addBtn) {
-                if (videoUrlsDraft.length >= 3) {
-                    addBtn.classList.add('opacity-40');
-                } else {
-                    addBtn.classList.remove('opacity-40');
-                }
+                if (videoUrlsDraft.length >= 3) addBtn.classList.add('opacity-40');
+                else addBtn.classList.remove('opacity-40');
             }
             if (!badge) return;
             const nonEmpty = videoUrlsDraft.map(u => String(u || '').trim()).filter(Boolean);
@@ -4728,7 +4698,7 @@ function syncHeaderMokjangTitleDOM() {
             }
             const allValid = nonEmpty.every(u => Boolean(window.extractYoutubeId(u)));
             if (allValid) {
-                badge.innerText = `✓ ${nonEmpty.length}개 링크 확인됨`;
+                badge.innerText = '✓ ' + nonEmpty.length + '개 링크 확인됨';
                 badge.className = 'text-emerald-700 font-extrabold text-[9.5px]';
             } else {
                 badge.innerText = '⚠ 주소를 확인해 주세요';
@@ -4741,29 +4711,22 @@ function syncHeaderMokjangTitleDOM() {
             if (!listEl) return;
             if (!Array.isArray(videoUrlsDraft) || videoUrlsDraft.length === 0) videoUrlsDraft = [''];
             videoUrlsDraft = videoUrlsDraft.slice(0, 3);
-
-            listEl.innerHTML = videoUrlsDraft.map((urlVal, idx) => `
-                <div class="flex items-center space-x-1">
-                    <span class="w-4 text-[10px] font-mono font-bold text-rose-800 shrink-0 text-center">${idx + 1}.</span>
-                    <input type="url" id="post-video-url-${idx}" value="${escapeHtml(urlVal || '')}"
-                           oninput="handleMultiVideoUrlInput(${idx}, this)"
-                           placeholder="https://youtu.be/... 유튜브 주소 ${idx + 1}"
-                           class="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg border border-pink-200 bg-white text-xs text-gray-800 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-300 transition-all">
-                    ${videoUrlsDraft.length > 1 ? `
-                        <button type="button" onclick="removeVideoUrlSlot(${idx})" class="w-6 h-6 rounded-lg bg-white hover:bg-rose-50 text-gray-400 hover:text-rose-600 border border-pink-200 flex items-center justify-center shrink-0 active:scale-90" title="이 링크 삭제">
-                            <i class="fa-solid fa-minus text-[10px]"></i>
-                        </button>
-                    ` : ''}
-                </div>
-            `).join('');
-
+            listEl.innerHTML = videoUrlsDraft.map((urlVal, idx) => {
+                const delBtn = videoUrlsDraft.length > 1
+                    ? '<button type="button" onclick="removeVideoUrlSlot(' + idx + ')" class="w-6 h-6 rounded-lg bg-white hover:bg-rose-50 text-gray-400 hover:text-rose-600 border border-pink-200 flex items-center justify-center shrink-0 active:scale-90" title="이 링크 삭제"><i class="fa-solid fa-minus text-[10px]"></i></button>'
+                    : '';
+                return '<div class="flex items-center space-x-1">' +
+                    '<span class="w-4 text-[10px] font-mono font-bold text-rose-800 shrink-0 text-center">' + (idx + 1) + '.</span>' +
+                    '<input type="url" id="post-video-url-' + idx + '" value="' + escapeHtml(urlVal || '') + '" oninput="handleMultiVideoUrlInput(' + idx + ', this)" placeholder="https://youtu.be/... 유튜브 주소 ' + (idx + 1) + '" class="flex-1 min-w-0 px-2.5 py-1.5 rounded-lg border border-pink-200 bg-white text-xs text-gray-800 focus:outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-300 transition-all">' +
+                    delBtn + '</div>';
+            }).join('');
             updateVideoUrlStatusIndicator();
             updateCombinedAttachIndicator();
         }
 
         window.updateVideoTitleCharCount = function(input) {
             const ind = document.getElementById('video-title-char-indicator');
-            if (ind) ind.innerText = `${input.value.length} / 20자`;
+            if (ind) ind.innerText = input.value.length + ' / 20자';
             updateCombinedAttachIndicator();
         };
 
@@ -4774,8 +4737,8 @@ function syncHeaderMokjangTitleDOM() {
             const nonEmptyUrls = (videoUrlsDraft || []).map(u => String(u || '').trim()).filter(Boolean);
             const hasVideo = isVideoLinkBoxOpen && (nonEmptyUrls.length > 0 || (titleEl && titleEl.value.trim()));
             const hasFile = Boolean(currentAttachedFile);
-            const count = (hasVideo ? nonEmptyUrls.length || 1 : 0) + (hasFile ? 1 : 0);
-            indEl.innerText = count > 0 ? `${count}개 첨부됨` : "0개 첨부";
+            const count = (hasVideo ? (nonEmptyUrls.length || 1) : 0) + (hasFile ? 1 : 0);
+            indEl.innerText = count > 0 ? (count + '개 첨부됨') : '0개 첨부';
         }
 
         function renderAttachedVideoUI() {
@@ -4796,7 +4759,6 @@ function syncHeaderMokjangTitleDOM() {
             updateCombinedAttachIndicator();
         }
 
-        // 플레이(재생) 시작 시 '가로보기' 버튼을 노출하는 함수
         window.revealYoutubeLandscapeButton = function() {
             const errBox = document.getElementById('youtube-deleted-error-box');
             if (errBox && !errBox.classList.contains('hidden')) return;
@@ -4806,33 +4768,23 @@ function syncHeaderMokjangTitleDOM() {
             if (topBtn) { topBtn.classList.remove('hidden'); topBtn.classList.add('flex'); }
         };
 
-        // 세로보기 <-> 가로보기 토글 함수
         window.toggleYoutubeLandscapeMode = async function(event) {
             if (event) { event.preventDefault(); event.stopPropagation(); }
             const modal = document.getElementById('youtube-clean-player-modal');
             const topTxt = document.getElementById('yt-top-landscape-text');
             const botTxt = document.getElementById('yt-bottom-landscape-text');
             if (!modal) return;
-
             isYtLandscapeMode = !isYtLandscapeMode;
             if (isYtLandscapeMode) {
                 modal.classList.add('yt-landscape-active');
                 if (topTxt) topTxt.textContent = '세로보기';
                 if (botTxt) botTxt.textContent = '세로보기';
-                try {
-                    if (screen.orientation && screen.orientation.lock) {
-                        await screen.orientation.lock('landscape');
-                    }
-                } catch (e) {}
+                try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape'); } catch (e) {}
             } else {
                 modal.classList.remove('yt-landscape-active');
                 if (topTxt) topTxt.textContent = '가로보기';
                 if (botTxt) botTxt.textContent = '가로보기';
-                try {
-                    if (screen.orientation && screen.orientation.unlock) {
-                        screen.orientation.unlock();
-                    }
-                } catch (e) {}
+                try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
             }
         };
 
@@ -4863,7 +4815,6 @@ function syncHeaderMokjangTitleDOM() {
             const botTxt = document.getElementById('yt-bottom-landscape-text');
             if (!modal) return;
 
-            // 항상 모바일 세로보기 모드로 초기화하여 즉시 오픈
             isYtLandscapeMode = false;
             modal.classList.remove('yt-landscape-active');
             if (topTxt) topTxt.textContent = '가로보기';
@@ -4879,25 +4830,18 @@ function syncHeaderMokjangTitleDOM() {
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
-            if (!vid) {
-                window.showDeletedYoutubeMessage();
-                return;
-            }
+            if (!vid) { window.showDeletedYoutubeMessage(); return; }
 
-            // 1. oEmbed 메타데이터 체크 + 2. 썸네일(삭제된 영상은 120x90 반환) 이중 검증
             fetch('https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=' + encodeURIComponent(vid) + '&format=json')
                 .then(res => { if (!res.ok) window.showDeletedYoutubeMessage(); })
                 .catch(() => {});
 
             const probeImg = new Image();
             probeImg.onload = function() {
-                if (probeImg.naturalWidth === 120 && probeImg.naturalHeight === 90) {
-                    window.showDeletedYoutubeMessage();
-                }
+                if (probeImg.naturalWidth === 120 && probeImg.naturalHeight === 90) window.showDeletedYoutubeMessage();
             };
             probeImg.src = 'https://i.ytimg.com/vi/' + encodeURIComponent(vid) + '/mqdefault.jpg';
 
-            // 3. 클린 플레이어(youtube-nocookie) 및 플레이 시작(PLAYING) 시 가로보기 버튼 표시
             const frameId = 'yt-clean-active-iframe';
             const embedUrl = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(vid) + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&enablejsapi=1';
             if (wrap) {
@@ -4905,24 +4849,15 @@ function syncHeaderMokjangTitleDOM() {
             }
 
             if (ytPlayRevealTimer) clearTimeout(ytPlayRevealTimer);
-            ytPlayRevealTimer = setTimeout(() => {
-                window.revealYoutubeLandscapeButton();
-            }, 1400);
+            ytPlayRevealTimer = setTimeout(() => { window.revealYoutubeLandscapeButton(); }, 1300);
 
             if (window.YT && window.YT.Player) {
                 try {
                     currentYtPlayerInstance = new window.YT.Player(frameId, {
                         events: {
-                            onStateChange: function(ev) {
-                                // YT.PlayerState.PLAYING === 1 (플레이 시 가로보기 버튼 즉시 노출)
-                                if (ev && ev.data === 1) {
-                                    window.revealYoutubeLandscapeButton();
-                                }
-                            },
+                            onStateChange: function(ev) { if (ev && ev.data === 1) window.revealYoutubeLandscapeButton(); },
                             onError: function(ev) {
-                                if (ev && (ev.data === 100 || ev.data === 101 || ev.data === 150 || ev.data === 2)) {
-                                    window.showDeletedYoutubeMessage();
-                                }
+                                if (ev && (ev.data === 100 || ev.data === 101 || ev.data === 150 || ev.data === 2)) window.showDeletedYoutubeMessage();
                             }
                         }
                     });
@@ -5064,7 +4999,319 @@ function syncHeaderMokjangTitleDOM() {
             if (fileTitleInput) fileTitleInput.value = '';
             isVideoLinkBoxOpen = false;
             videoUrlsDraft = [''];
+            const videoTitleInput = document.getElementById('post-video-title');
+            if (videoTitleInput) videoTitleInput.value = '';
+            if (postId) {
+                const editVidPost = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+                if (editVidPost) {
+                    if (Array.isArray(editVidPost.videoUrls) && editVidPost.videoUrls.length > 0) {
+                        isVideoLinkBoxOpen = true;
+                        videoUrlsDraft = editVidPost.videoUrls.slice(0, 3);
+                        if (videoTitleInput) videoTitleInput.value = editVidPost.videoTitle || '';
+                    } else if (Array.isArray(editVidPost.videoIds) && editVidPost.videoIds.length > 0) {
+                        isVideoLinkBoxOpen = true;
+                        videoUrlsDraft = editVidPost.videoIds.slice(0, 3).map(id => 'https://youtu.be/' + id);
+                        if (videoTitleInput) videoTitleInput.value = editVidPost.videoTitle || '';
+                    } else if (editVidPost.videoUrl || editVidPost.videoId) {
+                        isVideoLinkBoxOpen = true;
+                        videoUrlsDraft = [editVidPost.videoUrl || ('https://youtu.be/' + editVidPost.videoId)];
+                        if (videoTitleInput) videoTitleInput.value = editVidPost.videoTitle || '';
+                    }
+                }
+            }
+            renderAttachedVideoUI();
+
+            if (postId) {
+                const editTargetPost = cachedPosts.find(p => p.id === postId);
+                if (editTargetPost && (editTargetPost.fileName || editTargetPost.fileId)) {
+                    const matchedFile = cachedMokjangFiles.find(f => f.id === editTargetPost.fileId || f.fileName === editTargetPost.fileName);
+                    if (matchedFile) {
+                        currentAttachedFile = { ...matchedFile, isExisting: true };
+                    } else {
+                        currentAttachedFile = {
+                            fileName: editTargetPost.fileName,
+                            fileSize: editTargetPost.fileSize,
+                            fileType: editTargetPost.fileType || 'application/octet-stream',
+                            id: editTargetPost.fileId || null, dataUrl: editTargetPost.fileDataUrl || '', isExisting: true
+                        };
+                    }
+                    if (fileTitleInput) fileTitleInput.value = editTargetPost.fileTitle || '';
+                }
+            }
+            renderAttachedFileUI();
+
+            if (postId) {
+                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-pen-nib church-primary-text mr-1.5"></i>목장 이야기 수정하기`;
+                document.getElementById('submit-btn-text').innerHTML = `<i class="fa-solid fa-check"></i><span>수정 완료</span>`;
+            } else {
+                document.getElementById('modal-title-text').innerHTML = `<i class="fa-solid fa-pen-nib church-primary-text mr-1.5"></i>목장 이야기 올리기`;
+                document.getElementById('submit-btn-text').innerHTML = `<i class="fa-solid fa-check"></i><span>등록하기</span>`;
+            }
+            document.getElementById('write-modal').classList.remove('hidden');
+        };
+
+        window.closeWriteModal = function() {
+            document.getElementById('write-modal').classList.add('hidden');
+            selectedImagesList = [];
+            originalEditingImages = [];
+            currentAttachedFile = null;
+            isVideoLinkBoxOpen = false;
+            videoUrlsDraft = [''];
+            const vTitleEl = document.getElementById('post-video-title');
+            if (vTitleEl) vTitleEl.value = '';
+            renderAttachedVideoUI();
+            currentLongContentText = "";
+            currentLongContentFontSize = 2;
+            updateLongTextBtnBadge();
+            renderAttachedFileUI();
+            const contentEl = document.getElementById('post-content');
+            if (contentEl) {
+                contentEl.innerHTML = '';
+                contentEl.setAttribute('data-empty', 'true');
+            }
+            selectPostFont('pretendard', false);
+            const fileTitleInput = document.getElementById('post-file-title');
+            if (fileTitleInput) fileTitleInput.value = '';
+            document.getElementById('editing-post-id').value = '';
+        };
+
+        window.requestSavePost = function() {
+            const contentEl = document.getElementById('post-content');
+            const plainText = (contentEl ? contentEl.innerText : '').replace(/\u200B/g, '').trim();
+            const fileTitleInput = document.getElementById('post-file-title');
+            const fileTitle = fileTitleInput ? fileTitleInput.value.trim() : '';
             syncVideoUrlsFromDOM();
+            const videoTitleInput = document.getElementById('post-video-title');
+            const videoTitle = (isVideoLinkBoxOpen && videoTitleInput) ? videoTitleInput.value.trim() : '';
+            const nonEmptyUrls = isVideoLinkBoxOpen ? (videoUrlsDraft || []).map(u => String(u || '').trim()).filter(Boolean) : [];
+            const extractedIds = nonEmptyUrls.map(u => window.extractYoutubeId(u));
+
+            if (isVideoLinkBoxOpen && (videoTitle || nonEmptyUrls.length > 0)) {
+                if (!videoTitle) {
+                    showNotification('영상 제목(20자 이내)을 입력해 주세요.');
+                    if (videoTitleInput) videoTitleInput.focus();
+                    return;
+                }
+                if (nonEmptyUrls.length === 0) {
+                    showNotification('유튜브 영상 링크 주소를 1개 이상 입력해 주세요.');
+                    const firstUrlEl = document.getElementById('post-video-url-0');
+                    if (firstUrlEl) firstUrlEl.focus();
+                    return;
+                }
+                const invalidIdx = extractedIds.findIndex(id => !id);
+                if (invalidIdx !== -1) {
+                    showNotification((invalidIdx + 1) + '번째 유튜브 영상 주소를 바르게 입력해 주세요.');
+                    const badInput = document.getElementById('post-video-url-' + invalidIdx);
+                    if (badInput) badInput.focus();
+                    return;
+                }
+            }
+
+            if (!plainText && !currentLongContentText && selectedImagesList.length === 0 && !currentAttachedFile && extractedIds.length === 0) {
+                showNotification('이야기 내용, 사진, 영상 링크, 또는 첨부파일을 등록해 주세요.');
+                return;
+            }
+
+            if (!plainText && selectedImagesList.length === 0 && currentAttachedFile) {
+                if (!fileTitle) {
+                    showNotification('파일만 첨부할 때는 파일 제목(15자 이내)을 입력해 주세요.');
+                    if (fileTitleInput) fileTitleInput.focus();
+                    return;
+                }
+            }
+
+            document.getElementById('save-confirm-modal').classList.remove('hidden');
+        };
+
+        window.closeSaveConfirmModal = function() {
+            document.getElementById('save-confirm-modal').classList.add('hidden');
+        };
+
+        let isNavigatingToPost = false;
+        let navigationTimer = null;
+
+        window.scrollToPost = function(postId, highlight = true) {
+            const feedContainer = document.getElementById('feed-container');
+            if (!postId) {
+                if (feedContainer) feedContainer.scrollTo({ top: 0, behavior: 'smooth' });
+                window.scrollTo(0, 0);
+                return;
+            }
+
+            isNavigatingToPost = true;
+            if (navigationTimer) clearTimeout(navigationTimer);
+            navigationTimer = setTimeout(() => { isNavigatingToPost = false; }, 2400);
+
+            const targetIdx = cachedPosts.findIndex(p => p.id === postId || String(p.id) === String(postId));
+            if (targetIdx !== -1 && targetIdx >= displayedFeedCount) {
+                displayedFeedCount = Math.min(cachedPosts.length, targetIdx + FEED_BATCH_SIZE);
+                renderFeedList();
+            }
+
+            const alignCardToTop = (useSmooth = true) => {
+                const targetCard = document.getElementById(`post-card-${postId}`);
+                if (!targetCard || !feedContainer) return false;
+
+                window.scrollTo(0, 0);
+                const cardRect = targetCard.getBoundingClientRect();
+                const containerRect = feedContainer.getBoundingClientRect();
+                const targetScrollTop = Math.max(0, feedContainer.scrollTop + (cardRect.top - containerRect.top) - 8);
+
+                if (useSmooth) {
+                    feedContainer.scrollTo({ top: targetScrollTop, behavior: 'smooth' });
+                } else if (Math.abs((cardRect.top - containerRect.top) - 8) > 10) {
+                    feedContainer.scrollTop = targetScrollTop;
+                }
+                return true;
+            };
+
+            const checkAndScroll = (attempts = 0) => {
+                const targetCard = document.getElementById(`post-card-${postId}`);
+                if (targetCard && feedContainer) {
+                    alignCardToTop(true);
+
+                    setTimeout(() => alignCardToTop(false), 180);
+                    setTimeout(() => alignCardToTop(false), 380);
+
+                    if (highlight) {
+                        targetCard.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2');
+                        void targetCard.offsetWidth;
+                        targetCard.classList.add('ring-2', 'ring-emerald-500', 'ring-offset-2', 'transition-all', 'duration-500');
+                        setTimeout(() => {
+                            targetCard.classList.remove('ring-2', 'ring-emerald-500', 'ring-offset-2');
+                        }, 2200);
+                    }
+
+                    if (targetIdx !== -1) {
+                        currentBookmarkTargetIndex = targetIdx;
+                        showBookmark();
+                    }
+                } else if (attempts < 20) {
+                    setTimeout(() => checkAndScroll(attempts + 1), 60);
+                }
+            };
+
+            requestAnimationFrame(() => checkAndScroll(0));
+        };
+
+        // [작업 2-가 & 2-나 반영: 원형 진행 시계 퍼센트(20%~100%) & 1~5단계 지정 용어 표시]
+        const UPLOAD_STAGE_LABELS = [
+            "",
+            "1. 저장 준비 및 용량검사",
+            "2. 사진 고효율 압축처리",
+            "3. 클라우드 저장소 업로드",
+            "4. 저장소 위치 정리",
+            "5. 문서 저장"
+        ];
+        const COMPLETED_STAGE_5_TEXT = "게시글 등록 완료 했습니다";
+        let isSubmittingPostLock = false;
+
+        function setUploadProgressStage(activeStage, isCompleted = false) {
+            const modal = document.getElementById('upload-progress-modal');
+            const descEl = document.getElementById('upload-stage-status-desc');
+            const bar = document.getElementById('upload-progress-bar');
+            const clockRing = document.getElementById('upload-clock-ring');
+            const clockPercent = document.getElementById('upload-clock-percent');
+            const clockIcon = document.getElementById('upload-clock-icon');
+            if (modal) modal.classList.remove('hidden');
+
+            const percentMap = [0, 20, 40, 60, 80, 100];
+            const pct = isCompleted ? 100 : (percentMap[activeStage] || 20);
+
+            if (bar) {
+                bar.style.width = `${pct}%`;
+            }
+            if (clockPercent) {
+                clockPercent.textContent = `${pct}%`;
+            }
+            if (clockRing) {
+                const circumference = 169.65; // 2 * PI * 27
+                const offset = circumference - (pct / 100) * circumference;
+                clockRing.style.strokeDashoffset = offset.toFixed(2);
+            }
+            if (clockIcon) {
+                if (isCompleted) {
+                    clockIcon.className = "fa-solid fa-circle-check text-emerald-600 text-xs mb-0.5";
+                } else {
+                    clockIcon.className = "fa-regular fa-clock text-emerald-700 text-[11px] mb-0.5 animate-clock-hand";
+                }
+            }
+
+            if (descEl) {
+                descEl.innerText = isCompleted ? `${COMPLETED_STAGE_5_TEXT} (100%)` : `${UPLOAD_STAGE_LABELS[activeStage]} (${pct}%)`;
+            }
+
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById(`upload-stage-${i}`);
+                if (!el) continue;
+                const icon = el.querySelector('.stage-icon');
+                const text = el.querySelector('.stage-text');
+                if (text) {
+                    text.innerText = UPLOAD_STAGE_LABELS[i];
+                }
+
+                if (i < activeStage || (i === 5 && isCompleted)) {
+                    el.className = "flex items-center space-x-2 text-emerald-700 font-semibold";
+                    if (icon) icon.innerText = "✅";
+                } else if (i === activeStage) {
+                    el.className = "flex items-center space-x-2 text-emerald-800 font-bold animate-pulse";
+                    if (icon) icon.innerText = "⏳";
+                } else {
+                    el.className = "flex items-center space-x-2 text-gray-400";
+                    if (icon) icon.innerText = "⚪";
+                }
+            }
+        }
+
+        function closeUploadProgressModal() {
+            const modal = document.getElementById('upload-progress-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        window.executeSubmitPost = async function() {
+            if (isSubmittingPostLock) return;
+            closeSaveConfirmModal();
+            const postId = document.getElementById('editing-post-id').value;
+
+            if (postId) {
+                const targetPost = cachedPosts.find(p => p.id === postId || String(p.id) === String(postId));
+                if (targetPost && !canModifyPost(targetPost)) {
+                    showNotification("작성자 본인 또는 목자만 게시글을 수정할 수 있습니다.");
+                    return;
+                }
+            }
+
+            isSubmittingPostLock = true;
+            const contentEl = document.getElementById('post-content');
+            let rawEditorHtml = contentEl ? contentEl.innerHTML.replace(/\u200B/g, '').trim() : '';
+            let content = cleanPostHtmlContent(rawEditorHtml);
+            if (content === '<br>' || content === '<div><br></div>') content = '';
+            if (!content && currentLongContentText) {
+                content = currentLongContentText.length > 80 ? currentLongContentText.substring(0, 80).trim() + '...' : currentLongContentText.trim();
+            }
+            const finalImages = [...selectedImagesList];
+            const fileToSave = currentAttachedFile;
+            setDbStatus('saving');
+            setUploadProgressStage(1, false);
+            await new Promise(r => setTimeout(r, 60));
+
+            try {
+                const isImagesUnchanged = Boolean(postId && finalImages.length === originalEditingImages.length && finalImages.every((img, idx) => img === originalEditingImages[idx]));
+                setUploadProgressStage(2, false);
+                if (!isImagesUnchanged) await new Promise(r => setTimeout(r, 60));
+
+                setUploadProgressStage(3, false);
+                const uploadedImages = isImagesUnchanged
+                    ? [...finalImages]
+                    : await Promise.all(finalImages.map(imgData => {
+                        if (!imgData || imgData.startsWith('http://') || imgData.startsWith('https://') || (postId && originalEditingImages.includes(imgData))) return Promise.resolve(imgData);
+                        return uploadPhotoToStorage(imgData);
+                    }));
+
+                setUploadProgressStage(4, false);
+                await new Promise(r => setTimeout(r, 50));
+
+                syncVideoUrlsFromDOM();
                 const videoTitleInput = document.getElementById('post-video-title');
                 const rawVideoTitle = (isVideoLinkBoxOpen && videoTitleInput) ? videoTitleInput.value.trim().substring(0, 20) : '';
                 const cleanVideoUrls = [];
@@ -5073,16 +5320,12 @@ function syncHeaderMokjangTitleDOM() {
                     videoUrlsDraft.slice(0, 3).forEach(u => {
                         const trimmed = String(u || '').trim();
                         const vid = window.extractYoutubeId(trimmed);
-                        if (trimmed && vid) {
-                            cleanVideoUrls.push(trimmed);
-                            cleanVideoIds.push(vid);
-                        }
+                        if (trimmed && vid) { cleanVideoUrls.push(trimmed); cleanVideoIds.push(vid); }
                     });
                 }
                 const finalVideoTitle = cleanVideoIds.length > 0 ? (rawVideoTitle || '목장 영상 나눔') : '';
                 const finalVideoUrl = cleanVideoUrls[0] || '';
                 const extractedVideoId = cleanVideoIds[0] || '';
-
                 let savedFileId = null, savedFileName = null, savedFileSize = null;
                 const fileTitleInput = document.getElementById('post-file-title');
                 const fileTitle = fileTitleInput ? fileTitleInput.value.trim().substring(0, 15) : '';
@@ -5112,6 +5355,18 @@ function syncHeaderMokjangTitleDOM() {
                     }
                     const updatePayload = {
                         content: content, fontFamily: currentSelectedFont || 'pretendard',
+                        longContent: currentLongContentText || '', longFontSize: currentLongContentFontSize || 2,
+                        videoTitle: finalVideoTitle, videoUrl: finalVideoUrl, videoId: extractedVideoId,
+                        videoUrls: cleanVideoUrls, videoIds: cleanVideoIds,
+                        photoCaptions: reindexedCaptions, updatedAt: new Date()
+                    };
+                    if (!isImagesUnchanged) { updatePayload.images = uploadedImages; updatePayload.imageUrl = uploadedImages.length > 0 ? uploadedImages[0] : ""; }
+                    if (savedFileId) { updatePayload.fileId = savedFileId; updatePayload.fileName = savedFileName; updatePayload.fileSize = savedFileSize; updatePayload.fileTitle = fileTitle || ''; }
+                    await updateDoc(getPostDocRef(postId), updatePayload);
+                } else {
+                    const postPayload = {
+                        mokjangName: currentMokjang, mokjangCode: (typeof currentMokjangCode !== 'undefined' ? currentMokjangCode : ''),
+                        author: currentUser, authorTitle: (typeof window.getAuthorChurchTitle === 'function' ? window.getAuthorChurchTitle(currentUser) : ''), authorUid: reactionUserId, content: content, fontFamily: currentSelectedFont || 'pretendard',
                         longContent: currentLongContentText || '', longFontSize: currentLongContentFontSize || 2,
                         videoTitle: finalVideoTitle, videoUrl: finalVideoUrl, videoId: extractedVideoId,
                         videoUrls: cleanVideoUrls, videoIds: cleanVideoIds,
@@ -7408,25 +7663,21 @@ function syncHeaderMokjangTitleDOM() {
             if (postVideoList.length > 0) {
                 const totalVids = postVideoList.length;
                 const buttonsHtml = postVideoList.map((vItem, vIdx) => {
-                    const btnLabel = totalVids === 1 ? '보기' : `보기${vIdx + 1}`;
+                    const btnLabel = totalVids === 1 ? '보기' : ('보기' + (vIdx + 1));
                     const safeVArg = escapeHtml(String(vItem)).replace(/'/g, "\\'");
-                    return `<button type="button" onclick="event.stopPropagation(); window.openYoutubeCleanPlayerModal('${safeVArg}', '${safeVidTitleArg}', '${btnLabel}', event)" class="no-export shrink-0 px-1.5 py-0.5 rounded-md bg-pink-100 hover:bg-pink-200/90 active:scale-95 text-rose-800 border border-pink-200/90 font-extrabold text-[10.5px] leading-tight shadow-2xs transition-all">${btnLabel}</button>`;
+                    return '<button type="button" onclick="event.stopPropagation(); window.openYoutubeCleanPlayerModal(\'' + safeVArg + '\', \'' + safeVidTitleArg + '\', \'' + btnLabel + '\', event)" class="no-export shrink-0 px-1.5 py-0.5 rounded bg-pink-100 hover:bg-pink-200/90 active:scale-95 text-rose-800 border border-pink-200/90 font-extrabold text-[10.5px] leading-tight transition-all">' + btnLabel + '</button>';
                 }).join('');
 
                 const firstVidArg = escapeHtml(String(postVideoList[0])).replace(/'/g, "\\'");
                 const firstBtnLabel = totalVids === 1 ? '보기' : '보기1';
 
-                videoBannerHtml = `
-                    <div class="mt-0.5 mb-0.5 px-2 py-1 rounded-lg bg-pink-50/35 border border-pink-200/70 flex items-center justify-between gap-1.5">
-                        <div onclick="event.stopPropagation(); window.openYoutubeCleanPlayerModal('${firstVidArg}', '${safeVidTitleArg}', '${firstBtnLabel}', event)" class="flex items-center space-x-1.5 min-w-0 flex-1 cursor-pointer">
-                            <i class="fa-brands fa-youtube text-rose-500 text-xs shrink-0"></i>
-                            <span class="font-bold text-[13px] text-gray-800 truncate tracking-tight leading-snug">${escapeHtml(safeVidTitleText)}</span>
-                        </div>
-                        <div class="flex items-center space-x-1 shrink-0">
-                            ${buttonsHtml}
-                        </div>
-                    </div>
-                `;
+                videoBannerHtml = '<div class="mt-0.5 mb-0.5 px-2 py-1 rounded-lg bg-pink-50/30 border border-pink-200/60 flex items-center justify-between gap-1.5">' +
+                    '<div onclick="event.stopPropagation(); window.openYoutubeCleanPlayerModal(\'' + firstVidArg + '\', \'' + safeVidTitleArg + '\', \'' + firstBtnLabel + '\', event)" class="flex items-center space-x-1.5 min-w-0 flex-1 cursor-pointer">' +
+                        '<i class="fa-brands fa-youtube text-rose-500 text-xs shrink-0"></i>' +
+                        '<span class="font-bold text-[13px] text-gray-800 truncate tracking-tight leading-snug">' + escapeHtml(safeVidTitleText) + '</span>' +
+                    '</div>' +
+                    '<div class="flex items-center space-x-1 shrink-0">' + buttonsHtml + '</div>' +
+                '</div>';
             }
 
             let formattedContent = '';
@@ -7435,8 +7686,7 @@ function syncHeaderMokjangTitleDOM() {
             } else if (hasLong) {
                 formattedContent = `<div class="post-content-body font-gowun-dodum pt-0.5 pb-0.5 px-0.5 text-[15.5px] text-gray-800 leading-snug tracking-tight text-left">${inlineLongBtn}</div>`;
             }
-            formattedContent = videoBannerHtml + formattedContent;</div>`;
-            }
+            formattedContent = videoBannerHtml + formattedContent;
 
             card.innerHTML = `
                 <div id="post-card-${post.id}" class="w-full bg-white rounded-2xl border church-border shadow-xs flex flex-col p-2 box-border relative text-left">
