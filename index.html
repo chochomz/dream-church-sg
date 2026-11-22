@@ -539,8 +539,8 @@
             pointer-events: auto !important;
             position: fixed !important;
             border-radius: 14px !important;
-            border: 1.5px solid rgba(255, 255, 255, 0.95) !important;
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38) !important;
+            border: none !important;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45) !important;
             background: #000000 !important;
             overflow: visible !important;
             touch-action: none !important;
@@ -556,7 +556,7 @@
             position: relative !important;
             width: 100% !important;
             aspect-ratio: 16 / 9 !important;
-            border-radius: 12px !important;
+            border-radius: 14px !important;
             overflow: hidden !important;
             background: #000000 !important;
         }
@@ -564,8 +564,8 @@
             position: absolute !important;
             top: 0 !important;
             left: 0 !important;
-            width: 100% !important;
-            height: 100% !important;
+            transform-origin: top left !important;
+            will-change: transform;
         }
         #youtube-clean-iframe-wrapper iframe {
             width: 100% !important;
@@ -578,10 +578,37 @@
         }
         .yt-resize-corner {
             position: absolute;
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
             z-index: 35;
             touch-action: none;
+        }
+        /* 우측 하단 볼록 [✕ 닫기] 버튼 탭 */
+        #yt-bottom-close-tab {
+            position: absolute;
+            right: 18px;
+            bottom: -24px;
+            z-index: 32;
+            background: rgba(15, 23, 42, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.85);
+            border-top: none;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            padding: 3px 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+            cursor: pointer;
+            user-select: none;
+            color: #ffffff;
+            font-size: 10.5px;
+            font-weight: 800;
+            transition: background 0.15s, transform 0.1s;
+        }
+        #yt-bottom-close-tab:active {
+            transform: scale(0.95);
+            background: #e11d48;
         }
         /* 우측 하단 크기조절 모서리와 간섭 없는 부드러운 볼록 소리유지 탭 */
         #yt-bottom-convex-tab {
@@ -2012,7 +2039,7 @@ window.proceedToExternalAdminPage = function() {
     <div id="youtube-clean-player-modal" class="fixed inset-0 z-[118] hidden select-none">
         <div id="youtube-modal-card" style="width: 320px; left: 16px; top: 88px;" class="flex flex-col">
             <div id="youtube-ratio-box" class="relative w-full overflow-hidden bg-black">
-                <div id="youtube-clean-iframe-wrapper"></div>
+                <div id="youtube-clean-iframe-wrapper" style="width: 480px; height: 270px;"></div>
                 <div id="youtube-deleted-error-box" class="hidden absolute inset-0 w-full h-full bg-slate-900/90 flex-col items-center justify-center p-3 text-center space-y-1.5 z-25">
                     <div class="text-xl leading-none animate-bounce">😊</div>
                     <p class="text-white font-extrabold text-[11px] leading-snug break-keep">
@@ -2024,20 +2051,23 @@ window.proceedToExternalAdminPage = function() {
                 </div>
             </div>
 
-            <!-- 우측 하단 크기조절 모서리와 간섭 없는 부드러운 볼록 소리유지 탭 -->
-            <label id="yt-bottom-convex-tab" onpointerdown="event.stopPropagation();" onclick="event.stopPropagation();" title="체크하면 창을 어느 방향으로든 밀어 숨겨도 소리가 계속 나옵니다">
-                <input type="checkbox" id="yt-modal-keep-audio-chk" onchange="window.toggleKeepYoutubeAudio(this.checked)" class="w-3 h-3 accent-rose-500 rounded-xs cursor-pointer">
-                <span class="text-white text-[9.5px] font-extrabold tracking-tight leading-none ml-1">소리유지</span>
-            </label>
+            <!-- 우측 하단 볼록 [✕ 닫기] 버튼 탭 -->
+            <button type="button" id="yt-bottom-close-tab" onpointerdown="event.stopPropagation();" onclick="window.closeYoutubeCleanPlayerModal(event, true)" title="유튜브 영상 및 소리를 완전히 종료합니다">
+                <i class="fa-solid fa-xmark mr-1 text-[10px]"></i><span>닫기</span>
+            </button>
 
-            <!-- 4개 모서리 크기 조절 핸들 -->
-            <div class="yt-resize-corner top-0 left-0 cursor-nwse-resize" data-corner="nw" title="모서리 잡고 크기 조절"></div>
-            <div class="yt-resize-corner top-0 right-0 cursor-nesw-resize" data-corner="ne" title="모서리 잡고 크기 조절"></div>
-            <div class="yt-resize-corner bottom-0 left-0 cursor-nesw-resize flex items-end justify-start p-[1px]" data-corner="sw" title="모서리 잡고 크기 조절">
-                <span class="w-2.5 h-2.5 border-b-2 border-l-2 border-white rounded-bl-[3px] pointer-events-none drop-shadow"></span>
+            <!-- 4개 모서리 둥근 ㄱ 코너 리사이즈 핸들 -->
+            <div class="yt-resize-corner top-0 left-0 cursor-nwse-resize p-[2px] flex items-start justify-start" data-corner="nw" title="모서리 잡고 크기 조절">
+                <span class="w-3 h-3 border-t-2 border-l-2 border-white rounded-tl-[6px] pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"></span>
             </div>
-            <div class="yt-resize-corner bottom-0 right-0 cursor-nwse-resize flex items-end justify-end p-[1px]" data-corner="se" title="모서리 잡고 크기 조절">
-                <span class="w-2.5 h-2.5 border-b-2 border-r-2 border-white rounded-br-[3px] pointer-events-none drop-shadow"></span>
+            <div class="yt-resize-corner top-0 right-0 cursor-nesw-resize p-[2px] flex items-start justify-end" data-corner="ne" title="모서리 잡고 크기 조절">
+                <span class="w-3 h-3 border-t-2 border-r-2 border-white rounded-tr-[6px] pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"></span>
+            </div>
+            <div class="yt-resize-corner bottom-0 left-0 cursor-nesw-resize p-[2px] flex items-end justify-start" data-corner="sw" title="모서리 잡고 크기 조절">
+                <span class="w-3 h-3 border-b-2 border-l-2 border-white rounded-bl-[6px] pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"></span>
+            </div>
+            <div class="yt-resize-corner bottom-0 right-0 cursor-nwse-resize p-[2px] flex items-end justify-end" data-corner="se" title="모서리 잡고 크기 조절">
+                <span class="w-3 h-3 border-b-2 border-r-2 border-white rounded-br-[6px] pointer-events-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"></span>
             </div>
         </div>
     </div>
@@ -4804,14 +4834,25 @@ function syncHeaderMokjangTitleDOM() {
 
         function applyYtPipRectToDom() {
             const card = document.getElementById('youtube-modal-card');
+            const wrap = document.getElementById('youtube-clean-iframe-wrapper');
             if (!card) return;
 
             const w = Math.round(ytPipRect.width);
+            const baseW = 480;
+            const baseH = 270;
+            const scale = w / baseW;
+
             card.style.width = w + 'px';
             if (!card.classList.contains('yt-audio-minimized')) {
                 card.style.left = Math.round(ytPipRect.left) + 'px';
             }
             card.style.top = Math.round(ytPipRect.top) + 'px';
+
+            if (wrap) {
+                wrap.style.width = baseW + 'px';
+                wrap.style.height = baseH + 'px';
+                wrap.style.transform = 'scale(' + scale.toFixed(4) + ')';
+            }
         }
 
         window.restoreMinimizedYoutubeModal = function(event) {
@@ -4840,7 +4881,7 @@ function syncHeaderMokjangTitleDOM() {
             let lastMoveTime = 0, velX = 0, velY = 0, lastClientX = 0, lastClientY = 0;
 
             card.addEventListener('pointerdown', function(e) {
-                if (e.target.closest('input, label, button')) return;
+                if (e.target.closest('button, a, input, label, #yt-bottom-close-tab')) return;
                 const cornerEl = e.target.closest('.yt-resize-corner');
                 mode = cornerEl ? cornerEl.getAttribute('data-corner') : 'move';
 
@@ -4950,6 +4991,7 @@ function syncHeaderMokjangTitleDOM() {
 
                         card.style.transform = 'translate(' + transX + 'px, ' + transY + 'px)';
                         card.style.opacity = '0';
+                        // 360도 어디든 던지면 소리 유지하면서 책갈피 음표 활성화!
                         setTimeout(() => window.closeYoutubeCleanPlayerModal(null, false), 200);
                         return;
                     }
@@ -4976,10 +5018,8 @@ function syncHeaderMokjangTitleDOM() {
             const wrap = document.getElementById('youtube-clean-iframe-wrapper');
             const errBox = document.getElementById('youtube-deleted-error-box');
             const audioBtn = document.getElementById('feed-bookmark-audio-btn');
-            const modalChk = document.getElementById('yt-modal-keep-audio-chk');
             if (!modal || !card) return;
 
-            if (modalChk) modalChk.checked = keepYoutubeAudioOnHide;
             if (audioBtn) { audioBtn.classList.add('hidden'); audioBtn.classList.remove('flex'); }
 
             if (!modal.classList.contains('hidden') && card.classList.contains('yt-audio-minimized') && currentPlayingVid === vid && wrap && wrap.innerHTML !== '') {
@@ -5010,10 +5050,6 @@ function syncHeaderMokjangTitleDOM() {
 
             if (!vid) { window.showDeletedYoutubeMessage(); return; }
 
-            fetch('https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=' + encodeURIComponent(vid) + '&format=json')
-                .then(res => { if (!res.ok) window.showDeletedYoutubeMessage(); })
-                .catch(() => {});
-
             const embedUrl = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(vid) + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&fs=1&iv_load_policy=3&cc_load_policy=0&hl=ko';
             if (wrap) {
                 wrap.innerHTML = '<iframe src="' + embedUrl + '" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>';
@@ -5030,7 +5066,8 @@ function syncHeaderMokjangTitleDOM() {
             const audioBtn = document.getElementById('feed-bookmark-audio-btn');
             const isErrorShowing = errBox && !errBox.classList.contains('hidden');
 
-            if (keepYoutubeAudioOnHide && !forceStop && !isErrorShowing && wrap && wrap.innerHTML !== '') {
+            // 슬라이드로 던졌을 때(forceStop === false)는 무조건 소리 유지 & 책갈피 음표 활성화
+            if (!forceStop && !isErrorShowing && wrap && wrap.innerHTML !== '') {
                 if (card) {
                     card.style.transform = 'translate(0px, 0px)';
                     card.classList.add('yt-audio-minimized');
@@ -5045,6 +5082,7 @@ function syncHeaderMokjangTitleDOM() {
                 return;
             }
 
+            // [✕ 닫기] 버튼을 눌렀을 때는 소리와 영상 완전히 종료
             currentPlayingVid = '';
             if (wrap) wrap.innerHTML = '';
             if (errBox) { errBox.classList.add('hidden'); errBox.classList.remove('flex'); }
